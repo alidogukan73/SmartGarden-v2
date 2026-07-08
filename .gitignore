@@ -1,0 +1,26 @@
+credentials/
+
+smartgarden.log
+
+firebase_key.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Virtual Environment
+.venv/
+
+# Logs
+logs/
+*.log
+
+# Ruff
+.ruff_cache/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
