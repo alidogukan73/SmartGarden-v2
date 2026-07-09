@@ -74,3 +74,16 @@ class LogConfig:
     DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     LOG_FILE = "smartgarden.log"
+class IrrigationConfig:
+    """
+    Irrigation configuration.
+    """
+
+    # Toprak nem eşiği (%)
+    DEFAULT_MOISTURE_LIMIT = 40
+
+    # Varsayılan sulama süresi (saniye)
+    DEFAULT_PUMP_DURATION_SECONDS = 10
+
+    # Sulama sonrası bekleme süresi (v2.3.6/v2.4'te kullanılacak)
+    COOLDOWN_SECONDS = 120

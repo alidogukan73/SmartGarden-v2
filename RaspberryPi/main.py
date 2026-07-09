@@ -42,10 +42,6 @@ def main() -> None:
             "Stopping SmartGarden...",
         )
 
-    except Exception as exc:
-
-        logger.exception(exc)
-
     finally:
 
         service.cleanup()

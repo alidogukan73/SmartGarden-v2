@@ -17,6 +17,8 @@ from firebase_admin import db
 
 from core.config import AppConfig
 from core.config import FirebaseConfig
+from core.config import IrrigationConfig
+
 from core.logger import AppLogger
 
 from models.command_state import CommandState
@@ -39,8 +41,8 @@ class FirebaseService:
             auto_mode=True,
             relay=False,
             enabled=True,
-            moisture_limit=40,
-            pump_duration=10,
+            moisture_limit=IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
+            pump_duration=IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
         )
 
         self._command_lock = threading.Lock()
@@ -78,6 +80,8 @@ class FirebaseService:
 
             self.initialize_commands()
 
+            self.increment_restart_count()
+
             self.start_command_sync()
 
             self._logger.info(
@@ -89,6 +93,8 @@ class FirebaseService:
             self._logger.exception(exc)
 
             raise
+        
+        
 
     def _device_ref(self) -> db.Reference:
         """
@@ -116,8 +122,8 @@ class FirebaseService:
                 "auto_mode": True,
                 "relay": False,
                 "enabled": True,
-                "moisture_limit": 40,
-                "pump_duration": 10,
+                "moisture_limit": IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
+                "pump_duration": IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
             },
         )
 
@@ -133,6 +139,85 @@ class FirebaseService:
                 "online": True,
                 "version": AppConfig.VERSION,
                 "last_seen": datetime.now().isoformat(),
+                "last_error": "",
+            },
+        )
+
+    def update_health_status(
+        self,
+        *,
+        relay: bool,
+        uptime: int,
+        sensor_time: str,
+    ) -> None:
+        """
+        Update runtime health information.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "relay": relay,
+                "uptime_seconds": uptime,
+                "last_sensor_read": sensor_time,
+            },
+        )
+
+    def update_last_watering(
+        self,
+        timestamp: str,
+    ) -> None:
+        """
+        Update last watering time.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "last_watering": timestamp,
+            },
+        )
+
+    def report_error(
+        self,
+        message: str,
+    ) -> None:
+        """
+        Save last application error.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "last_error": message,
+                "last_seen": datetime.now().isoformat(),
+            },
+        )
+
+    def increment_restart_count(self) -> None:
+        """
+        Increment device restart counter.
+        """
+
+        status_ref = self._device_ref().child(
+            "status",
+        )
+
+        status = status_ref.get() or {}
+
+        restart_count = int(
+            status.get(
+                "restart_count",
+                0,
+            ),
+        )
+
+        status_ref.update(
+            {
+                "restart_count": restart_count + 1,
             },
         )
 
@@ -196,8 +281,8 @@ class FirebaseService:
                 auto_mode=True,
                 relay=False,
                 enabled=True,
-                moisture_limit=40,
-                pump_duration=10,
+                moisture_limit=IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
+                pump_duration=IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
             )
 
         return CommandState(
@@ -222,13 +307,13 @@ class FirebaseService:
             moisture_limit=int(
                 commands.get(
                     "moisture_limit",
-                    40,
+                    IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
                 ),
             ),
             pump_duration=int(
                 commands.get(
                     "pump_duration",
-                    10,
+                    IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
                 ),
             ),
         )
@@ -324,6 +409,25 @@ class FirebaseService:
             )
 
         self._sync_thread = None
+        
+    def set_online(
+        self,
+        online: bool,
+    ) -> None:
+        """
+        Update device online status.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "online": online,
+                "last_seen": datetime.now().isoformat(),
+            },
+        )
+
+
 
     @property
     def command_state(self) -> CommandState:

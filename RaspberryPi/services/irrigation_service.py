@@ -36,6 +36,7 @@ class IrrigationService:
         )
 
         self._last_status_update = 0.0
+        self._started_at = 0.0
 
     def initialize(self) -> None:
         """
@@ -51,6 +52,7 @@ class IrrigationService:
         self._firebase.update_status()
 
         self._last_status_update = time.monotonic()
+        self._started_at = time.monotonic()
 
         self._logger.info(
             "Irrigation service initialized.",
@@ -77,110 +79,150 @@ class IrrigationService:
         Execute one irrigation cycle.
         """
 
-        commands = self._firebase.command_state
+        try:
 
-        reading = self._sensor.read()
+            # Firebase komutlarını oku.
+            commands = self._firebase.command_state
 
-        self._firebase.update_sensor(
-            reading,
-        )
+            # Sensörü oku.
+            reading = self._sensor.read()
 
-        self._update_status_if_needed()
+            # Sensör verisini Firebase'e gönder.
+            self._firebase.update_sensor(reading)
 
-        if not commands.enabled:
+            # Cihaz durumunu güncelle.
+            self._update_status_if_needed()
 
-            self._relay.off()
+            # Sistem devre dışıysa röleyi kapat.
+            if not commands.enabled:
+
+                self._relay.off()
+
+                self._logger.info(
+                    "System disabled from Firebase.",
+                )
+
+                return
+
+            # AUTO MODE
+            if commands.auto_mode:
+
+                if self._controller.should_water(
+                    reading,
+                    commands,
+                ):
+
+                    started_at = datetime.now()
+
+                    completed = self._controller.water(
+                        duration=commands.pump_duration,
+                        get_commands=lambda: self._firebase.command_state,
+                    )
+
+                    finished_at = datetime.now()
+
+                    record = WateringRecord(
+                        started_at=started_at.isoformat(),
+                        finished_at=finished_at.isoformat(),
+                        duration=int(
+                            (
+                                finished_at - started_at
+                            ).total_seconds(),
+                        ),
+                        moisture_before=reading.moisture,
+                        moisture_limit=commands.moisture_limit,
+                        completed=completed,
+                        mode="AUTO",
+                    )
+
+                    self._firebase.add_watering_record(
+                        record,
+                    )
+
+                    self._firebase.update_last_watering(
+                        finished_at.isoformat(),
+                    )
+
+                else:
+
+                    self._relay.off()
+
+                mode = "AUTO"
+
+            # MANUAL MODE
+            else:
+
+                if commands.relay:
+                    self._relay.on()
+                else:
+                    self._relay.off()
+
+                mode = "MANUAL"
 
             self._logger.info(
-                "System disabled.",
+                "Mode=%s Raw=%d Voltage=%.3f V Moisture=%d%% "
+                "Limit=%d%% Relay=%s",
+                mode,
+                reading.raw,
+                reading.voltage,
+                reading.moisture,
+                commands.moisture_limit,
+                "ON" if self._relay.is_on else "OFF",
             )
 
-            return
-
-        mode = (
-            "AUTO"
-            if commands.auto_mode
-            else "MANUAL"
-        )
-
-        if commands.auto_mode:
-
-            if self._controller.should_water(
-                reading,
+            self._logger.debug(
+                "Commands: %s",
                 commands,
-            ):
+            )
 
-                started_at = datetime.now()
+        except Exception as exc:
 
-                completed = self._controller.water(
-                    duration=commands.pump_duration,
-                    get_commands=lambda:
-                        self._firebase.command_state,
+            # Fail Safe
+            self._relay.off()
+
+            self._logger.exception(exc)
+
+            try:
+
+                self._firebase.report_error(
+                    str(exc),
                 )
 
-                finished_at = datetime.now()
+            except Exception:
 
-                record = WateringRecord(
-                    started_at=started_at.isoformat(),
-                    finished_at=finished_at.isoformat(),
-                    duration=int(
-                        (
-                            finished_at
-                            - started_at
-                        ).total_seconds(),
-                    ),
-                    moisture_before=reading.moisture,
-                    moisture_limit=commands.moisture_limit,
-                    completed=completed,
-                    mode="AUTO",
+                pass
+
+            self._logger.error(
+                "Update cycle failed. Relay=%s",
+                "ON" if self._relay.is_on else "OFF",
+            )
+
+        finally:
+
+            uptime = int(
+                time.monotonic()
+                - self._started_at
+            )
+
+            try:
+
+                self._firebase.update_health_status(
+                    relay=self._relay.is_on,
+                    uptime=uptime,
+                    sensor_time=datetime.now().isoformat(),
                 )
 
-                self._firebase.add_watering_record(
-                    record,
-                )
+            except Exception:
 
-            else:
-
-                self._relay.off()
-
-        else:
-
-            if commands.relay:
-
-                self._relay.on()
-
-            else:
-
-                self._relay.off()
-
-        self._logger.info(
-            (
-                "Mode=%s "
-                "Raw=%d "
-                "Voltage=%.3f V "
-                "Moisture=%d%% "
-                "Limit=%d%% "
-                "Relay=%s"
-            ),
-            mode,
-            reading.raw,
-            reading.voltage,
-            reading.moisture,
-            commands.moisture_limit,
-            "ON"
-            if self._relay.is_on
-            else "OFF",
-        )
-
-        self._logger.debug(
-            "Commands=%s",
-            commands,
-        )
+                # Sağlık bilgisi güncellenemezse ana döngüyü durdurma.
+                pass
 
     def cleanup(self) -> None:
         """
-        Release resources.
+        Release hardware resources.
         """
+
+        self._firebase.set_online(False)
 
         self._firebase.stop_command_sync()
 
