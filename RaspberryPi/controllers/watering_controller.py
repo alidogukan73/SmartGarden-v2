@@ -7,12 +7,12 @@ Contains irrigation decision logic.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 
 from core.logger import AppLogger
 from hardware.relay import RelayController
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
-from typing import Callable
 
 
 class WateringController:
@@ -34,20 +34,33 @@ class WateringController:
         commands: CommandState,
     ) -> bool:
         """
-        Decide whether watering is required.
+        Decide whether irrigation is required.
         """
 
-        return reading.moisture < commands.moisture_limit
+        return (
+            reading.moisture
+            < commands.moisture_limit
+        )
+
     def water(
         self,
         duration: int,
-        get_commands: Callable[[], CommandState],
+        get_commands: Callable[
+            [],
+            CommandState,
+        ],
     ) -> bool:
         """
         Water for the specified duration.
 
-        Commands are checked periodically so
-        irrigation can be interrupted.
+        During irrigation, Firebase commands are checked
+        periodically so watering can be interrupted.
+
+        Returns
+        -------
+        bool
+            True if watering completed normally,
+            False if interrupted.
         """
 
         self._logger.info(
@@ -57,14 +70,18 @@ class WateringController:
 
         self._relay.on()
 
-        start_time = time.monotonic()
-
         completed = True
 
-        while time.monotonic() - start_time < duration:
+        start_time = time.monotonic()
+
+        while (
+            time.monotonic() - start_time
+            < duration
+        ):
 
             commands = get_commands()
 
+            # System disabled
             if not commands.enabled:
 
                 self._logger.info(
@@ -74,6 +91,7 @@ class WateringController:
                 completed = False
                 break
 
+            # Manual mode selected
             if not commands.auto_mode:
 
                 self._logger.info(
@@ -91,4 +109,4 @@ class WateringController:
             "Irrigation finished.",
         )
 
-        return completed    
+        return completed

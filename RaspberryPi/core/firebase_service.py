@@ -12,10 +12,13 @@ from datetime import datetime
 from pathlib import Path
 
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import credentials
+from firebase_admin import db
 
-from core.config import AppConfig, FirebaseConfig
+from core.config import AppConfig
+from core.config import FirebaseConfig
 from core.logger import AppLogger
+
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from models.watering_record import WateringRecord
@@ -27,7 +30,9 @@ class FirebaseService:
     """
 
     def __init__(self) -> None:
+
         self._logger = AppLogger().logger
+
         self._initialized = False
 
         self._command_state = CommandState(
@@ -54,25 +59,36 @@ class FirebaseService:
         if self._initialized:
             return
 
-        credential = credentials.Certificate(
-            Path(FirebaseConfig.CREDENTIALS_FILE),
-        )
+        try:
 
-        firebase_admin.initialize_app(
-            credential,
-            {
-                "databaseURL": FirebaseConfig.DATABASE_URL,
-            },
-        )
+            credential = credentials.Certificate(
+                Path(
+                    FirebaseConfig.CREDENTIALS_FILE,
+                ),
+            )
 
-        self._initialized = True
+            firebase_admin.initialize_app(
+                credential,
+                {
+                    "databaseURL": FirebaseConfig.DATABASE_URL,
+                },
+            )
 
-        self.initialize_commands()
-        self.start_command_sync()
+            self._initialized = True
 
-        self._logger.info(
-            "Firebase initialized successfully.",
-        )
+            self.initialize_commands()
+
+            self.start_command_sync()
+
+            self._logger.info(
+                "Firebase initialized successfully.",
+            )
+
+        except Exception as exc:
+
+            self._logger.exception(exc)
+
+            raise
 
     def _device_ref(self) -> db.Reference:
         """
@@ -133,7 +149,10 @@ class FirebaseService:
         ).update(
             {
                 "raw": reading.raw,
-                "voltage": round(reading.voltage, 3),
+                "voltage": round(
+                    reading.voltage,
+                    3,
+                ),
                 "moisture": reading.moisture,
                 "updated_at": datetime.now().isoformat(),
             },
@@ -160,10 +179,9 @@ class FirebaseService:
                 "mode": record.mode,
             },
         )
-
     def get_commands(self) -> CommandState:
         """
-        Read command values from Firebase.
+        Read commands from Firebase.
         """
 
         commands = (
@@ -173,6 +191,7 @@ class FirebaseService:
         )
 
         if commands is None:
+
             return CommandState(
                 auto_mode=True,
                 relay=False,
@@ -216,7 +235,7 @@ class FirebaseService:
 
     def _sync_commands(self) -> None:
         """
-        Continuously synchronize commands from Firebase.
+        Background command synchronization.
         """
 
         self._logger.info(
@@ -226,11 +245,13 @@ class FirebaseService:
         while self._running:
 
             try:
+
                 new_state = self.get_commands()
 
                 with self._command_lock:
                     self._command_state = new_state
 
+                # Connection recovered
                 self._retry_delay = 0.5
 
             except Exception as exc:
@@ -245,7 +266,9 @@ class FirebaseService:
                     exc,
                 )
 
-                time.sleep(self._retry_delay)
+                time.sleep(
+                    self._retry_delay,
+                )
 
                 self._retry_delay = min(
                     self._retry_delay * 2,
@@ -287,25 +310,27 @@ class FirebaseService:
 
         self._running = False
 
-        if self._sync_thread is not None:
+        if self._sync_thread is None:
+            return
 
-            self._sync_thread.join(timeout=2)
+        self._sync_thread.join(
+            timeout=2,
+        )
 
-            if self._sync_thread.is_alive():
+        if self._sync_thread.is_alive():
 
-                self._logger.warning(
-                    "Command synchronization thread did not stop gracefully.",
-                )
+            self._logger.warning(
+                "Command synchronization thread did not stop gracefully.",
+            )
 
-            self._sync_thread = None
+        self._sync_thread = None
 
     @property
     def command_state(self) -> CommandState:
         """
-        Return cached command state.
+        Return cached commands.
         """
 
         with self._command_lock:
-            command_state = self._command_state
 
-        return command_state
+            return self._command_state

@@ -32,11 +32,22 @@ class RelayController:
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
 
-            GPIO.setup(self._pin, GPIO.OUT)
+            GPIO.setup(
+                self._pin,
+                GPIO.OUT,
+            )
 
-            # Röleyi başlangıçta kapalı duruma getir.
-            level = GPIO.HIGH if RelayConfig.ACTIVE_LOW else GPIO.LOW
-            GPIO.output(self._pin, level)
+            # Keep relay OFF at startup.
+            level = (
+                GPIO.HIGH
+                if RelayConfig.ACTIVE_LOW
+                else GPIO.LOW
+            )
+
+            GPIO.output(
+                self._pin,
+                level,
+            )
 
             self._state = False
             self._initialized = True
@@ -56,19 +67,29 @@ class RelayController:
         """
 
         if not self._initialized:
-            raise RuntimeError("Relay is not initialized.")
+            raise RuntimeError(
+                "Relay is not initialized.",
+            )
 
-        # Zaten açıksa tekrar tetikleme.
         if self._state:
             return
 
-        level = GPIO.LOW if RelayConfig.ACTIVE_LOW else GPIO.HIGH
+        level = (
+            GPIO.LOW
+            if RelayConfig.ACTIVE_LOW
+            else GPIO.HIGH
+        )
 
-        GPIO.output(self._pin, level)
+        GPIO.output(
+            self._pin,
+            level,
+        )
 
         self._state = True
 
-        self._logger.info("Relay ON.")
+        self._logger.info(
+            "Relay ON.",
+        )
 
     def off(self) -> None:
         """
@@ -76,19 +97,29 @@ class RelayController:
         """
 
         if not self._initialized:
-            raise RuntimeError("Relay is not initialized.")
+            raise RuntimeError(
+                "Relay is not initialized.",
+            )
 
-        # Zaten kapalıysa tekrar tetikleme.
         if not self._state:
             return
 
-        level = GPIO.HIGH if RelayConfig.ACTIVE_LOW else GPIO.LOW
+        level = (
+            GPIO.HIGH
+            if RelayConfig.ACTIVE_LOW
+            else GPIO.LOW
+        )
 
-        GPIO.output(self._pin, level)
+        GPIO.output(
+            self._pin,
+            level,
+        )
 
         self._state = False
 
-        self._logger.info("Relay OFF.")
+        self._logger.info(
+            "Relay OFF.",
+        )
 
     def toggle(self) -> None:
         """
@@ -116,16 +147,20 @@ class RelayController:
         if not self._initialized:
             return
 
-        # Röleyi güvenli şekilde kapat.
-        level = GPIO.HIGH if RelayConfig.ACTIVE_LOW else GPIO.LOW
-        GPIO.output(self._pin, level)
+        try:
 
-        self._state = False
+            if self._state:
+                self.off()
 
-        GPIO.cleanup(self._pin)
+            GPIO.cleanup(
+                self._pin,
+            )
 
-        self._initialized = False
+            self._logger.info(
+                "Relay GPIO cleaned up.",
+            )
 
-        self._logger.info(
-            "Relay GPIO cleaned up.",
-        )
+        finally:
+
+            self._initialized = False
+            self._state = False

@@ -1,7 +1,7 @@
 """
 Irrigation service.
 
-Contains the irrigation control logic.
+Coordinates sensor, controller and Firebase.
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ class IrrigationService:
     """
 
     def __init__(self) -> None:
+
         self._logger = AppLogger().logger
 
         self._sensor = SoilMoistureSensor()
@@ -38,13 +39,15 @@ class IrrigationService:
 
     def initialize(self) -> None:
         """
-        Initialize all hardware.
+        Initialize all services.
         """
 
         self._sensor.initialize()
+
         self._relay.initialize()
 
         self._firebase.initialize()
+
         self._firebase.update_status()
 
         self._last_status_update = time.monotonic()
@@ -55,7 +58,7 @@ class IrrigationService:
 
     def _update_status_if_needed(self) -> None:
         """
-        Update device status periodically.
+        Update online status periodically.
         """
 
         current_time = time.monotonic()
@@ -64,7 +67,9 @@ class IrrigationService:
             current_time - self._last_status_update
             >= FirebaseConfig.STATUS_UPDATE_INTERVAL_SECONDS
         ):
+
             self._firebase.update_status()
+
             self._last_status_update = current_time
 
     def update(self) -> None:
@@ -72,32 +77,32 @@ class IrrigationService:
         Execute one irrigation cycle.
         """
 
-        # Son komutları al.
         commands = self._firebase.command_state
 
-        # Sensörü oku.
         reading = self._sensor.read()
 
-        # Sensör verisini Firebase'e gönder.
-        self._firebase.update_sensor(reading)
+        self._firebase.update_sensor(
+            reading,
+        )
 
-        # Online durumunu güncelle.
         self._update_status_if_needed()
 
-        # Sistem kapalıysa hiçbir işlem yapma.
         if not commands.enabled:
 
             self._relay.off()
 
             self._logger.info(
-                "System disabled from Firebase.",
+                "System disabled.",
             )
 
             return
 
-        # -----------------------------
-        # AUTO MODE
-        # -----------------------------
+        mode = (
+            "AUTO"
+            if commands.auto_mode
+            else "MANUAL"
+        )
+
         if commands.auto_mode:
 
             if self._controller.should_water(
@@ -109,7 +114,8 @@ class IrrigationService:
 
                 completed = self._controller.water(
                     duration=commands.pump_duration,
-                    get_commands=lambda: self._firebase.command_state,
+                    get_commands=lambda:
+                        self._firebase.command_state,
                 )
 
                 finished_at = datetime.now()
@@ -119,7 +125,8 @@ class IrrigationService:
                     finished_at=finished_at.isoformat(),
                     duration=int(
                         (
-                            finished_at - started_at
+                            finished_at
+                            - started_at
                         ).total_seconds(),
                     ),
                     moisture_before=reading.moisture,
@@ -136,39 +143,43 @@ class IrrigationService:
 
                 self._relay.off()
 
-            mode = "AUTO"
-
-        # -----------------------------
-        # MANUAL MODE
-        # -----------------------------
         else:
 
             if commands.relay:
+
                 self._relay.on()
+
             else:
+
                 self._relay.off()
 
-            mode = "MANUAL"
-
         self._logger.info(
-            "Mode=%s Raw=%d Voltage=%.3f V Moisture=%d%% "
-            "Limit=%d%% Relay=%s",
+            (
+                "Mode=%s "
+                "Raw=%d "
+                "Voltage=%.3f V "
+                "Moisture=%d%% "
+                "Limit=%d%% "
+                "Relay=%s"
+            ),
             mode,
             reading.raw,
             reading.voltage,
             reading.moisture,
             commands.moisture_limit,
-            "ON" if self._relay.is_on else "OFF",
+            "ON"
+            if self._relay.is_on
+            else "OFF",
         )
 
         self._logger.debug(
-            "Commands: %s",
+            "Commands=%s",
             commands,
         )
 
     def cleanup(self) -> None:
         """
-        Release hardware resources.
+        Release resources.
         """
 
         self._firebase.stop_command_sync()

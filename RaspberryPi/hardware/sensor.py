@@ -14,7 +14,7 @@ from adafruit_ads1x15.analog_in import AnalogIn
 
 from core.config import SensorConfig
 from core.logger import AppLogger
-from RaspberryPi.models.sensor_reading import SensorReading
+from models.sensor_reading import SensorReading
 
 
 class SoilMoistureSensor:
@@ -37,7 +37,10 @@ class SoilMoistureSensor:
         """
 
         try:
-            self._i2c = busio.I2C(board.SCL, board.SDA)
+            self._i2c = busio.I2C(
+                board.SCL,
+                board.SDA,
+            )
 
             self._ads = ADS1115(
                 self._i2c,
@@ -53,30 +56,53 @@ class SoilMoistureSensor:
 
             self._initialized = True
 
-            self._logger.info("ADS1115 initialized successfully.")
+            self._logger.info(
+                "ADS1115 initialized successfully.",
+            )
 
         except Exception as exc:
             self._logger.exception(exc)
             raise
+
+    def _ensure_initialized(self) -> None:
+        """
+        Ensure sensor is initialized.
+        """
+
+        if not self._initialized:
+            raise RuntimeError(
+                "Sensor is not initialized.",
+            )
 
     def read_raw(self) -> int:
         """
         Return averaged raw ADC value.
         """
 
-        if not self._initialized:
-            raise RuntimeError("Sensor is not initialized.")
+        self._ensure_initialized()
 
         total = 0
 
         for _ in range(SensorConfig.SAMPLE_COUNT):
+
             total += self._channel.value
 
             time.sleep(
                 SensorConfig.SAMPLE_DELAY_MS / 1000,
             )
 
-        return round(total / SensorConfig.SAMPLE_COUNT)
+        return round(
+            total / SensorConfig.SAMPLE_COUNT,
+        )
+
+    def read_voltage(self) -> float:
+        """
+        Return sensor voltage.
+        """
+
+        self._ensure_initialized()
+
+        return self._channel.voltage
 
     def _calculate_percentage(
         self,
@@ -90,26 +116,24 @@ class SoilMoistureSensor:
         wet = SensorConfig.SOIL_WET_VALUE
 
         if dry == wet:
-            raise ValueError("Invalid calibration values.")
+            raise ValueError(
+                "Invalid sensor calibration.",
+            )
 
-        percentage = ((dry - raw) / (dry - wet)) * 100
+        percentage = (
+            (dry - raw)
+            / (dry - wet)
+        ) * 100
 
         percentage = max(
             0.0,
-            min(100.0, percentage),
+            min(
+                100.0,
+                percentage,
+            ),
         )
 
         return round(percentage)
-
-    def read_voltage(self) -> float:
-        """
-        Return sensor voltage.
-        """
-
-        if not self._initialized:
-            raise RuntimeError("Sensor is not initialized.")
-
-        return self._channel.voltage
 
     def read_percentage(self) -> int:
         """
@@ -118,23 +142,22 @@ class SoilMoistureSensor:
 
         raw = self.read_raw()
 
-        return self._calculate_percentage(raw)
+        return self._calculate_percentage(
+            raw,
+        )
 
     def read(self) -> SensorReading:
         """
-        Read all sensor values.
+        Read complete sensor data.
         """
-
-        if not self._initialized:
-            raise RuntimeError(
-                "Sensor is not initialized.",
-            )
 
         raw = self.read_raw()
 
-        voltage = self._channel.voltage
+        voltage = self.read_voltage()
 
-        moisture = self._calculate_percentage(raw)
+        moisture = self._calculate_percentage(
+            raw,
+        )
 
         return SensorReading(
             raw=raw,
