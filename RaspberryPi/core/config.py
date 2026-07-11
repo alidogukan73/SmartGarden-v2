@@ -50,6 +50,10 @@ class SensorConfig:
 
     SOIL_WET_VALUE = 12000
 
+    RESTART_DELTA = 10
+
+    MIN_WATERING_INTERVAL_SECONDS = 120
+
 
 class RelayConfig:
     """
@@ -87,3 +91,7 @@ class IrrigationConfig:
 
     # Sulama sonrası bekleme süresi (v2.3.6/v2.4'te kullanılacak)
     COOLDOWN_SECONDS = 120
+
+    DEFAULT_RESTART_DELTA = 10
+
+    DEFAULT_COOLDOWN_SECONDS = 120

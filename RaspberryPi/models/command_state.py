@@ -13,9 +13,18 @@ class CommandState:
     Represents commands received from Firebase.
     """
 
-    auto_mode: bool
-    relay: bool
-    enabled: bool
+    auto_mode: bool = True
 
-    moisture_limit: int
-    pump_duration: int
+    relay: bool = False
+
+    enabled: bool = True
+
+    moisture_limit: int = 40
+
+    pump_duration: int = 30
+
+    # Hysteresis (%)
+    restart_delta: int = 10
+
+    # Minimum interval between irrigations (seconds)
+    cooldown_seconds: int = 120

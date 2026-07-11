@@ -16,6 +16,8 @@ from core.logger import AppLogger
 from hardware.relay import RelayController
 from hardware.sensor import SoilMoistureSensor
 from models.watering_record import WateringRecord
+from core.config import AppConfig
+from core.system_monitor import SystemMonitor
 
 
 class IrrigationService:
@@ -28,6 +30,7 @@ class IrrigationService:
         self._logger = AppLogger().logger
 
         self._sensor = SoilMoistureSensor()
+        self._system_monitor = SystemMonitor()
         self._relay = RelayController()
         self._firebase = FirebaseService()
 
@@ -36,7 +39,9 @@ class IrrigationService:
         )
 
         self._last_status_update = 0.0
+        self._last_health_update = 0.0
         self._started_at = 0.0
+        self._last_watering_iso = ""       
 
     def initialize(self) -> None:
         """
@@ -51,7 +56,15 @@ class IrrigationService:
 
         self._firebase.update_status()
 
+        health = self._system_monitor.read()
+
+        self._firebase.update_health_status(
+            health,
+        )        
+
         self._last_status_update = time.monotonic()
+        self._last_health_update = time.monotonic()
+
         self._started_at = time.monotonic()
 
         self._logger.info(
@@ -74,6 +87,28 @@ class IrrigationService:
 
             self._last_status_update = current_time
 
+    def _update_health_if_needed(
+        self,
+    ) -> None:
+        """
+        Update Raspberry Pi health information periodically.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time - self._last_health_update
+            >= FirebaseConfig.STATUS_UPDATE_INTERVAL_SECONDS
+        ):
+
+            health = self._system_monitor.read()
+
+            self._firebase.update_health_status(
+                health,
+            )
+
+            self._last_health_update = current_time
+
     def update(self) -> None:
         """
         Execute one irrigation cycle.
@@ -81,19 +116,16 @@ class IrrigationService:
 
         try:
 
-            # Firebase komutlarını oku.
             commands = self._firebase.command_state
 
-            # Sensörü oku.
             reading = self._sensor.read()
 
-            # Sensör verisini Firebase'e gönder.
             self._firebase.update_sensor(reading)
 
-            # Cihaz durumunu güncelle.
             self._update_status_if_needed()
 
-            # Sistem devre dışıysa röleyi kapat.
+            self._update_health_if_needed()
+
             if not commands.enabled:
 
                 self._relay.off()
@@ -104,52 +136,68 @@ class IrrigationService:
 
                 return
 
-            # AUTO MODE
+            # ---------------- AUTO MODE ----------------
+
             if commands.auto_mode:
 
-                if self._controller.should_water(
+                should_water = self._controller.should_water(
                     reading,
                     commands,
-                ):
+                )
+
+                if should_water:
+
+                    # Röle açılıyor
 
                     started_at = datetime.now()
 
-                    completed = self._controller.water(
+                    result = self._controller.water(
                         duration=commands.pump_duration,
                         get_commands=lambda: self._firebase.command_state,
                     )
 
                     finished_at = datetime.now()
+                    finished_reading = self._sensor.read()
+
+                    # Röle kapandı
 
                     record = WateringRecord(
                         started_at=started_at.isoformat(),
                         finished_at=finished_at.isoformat(),
-                        duration=int(
-                            (
-                                finished_at - started_at
-                            ).total_seconds(),
-                        ),
+                        duration=result.duration,
+
                         moisture_before=reading.moisture,
+                        moisture_after=finished_reading.moisture,
+                        moisture_delta=(
+                            finished_reading.moisture
+                            - reading.moisture
+                        ),
                         moisture_limit=commands.moisture_limit,
-                        completed=completed,
+
+                        restart_delta=commands.restart_delta,
+                        cooldown_seconds=commands.cooldown_seconds,
+
+                        completed=result.completed,
+
+                        stop_reason=result.stop_reason,
+
                         mode="AUTO",
+
+                        firmware=AppConfig.VERSION,
                     )
 
-                    self._firebase.add_watering_record(
-                        record,
+                    self._firebase.save_watering(
+                        result=result,
+                        record=record,
                     )
-
-                    self._firebase.update_last_watering(
-                        finished_at.isoformat(),
-                    )
-
                 else:
 
                     self._relay.off()
 
                 mode = "AUTO"
 
-            # MANUAL MODE
+            # ---------------- MANUAL MODE ----------------
+
             else:
 
                 if commands.relay:
@@ -177,7 +225,6 @@ class IrrigationService:
 
         except Exception as exc:
 
-            # Fail Safe
             self._relay.off()
 
             self._logger.exception(exc)
@@ -206,15 +253,16 @@ class IrrigationService:
 
             try:
 
-                self._firebase.update_health_status(
+                self._firebase.update_runtime_status(
                     relay=self._relay.is_on,
                     uptime=uptime,
                     sensor_time=datetime.now().isoformat(),
+                    watering_state=self._controller.state.value,
+                    cooldown_remaining=self._controller.cooldown_remaining,
                 )
 
             except Exception:
 
-                # Sağlık bilgisi güncellenemezse ana döngüyü durdurma.
                 pass
 
     def cleanup(self) -> None:
