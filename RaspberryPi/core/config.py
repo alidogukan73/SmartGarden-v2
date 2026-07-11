@@ -62,7 +62,7 @@ class RelayConfig:
 
     GPIO_PIN = 17
 
-    ACTIVE_LOW = True
+    ACTIVE_LOW = False
     
 class LogConfig:
     """

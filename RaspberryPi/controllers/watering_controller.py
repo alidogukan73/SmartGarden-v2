@@ -56,7 +56,7 @@ class WateringController:
         # -----------------------------
         if self._waiting_for_reset:
 
-            self._logger.info(
+            self._logger.debug(
                 "Waiting for soil recovery..."
             )
 

@@ -89,20 +89,33 @@ class SystemMonitor:
         self,
     ) -> str:
         """
-        Return current IP address.
+        Return active network IP address.
         """
+
+        sock = socket.socket(
+            socket.AF_INET,
+            socket.SOCK_DGRAM,
+        )
 
         try:
 
-            return socket.gethostbyname(
-                socket.gethostname(),
+            sock.connect(
+                (
+                    "8.8.8.8",
+                    80,
+                ),
             )
 
-        except Exception:
+            return sock.getsockname()[0]
+
+        except OSError:
 
             return ""
 
+        finally:
 
+            sock.close()
+            
     def _get_wifi_signal(
         self,
     ) -> int:
