@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <!-- UYGULAMA -->
+
+    <string name="app_name">SmartGarden</string>
+    <string name="app_subtitle">Akıllı Sulama Sistemi</string>
+
+
+    <!-- CİHAZ DURUMU -->
+
+    <string name="label_connected_device">Bağlı cihaz</string>
+
+    <string name="status_online">● ONLINE</string>
+    <string name="status_offline">● OFFLINE</string>
+
+    <string name="default_device_name">smartgarden-001</string>
+
+
+    <!-- NEM KARTI -->
+
+    <string name="title_soil_moisture">Toprak Nemi</string>
+    <string name="subtitle_live_sensor">Anlık sensör ölçümü</string>
+    <string name="label_live">CANLI</string>
+
+    <string name="moisture_format">%1$d%%</string>
+
+    <string name="moisture_waiting">Nem verisi bekleniyor</string>
+    <string name="moisture_very_low">Çok düşük nem seviyesi</string>
+    <string name="moisture_drying">Toprak kurumaya başlıyor</string>
+    <string name="moisture_ideal">İdeal nem seviyesi</string>
+    <string name="moisture_high">Yüksek nem seviyesi</string>
+
+    <string name="label_voltage">Voltaj</string>
+    <string name="label_raw_value">Ham Değer</string>
+
+    <string name="voltage_format">%1$.2f V</string>
+
+
+    <!-- SULAMA KONTROLÜ -->
+
+    <string name="title_watering_control">Sulama Kontrolü</string>
+    <string name="subtitle_pump_and_mode">Pompa durumu ve çalışma modu</string>
+
+    <string name="label_pump_status">Pompa Durumu</string>
+    <string name="label_pump">POMPA</string>
+
+    <string name="pump_running">● Pompa Çalışıyor</string>
+    <string name="pump_stopped">● Pompa Kapalı</string>
+
+    <string name="pump_description_running">Sulama işlemi devam ediyor</string>
+    <string name="pump_description_idle">Pompa bekleme durumunda</string>
+
+
+    <!-- OTOMATİK MOD -->
+
+    <string name="title_auto_watering">Otomatik Sulama</string>
+    <string name="auto_mode_content_description">Otomatik sulama modu</string>
+
+    <string name="auto_mode_default_description">Nem seviyesine göre otomatik sulama</string>
+    <string name="auto_mode_active_description">Aktif — Nem seviyesine göre otomatik çalışıyor</string>
+    <string name="auto_mode_inactive_description">Kapalı — Manuel kontrol kullanılabilir</string>
+
+
+    <!-- MANUEL SULAMA -->
+
+    <string name="button_start_manual_watering">Manuel Sulamayı Başlat</string>
+    <string name="button_stop_watering">Sulamayı Durdur</string>
+
+    <string name="manual_hint_idle">Sulamayı istediğiniz zaman durdurabilirsiniz</string>
+    <string name="manual_hint_running">Pompayı güvenli şekilde durdurmak için dokunun</string>
+
+
+    <!-- HATA / BİLDİRİM -->
+
+    <string name="error_unknown">Beklenmeyen bir hata oluştu</string>
+
+    <!-- İSTATİSTİK EKRANI -->
+
+    <string name="title_statistics">İstatistikler</string>
+    <string name="subtitle_statistics">Sulama performansı ve nem değişimleri</string>
+
+    <string name="label_today_waterings">Bugünkü sulama</string>
+    <string name="label_total_waterings">Toplam sulama</string>
+    <string name="label_success_rate">Başarı oranı</string>
+    <string name="label_average_duration">Ortalama sulama süresi</string>
+    <string name="label_last_watering_duration">Son sulama süresi</string>
+    <string name="label_moisture_change">Son nem değişimi</string>
+
+    <string name="duration_seconds_format">%1$d sn</string>
+    <string name="duration_minutes_seconds_format">%1$d dk %2$d sn</string>
+
+    <!-- İSTATİSTİK EKRANI DETAYLARI -->
+
+    <string name="title_watering_summary">Sulama Özeti</string>
+    <string name="subtitle_watering_summary">Günlük ve toplam çalışma bilgileri</string>
+
+    <string name="title_watering_results">Sulama Sonuçları</string>
+    <string name="subtitle_watering_results">Tamamlanan ve kesintiye uğrayan işlemler</string>
+
+    <string name="label_completed_waterings">Tamamlanan</string>
+    <string name="label_interrupted_waterings">Kesintiye uğrayan</string>
+
+    <string name="title_duration_statistics">Süre İstatistikleri</string>
+    <string name="subtitle_duration_statistics">Sulama işlemlerinin çalışma süreleri</string>
+
+    <string name="label_average_duration_short">Ortalama</string>
+    <string name="label_last_duration_short">Son sulama</string>
+    <string name="label_total_duration_short">Toplam</string>
+
+    <string name="title_moisture_change">Nem Değişimi</string>
+    <string name="subtitle_moisture_change">Son sulama öncesi ve sonrası ölçüm</string>
+
+    <string name="label_before_moisture">Önce</string>
+    <string name="label_after_moisture">Sonra</string>
+    <string name="label_delta">Değişim</string>
+
+    <string name="title_last_status">Son Durum</string>
+    <string name="label_last_stop_reason">Durdurma nedeni</string>
+    <string name="label_statistics_date">İstatistik tarihi</string>
+
+    <string name="statistics_waiting">Veri bekleniyor</string>
+    <string name="statistics_success_excellent">Sulama performansı çok iyi</string>
+    <string name="statistics_success_good">Sulama performansı iyi</string>
+    <string name="statistics_success_warning">Performans iyileştirilebilir</string>
+
+    <string name="percentage_format">%1$d%%</string>
+    <string name="signed_percentage_format">%1$+d%%</string>
+
+    <string name="subtitle_statistics_short">Sulama performansını ve nem değişimlerini görüntüle</string>
+    <string name="button_open">Aç</string>
+
+    <string name="back_to_main">Ana ekrana dön</string>
+
+</resources>
