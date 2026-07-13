@@ -61,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialButton btnStatistics;
 
+    private MaterialButton btnHistory;
+
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
 
@@ -109,6 +111,10 @@ public class MainActivity extends AppCompatActivity {
 
         btnStatistics = findViewById(
                 R.id.btnStatistics
+        );
+
+        btnHistory = findViewById(
+                R.id.btnHistory
         );
 
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
@@ -490,6 +496,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeButtons() {
+
+        btnHistory.setOnClickListener(
+                view -> {
+
+                    Intent intent =
+                            new Intent(
+                                    MainActivity.this,
+                                    WateringHistoryActivity.class
+                            );
+
+                    startActivity(intent);
+                }
+        );
 
         btnWater.setOnClickListener(
                 view -> {

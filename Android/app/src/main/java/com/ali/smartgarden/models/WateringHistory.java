@@ -1,137 +1,180 @@
 package com.ali.smartgarden.models;
 
+import com.google.firebase.database.PropertyName;
+
 public class WateringHistory {
 
-    private String started_at;
+    private String recordId;
 
-    private String finished_at;
+    private String startedAt;
+    private String finishedAt;
 
     private long duration;
 
-    private long moisture_before;
+    private long moistureBefore;
+    private long moistureAfter;
+    private long moistureDelta;
 
-    private long moisture_after;
-
-    private long moisture_delta;
-
-    private long moisture_limit;
-
-    private long restart_delta;
-
-    private long cooldown_seconds;
+    private long moistureLimit;
+    private long restartDelta;
+    private long cooldownSeconds;
 
     private boolean completed;
 
-    private String stop_reason;
-
+    private String stopReason;
     private String mode;
-
     private String firmware;
 
+    /**
+     * Firebase Realtime Database için boş constructor zorunludur.
+     */
     public WateringHistory() {
-        // Firebase
+        startedAt = "";
+        finishedAt = "";
+        stopReason = "";
+        mode = "";
+        firmware = "";
+        recordId = "";
     }
 
+    /**
+     * Bu alan Firebase kaydının anahtarını tutacak.
+     * Veritabanındaki nesnenin içinde bulunmaz; ViewModel tarafından atanır.
+     */
+    public String getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(String recordId) {
+        this.recordId = recordId;
+    }
+
+    @PropertyName("started_at")
     public String getStartedAt() {
-        return started_at;
+        return startedAt;
     }
 
+    @PropertyName("started_at")
+    public void setStartedAt(String startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    @PropertyName("finished_at")
     public String getFinishedAt() {
-        return finished_at;
+        return finishedAt;
     }
 
+    @PropertyName("finished_at")
+    public void setFinishedAt(String finishedAt) {
+        this.finishedAt = finishedAt;
+    }
+
+    @PropertyName("duration")
     public long getDuration() {
         return duration;
     }
 
-    public long getMoistureBefore() {
-        return moisture_before;
-    }
-
-    public long getMoistureAfter() {
-        return moisture_after;
-    }
-
-    public long getMoistureDelta() {
-        return moisture_delta;
-    }
-
-    public long getMoistureLimit() {
-        return moisture_limit;
-    }
-
-    public long getRestartDelta() {
-        return restart_delta;
-    }
-
-    public long getCooldownSeconds() {
-        return cooldown_seconds;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public String getStopReason() {
-        return stop_reason;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public String getFirmware() {
-        return firmware;
-    }
-
-    public void setStartedAt(String started_at) {
-        this.started_at = started_at;
-    }
-
-    public void setFinishedAt(String finished_at) {
-        this.finished_at = finished_at;
-    }
-
+    @PropertyName("duration")
     public void setDuration(long duration) {
         this.duration = duration;
     }
 
-    public void setMoistureBefore(long moisture_before) {
-        this.moisture_before = moisture_before;
+    @PropertyName("moisture_before")
+    public long getMoistureBefore() {
+        return moistureBefore;
     }
 
-    public void setMoistureAfter(long moisture_after) {
-        this.moisture_after = moisture_after;
+    @PropertyName("moisture_before")
+    public void setMoistureBefore(long moistureBefore) {
+        this.moistureBefore = moistureBefore;
     }
 
-    public void setMoistureDelta(long moisture_delta) {
-        this.moisture_delta = moisture_delta;
+    @PropertyName("moisture_after")
+    public long getMoistureAfter() {
+        return moistureAfter;
     }
 
-    public void setMoistureLimit(long moisture_limit) {
-        this.moisture_limit = moisture_limit;
+    @PropertyName("moisture_after")
+    public void setMoistureAfter(long moistureAfter) {
+        this.moistureAfter = moistureAfter;
     }
 
-    public void setRestartDelta(long restart_delta) {
-        this.restart_delta = restart_delta;
+    @PropertyName("moisture_delta")
+    public long getMoistureDelta() {
+        return moistureDelta;
     }
 
-    public void setCooldownSeconds(long cooldown_seconds) {
-        this.cooldown_seconds = cooldown_seconds;
+    @PropertyName("moisture_delta")
+    public void setMoistureDelta(long moistureDelta) {
+        this.moistureDelta = moistureDelta;
     }
 
+    @PropertyName("moisture_limit")
+    public long getMoistureLimit() {
+        return moistureLimit;
+    }
+
+    @PropertyName("moisture_limit")
+    public void setMoistureLimit(long moistureLimit) {
+        this.moistureLimit = moistureLimit;
+    }
+
+    @PropertyName("restart_delta")
+    public long getRestartDelta() {
+        return restartDelta;
+    }
+
+    @PropertyName("restart_delta")
+    public void setRestartDelta(long restartDelta) {
+        this.restartDelta = restartDelta;
+    }
+
+    @PropertyName("cooldown_seconds")
+    public long getCooldownSeconds() {
+        return cooldownSeconds;
+    }
+
+    @PropertyName("cooldown_seconds")
+    public void setCooldownSeconds(long cooldownSeconds) {
+        this.cooldownSeconds = cooldownSeconds;
+    }
+
+    @PropertyName("completed")
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    @PropertyName("completed")
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
 
-    public void setStopReason(String stop_reason) {
-        this.stop_reason = stop_reason;
+    @PropertyName("stop_reason")
+    public String getStopReason() {
+        return stopReason;
     }
 
+    @PropertyName("stop_reason")
+    public void setStopReason(String stopReason) {
+        this.stopReason = stopReason;
+    }
+
+    @PropertyName("mode")
+    public String getMode() {
+        return mode;
+    }
+
+    @PropertyName("mode")
     public void setMode(String mode) {
         this.mode = mode;
     }
 
+    @PropertyName("firmware")
+    public String getFirmware() {
+        return firmware;
+    }
+
+    @PropertyName("firmware")
     public void setFirmware(String firmware) {
         this.firmware = firmware;
     }

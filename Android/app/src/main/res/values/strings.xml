@@ -128,9 +128,56 @@
     <string name="percentage_format">%1$d%%</string>
     <string name="signed_percentage_format">%1$+d%%</string>
 
-    <string name="subtitle_statistics_short">Sulama performansını ve nem değişimlerini görüntüle</string>
-    <string name="button_open">Aç</string>
-
     <string name="back_to_main">Ana ekrana dön</string>
+    <string name="open_statistics">İstatistikleri aç</string>
+
+    <!-- SULAMA GEÇMİŞİ KARTI -->
+
+    <string name="history_default_date">-- --- ----</string>
+    <string name="history_default_time">--:--</string>
+
+    <string name="history_status_completed">TAMAMLANDI</string>
+    <string name="history_status_interrupted">KESİLDİ</string>
+    <string name="history_status_warning">UYARI</string>
+
+    <string name="history_label_mode">Mod</string>
+    <string name="history_label_duration">Süre</string>
+
+    <string name="history_mode_auto">Otomatik</string>
+    <string name="history_mode_manual">Manuel</string>
+    <string name="history_mode_unknown">Bilinmiyor</string>
+
+    <string name="history_default_duration">0 sn</string>
+
+    <string name="history_label_before">Önce</string>
+    <string name="history_label_after">Sonra</string>
+    <string name="history_label_delta">Değişim</string>
+
+    <string name="history_default_percentage">0%</string>
+    <string name="history_default_signed_percentage">+0%</string>
+
+    <string name="history_label_stop_reason">Durdurma nedeni</string>
+    <string name="history_default_stop_reason">Veri bekleniyor</string>
+
+    <!-- SULAMA GEÇMİŞİ DURDURMA NEDENLERİ -->
+
+    <string name="history_reason_completed">Başarıyla tamamlandı</string>
+    <string name="history_reason_manual_stop">Kullanıcı tarafından durduruldu</string>
+    <string name="history_reason_target_reached">Hedef nem seviyesine ulaşıldı</string>
+    <string name="history_reason_system_disabled">Sistem devre dışı bırakıldı</string>
+    <string name="history_reason_device_offline">Cihaz bağlantısı kesildi</string>
+    <string name="history_reason_timeout">Güvenlik süresi doldu</string>
+
+    <!-- SULAMA GEÇMİŞİ EKRANI -->
+
+    <string name="title_watering_history">Sulama Geçmişi</string>
+    <string name="subtitle_watering_history">Son sulama işlemleri ve nem değişimleri</string>
+
+    <string name="history_loading">Sulama kayıtları yükleniyor</string>
+
+    <string name="history_empty_title">Henüz sulama kaydı yok</string>
+    <string name="history_empty_description">Tamamlanan sulama işlemleri burada görüntülenecek.</string>
+
+    <string name="open_watering_history">Sulama geçmişini aç</string>
 
 </resources>
