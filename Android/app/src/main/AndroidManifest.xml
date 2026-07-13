@@ -15,6 +15,14 @@
         android:theme="@style/Theme.SmartGarden">
 
         <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activities.DeviceHealthActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".activities.WateringHistoryActivity"
             android:exported="false"/>
 

@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialButton btnHistory;
 
+    private MaterialButton btnHealth;
+
+    private MaterialButton btnSettings;
+
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
 
@@ -108,6 +112,14 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
 
         imgPumpStatus = findViewById(R.id.imgPumpStatus);
+
+        btnSettings = findViewById(
+                R.id.btnSettings
+        );
+
+        btnHealth = findViewById(
+                R.id.btnHealth
+        );
 
         btnStatistics = findViewById(
                 R.id.btnStatistics
@@ -496,6 +508,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeButtons() {
+
+        btnSettings.setOnClickListener(
+                view -> {
+
+                    Intent intent =
+                            new Intent(
+                                    MainActivity.this,
+                                    SettingsActivity.class
+                            );
+
+                    startActivity(intent);
+                }
+        );
+
+        btnHealth.setOnClickListener(
+                view -> {
+
+                    Intent intent =
+                            new Intent(
+                                    MainActivity.this,
+                                    DeviceHealthActivity.class
+                            );
+
+                    startActivity(intent);
+                }
+        );
 
         btnHistory.setOnClickListener(
                 view -> {

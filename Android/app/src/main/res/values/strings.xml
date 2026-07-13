@@ -180,4 +180,146 @@
 
     <string name="open_watering_history">Sulama geçmişini aç</string>
 
+    <!-- CİHAZ SAĞLIĞI -->
+
+    <string name="title_device_health">Cihaz Sağlığı</string>
+    <string name="subtitle_device_health">Raspberry Pi sistem durumu ve kaynak kullanımı</string>
+
+    <string name="health_overall_label">Genel sistem durumu</string>
+    <string name="health_status_waiting">Veri bekleniyor</string>
+    <string name="health_update_waiting">Son güncelleme bekleniyor</string>
+    <string name="health_badge_checking">KONTROL EDİLİYOR</string>
+
+    <string name="health_cpu_title">CPU</string>
+    <string name="health_cpu_subtitle">İşlemci sıcaklığı ve anlık kullanım</string>
+    <string name="health_cpu_temperature">Sıcaklık</string>
+    <string name="health_cpu_usage">Kullanım</string>
+
+    <string name="health_ram_title">RAM</string>
+    <string name="health_disk_title">Disk</string>
+
+    <string name="health_network_title">Ağ Bağlantısı</string>
+    <string name="health_network_subtitle">Kablosuz bağlantı ve yerel ağ bilgileri</string>
+    <string name="health_wifi_signal">Wi-Fi sinyali</string>
+    <string name="health_ip_address">IP adresi</string>
+
+    <string name="health_throttling_title">CPU Throttling</string>
+    <string name="health_throttling_waiting">Donanım kısıtlama durumu kontrol ediliyor</string>
+
+    <string name="health_system_title">Sistem Bilgileri</string>
+    <string name="health_firmware">Backend sürümü</string>
+    <string name="health_uptime">Çalışma süresi</string>
+
+    <string name="health_default_temperature">-- °C</string>
+    <string name="health_default_percentage">--%</string>
+    <string name="health_default_signal">-- dBm</string>
+    <string name="health_default_ip">--</string>
+    <string name="health_default_firmware">--</string>
+    <string name="health_detail_waiting">Veri bekleniyor</string>
+
+    <!-- CİHAZ SAĞLIĞI DİNAMİK METİNLERİ -->
+
+    <string name="health_temperature_format">%1$.1f °C</string>
+    <string name="health_percentage_format">%1$.1f%%</string>
+    <string name="health_signal_format">%1$d dBm</string>
+
+    <string name="health_memory_summary_format">Kullanım: %1$.1f%%</string>
+    <string name="health_disk_summary_format">Kullanım: %1$.1f%%</string>
+
+    <string name="health_wifi_excellent">Mükemmel bağlantı</string>
+    <string name="health_wifi_good">İyi bağlantı</string>
+    <string name="health_wifi_weak">Zayıf bağlantı</string>
+    <string name="health_wifi_poor">Çok zayıf bağlantı</string>
+
+    <string name="health_throttling_active">AKTİF</string>
+    <string name="health_throttling_clear">NORMAL</string>
+
+    <string name="health_throttling_active_description">Donanım performansı sistem tarafından kısıtlanıyor</string>
+    <string name="health_throttling_clear_description">Herhangi bir donanım kısıtlaması algılanmadı</string>
+
+    <string name="health_overall_good">Sistem sağlıklı çalışıyor</string>
+    <string name="health_overall_warning">Sistem dikkat gerektiriyor</string>
+    <string name="health_overall_critical">Kritik sistem durumu</string>
+
+    <string name="health_badge_good">SAĞLIKLI</string>
+    <string name="health_badge_warning">UYARI</string>
+    <string name="health_badge_critical">KRİTİK</string>
+
+    <string name="health_uptime_days_format">%1$d gün %2$d saat</string>
+    <string name="health_uptime_hours_format">%1$d saat %2$d dk</string>
+    <string name="health_uptime_minutes_format">%1$d dk</string>
+
+    <string name="health_last_update_format">Son güncelleme: %1$s</string>
+
+    <string name="health_firmware_unavailable">Backend verisinde yok</string>
+
+    <string name="open_device_health">Cihaz sağlığını aç</string>
+
+    <!-- AYARLAR EKRANI -->
+
+    <string name="title_settings">Ayarlar</string>
+    <string name="subtitle_settings">SmartGarden çalışma parametrelerini yapılandırın</string>
+
+    <string name="settings_unsaved_changes">Kaydedilmemiş değişiklikler var</string>
+
+    <string name="settings_irrigation_title">Sulama Ayarları</string>
+    <string name="settings_irrigation_subtitle">Otomatik sulama davranışını belirleyen sınırlar</string>
+
+    <string name="settings_moisture_limit">Nem limiti</string>
+    <string name="settings_moisture_limit_description">Nem bu değerin altına düştüğünde otomatik sulama başlar</string>
+
+    <string name="settings_pump_duration">Pompa süresi</string>
+    <string name="settings_pump_duration_description">Bir sulama işleminde pompanın çalışacağı süre</string>
+
+    <string name="settings_cooldown">Bekleme süresi</string>
+    <string name="settings_cooldown_description">İki sulama işlemi arasındaki minimum bekleme süresi</string>
+
+    <string name="settings_restart_delta">Yeniden başlatma farkı</string>
+    <string name="settings_restart_delta_description">Tekrar sulama için nem limitinin altına inilmesi gereken fark</string>
+
+    <string name="settings_system_enabled">Sistem etkin</string>
+    <string name="settings_system_enabled_description">Kapalı olduğunda otomatik ve manuel sulama devre dışı kalır</string>
+
+    <string name="settings_save">Ayarları Kaydet</string>
+    <string name="settings_reset_defaults">Varsayılan Değerlere Dön</string>
+
+    <string name="settings_status_ready">Değişiklik yapmaya hazır</string>
+
+    <string name="settings_default_percentage">40%</string>
+    <string name="settings_default_seconds">10 sn</string>
+
+    <!-- AYARLAR EKRANI DİNAMİK METİNLERİ -->
+
+    <string name="settings_status_loading">Ayarlar yükleniyor</string>
+    <string name="settings_status_saving">Ayarlar kaydediliyor</string>
+    <string name="settings_status_saved">Ayarlar başarıyla kaydedildi</string>
+    <string name="settings_status_error">Ayarlar işlenirken hata oluştu</string>
+    <string name="settings_status_unsaved">Kaydedilmemiş değişiklikler var</string>
+
+    <string name="settings_saving">Kaydediliyor…</string>
+    <string name="settings_saved_message">Ayarlar kaydedildi</string>
+    <string name="settings_no_changes">Kaydedilecek değişiklik yok</string>
+
+    <string name="settings_percentage_format">%1$d%%</string>
+    <string name="settings_seconds_format">%1$d sn</string>
+    <string name="settings_minutes_format">%1$d dk</string>
+    <string name="settings_minutes_seconds_format">%1$d dk %2$d sn</string>
+
+    <string name="settings_system_enabled_active">Aktif — Otomatik ve manuel sulama kullanılabilir</string>
+    <string name="settings_system_enabled_inactive">Devre dışı — Sulama komutları çalıştırılmaz</string>
+
+    <string name="settings_reset_dialog_title">Varsayılan değerlere dön</string>
+    <string name="settings_reset_dialog_message">Varsayılan değerler ekrana uygulanacak. Firebase’e göndermek için ardından Ayarları Kaydet butonuna basmalısınız.</string>
+    <string name="settings_reset_confirm">Uygula</string>
+    <string name="settings_cancel">İptal</string>
+    <string name="settings_defaults_applied">Varsayılan değerler uygulandı, kaydetmeniz gerekiyor</string>
+
+    <string name="settings_unsaved_dialog_title">Kaydedilmemiş değişiklikler</string>
+    <string name="settings_unsaved_dialog_message">Bu ekrandan ayrılmadan önce değişikliklerinizi kaydetmek ister misiniz?</string>
+    <string name="settings_continue_editing">Düzenlemeye devam et</string>
+    <string name="settings_discard_changes">Değişiklikleri sil</string>
+    <string name="settings_save_and_exit">Kaydet</string>
+
+    <string name="open_settings">Ayarları aç</string>
+
 </resources>

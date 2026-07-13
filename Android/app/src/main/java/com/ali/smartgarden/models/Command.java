@@ -4,87 +4,89 @@ import com.google.firebase.database.PropertyName;
 
 public class Command {
 
-    private boolean auto_mode;
-
+    private boolean autoMode;
     private boolean relay;
-
     private boolean enabled;
 
-    private long moisture_limit;
+    private long moistureLimit;
+    private long pumpDuration;
+    private long restartDelta;
+    private long cooldownSeconds;
 
-    private long pump_duration;
-
-    private long restart_delta;
-
-    private long cooldown_seconds;
-
+    /**
+     * Firebase Realtime Database için boş constructor zorunludur.
+     */
     public Command() {
-        // Firebase Realtime Database için boş constructor zorunlu.
+        // Firebase
     }
 
     @PropertyName("auto_mode")
     public boolean isAutoMode() {
-        return auto_mode;
+        return autoMode;
     }
 
     @PropertyName("auto_mode")
-    public void setAutoMode(boolean auto_mode) {
-        this.auto_mode = auto_mode;
+    public void setAutoMode(boolean autoMode) {
+        this.autoMode = autoMode;
     }
 
+    @PropertyName("relay")
     public boolean isRelay() {
         return relay;
     }
 
+    @PropertyName("relay")
     public void setRelay(boolean relay) {
         this.relay = relay;
     }
 
+    @PropertyName("enabled")
     public boolean isEnabled() {
         return enabled;
     }
 
+    @PropertyName("enabled")
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
     @PropertyName("moisture_limit")
     public long getMoistureLimit() {
-        return moisture_limit;
+        return moistureLimit;
     }
 
     @PropertyName("moisture_limit")
-    public void setMoistureLimit(long moisture_limit) {
-        this.moisture_limit = moisture_limit;
+    public void setMoistureLimit(long moistureLimit) {
+        this.moistureLimit = moistureLimit;
     }
 
     @PropertyName("pump_duration")
     public long getPumpDuration() {
-        return pump_duration;
+        return pumpDuration;
     }
 
     @PropertyName("pump_duration")
-    public void setPumpDuration(long pump_duration) {
-        this.pump_duration = pump_duration;
+    public void setPumpDuration(long pumpDuration) {
+        this.pumpDuration = pumpDuration;
     }
 
     @PropertyName("restart_delta")
     public long getRestartDelta() {
-        return restart_delta;
+        return restartDelta;
     }
 
     @PropertyName("restart_delta")
-    public void setRestartDelta(long restart_delta) {
-        this.restart_delta = restart_delta;
+    public void setRestartDelta(long restartDelta) {
+        this.restartDelta = restartDelta;
     }
 
     @PropertyName("cooldown_seconds")
     public long getCooldownSeconds() {
-        return cooldown_seconds;
+        return cooldownSeconds;
     }
 
     @PropertyName("cooldown_seconds")
-    public void setCooldownSeconds(long cooldown_seconds) {
-        this.cooldown_seconds = cooldown_seconds;
+    public void setCooldownSeconds(long cooldownSeconds) {
+        this.cooldownSeconds = cooldownSeconds;
     }
 }
