@@ -25,6 +25,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import android.os.Handler;
+import android.os.Looper;
+
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
@@ -61,6 +64,29 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
+
+    private static final long ONLINE_TIMEOUT_SECONDS = 35;
+    private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000;
+
+    private final Handler onlineStatusHandler =
+            new Handler(Looper.getMainLooper());
+
+    private Status latestStatus;
+
+    private final Runnable onlineStatusChecker =
+            new Runnable() {
+
+                @Override
+                public void run() {
+
+                    renderEffectiveOnlineStatus();
+
+                    onlineStatusHandler.postDelayed(
+                            this,
+                            ONLINE_CHECK_INTERVAL_MILLIS
+                    );
+                }
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,15 +251,61 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        updateOnlineUi(
-                status.isOnline()
-        );
+        latestStatus = status;
+
+        renderEffectiveOnlineStatus();
 
         relayOn = status.isRelay();
 
         updatePumpUi(
                 relayOn
         );
+    }
+
+    private void renderEffectiveOnlineStatus() {
+
+        if (latestStatus == null) {
+
+            updateOnlineUi(false);
+            return;
+        }
+
+        boolean effectivelyOnline =
+                latestStatus.isOnline()
+                        && isHeartbeatFresh(
+                        latestStatus.getLastSeenEpoch()
+                );
+
+        updateOnlineUi(
+                effectivelyOnline
+        );
+    }
+
+    private boolean isHeartbeatFresh(
+            long lastSeenEpochSeconds
+    ) {
+
+        if (lastSeenEpochSeconds <= 0) {
+            return false;
+        }
+
+        long currentEpochSeconds =
+                System.currentTimeMillis() / 1000L;
+
+        long heartbeatAgeSeconds =
+                currentEpochSeconds
+                        - lastSeenEpochSeconds;
+
+        /*
+         * Telefon saati geçici olarak Pi saatinin gerisindeyse
+         * küçük negatif farkı çevrim dışı kabul etmiyoruz.
+         */
+        if (heartbeatAgeSeconds < 0) {
+            return true;
+        }
+
+        return heartbeatAgeSeconds
+                <= ONLINE_TIMEOUT_SECONDS;
     }
 
     private void renderCommand(Command command) {
@@ -563,7 +635,30 @@ public class MainActivity extends AppCompatActivity {
                 tag
         );
     }
+    @Override
+    protected void onStart() {
 
+        super.onStart();
+
+        onlineStatusHandler.removeCallbacks(
+                onlineStatusChecker
+        );
+
+        onlineStatusHandler.post(
+                onlineStatusChecker
+        );
+    }
+
+
+    @Override
+    protected void onStop() {
+
+        onlineStatusHandler.removeCallbacks(
+                onlineStatusChecker
+        );
+
+        super.onStop();
+    }
     private int color(int colorResource) {
 
         return ContextCompat.getColor(

@@ -1,5 +1,6 @@
 package com.ali.smartgarden.models;
 
+import com.google.firebase.database.PropertyName;
 public class Status {
 
     private boolean online;
@@ -22,8 +23,20 @@ public class Status {
 
     private long cooldown_remaining;
 
+    private long last_seen_epoch;
+
     public Status() {
         // Firebase
+    }
+
+    @PropertyName("last_seen_epoch")
+    public long getLastSeenEpoch() {
+        return last_seen_epoch;
+    }
+
+    @PropertyName("last_seen_epoch")
+    public void setLastSeenEpoch(long last_seen_epoch) {
+        this.last_seen_epoch = last_seen_epoch;
     }
 
     public boolean isOnline() {
@@ -38,8 +51,14 @@ public class Status {
         return version;
     }
 
+    @PropertyName("last_seen")
     public String getLastSeen() {
         return last_seen;
+    }
+
+    @PropertyName("last_seen")
+    public void setLastSeen(String last_seen) {
+        this.last_seen = last_seen;
     }
 
     public String getLastSensorRead() {
@@ -76,10 +95,6 @@ public class Status {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public void setLastSeen(String last_seen) {
-        this.last_seen = last_seen;
     }
 
     public void setLastSensorRead(String last_sensor_read) {
