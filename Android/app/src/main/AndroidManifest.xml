@@ -15,6 +15,10 @@
         android:theme="@style/Theme.SmartGarden">
 
         <activity
+            android:name=".activities.AboutActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".activities.SettingsActivity"
             android:exported="false"/>
 

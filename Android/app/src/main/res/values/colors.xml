@@ -94,4 +94,8 @@
     <color name="shadowSoft">#14000000</color>
     <color name="overlayLight">#0D000000</color>
 
+    <!-- BOTTON SHEET  -->
+
+    <color name="bottomSheetBackground">#F7FBF5</color>
+
 </resources>

@@ -322,4 +322,54 @@
 
     <string name="open_settings">Ayarları aç</string>
 
+    <!-- ANA MENÜ -->
+
+    <string name="open_main_menu">Ana menüyü aç</string>
+
+    <string name="menu_statistics">İstatistikler</string>
+    <string name="menu_device_health">Cihaz Sağlığı</string>
+    <string name="menu_watering_history">Sulama Geçmişi</string>
+    <string name="menu_settings">Ayarlar</string>
+    <string name="menu_about">Hakkında</string>
+
+    <string name="about_coming_soon">Hakkında ekranı yakında eklenecek</string>
+
+    <!-- HAKKINDA EKRANI -->
+
+    <string name="title_about">Hakkında</string>
+    <string name="subtitle_about">Uygulama, sistem ve geliştirici bilgileri</string>
+
+    <string name="about_project_tagline">Akıllı ve uzaktan kontrollü sulama sistemi</string>
+    <string name="about_app_version_waiting">Android sürümü yükleniyor</string>
+
+    <string name="about_project_title">Proje Hakkında</string>
+    <string name="about_project_description">SmartGarden; Raspberry Pi, Firebase Realtime Database ve Android uygulamasını bir araya getiren uzaktan kontrollü bir IoT sulama sistemidir. Toprak nemini izler, manuel ve otomatik sulama sağlar, cihaz sağlığını takip eder ve sulama geçmişi ile istatistikleri gerçek zamanlı olarak sunar.</string>
+
+    <string name="about_system_title">Sistem Bilgileri</string>
+    <string name="about_device_id">Cihaz kimliği</string>
+    <string name="about_backend_version">Backend sürümü</string>
+    <string name="about_backend_version_waiting">Veri bekleniyor</string>
+
+    <string name="about_developer_title">Geliştirici</string>
+    <string name="about_developer_name">Ali Doğukan</string>
+    <string name="about_developer_role">Android ve Raspberry Pi geliştiricisi</string>
+
+    <string name="about_open_github">GitHub</string>
+    <string name="about_copyright">© 2026 SmartGarden</string>
+
+    <string name="about_app_version_format">Android v%1$s</string>
+
+    <string name="about_github_open_error">GitHub bağlantısı açılamadı</string>
+
+    <!-- MATERIAL ALT MENÜ -->
+
+    <string name="main_menu_title">SmartGarden</string>
+    <string name="main_menu_subtitle">Detay ekranlarına ve sistem ayarlarına erişin</string>
+
+    <string name="menu_statistics_description">Sulama performansı ve başarı oranları</string>
+    <string name="menu_history_description">Geçmiş sulamalar ve nem değişimleri</string>
+    <string name="menu_health_description">Raspberry Pi kaynak ve bağlantı durumu</string>
+    <string name="menu_settings_description">Sulama sınırları ve sistem yapılandırması</string>
+    <string name="menu_about_description">Uygulama, sistem ve geliştirici bilgileri</string>
+
 </resources>

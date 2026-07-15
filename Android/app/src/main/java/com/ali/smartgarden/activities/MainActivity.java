@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -19,13 +20,10 @@ import com.ali.smartgarden.models.Command;
 import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.viewmodels.MainViewModel;
+import com.ali.smartgarden.ui.MainMenuBottomSheet;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
-
-import androidx.appcompat.widget.AppCompatImageView;
-
-import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -59,13 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AppCompatImageView imgPumpStatus;
 
-    private MaterialButton btnStatistics;
-
-    private MaterialButton btnHistory;
-
-    private MaterialButton btnHealth;
-
-    private MaterialButton btnSettings;
+    private MaterialButton btnMainMenu;
 
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
@@ -113,20 +105,8 @@ public class MainActivity extends AppCompatActivity {
 
         imgPumpStatus = findViewById(R.id.imgPumpStatus);
 
-        btnSettings = findViewById(
-                R.id.btnSettings
-        );
-
-        btnHealth = findViewById(
-                R.id.btnHealth
-        );
-
-        btnStatistics = findViewById(
-                R.id.btnStatistics
-        );
-
-        btnHistory = findViewById(
-                R.id.btnHistory
+        btnMainMenu = findViewById(
+                R.id.btnMainMenu
         );
 
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
@@ -509,43 +489,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeButtons() {
 
-        btnSettings.setOnClickListener(
-                view -> {
-
-                    Intent intent =
-                            new Intent(
-                                    MainActivity.this,
-                                    SettingsActivity.class
-                            );
-
-                    startActivity(intent);
-                }
-        );
-
-        btnHealth.setOnClickListener(
-                view -> {
-
-                    Intent intent =
-                            new Intent(
-                                    MainActivity.this,
-                                    DeviceHealthActivity.class
-                            );
-
-                    startActivity(intent);
-                }
-        );
-
-        btnHistory.setOnClickListener(
-                view -> {
-
-                    Intent intent =
-                            new Intent(
-                                    MainActivity.this,
-                                    WateringHistoryActivity.class
-                            );
-
-                    startActivity(intent);
-                }
+        btnMainMenu.setOnClickListener(
+                view -> showMainMenu()
         );
 
         btnWater.setOnClickListener(
@@ -596,17 +541,26 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-        btnStatistics.setOnClickListener(
-                view -> {
+    }
+    private void showMainMenu() {
 
-                    Intent intent =
-                            new Intent(
-                                    MainActivity.this,
-                                    StatisticsActivity.class
-                            );
+        String tag =
+                "MainMenuBottomSheet";
 
-                    startActivity(intent);
-                }
+        if (
+                getSupportFragmentManager()
+                        .findFragmentByTag(tag)
+                        != null
+        ) {
+            return;
+        }
+
+        MainMenuBottomSheet bottomSheet =
+                new MainMenuBottomSheet();
+
+        bottomSheet.show(
+                getSupportFragmentManager(),
+                tag
         );
     }
 

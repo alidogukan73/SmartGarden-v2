@@ -36,7 +36,7 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <!-- ÜST SATIR: MARKA + İSTATİSTİK BUTONU -->
+                <!-- ÜST SATIR: MARKA + ANA MENÜ -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -52,15 +52,16 @@
                         app:cardBackgroundColor="@color/primaryLight"
                         app:cardCornerRadius="15dp"
                         app:cardElevation="0dp"
-                        app:strokeWidth="0dp">
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp">
 
                         <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
                             android:layout_gravity="center"
                             android:contentDescription="@null"
-                            android:src="@drawable/ic_leaf_24"
-                            app:tint="@color/primary" />
+                            android:scaleType="centerCrop"
+                            android:src="@mipmap/ic_launcher" />
 
                     </com.google.android.material.card.MaterialCardView>
 
@@ -70,121 +71,50 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:ellipsize="end"
                             android:includeFontPadding="false"
+                            android:maxLines="1"
                             android:text="@string/app_name"
                             android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:text="@string/app_subtitle"
                             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
 
                     </LinearLayout>
 
-                    <!-- HEADER AKSİYONLARI -->
+                    <!-- ANA MENÜ -->
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <!-- SULAMA GEÇMİŞİ -->
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnHistory"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_marginEnd="4dp"
-                            android:contentDescription="@string/open_watering_history"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            app:backgroundTint="@color/surfaceSoft"
-                            app:cornerRadius="13dp"
-                            app:icon="@drawable/ic_history_24"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/textSecondary"
-                            app:rippleColor="@color/divider"/>
-
-                        <!-- CİHAZ SAĞLIĞI -->
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnHealth"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_marginEnd="4dp"
-                            android:contentDescription="@string/open_device_health"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            app:backgroundTint="@color/infoBackground"
-                            app:cornerRadius="13dp"
-                            app:icon="@drawable/ic_device_health_24"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/info"
-                            app:rippleColor="@color/divider"/>
-
-                        <!-- İSTATİSTİKLER -->
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnStatistics"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_marginEnd="4dp"
-                            android:contentDescription="@string/open_statistics"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            app:backgroundTint="@color/primaryLight"
-                            app:cornerRadius="13dp"
-                            app:icon="@drawable/ic_analytics_24"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/primary"
-                            app:rippleColor="@color/accentLight"/>
-
-                        <!-- AYARLAR -->
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSettings"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:contentDescription="@string/open_settings"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            app:backgroundTint="@color/warningBackground"
-                            app:cornerRadius="13dp"
-                            app:icon="@drawable/ic_settings_24"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/warning"
-                            app:rippleColor="@color/divider"/>
-
-                    </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMainMenu"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:contentDescription="@string/open_main_menu"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        app:backgroundTint="@color/surfaceSoft"
+                        app:cornerRadius="14dp"
+                        app:icon="@drawable/ic_more_vert_24"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="24dp"
+                        app:iconTint="@color/textPrimary"
+                        app:rippleColor="@color/divider"/>
 
                 </LinearLayout>
 
