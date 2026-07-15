@@ -184,8 +184,8 @@ public class SettingsViewModel extends ViewModel {
 
         saveSettings(
                 40,
-                10,
                 120,
+                600,
                 10,
                 true
         );

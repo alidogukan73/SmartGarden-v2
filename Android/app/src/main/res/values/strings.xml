@@ -372,4 +372,9 @@
     <string name="menu_settings_description">Sulama sınırları ve sistem yapılandırması</string>
     <string name="menu_about_description">Uygulama, sistem ve geliştirici bilgileri</string>
 
+    <!-- POMPA AYARI FORMATI -->
+
+    <string name="settings_hours_format">%1$d sa</string>
+    <string name="settings_hours_minutes_format">%1$d sa %2$d dk</string>
+
 </resources>

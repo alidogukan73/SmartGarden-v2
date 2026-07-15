@@ -24,8 +24,8 @@ import com.google.android.material.slider.Slider;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final long DEFAULT_MOISTURE_LIMIT = 40;
-    private static final long DEFAULT_PUMP_DURATION = 10;
-    private static final long DEFAULT_COOLDOWN_SECONDS = 120;
+    private static final long DEFAULT_PUMP_DURATION = 120;
+    private static final long DEFAULT_COOLDOWN_SECONDS = 600;
     private static final long DEFAULT_RESTART_DELTA = 10;
     private static final boolean DEFAULT_SYSTEM_ENABLED = true;
 
@@ -379,9 +379,12 @@ public class SettingsActivity extends AppCompatActivity {
                 );
 
         originalPumpDuration =
-                clamp(
-                        command.getPumpDuration(),
-                        5,
+                roundToStep(
+                        clamp(
+                                command.getPumpDuration(),
+                                60,
+                                10800
+                        ),
                         60
                 );
 
@@ -389,10 +392,10 @@ public class SettingsActivity extends AppCompatActivity {
                 roundToStep(
                         clamp(
                                 command.getCooldownSeconds(),
-                                30,
-                                600
+                                300,
+                                3600
                         ),
-                        10
+                        60
                 );
 
         originalRestartDelta =
@@ -724,10 +727,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void updatePumpDurationLabel(long value) {
 
         txtPumpDurationValue.setText(
-                getString(
-                        R.string.settings_seconds_format,
-                        value
-                )
+                formatPumpDuration(value)
         );
     }
 
@@ -768,6 +768,42 @@ public class SettingsActivity extends AppCompatActivity {
         );
     }
 
+    private String formatPumpDuration(long seconds) {
+
+        long safeSeconds =
+                Math.max(
+                        0,
+                        seconds
+                );
+
+        long hours =
+                safeSeconds / 3600;
+
+        long minutes =
+                (safeSeconds % 3600) / 60;
+
+        if (hours > 0 && minutes > 0) {
+
+            return getString(
+                    R.string.settings_hours_minutes_format,
+                    hours,
+                    minutes
+            );
+        }
+
+        if (hours > 0) {
+
+            return getString(
+                    R.string.settings_hours_format,
+                    hours
+            );
+        }
+
+        return getString(
+                R.string.settings_minutes_format,
+                minutes
+        );
+    }
 
     private String formatCooldown(long seconds) {
 
