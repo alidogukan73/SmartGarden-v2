@@ -377,4 +377,86 @@
     <string name="settings_hours_format">%1$d sa</string>
     <string name="settings_hours_minutes_format">%1$d sa %2$d dk</string>
 
+    <!-- AYRINTILI HEALTH DURUMLARI -->
+
+    <string name="health_power_details_title">Güç ve Performans Ayrıntıları</string>
+    <string name="health_power_details_subtitle">Aktif ve geçmiş Raspberry Pi güç kısıtlamaları</string>
+
+    <string name="health_current_events_title">Şu an aktif</string>
+    <string name="health_history_events_title">Geçmiş olaylar</string>
+
+    <string name="health_no_current_events">Aktif güç veya sıcaklık kısıtlaması yok</string>
+    <string name="health_no_history_events">Geçmişte kayıtlı bir olay bulunmuyor</string>
+
+    <string name="health_throttling_raw_label">Teknik Bilgi</string>
+    <string name="health_throttling_raw_default">0x0</string>
+
+    <string name="health_event_under_voltage_now">Düşük voltaj algılandı</string>
+    <string name="health_event_frequency_capped_now">CPU frekansı şu anda sınırlandırılıyor</string>
+    <string name="health_event_throttled_now">Sistem aktif olarak throttling uyguluyor</string>
+    <string name="health_event_temperature_limit_now">Yazılımsal sıcaklık limiti aktif</string>
+
+    <string name="health_event_under_voltage_history">Geçmişte düşük voltaj oluştu</string>
+    <string name="health_event_frequency_capped_history">Geçmişte CPU frekansı sınırlandırıldı</string>
+    <string name="health_event_throttled_history">Geçmişte throttling uygulandı</string>
+    <string name="health_event_temperature_limit_history">Geçmişte sıcaklık limiti etkinleşti</string>
+
+    <string name="health_throttling_raw_format">0x%1$X</string>
+
+    <!-- ===================================================== -->
+    <!-- ADAPTIVE IRRIGATION / AI SULAMA ASİSTANI              -->
+    <!-- ===================================================== -->
+
+    <string name="adaptive_title">AI Sulama Asistanı</string>
+
+    <string name="adaptive_subtitle">
+        Sulama sonuçlarını analiz ederek en uygun ayarları öğrenir
+    </string>
+
+    <string name="adaptive_status_label">Öğrenme durumu</string>
+    <string name="adaptive_status_waiting">Veri bekleniyor</string>
+
+    <string name="adaptive_recommendation_label">Öneri</string>
+    <string name="adaptive_recommendation_waiting">
+        Yeterli sulama verisi henüz oluşmadı
+    </string>
+
+    <string name="adaptive_confidence_label">Güven</string>
+    <string name="adaptive_confidence_default">DÜŞÜK</string>
+
+    <string name="adaptive_pump_label">Pompa</string>
+    <string name="adaptive_pump_default">—</string>
+
+    <string name="adaptive_records_label">Kayıt</string>
+    <string name="adaptive_records_default">0 Sulama</string>
+
+    <string name="adaptive_updated_label">Son analiz</string>
+    <string name="adaptive_updated_default">Bekleniyor</string>
+
+    <string name="adaptive_learning_badge">ÖĞRENİYOR</string>
+
+    <string name="adaptive_records_format">%1$d kayıt</string>
+    <string name="adaptive_confidence_format">%1$s · %2$d%%</string>
+    <string name="adaptive_pump_same_format">%1$s</string>
+    <string name="adaptive_pump_change_format">%1$s → %2$s</string>
+
+    <string name="adaptive_recommendation_learning">Öğrenme devam ediyor</string>
+    <string name="adaptive_recommendation_keep">Mevcut ayarlar uygun görünüyor</string>
+    <string name="adaptive_recommendation_increase">Pompa süresinin artırılması öneriliyor</string>
+    <string name="adaptive_recommendation_decrease">Pompa süresinin azaltılması öneriliyor</string>
+    <string name="adaptive_recommendation_increase_cooldown">Bekleme süresinin artırılması öneriliyor</string>
+    <string name="adaptive_recommendation_decrease_cooldown">Bekleme süresinin azaltılması öneriliyor</string>
+
+    <string name="adaptive_confidence_low">ÖĞRENİYOR</string>
+    <string name="adaptive_confidence_medium">ORTA</string>
+    <string name="adaptive_confidence_high">YÜKSEK</string>
+
+    <string name="adaptive_updated_format">Son analiz · %1$s</string>
+
+    <string name="adaptive_duration_seconds">%1$d sn</string>
+    <string name="adaptive_duration_minutes">%1$d dk</string>
+    <string name="adaptive_duration_minutes_seconds">%1$d dk %2$d sn</string>
+    <string name="adaptive_duration_hours">%1$d sa</string>
+    <string name="adaptive_duration_hours_minutes">%1$d sa %2$d dk</string>
+
 </resources>

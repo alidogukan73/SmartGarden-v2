@@ -34,6 +34,8 @@
     <color name="info">#1E88E5</color>
     <color name="infoBackground">#EAF3FD</color>
 
+    <color name="accentOrange">#FB8C00</color>
+
 
     <!-- NEM DURUMLARI -->
 
@@ -97,5 +99,6 @@
     <!-- BOTTON SHEET  -->
 
     <color name="bottomSheetBackground">#F7FBF5</color>
+
 
 </resources>

@@ -13,11 +13,124 @@ public class Health {
     private String updatedAt;
     private long uptimeSeconds;
     private long wifiSignal;
+    private long throttledRaw;
+    private boolean underVoltageNow;
+    private boolean frequencyCappedNow;
+    private boolean throttledNow;
+    private boolean softTemperatureLimitNow;
+    private boolean underVoltageHistory;
+    private boolean frequencyCappedHistory;
+    private boolean throttledHistory;
+    private boolean softTemperatureLimitHistory;
 
     public Health() {
         ipAddress = "";
         updatedAt = "";
         firmware = "";
+    }
+    @PropertyName("throttled_raw")
+    public long getThrottledRaw() {
+        return throttledRaw;
+    }
+
+    @PropertyName("throttled_raw")
+    public void setThrottledRaw(long throttledRaw) {
+        this.throttledRaw = throttledRaw;
+    }
+
+    @PropertyName("under_voltage_now")
+    public boolean isUnderVoltageNow() {
+        return underVoltageNow;
+    }
+
+    @PropertyName("under_voltage_now")
+    public void setUnderVoltageNow(boolean underVoltageNow) {
+        this.underVoltageNow = underVoltageNow;
+    }
+
+    @PropertyName("frequency_capped_now")
+    public boolean isFrequencyCappedNow() {
+        return frequencyCappedNow;
+    }
+
+    @PropertyName("frequency_capped_now")
+    public void setFrequencyCappedNow(boolean frequencyCappedNow) {
+        this.frequencyCappedNow = frequencyCappedNow;
+    }
+
+    @PropertyName("throttled_now")
+    public boolean isThrottledNow() {
+        return throttledNow;
+    }
+
+    @PropertyName("throttled_now")
+    public void setThrottledNow(boolean throttledNow) {
+        this.throttledNow = throttledNow;
+    }
+
+    @PropertyName("soft_temperature_limit_now")
+    public boolean isSoftTemperatureLimitNow() {
+        return softTemperatureLimitNow;
+    }
+
+    @PropertyName("soft_temperature_limit_now")
+    public void setSoftTemperatureLimitNow(
+            boolean softTemperatureLimitNow
+    ) {
+        this.softTemperatureLimitNow =
+                softTemperatureLimitNow;
+    }
+
+    @PropertyName("under_voltage_history")
+    public boolean isUnderVoltageHistory() {
+        return underVoltageHistory;
+    }
+
+    @PropertyName("under_voltage_history")
+    public void setUnderVoltageHistory(
+            boolean underVoltageHistory
+    ) {
+        this.underVoltageHistory =
+                underVoltageHistory;
+    }
+
+    @PropertyName("frequency_capped_history")
+    public boolean isFrequencyCappedHistory() {
+        return frequencyCappedHistory;
+    }
+
+    @PropertyName("frequency_capped_history")
+    public void setFrequencyCappedHistory(
+            boolean frequencyCappedHistory
+    ) {
+        this.frequencyCappedHistory =
+                frequencyCappedHistory;
+    }
+
+    @PropertyName("throttled_history")
+    public boolean isThrottledHistory() {
+        return throttledHistory;
+    }
+
+    @PropertyName("throttled_history")
+    public void setThrottledHistory(
+            boolean throttledHistory
+    ) {
+        this.throttledHistory =
+                throttledHistory;
+    }
+
+    @PropertyName("soft_temperature_limit_history")
+    public boolean isSoftTemperatureLimitHistory() {
+        return softTemperatureLimitHistory;
+    }
+
+    @PropertyName("soft_temperature_limit_history")
+    public void setSoftTemperatureLimitHistory(
+            boolean softTemperatureLimitHistory
+    ) {
+        this.softTemperatureLimitHistory =
+                softTemperatureLimitHistory;
     }
 
     @PropertyName("cpu_temperature")

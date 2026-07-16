@@ -66,6 +66,10 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtFirmware;
     private TextView txtUptime;
 
+    private TextView txtCurrentPowerEvents;
+    private TextView txtHistoricalPowerEvents;
+    private TextView txtThrottlingRaw;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -106,6 +110,14 @@ public class DeviceHealthActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
+        txtCurrentPowerEvents =
+                findViewById(R.id.txtCurrentPowerEvents);
+
+        txtHistoricalPowerEvents =
+                findViewById(R.id.txtHistoricalPowerEvents);
+
+        txtThrottlingRaw =
+                findViewById(R.id.txtThrottlingRaw);
 
         btnBack = findViewById(R.id.btnBack);
 
@@ -244,8 +256,191 @@ public class DeviceHealthActivity extends AppCompatActivity {
         renderThrottling(health);
         renderSystemInfo(health);
         renderOverallHealth(health);
+        renderPowerDetails(health);
+    }
+    private void renderPowerDetails(
+            Health health
+    ) {
+
+        String currentEvents =
+                buildCurrentPowerEvents(
+                        health
+                );
+
+        String historicalEvents =
+                buildHistoricalPowerEvents(
+                        health
+                );
+
+        boolean hasCurrentEvents =
+                health.isUnderVoltageNow()
+                        || health.isFrequencyCappedNow()
+                        || health.isThrottledNow()
+                        || health.isSoftTemperatureLimitNow();
+
+        boolean hasHistoricalEvents =
+                health.isUnderVoltageHistory()
+                        || health.isFrequencyCappedHistory()
+                        || health.isThrottledHistory()
+                        || health.isSoftTemperatureLimitHistory();
+
+        txtCurrentPowerEvents.setText(
+                currentEvents
+        );
+
+        txtCurrentPowerEvents.setTextColor(
+                color(
+                        hasCurrentEvents
+                                ? R.color.offline
+                                : R.color.online
+                )
+        );
+
+        txtHistoricalPowerEvents.setText(
+                historicalEvents
+        );
+
+        txtHistoricalPowerEvents.setTextColor(
+                color(
+                        hasHistoricalEvents
+                                ? R.color.warning
+                                : R.color.textSecondary
+                )
+        );
+
+        txtThrottlingRaw.setText(
+                getString(
+                        R.string.health_throttling_raw_format,
+                        health.getThrottledRaw()
+                )
+        );
     }
 
+    private String buildCurrentPowerEvents(
+            Health health
+    ) {
+
+        StringBuilder builder =
+                new StringBuilder();
+
+        appendPowerEvent(
+                builder,
+                health.isUnderVoltageNow(),
+                getString(
+                        R.string.health_event_under_voltage_now
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isFrequencyCappedNow(),
+                getString(
+                        R.string.health_event_frequency_capped_now
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isThrottledNow(),
+                getString(
+                        R.string.health_event_throttled_now
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isSoftTemperatureLimitNow(),
+                getString(
+                        R.string.health_event_temperature_limit_now
+                )
+        );
+
+        if (builder.length() == 0) {
+
+            return "✓ "
+                    + getString(
+                    R.string.health_no_current_events
+            );
+        }
+
+        return builder.toString();
+    }
+
+    private String buildHistoricalPowerEvents(
+            Health health
+    ) {
+
+        StringBuilder builder =
+                new StringBuilder();
+
+        appendPowerEvent(
+                builder,
+                health.isUnderVoltageHistory(),
+                getString(
+                        R.string.health_event_under_voltage_history
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isFrequencyCappedHistory(),
+                getString(
+                        R.string.health_event_frequency_capped_history
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isThrottledHistory(),
+                getString(
+                        R.string.health_event_throttled_history
+                )
+        );
+
+        appendPowerEvent(
+                builder,
+                health.isSoftTemperatureLimitHistory(),
+                getString(
+                        R.string.health_event_temperature_limit_history
+                )
+        );
+
+        if (builder.length() == 0) {
+
+            return "✓ "
+                    + getString(
+                    R.string.health_no_history_events
+            );
+        }
+
+        return builder.toString();
+    }
+
+    private void appendPowerEvent(
+            StringBuilder builder,
+            boolean condition,
+            String eventText
+    ) {
+
+        if (!condition) {
+            return;
+        }
+
+        if (builder.length() > 0) {
+
+            builder.append(
+                    "\n"
+            );
+        }
+
+        builder.append(
+                "⚠ "
+        );
+
+        builder.append(
+                eventText
+        );
+    }
     private void renderCpu(Health health) {
 
         double temperature =

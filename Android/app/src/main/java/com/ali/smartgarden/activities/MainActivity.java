@@ -24,6 +24,7 @@ import com.ali.smartgarden.ui.MainMenuBottomSheet;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.ali.smartgarden.models.AdaptiveRecommendation;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -61,12 +62,20 @@ public class MainActivity extends AppCompatActivity {
     private AppCompatImageView imgPumpStatus;
 
     private MaterialButton btnMainMenu;
+    private TextView txtAdaptiveBadge;
+    private TextView txtAdaptiveRecommendation;
+    private TextView txtAdaptiveConfidence;
+    private TextView txtAdaptivePump;
+    private TextView txtAdaptiveRecords;
+    private TextView txtAdaptiveUpdated;
+    private MaterialCardView cardAdaptiveBadge;
 
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
 
     private static final long ONLINE_TIMEOUT_SECONDS = 35;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000;
+    private static final int MIN_RECORDS_FOR_CONFIDENCE = 5;
 
     private final Handler onlineStatusHandler =
             new Handler(Looper.getMainLooper());
@@ -135,6 +144,42 @@ public class MainActivity extends AppCompatActivity {
                 R.id.btnMainMenu
         );
 
+        cardAdaptiveBadge =
+                findViewById(
+                        R.id.cardAdaptiveBadge
+                );
+
+        txtAdaptiveBadge =
+                findViewById(
+                        R.id.txtAdaptiveBadge
+                );
+
+        txtAdaptiveRecommendation =
+                findViewById(
+                        R.id.txtAdaptiveRecommendation
+                );
+
+        txtAdaptiveConfidence =
+                findViewById(
+                        R.id.txtAdaptiveConfidence
+                );
+
+        txtAdaptivePump =
+                findViewById(
+                        R.id.txtAdaptivePump
+                );
+
+        txtAdaptiveRecords =
+                findViewById(
+                        R.id.txtAdaptiveRecords
+                );
+
+        txtAdaptiveUpdated =
+                findViewById(
+                        R.id.txtAdaptiveUpdated
+                );
+
+
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
         txtOnline = findViewById(R.id.txtOnline);
         txtDevice = findViewById(R.id.txtDevice);
@@ -184,6 +229,11 @@ public class MainActivity extends AppCompatActivity {
                 this::renderCommand
         );
 
+        viewModel.getAdaptiveRecommendation().observe(
+                this,
+                this::renderAdaptiveRecommendation
+        );
+
         viewModel.getError().observe(
                 this,
                 message -> {
@@ -204,6 +254,442 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    private void renderAdaptiveRecommendation(
+            AdaptiveRecommendation recommendation
+    ) {
+
+        if (recommendation == null) {
+            return;
+        }
+
+        String recommendationText =
+                formatAdaptiveRecommendation(
+                        recommendation.getRecommendationType()
+                );
+
+        String confidenceText =
+                formatAdaptiveConfidence(
+                        recommendation.getConfidenceLevel()
+                );
+
+        String pumpText =
+                formatAdaptivePumpDuration(
+                        recommendation.getCurrentPumpDurationSeconds(),
+                        recommendation.getRecommendedPumpDurationSeconds()
+                );
+
+        String recordsText =
+                getString(
+                        R.string.adaptive_records_format,
+                        recommendation.getWateringCountAnalyzed()
+                );
+
+        String updatedText =
+                formatAdaptiveUpdatedAt(
+                        recommendation.getUpdatedAt()
+                );
+
+        txtAdaptiveRecommendation.setText(
+                recommendationText
+        );
+
+        long confidence =
+                Math.round(
+                        recommendation.getConfidence() * 100
+                );
+
+        boolean learning =
+                recommendation.getWateringCountAnalyzed()
+                        < MIN_RECORDS_FOR_CONFIDENCE;
+
+        if (learning) {
+
+            txtAdaptiveConfidence.setText(
+                    "ÖĞRENİYOR"
+            );
+
+            txtAdaptiveBadge.setText(
+                    "ÖĞRENİYOR"
+            );
+
+        } else {
+
+            txtAdaptiveConfidence.setText(
+                    confidenceText
+                            + " • %"
+                            + confidence
+            );
+
+            txtAdaptiveBadge.setText(
+                    confidenceText
+            );
+        }
+
+        applyAdaptiveConfidenceStyle(
+                learning,
+                recommendation.getConfidenceLevel()
+        );
+
+        txtAdaptivePump.setText(
+                pumpText
+        );
+
+        txtAdaptiveRecords.setText(
+                recordsText
+        );
+
+        txtAdaptiveUpdated.setText(
+                getString(
+                        R.string.adaptive_updated_format,
+                        updatedText
+                )
+        );
+
+        if (recommendation.getWateringCountAnalyzed()
+                < MIN_RECORDS_FOR_CONFIDENCE) {
+
+            txtAdaptiveBadge.setText(
+                    "ÖĞRENİYOR"
+            );
+
+        } else {
+
+            txtAdaptiveBadge.setText(
+                    confidenceText
+            );
+
+        }
+    }
+
+    private void applyAdaptiveConfidenceStyle(
+            boolean learning,
+            String confidenceLevel
+    ) {
+
+        int textColorRes;
+        int backgroundColorRes;
+        int strokeColorRes;
+
+        if (learning) {
+
+            textColorRes =
+                    R.color.primary;
+
+            backgroundColorRes =
+                    R.color.surfaceGreen;
+
+            strokeColorRes =
+                    R.color.primary;
+
+        } else if ("HIGH".equals(confidenceLevel)) {
+
+            textColorRes =
+                    R.color.online;
+
+            backgroundColorRes =
+                    R.color.onlineBackground;
+
+            strokeColorRes =
+                    R.color.online;
+
+        } else if ("MEDIUM".equals(confidenceLevel)) {
+
+            textColorRes =
+                    R.color.warning;
+
+            backgroundColorRes =
+                    R.color.warningBackground;
+
+            strokeColorRes =
+                    R.color.warning;
+
+        } else {
+
+            textColorRes =
+                    R.color.accentOrange;
+
+            backgroundColorRes =
+                    R.color.warningBackground;
+
+            strokeColorRes =
+                    R.color.accentOrange;
+        }
+
+        int textColor =
+                ContextCompat.getColor(
+                        this,
+                        textColorRes
+                );
+
+        int backgroundColor =
+                ContextCompat.getColor(
+                        this,
+                        backgroundColorRes
+                );
+
+        int strokeColor =
+                ContextCompat.getColor(
+                        this,
+                        strokeColorRes
+                );
+
+        txtAdaptiveBadge.setTextColor(
+                textColor
+        );
+
+        txtAdaptiveConfidence.setTextColor(
+                textColor
+        );
+
+        cardAdaptiveBadge.setCardBackgroundColor(
+                backgroundColor
+        );
+
+        cardAdaptiveBadge.setStrokeColor(
+                strokeColor
+        );
+
+        cardAdaptiveBadge.setStrokeWidth(
+                dpToPx(
+                        1
+                )
+        );
+    }
+
+    private int dpToPx(
+            int dp
+    ) {
+
+        return Math.round(
+                dp
+                        * getResources()
+                        .getDisplayMetrics()
+                        .density
+        );
+    }
+    private String formatAdaptiveRecommendation(
+            String recommendationType
+    ) {
+
+        if (recommendationType == null) {
+            return getString(
+                    R.string.adaptive_recommendation_waiting
+            );
+        }
+
+        switch (recommendationType) {
+
+            case "INSUFFICIENT_DATA":
+
+                return getString(
+                        R.string.adaptive_recommendation_learning
+                );
+
+            case "KEEP_CURRENT_SETTINGS":
+
+                return getString(
+                        R.string.adaptive_recommendation_keep
+                );
+
+            case "INCREASE_PUMP_DURATION":
+
+                return getString(
+                        R.string.adaptive_recommendation_increase
+                );
+
+            case "DECREASE_PUMP_DURATION":
+
+                return getString(
+                        R.string.adaptive_recommendation_decrease
+                );
+
+            case "INCREASE_COOLDOWN":
+
+                return getString(
+                        R.string.adaptive_recommendation_increase_cooldown
+                );
+
+            case "DECREASE_COOLDOWN":
+
+                return getString(
+                        R.string.adaptive_recommendation_decrease_cooldown
+                );
+
+            default:
+
+                return getString(
+                        R.string.adaptive_recommendation_waiting
+                );
+        }
+    }
+
+    private String formatAdaptiveConfidence(
+            String confidenceLevel
+    ) {
+
+        if (confidenceLevel == null) {
+            return getString(
+                    R.string.adaptive_confidence_low
+            );
+        }
+
+        switch (confidenceLevel) {
+
+            case "HIGH":
+
+                return getString(
+                        R.string.adaptive_confidence_high
+                );
+
+            case "MEDIUM":
+
+                return getString(
+                        R.string.adaptive_confidence_medium
+                );
+
+            case "LOW":
+
+            default:
+
+                return getString(
+                        R.string.adaptive_confidence_low
+                );
+        }
+    }
+
+    private String formatAdaptivePumpDuration(
+            long currentSeconds,
+            long recommendedSeconds
+    ) {
+
+        String current =
+                formatDurationForAdaptive(
+                        currentSeconds
+                );
+
+        String recommended =
+                formatDurationForAdaptive(
+                        recommendedSeconds
+                );
+
+        if (currentSeconds == recommendedSeconds) {
+
+            return getString(
+                    R.string.adaptive_pump_same_format,
+                    current
+            );
+        }
+
+        return getString(
+                R.string.adaptive_pump_change_format,
+                current,
+                recommended
+        );
+    }
+
+    private String formatDurationForAdaptive(
+            long seconds
+    ) {
+
+        long safeSeconds =
+                Math.max(
+                        0,
+                        seconds
+                );
+
+        long hours =
+                safeSeconds / 3600;
+
+        long minutes =
+                (safeSeconds % 3600) / 60;
+
+        long remainingSeconds =
+                safeSeconds % 60;
+
+        if (hours > 0 && minutes > 0) {
+
+            return getString(
+                    R.string.adaptive_duration_hours_minutes,
+                    hours,
+                    minutes
+            );
+        }
+
+        if (hours > 0) {
+
+            return getString(
+                    R.string.adaptive_duration_hours,
+                    hours
+            );
+        }
+
+        if (minutes > 0 && remainingSeconds > 0) {
+
+            return getString(
+                    R.string.adaptive_duration_minutes_seconds,
+                    minutes,
+                    remainingSeconds
+            );
+        }
+
+        if (minutes > 0) {
+
+            return getString(
+                    R.string.adaptive_duration_minutes,
+                    minutes
+            );
+        }
+
+        return getString(
+                R.string.adaptive_duration_seconds,
+                safeSeconds
+        );
+    }
+
+    private String formatAdaptiveUpdatedAt(
+            String updatedAt
+    ) {
+
+        if (
+                updatedAt == null
+                        || updatedAt.trim().isEmpty()
+        ) {
+
+            return getString(
+                    R.string.adaptive_updated_default
+            );
+        }
+
+        try {
+
+            int separatorIndex =
+                    updatedAt.indexOf(
+                            "T"
+                    );
+
+            if (
+                    separatorIndex < 0
+                            || updatedAt.length()
+                            < separatorIndex + 6
+            ) {
+
+                return getString(
+                        R.string.adaptive_updated_default
+                );
+            }
+
+            return updatedAt.substring(
+                    separatorIndex + 1,
+                    separatorIndex + 6
+            );
+
+        } catch (RuntimeException exception) {
+
+            return getString(
+                    R.string.adaptive_updated_default
+            );
+        }
+    }
     private void renderSensor(Sensor sensor) {
 
         if (sensor == null) {

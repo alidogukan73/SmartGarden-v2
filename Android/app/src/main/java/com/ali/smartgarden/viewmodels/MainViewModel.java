@@ -14,6 +14,7 @@ import com.ali.smartgarden.models.Status;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.ali.smartgarden.models.AdaptiveRecommendation;
 
 public class MainViewModel extends ViewModel {
 
@@ -33,6 +34,10 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<String> errorLiveData =
             new MutableLiveData<>();
 
+    private final MutableLiveData<AdaptiveRecommendation>
+            adaptiveRecommendation =
+            new MutableLiveData<>();
+
     public MainViewModel() {
 
         repository = new FirebaseRepository();
@@ -42,6 +47,8 @@ public class MainViewModel extends ViewModel {
         observeStatus();
 
         observeCommands();
+
+        observeAdaptiveRecommendation();
     }
 
     /*
@@ -62,6 +69,12 @@ public class MainViewModel extends ViewModel {
 
     public LiveData<String> getError() {
         return errorLiveData;
+    }
+
+    public LiveData<AdaptiveRecommendation>
+    getAdaptiveRecommendation() {
+
+        return adaptiveRecommendation;
     }
 
     /*
@@ -228,6 +241,24 @@ public class MainViewModel extends ViewModel {
         );
     }
 
+    private void observeAdaptiveRecommendation() {
+
+        repository.observeAdaptiveRecommendation(
+
+                recommendation -> {
+
+                    adaptiveRecommendation.setValue(
+                            recommendation
+                    );
+
+                    Log.d(
+                            TAG,
+                            "Adaptive recommendation updated: "
+                                    + recommendation.getRecommendationType()
+                    );
+                }
+        );
+    }
     private void handleFirebaseError(
             DatabaseError error
     ) {
