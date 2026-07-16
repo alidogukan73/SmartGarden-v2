@@ -22,6 +22,10 @@ from models.watering_record import WateringRecord
 from models.watering_result import WateringResult
 from models.watering_statistics import WateringStatistics
 from models.health_status import HealthStatus
+from models.irrigation_decision import IrrigationDecision
+from models.sensor_history_entry import SensorHistoryEntry
+from models.adaptive_irrigation_recommendation import AdaptiveIrrigationRecommendation
+from models.soil_learning_profile import SoilLearningProfile
 
 class FirebaseService:
 
@@ -185,6 +189,7 @@ class FirebaseService:
                 "online": True,
                 "version": AppConfig.VERSION,
                 "last_seen": datetime.now().isoformat(),
+                "last_seen_epoch": int(time.time()),
                 "last_error": "",
             },
         )
@@ -203,6 +208,7 @@ class FirebaseService:
             {
                 "online": online,
                 "last_seen": datetime.now().isoformat(),
+                "last_seen_epoch": int(time.time()),
             },
         )
 
@@ -214,7 +220,6 @@ class FirebaseService:
         sensor_time: str,
         watering_state: str,
         cooldown_remaining: int,
-        last_watering: str,
     ) -> None:
         """
         Update runtime status information.
@@ -229,10 +234,32 @@ class FirebaseService:
                 "last_sensor_read": sensor_time,
                 "watering_state": watering_state,
                 "cooldown_remaining": cooldown_remaining,
-                "last_watering": last_watering,
             },
         )
 
+    def update_relay_status(
+        self,
+        relay: bool,
+    ) -> None:
+        """
+        Update physical relay status immediately.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "relay": relay,
+                "last_seen": datetime.now().isoformat(),
+            },
+        )
+
+        """
+        self._logger.info(
+            "Relay status sent to Firebase: %s",
+            relay,
+        )
+        """
     def update_health_status(
         self,
         health: HealthStatus,
@@ -245,23 +272,66 @@ class FirebaseService:
             "health",
         ).set(
             {
-                "cpu_temperature": health.cpu_temperature,
+                "cpu_temperature":
+                    health.cpu_temperature,
 
-                "cpu_usage": health.cpu_usage,
+                "cpu_usage":
+                    health.cpu_usage,
 
-                "memory_usage": health.memory_usage,
+                "memory_usage":
+                    health.memory_usage,
 
-                "disk_usage": health.disk_usage,
+                "disk_usage":
+                    health.disk_usage,
 
-                "uptime_seconds": health.uptime_seconds,
+                "uptime_seconds":
+                    health.uptime_seconds,
 
-                "ip_address": health.ip_address,
+                "ip_address":
+                    health.ip_address,
 
-                "wifi_signal": health.wifi_signal,
+                "wifi_signal":
+                    health.wifi_signal,
 
-                "is_throttled": health.is_throttled,
+                # Genel aktif throttling durumu
+                "is_throttled":
+                    health.is_throttled,
 
-                "updated_at": datetime.now().isoformat(),
+                # Ham vcgencmd get_throttled değeri
+                "throttled_raw":
+                    health.throttled_raw,
+
+                # Şu anda aktif olan durumlar
+                "under_voltage_now":
+                    health.under_voltage_now,
+
+                "frequency_capped_now":
+                    health.frequency_capped_now,
+
+                "throttled_now":
+                    health.throttled_now,
+
+                "soft_temperature_limit_now":
+                    health.soft_temperature_limit_now,
+
+                # Geçmişte oluşmuş durumlar
+                "under_voltage_history":
+                    health.under_voltage_history,
+
+                "frequency_capped_history":
+                    health.frequency_capped_history,
+
+                "throttled_history":
+                    health.throttled_history,
+
+                "soft_temperature_limit_history":
+                    health.soft_temperature_limit_history,
+
+                "firmware":
+                    AppConfig.VERSION,
+
+                "updated_at":
+                    datetime.now().isoformat(),
             },
         )
 
@@ -329,6 +399,63 @@ class FirebaseService:
                 ),
                 "moisture": reading.moisture,
                 "updated_at": datetime.now().isoformat(),
+            },
+        )
+    
+    def save_sensor_history(
+        self,
+        entry: SensorHistoryEntry,
+    ) -> None:
+        """
+        Save one sensor history entry.
+        """
+
+        history_ref = (
+            self._device_ref()
+            .child("sensor_history")
+            .push()
+        )
+
+        history_ref.set(
+            {
+                "moisture":
+                    entry.moisture,
+
+                "voltage":
+                    round(
+                        entry.voltage,
+                        3,
+                    ),
+
+                "raw":
+                    entry.raw,
+
+                "trend_classification":
+                    entry.trend_classification,
+
+                "moisture_change_per_minute":
+                    round(
+                        entry.moisture_change_per_minute,
+                        3,
+                    ),
+
+                "trend_sample_count":
+                    entry.trend_sample_count,
+
+                "trend_duration_seconds":
+                    round(
+                        entry.trend_duration_seconds,
+                        2,
+                    ),
+
+                "average_moisture":
+                    round(
+                        entry.average_moisture,
+                        2,
+                    ),
+
+                "recorded_at":
+                    entry.recorded_at,
             },
         )
 
@@ -608,7 +735,149 @@ class FirebaseService:
             ),
         )
             
+    def get_recent_watering_records(
+        self,
+        *,
+        limit: int = 20,
+    ) -> list[WateringRecord]:
+        """
+        Read recent watering history records.
+        """
 
+        if limit <= 0:
+            return []
+
+        data = (
+            self._device_ref()
+            .child("watering_history")
+            .order_by_key()
+            .limit_to_last(limit)
+            .get()
+        ) or {}
+
+        records: list[WateringRecord] = []
+
+        for firebase_key, item in data.items():
+
+            if not isinstance(item, dict):
+                continue
+
+            try:
+
+                record = WateringRecord(
+                    started_at=str(
+                        item.get(
+                            "started_at",
+                            "",
+                        ),
+                    ),
+
+                    finished_at=str(
+                        item.get(
+                            "finished_at",
+                            "",
+                        ),
+                    ),
+
+                    duration=int(
+                        item.get(
+                            "duration",
+                            0,
+                        ),
+                    ),
+
+                    moisture_before=int(
+                        item.get(
+                            "moisture_before",
+                            0,
+                        ),
+                    ),
+
+                    moisture_after=int(
+                        item.get(
+                            "moisture_after",
+                            0,
+                        ),
+                    ),
+
+                    moisture_delta=int(
+                        item.get(
+                            "moisture_delta",
+                            0,
+                        ),
+                    ),
+
+                    moisture_limit=int(
+                        item.get(
+                            "moisture_limit",
+                            0,
+                        ),
+                    ),
+
+                    restart_delta=int(
+                        item.get(
+                            "restart_delta",
+                            0,
+                        ),
+                    ),
+
+                    cooldown_seconds=int(
+                        item.get(
+                            "cooldown_seconds",
+                            0,
+                        ),
+                    ),
+
+                    completed=bool(
+                        item.get(
+                            "completed",
+                            False,
+                        ),
+                    ),
+
+                    stop_reason=str(
+                        item.get(
+                            "stop_reason",
+                            "",
+                        ),
+                    ),
+
+                    mode=str(
+                        item.get(
+                            "mode",
+                            "",
+                        ),
+                    ),
+
+                    firmware=str(
+                        item.get(
+                            "firmware",
+                            "",
+                        ),
+                    ),
+                )
+
+                records.append(
+                    record
+                )
+
+            except (
+                TypeError,
+                ValueError,
+            ) as exc:
+
+                self._logger.warning(
+                    "Invalid watering history record skipped. "
+                    "key=%s error=%s",
+                    firebase_key,
+                    exc,
+                )
+
+        records.sort(
+            key=lambda record: record.finished_at
+        )
+
+        return records
         
     # -------------------------------------------------
     # Commands
@@ -761,3 +1030,207 @@ class FirebaseService:
         self._logger.info(
             "Command synchronization stopped.",
         )
+
+    def update_irrigation_decision(
+        self,
+        decision: IrrigationDecision,
+    ) -> None:
+        """
+        Upload the latest smart irrigation decision.
+        """
+
+        self._device_ref().child(
+            "decision",
+        ).set(
+            {
+                "should_water":
+                    decision.should_water,
+
+                "reason":
+                    decision.reason,
+
+                "moisture":
+                    decision.moisture,
+
+                "moisture_limit":
+                    decision.moisture_limit,
+
+                "sensor_stable":
+                    decision.sensor_stable,
+
+                "cooldown_active":
+                    decision.cooldown_active,
+
+                "trend_classification":
+                    decision.trend_classification,
+
+                "trend_sample_count":
+                    decision.trend_sample_count,
+
+                "moisture_change_per_minute":
+                    decision.moisture_change_per_minute,
+
+                "trend_duration_seconds":
+                    round(
+                        decision.trend_duration_seconds,
+                        2,
+                    ),
+
+                "average_moisture":
+                    round(
+                        decision.average_moisture,
+                        2,
+                    ),
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+
+    def update_adaptive_recommendation(
+        self,
+        recommendation: AdaptiveIrrigationRecommendation,
+    ) -> None:
+        """
+        Upload the latest adaptive irrigation recommendation.
+
+        Observation mode only.
+        This method does not modify Firebase commands.
+        """
+
+        self._device_ref().child(
+            "adaptive_recommendation",
+        ).set(
+            {
+                "recommendation_type":
+                    recommendation.recommendation_type,
+
+                "reason":
+                    recommendation.reason,
+
+                "should_apply":
+                    recommendation.should_apply,
+
+                "confidence":
+                    recommendation.confidence,
+
+                "confidence_level":
+                    recommendation.confidence_level,
+
+                "current_pump_duration_seconds":
+                    recommendation.current_pump_duration_seconds,
+
+                "recommended_pump_duration_seconds":
+                    recommendation.recommended_pump_duration_seconds,
+
+                "current_cooldown_seconds":
+                    recommendation.current_cooldown_seconds,
+
+                "recommended_cooldown_seconds":
+                    recommendation.recommended_cooldown_seconds,
+
+                "watering_count_analyzed":
+                    recommendation.watering_count_analyzed,
+
+                "average_moisture_delta":
+                    recommendation.average_moisture_delta,
+
+                "average_watering_duration_seconds":
+                    recommendation.average_watering_duration_seconds,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        ) 
+
+    def update_soil_learning_profile(
+        self,
+        profile: SoilLearningProfile,
+    ) -> None:
+        """
+        Upload the latest learned soil behaviour profile.
+
+        Observation mode only.
+        This method does not modify irrigation commands.
+        """
+
+        self._device_ref().child(
+            "soil_learning_profile",
+        ).set(
+            {
+                "profile_status":
+                    profile.profile_status,
+
+                "soil_classification":
+                    profile.soil_classification,
+
+                "confidence":
+                    profile.confidence,
+
+                "confidence_level":
+                    profile.confidence_level,
+
+                "learning_stage":
+                    profile.learning_stage,
+
+                "next_milestone_code":
+                    profile.next_milestone_code,
+
+                "next_milestone_text":
+                    profile.next_milestone_text,
+
+                "remaining_sensor_samples":
+                    profile.remaining_sensor_samples,
+
+                "remaining_auto_waterings":
+                    profile.remaining_auto_waterings,
+
+                "sensor_history_count":
+                    profile.sensor_history_count,
+
+                "watering_count_analyzed":
+                    profile.watering_count_analyzed,
+
+                "average_moisture":
+                    round(
+                        profile.average_moisture,
+                        2,
+                    ),
+
+                "average_drying_rate_per_minute":
+                    round(
+                        profile.average_drying_rate_per_minute,
+                        3,
+                    ),
+
+                "average_moisture_gain_per_watering":
+                    round(
+                        profile.average_moisture_gain_per_watering,
+                        2,
+                    ),
+
+                "average_watering_duration_seconds":
+                    round(
+                        profile.average_watering_duration_seconds,
+                        2,
+                    ),
+
+                "estimated_water_retention_minutes":
+                    round(
+                        profile.estimated_water_retention_minutes,
+                        2,
+                    ),
+
+                "irrigation_efficiency":
+                    round(
+                        profile.irrigation_efficiency,
+                        3,
+                    ),
+
+                "learned_at":
+                    profile.learned_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )  

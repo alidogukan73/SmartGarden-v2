@@ -55,6 +55,10 @@ class SystemMonitor:
             - psutil.boot_time()
         )
 
+        throttling_status = (
+            self._read_throttling_status()
+        )
+
         return HealthStatus(
             cpu_temperature=round(
                 cpu_temperature,
@@ -82,7 +86,65 @@ class SystemMonitor:
 
             wifi_signal=self._get_wifi_signal(),
 
-            is_throttled=self._is_throttled(),
+            is_throttled=bool(
+                throttling_status[
+                    "is_throttled"
+                ],
+            ),
+
+            throttled_raw=int(
+                throttling_status[
+                    "throttled_raw"
+                ],
+            ),
+
+            under_voltage_now=bool(
+                throttling_status[
+                    "under_voltage_now"
+                ],
+            ),
+
+            frequency_capped_now=bool(
+                throttling_status[
+                    "frequency_capped_now"
+                ],
+            ),
+
+            throttled_now=bool(
+                throttling_status[
+                    "throttled_now"
+                ],
+            ),
+
+            soft_temperature_limit_now=bool(
+                throttling_status[
+                    "soft_temperature_limit_now"
+                ],
+            ),
+
+            under_voltage_history=bool(
+                throttling_status[
+                    "under_voltage_history"
+                ],
+            ),
+
+            frequency_capped_history=bool(
+                throttling_status[
+                    "frequency_capped_history"
+                ],
+            ),
+
+            throttled_history=bool(
+                throttling_status[
+                    "throttled_history"
+                ],
+            ),
+
+            soft_temperature_limit_history=bool(
+                throttling_status[
+                    "soft_temperature_limit_history"
+                ],
+            ),            
         )
     
     def _get_ip_address(
@@ -156,12 +218,23 @@ class SystemMonitor:
 
         return -100
 
-
-    def _is_throttled(
+    def _read_throttling_status(
         self,
-    ) -> bool:
+    ) -> dict[str, int | bool]:
         """
-        Return Raspberry Pi throttling state.
+        Read and decode Raspberry Pi throttling flags.
+
+        Current-state flags:
+            Bit 0  -> Under-voltage detected
+            Bit 1  -> ARM frequency capped
+            Bit 2  -> Currently throttled
+            Bit 3  -> Soft temperature limit active
+
+        Historical flags:
+            Bit 16 -> Under-voltage has occurred
+            Bit 17 -> ARM frequency capping has occurred
+            Bit 18 -> Throttling has occurred
+            Bit 19 -> Soft temperature limit has occurred
         """
 
         try:
@@ -172,18 +245,104 @@ class SystemMonitor:
                     "get_throttled",
                 ],
                 text=True,
+                timeout=3,
+            )
+
+            value_text = (
+                output
+                .strip()
+                .split(
+                    "=",
+                    maxsplit=1,
+                )[1]
             )
 
             value = int(
-                output.strip().split("=")[1],
+                value_text,
                 16,
             )
 
-            return value != 0
+        except (
+            IndexError,
+            OSError,
+            subprocess.SubprocessError,
+            ValueError,
+        ):
 
-        except Exception:
+            value = 0
 
-            return False
+        under_voltage_now = bool(
+            value & (1 << 0)
+        )
+
+        frequency_capped_now = bool(
+            value & (1 << 1)
+        )
+
+        throttled_now = bool(
+            value & (1 << 2)
+        )
+
+        soft_temperature_limit_now = bool(
+            value & (1 << 3)
+        )
+
+        under_voltage_history = bool(
+            value & (1 << 16)
+        )
+
+        frequency_capped_history = bool(
+            value & (1 << 17)
+        )
+
+        throttled_history = bool(
+            value & (1 << 18)
+        )
+
+        soft_temperature_limit_history = bool(
+            value & (1 << 19)
+        )
+
+        is_throttled = any(
+            (
+                under_voltage_now,
+                frequency_capped_now,
+                throttled_now,
+                soft_temperature_limit_now,
+            ),
+        )
+
+        return {
+            "is_throttled":
+                is_throttled,
+
+            "throttled_raw":
+                value,
+
+            "under_voltage_now":
+                under_voltage_now,
+
+            "frequency_capped_now":
+                frequency_capped_now,
+
+            "throttled_now":
+                throttled_now,
+
+            "soft_temperature_limit_now":
+                soft_temperature_limit_now,
+
+            "under_voltage_history":
+                under_voltage_history,
+
+            "frequency_capped_history":
+                frequency_capped_history,
+
+            "throttled_history":
+                throttled_history,
+
+            "soft_temperature_limit_history":
+                soft_temperature_limit_history,
+        }    
 
     def read(
         self,

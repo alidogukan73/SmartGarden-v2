@@ -18,7 +18,10 @@ from hardware.sensor import SoilMoistureSensor
 from models.watering_record import WateringRecord
 from core.config import AppConfig
 from core.system_monitor import SystemMonitor
-
+from controllers.smart_irrigation_engine import SmartIrrigationEngine
+from models.sensor_history_entry import SensorHistoryEntry
+from controllers.adaptive_irrigation_engine import AdaptiveIrrigationEngine
+from controllers.soil_learning_engine import SoilLearningEngine
 
 class IrrigationService:
     """
@@ -28,7 +31,6 @@ class IrrigationService:
     def __init__(self) -> None:
 
         self._logger = AppLogger().logger
-
         self._sensor = SoilMoistureSensor()
         self._system_monitor = SystemMonitor()
         self._relay = RelayController()
@@ -38,8 +40,34 @@ class IrrigationService:
             self._relay,
         )
 
+        self._smart_engine = SmartIrrigationEngine()
+
+        self._adaptive_engine = (
+            AdaptiveIrrigationEngine()
+        )
+
+        self._soil_learning_engine = (
+            SoilLearningEngine()
+        )
+
+        self._last_soil_learning_analysis = 0.0
+
+        self._soil_learning_interval_seconds = (
+            1800  #1800 sn olacak
+        )
+
+        self._last_adaptive_analysis = 0.0
+
+        self._adaptive_analysis_interval_seconds = (
+            1800
+        )        
+
         self._last_status_update = 0.0
         self._last_health_update = 0.0
+
+        self._last_sensor_history_update = 0.0
+        self._sensor_history_interval_seconds = 300
+
         self._started_at = 0.0
         self._last_watering_iso = ""       
 
@@ -64,6 +92,12 @@ class IrrigationService:
 
         self._last_status_update = time.monotonic()
         self._last_health_update = time.monotonic()
+
+        self._last_sensor_history_update = time.monotonic()
+
+        self._last_adaptive_analysis = time.monotonic()
+
+        self._last_soil_learning_analysis = time.monotonic()
 
         self._started_at = time.monotonic()
 
@@ -109,6 +143,166 @@ class IrrigationService:
 
             self._last_health_update = current_time
 
+    def _save_sensor_history_if_needed(
+        self,
+        *,
+        reading,
+        decision,
+    ) -> None:
+        """
+        Save sensor history periodically.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time
+            - self._last_sensor_history_update
+            < self._sensor_history_interval_seconds
+        ):
+            return
+
+        entry = SensorHistoryEntry(
+            moisture=reading.moisture,
+            voltage=reading.voltage,
+            raw=reading.raw,
+            trend_classification=(
+                decision.trend_classification
+            ),
+            moisture_change_per_minute=(
+                decision.moisture_change_per_minute
+            ),
+            trend_sample_count=(
+                decision.trend_sample_count
+            ),
+            trend_duration_seconds=(
+                decision.trend_duration_seconds
+            ),
+
+            average_moisture=(
+                decision.average_moisture
+            ),
+
+            recorded_at=datetime.now().isoformat(),
+        )
+
+        self._firebase.save_sensor_history(
+            entry,
+        )
+
+        self._last_sensor_history_update = current_time
+
+    def _update_adaptive_recommendation_if_needed(
+        self,
+        *,
+        commands,
+    ) -> None:
+        """
+        Analyze watering history periodically and upload
+        an observation-mode adaptive recommendation.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time
+            - self._last_adaptive_analysis
+            < self._adaptive_analysis_interval_seconds
+        ):
+            return
+
+        records = (
+            self._firebase
+            .get_recent_watering_records(
+                limit=30,
+            )
+        )
+
+        recommendation = (
+            self._adaptive_engine.analyze(
+                records=records,
+                current_pump_duration_seconds=(
+                    commands.pump_duration
+                ),
+                current_cooldown_seconds=(
+                    commands.cooldown_seconds
+                ),
+            )
+        )
+
+        self._firebase.update_adaptive_recommendation(
+            recommendation,
+        )
+
+        self._last_adaptive_analysis = current_time
+
+        self._logger.info(
+            "Adaptive recommendation updated. "
+            "type=%s confidence=%s level=%s "
+            "records=%d apply=%s",
+            recommendation.recommendation_type,
+            recommendation.confidence,
+            recommendation.confidence_level,
+            recommendation.watering_count_analyzed,
+            recommendation.should_apply,
+        )
+
+    def _update_soil_learning_profile_if_needed(
+        self,
+    ) -> None:
+        """
+        Analyze soil behaviour periodically and upload
+        the latest observation-mode learning profile.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time
+            - self._last_soil_learning_analysis
+            < self._soil_learning_interval_seconds
+        ):
+            return
+
+        moisture_trend = (
+            self._smart_engine.get_current_trend()
+        )
+
+        watering_records = (
+            self._firebase
+            .get_recent_watering_records(
+                limit=30,
+            )
+        )
+
+        profile = (
+            self._soil_learning_engine.analyze(
+                moisture_trend=moisture_trend,
+                watering_records=watering_records,
+            )
+        )
+
+        self._firebase.update_soil_learning_profile(
+            profile,
+        )
+
+        self._last_soil_learning_analysis = (
+            current_time
+        )
+
+        self._logger.info(
+            "Soil learning profile updated. "
+            "status=%s classification=%s "
+            "confidence=%s level=%s "
+            "sensor_records=%d waterings=%d",
+            profile.profile_status,
+            profile.soil_classification,
+            profile.confidence,
+            profile.confidence_level,
+            profile.sensor_history_count,
+            profile.watering_count_analyzed,
+        )
+
     def update(self) -> None:
         """
         Execute one irrigation cycle.
@@ -126,6 +320,51 @@ class IrrigationService:
 
             self._update_health_if_needed()
 
+            # -------------------------------------------------
+            # Smart irrigation decision
+            # -------------------------------------------------
+
+            decision = self._smart_engine.evaluate(
+                reading=reading,
+                commands=commands,
+                cooldown_active=(
+                    self._controller.cooldown_remaining > 0
+                ),
+            )
+
+            self._firebase.update_irrigation_decision(
+                decision,
+            )
+        
+            self._save_sensor_history_if_needed(
+                reading=reading,
+                decision=decision,
+            )
+
+            self._update_adaptive_recommendation_if_needed(
+                commands=commands,
+            )
+
+            self._update_soil_learning_profile_if_needed()
+
+            self._logger.debug(
+                "Smart irrigation decision: "
+                "should_water=%s reason=%s "
+                "moisture=%d%% limit=%d%% "
+                "sensor_stable=%s cooldown_active=%s "
+                "trend=%s trend_samples=%d "
+                "change_per_minute=%.3f",
+                decision.should_water,
+                decision.reason,
+                decision.moisture,
+                decision.moisture_limit,
+                decision.sensor_stable,
+                decision.cooldown_active,
+                decision.trend_classification,
+                decision.trend_sample_count,
+                decision.moisture_change_per_minute,
+            )
+
             if not commands.enabled:
 
                 self._relay.off()
@@ -140,12 +379,22 @@ class IrrigationService:
 
             if commands.auto_mode:
 
-                should_water = self._controller.should_water(
-                    reading,
-                    commands,
-                )
+                if decision.should_water:
 
-                if should_water:
+                    started_at = datetime.now()
+
+                    result = self._controller.water(
+                        duration=commands.pump_duration,
+                        get_commands=lambda: self._firebase.command_state,
+                        on_relay_changed=(
+                            lambda relay_on:
+                            self._firebase.update_relay_status(
+                                relay_on,
+                            )
+                        ),
+                    )
+
+                if decision.should_water:
 
                     # Röle açılıyor
 
@@ -154,6 +403,12 @@ class IrrigationService:
                     result = self._controller.water(
                         duration=commands.pump_duration,
                         get_commands=lambda: self._firebase.command_state,
+                        on_relay_changed=(
+                            lambda relay_on:
+                            self._firebase.update_relay_status(
+                                relay_on,
+                            )
+                        ),
                     )
 
                     finished_at = datetime.now()
@@ -204,10 +459,18 @@ class IrrigationService:
                     self._relay.on()
                 else:
                     self._relay.off()
+                    
+                self._firebase.update_relay_status(
+                    self._relay.is_on,
+                )
 
                 mode = "MANUAL"
+            """
 
-            self._logger.info(
+            Burada ki .info olunca terminalde görünüyor. .debug olunca gerekirse görünüyor 
+            
+            """
+            self._logger.debug(
                 "Mode=%s Raw=%d Voltage=%.3f V Moisture=%d%% "
                 "Limit=%d%% Relay=%s",
                 mode,
@@ -261,9 +524,13 @@ class IrrigationService:
                     cooldown_remaining=self._controller.cooldown_remaining,
                 )
 
-            except Exception:
+            except Exception as exc:
 
-                pass
+                self._logger.exception(
+                    "Runtime status update failed: %s",
+                    exc,
+                )
+
 
     def cleanup(self) -> None:
         """
