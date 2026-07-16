@@ -28,7 +28,7 @@ class FirebaseConfig:
 
     CREDENTIALS_FILE = "firebase_key.json"
 
-    STATUS_UPDATE_INTERVAL_SECONDS = 30
+    STATUS_UPDATE_INTERVAL_SECONDS = 10
 
     COMMAND_SYNC_INTERVAL_SECONDS = 0.5
 
@@ -62,7 +62,7 @@ class RelayConfig:
 
     GPIO_PIN = 17
 
-    ACTIVE_LOW = True
+    ACTIVE_LOW = False
     
 class LogConfig:
     """
@@ -87,11 +87,11 @@ class IrrigationConfig:
     DEFAULT_MOISTURE_LIMIT = 40
 
     # Varsayılan sulama süresi (saniye)
-    DEFAULT_PUMP_DURATION_SECONDS = 10
+    DEFAULT_PUMP_DURATION_SECONDS = 120
 
     # Sulama sonrası bekleme süresi (v2.3.6/v2.4'te kullanılacak)
     COOLDOWN_SECONDS = 120
 
     DEFAULT_RESTART_DELTA = 10
 
-    DEFAULT_COOLDOWN_SECONDS = 120
+    DEFAULT_COOLDOWN_SECONDS = 600
