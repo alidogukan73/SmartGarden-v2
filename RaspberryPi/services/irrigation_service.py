@@ -22,6 +22,8 @@ from controllers.smart_irrigation_engine import SmartIrrigationEngine
 from models.sensor_history_entry import SensorHistoryEntry
 from controllers.adaptive_irrigation_engine import AdaptiveIrrigationEngine
 from controllers.soil_learning_engine import SoilLearningEngine
+from controllers.ai_decision_engine import AIDecisionEngine
+from controllers.ai_explanation_engine import AIExplanationEngine
 
 class IrrigationService:
     """
@@ -51,16 +53,19 @@ class IrrigationService:
         )
 
         self._last_soil_learning_analysis = 0.0
-
-        self._soil_learning_interval_seconds = (
-            1800  #1800 sn olacak
-        )
-
         self._last_adaptive_analysis = 0.0
+        self._last_ai_decision_update = 0.0
 
-        self._adaptive_analysis_interval_seconds = (
-            1800
-        )        
+        self._soil_learning_interval_seconds = 1800         #1800 sn olacak
+        self._adaptive_analysis_interval_seconds = 1800     #1800 sn olacak
+        self._ai_decision_interval_seconds = 30             #30 sn olacak   
+
+        self._ai_decision_engine = AIDecisionEngine()
+        self._ai_explanation_engine = AIExplanationEngine()
+
+        self._last_irrigation_decision = None
+        self._last_adaptive_recommendation = None
+        self._last_soil_learning_profile = None              
 
         self._last_status_update = 0.0
         self._last_health_update = 0.0
@@ -95,9 +100,9 @@ class IrrigationService:
 
         self._last_sensor_history_update = time.monotonic()
 
-        self._last_adaptive_analysis = time.monotonic()
-
-        self._last_soil_learning_analysis = time.monotonic()
+        self._last_adaptive_analysis = 0.0
+        self._last_soil_learning_analysis = 0.0
+        self._last_ai_decision_update = 0.0
 
         self._started_at = time.monotonic()
 
@@ -230,6 +235,10 @@ class IrrigationService:
             )
         )
 
+        self._last_adaptive_recommendation = (
+            recommendation
+        )        
+
         self._firebase.update_adaptive_recommendation(
             recommendation,
         )
@@ -282,6 +291,8 @@ class IrrigationService:
             )
         )
 
+        self._last_soil_learning_profile = profile
+
         self._firebase.update_soil_learning_profile(
             profile,
         )
@@ -301,6 +312,82 @@ class IrrigationService:
             profile.confidence_level,
             profile.sensor_history_count,
             profile.watering_count_analyzed,
+        )
+
+    def _update_ai_decision_if_needed(
+        self,
+    ) -> None:
+        """
+        Combine the latest engine outputs and upload one
+        unified, explainable AI decision summary.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time
+            - self._last_ai_decision_update
+            < self._ai_decision_interval_seconds
+        ):
+            return
+
+        if self._last_irrigation_decision is None:
+            return
+
+        if self._last_adaptive_recommendation is None:
+            return
+
+        if self._last_soil_learning_profile is None:
+            return
+
+        summary = self._ai_decision_engine.analyze(
+            irrigation_decision=(
+                self._last_irrigation_decision
+            ),
+            adaptive_recommendation=(
+                self._last_adaptive_recommendation
+            ),
+            soil_profile=(
+                self._last_soil_learning_profile
+            ),
+        )
+
+        explanation = (
+            self._ai_explanation_engine.analyze(
+                decision=summary,
+                soil_profile=(
+                    self._last_soil_learning_profile
+                ),
+            )
+        )
+
+        self._firebase.update_ai_decision(
+            summary,
+        )
+
+        self._firebase.update_ai_explanation(
+            explanation,
+        )
+
+        self._last_ai_decision_update = current_time
+
+        self._logger.info(
+            "AI decision updated. "
+            "code=%s severity=%s confidence=%s "
+            "level=%s should_water=%s",
+            summary.decision_code,
+            summary.severity,
+            summary.confidence,
+            summary.confidence_level,
+            summary.should_water,
+        )
+
+        self._logger.info(
+            "AI explanation updated. "
+            "code=%s progress=%d severity=%s",
+            explanation.explanation_code,
+            explanation.progress_percent,
+            explanation.severity,
         )
 
     def update(self) -> None:
@@ -332,6 +419,8 @@ class IrrigationService:
                 ),
             )
 
+            self._last_irrigation_decision = decision
+
             self._firebase.update_irrigation_decision(
                 decision,
             )
@@ -346,6 +435,8 @@ class IrrigationService:
             )
 
             self._update_soil_learning_profile_if_needed()
+
+            self._update_ai_decision_if_needed()
 
             self._logger.debug(
                 "Smart irrigation decision: "
@@ -378,21 +469,6 @@ class IrrigationService:
             # ---------------- AUTO MODE ----------------
 
             if commands.auto_mode:
-
-                if decision.should_water:
-
-                    started_at = datetime.now()
-
-                    result = self._controller.water(
-                        duration=commands.pump_duration,
-                        get_commands=lambda: self._firebase.command_state,
-                        on_relay_changed=(
-                            lambda relay_on:
-                            self._firebase.update_relay_status(
-                                relay_on,
-                            )
-                        ),
-                    )
 
                 if decision.should_water:
 
