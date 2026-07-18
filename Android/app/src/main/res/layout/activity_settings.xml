@@ -39,7 +39,7 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:text="←"
+                android:text="@string/symbol_back_arrow"
                 android:textColor="@color/textPrimary"
                 android:textSize="24sp"
                 app:backgroundTint="@android:color/transparent"
@@ -104,7 +104,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="●"
+                    android:text="@string/symbol_status_dot"
                     android:textColor="@color/warning"
                     android:textSize="18sp"/>
 

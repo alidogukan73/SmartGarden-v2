@@ -64,13 +64,9 @@ public class SettingsViewModel extends ViewModel {
                                 Command.class
                         );
 
-                command.setValue(
-                        value
-                );
-
-                loading.setValue(
-                        false
-                );
+                command.setValue(value);
+                error.setValue(null);
+                loading.setValue(false);
             }
 
             @Override
@@ -78,13 +74,15 @@ public class SettingsViewModel extends ViewModel {
                     @NonNull DatabaseError databaseError
             ) {
 
-                loading.setValue(
-                        false
-                );
+                loading.setValue(false);
 
-                error.setValue(
-                        databaseError.getMessage()
-                );
+                String message = databaseError.getMessage();
+
+                if (message == null || message.isBlank()) {
+                    message = "Ayarlar alınamadı.";
+                }
+
+                error.setValue(message);
             }
         };
 
@@ -214,8 +212,9 @@ public class SettingsViewModel extends ViewModel {
 
         return saveSuccess;
     }
-
-
+    public void clearSaveSuccess() {
+        saveSuccess.setValue(null);
+    }
     public LiveData<String> getError() {
 
         return error;

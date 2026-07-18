@@ -199,16 +199,14 @@ public class WateringHistoryActivity extends AppCompatActivity {
             List<WateringHistory> historyItems
     ) {
 
-        if (historyItems == null) {
-            return;
-        }
+        List<WateringHistory> safeItems =
+                historyItems != null
+                        ? historyItems
+                        : java.util.Collections.emptyList();
 
-        adapter.submitList(
-                historyItems
-        );
+        adapter.submitList(safeItems);
 
-        boolean isEmpty =
-                historyItems.isEmpty();
+        boolean isEmpty = safeItems.isEmpty();
 
         recyclerHistory.setVisibility(
                 isEmpty

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.activities.AIAssistantActivity;
 import com.ali.smartgarden.activities.AboutActivity;
 import com.ali.smartgarden.activities.DeviceHealthActivity;
 import com.ali.smartgarden.activities.SettingsActivity;
@@ -63,6 +64,11 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         MaterialCardView menuCardHealth =
                 view.findViewById(R.id.menuCardHealth);
 
+        MaterialCardView menuCardAIAssistant =
+                view.findViewById(
+                        R.id.menuCardAIAssistant
+                );
+
         MaterialCardView menuCardSettings =
                 view.findViewById(R.id.menuCardSettings);
 
@@ -87,6 +93,13 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
                 clickedView ->
                         openActivity(
                                 DeviceHealthActivity.class
+                        )
+        );
+
+        menuCardAIAssistant.setOnClickListener(
+                clickedView ->
+                        openActivity(
+                                AIAssistantActivity.class
                         )
         );
 

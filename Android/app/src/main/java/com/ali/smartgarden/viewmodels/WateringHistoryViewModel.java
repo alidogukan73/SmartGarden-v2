@@ -112,13 +112,15 @@ public class WateringHistoryViewModel extends ViewModel {
                     @NonNull DatabaseError databaseError
             ) {
 
-                loading.setValue(
-                        false
-                );
+                loading.setValue(false);
 
-                error.setValue(
-                        databaseError.getMessage()
-                );
+                String message = databaseError.getMessage();
+
+                if (message == null || message.isBlank()) {
+                    message = "Sulama geçmişi alınamadı.";
+                }
+
+                error.setValue(message);
             }
         };
 

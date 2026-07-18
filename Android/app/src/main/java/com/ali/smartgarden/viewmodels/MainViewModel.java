@@ -7,14 +7,17 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.Command;
 import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
+import com.ali.smartgarden.models.AIDecision;
+import com.ali.smartgarden.models.AIExplanation;
 
 public class MainViewModel extends ViewModel {
 
@@ -37,18 +40,24 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<AdaptiveRecommendation>
             adaptiveRecommendation =
             new MutableLiveData<>();
+    private final MutableLiveData<AIDecision>
+            aiDecisionLiveData =
+            new MutableLiveData<>();
+
+    private final MutableLiveData<AIExplanation>
+            aiExplanationLiveData =
+            new MutableLiveData<>();
 
     public MainViewModel() {
 
         repository = new FirebaseRepository();
 
         observeSensor();
-
         observeStatus();
-
         observeCommands();
-
         observeAdaptiveRecommendation();
+        observeAIDecision();
+        observeAIExplanation();
     }
 
     /*
@@ -75,6 +84,13 @@ public class MainViewModel extends ViewModel {
     getAdaptiveRecommendation() {
 
         return adaptiveRecommendation;
+    }
+    public LiveData<AIDecision> getAIDecision() {
+        return aiDecisionLiveData;
+    }
+
+    public LiveData<AIExplanation> getAIExplanation() {
+        return aiExplanationLiveData;
     }
 
     /*
@@ -259,12 +275,121 @@ public class MainViewModel extends ViewModel {
                 }
         );
     }
+    private void observeAIDecision() {
+
+        repository.observeAIDecision(
+
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        if (!snapshot.exists()) {
+                            return;
+                        }
+
+                        AIDecision decision =
+                                snapshot.getValue(
+                                        AIDecision.class
+                                );
+
+                        if (decision == null) {
+
+                            errorLiveData.setValue(
+                                    "AI karar verisi okunamadı."
+                            );
+
+                            return;
+                        }
+
+                        aiDecisionLiveData.setValue(
+                                decision
+                        );
+
+                        Log.d(
+                                TAG,
+                                "AI decision updated: "
+                                        + decision.getDecisionCode()
+                        );
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                        handleFirebaseError(
+                                error
+                        );
+                    }
+                }
+        );
+    }
+
+    private void observeAIExplanation() {
+
+        repository.observeAIExplanation(
+
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        if (!snapshot.exists()) {
+                            return;
+                        }
+
+                        AIExplanation explanation =
+                                snapshot.getValue(
+                                        AIExplanation.class
+                                );
+
+                        if (explanation == null) {
+
+                            errorLiveData.setValue(
+                                    "AI açıklama verisi okunamadı."
+                            );
+
+                            return;
+                        }
+
+                        aiExplanationLiveData.setValue(
+                                explanation
+                        );
+
+                        Log.d(
+                                TAG,
+                                "AI explanation updated: "
+                                        + explanation.getExplanationCode()
+                        );
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                        handleFirebaseError(
+                                error
+                        );
+                    }
+                }
+        );
+    }
+
     private void handleFirebaseError(
             DatabaseError error
     ) {
 
-        String message =
-                error.getMessage();
+        String message = error.getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = "Firebase bağlantı hatası.";
+        }
 
         Log.e(
                 TAG,

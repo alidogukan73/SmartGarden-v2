@@ -2,21 +2,22 @@ package com.ali.smartgarden.firebase;
 
 import androidx.annotation.NonNull;
 
-import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.ali.smartgarden.models.AdaptiveRecommendation;
+
 import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FirebaseRepository {
 
     private static final String DEVICE_ID = "smartgarden-001";
-
     private final DatabaseReference deviceRef;
-
     private final DatabaseReference sensorRef;
     private final DatabaseReference statusRef;
     private final DatabaseReference commandsRef;
@@ -24,6 +25,8 @@ public class FirebaseRepository {
     private final DatabaseReference healthRef;
     private final DatabaseReference statisticsRef;
     private final DatabaseReference adaptiveRecommendationRef;
+    private final DatabaseReference aiDecisionRef;
+    private final DatabaseReference aiExplanationRef;
 
     public FirebaseRepository() {
 
@@ -38,8 +41,9 @@ public class FirebaseRepository {
         historyRef = deviceRef.child("watering_history");
         healthRef = deviceRef.child("health");
         statisticsRef = deviceRef.child("statistics");
-        adaptiveRecommendationRef =
-                deviceRef.child("adaptive_recommendation");
+        adaptiveRecommendationRef = deviceRef.child("adaptive_recommendation");
+        aiDecisionRef = deviceRef.child("ai_decision");
+        aiExplanationRef = deviceRef.child("ai_explanation");
     }
 
     // ---------------------------------------------------------
@@ -49,30 +53,26 @@ public class FirebaseRepository {
     public DatabaseReference getSensorRef() {
         return sensorRef;
     }
-
     public DatabaseReference getStatusRef() {
         return statusRef;
     }
-
     public DatabaseReference getCommandsRef() {
         return commandsRef;
     }
-
     public DatabaseReference getHistoryRef() {
         return historyRef;
     }
-
     public DatabaseReference getHealthRef() {
         return healthRef;
     }
-
     public DatabaseReference getStatisticsRef() {
         return statisticsRef;
     }
-
     public DatabaseReference getAdaptiveRecommendationRef() {
         return adaptiveRecommendationRef;
     }
+    public DatabaseReference getAIDecisionRef() { return aiDecisionRef; }
+    public DatabaseReference getAIExplanationRef() { return aiExplanationRef; }
 
     // ---------------------------------------------------------
     // REAL-TIME OBSERVERS
@@ -143,6 +143,22 @@ public class FirebaseRepository {
                 }
         );
     }
+    public void observeAIDecision(
+            ValueEventListener listener
+    ) {
+
+        aiDecisionRef.addValueEventListener(
+                listener
+        );
+    }
+    public void observeAIExplanation(
+            ValueEventListener listener
+    ) {
+
+        aiExplanationRef.addValueEventListener(
+                listener
+        );
+    }
 
     // ---------------------------------------------------------
     // COMMANDS
@@ -168,13 +184,22 @@ public class FirebaseRepository {
 
     public void startManualWatering() {
 
-        commandsRef
-                .child("auto_mode")
-                .setValue(false);
+        Map<String, Object> updates =
+                new HashMap<>();
 
-        commandsRef
-                .child("relay")
-                .setValue(true);
+        updates.put(
+                "auto_mode",
+                false
+        );
+
+        updates.put(
+                "relay",
+                true
+        );
+
+        commandsRef.updateChildren(
+                updates
+        );
     }
 
     public void stopManualWatering() {

@@ -26,8 +26,6 @@
 
     <!-- BAŞLIK -->
 
-    <!-- BAŞLIK -->
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -141,7 +139,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="›"
+                android:text="@string/symbol_menu_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="26sp"/>
 
@@ -215,7 +213,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="›"
+                android:text="@string/symbol_menu_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="26sp"/>
 
@@ -289,7 +287,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="›"
+                android:text="@string/symbol_menu_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="26sp"/>
 
@@ -297,6 +295,78 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- AI SULAMA ASİSTANI -->
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/menuCardAIAssistant"
+        style="@style/Widget.SmartGarden.Card.Inner"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:rippleColor="@color/accentLight">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardBackgroundColor="@color/primaryLight"
+                app:cardCornerRadius="13dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_auto_mode_24"
+                    app:tint="@color/primary" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_ai_assistant"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/menu_ai_assistant_description"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/symbol_menu_arrow"
+                android:textColor="@color/textTertiary"
+                android:textSize="26sp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- AYARLAR -->
 
@@ -363,7 +433,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="›"
+                android:text="@string/symbol_menu_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="26sp"/>
 
@@ -437,7 +507,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="›"
+                android:text="@string/symbol_menu_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="26sp"/>
 

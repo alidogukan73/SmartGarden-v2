@@ -296,7 +296,6 @@ public class SettingsActivity extends AppCompatActivity {
                     }
 
                     saveCurrentValuesAsOriginal();
-
                     updateUnsavedState();
 
                     txtSettingsStatus.setText(
@@ -308,6 +307,8 @@ public class SettingsActivity extends AppCompatActivity {
                             R.string.settings_saved_message,
                             Toast.LENGTH_SHORT
                     ).show();
+
+                    viewModel.clearSaveSuccess();
                 }
         );
 

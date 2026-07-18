@@ -39,7 +39,7 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:text="←"
+                android:text="@string/symbol_back_arrow"
                 android:textColor="@color/textPrimary"
                 android:textSize="24sp"
                 app:backgroundTint="@android:color/transparent"
@@ -83,7 +83,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="●"
+                    android:text="@string/symbol_status_dot"
                     android:textColor="@color/online"
                     android:textSize="22sp"/>
 
@@ -480,7 +480,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text="●"
+                            android:text="@string/symbol_status_dot"
                             android:textColor="@color/textSecondary"
                             android:textSize="22sp"/>
 

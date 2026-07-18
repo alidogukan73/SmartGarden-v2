@@ -205,7 +205,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="→"
+                android:text="@string/symbol_right_arrow"
                 android:textColor="@color/textTertiary"
                 android:textSize="24sp"/>
 

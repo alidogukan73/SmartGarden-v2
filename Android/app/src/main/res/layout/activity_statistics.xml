@@ -39,7 +39,7 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:text="←"
+                android:text="@string/symbol_back_arrow"
                 android:textColor="@color/textPrimary"
                 android:textSize="24sp"
                 app:backgroundTint="@android:color/transparent"
@@ -537,7 +537,7 @@
                         android:layout_height="wrap_content"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="→"
+                        android:text="@string/symbol_right_arrow"
                         android:textColor="@color/textTertiary"
                         android:textSize="26sp"/>
 

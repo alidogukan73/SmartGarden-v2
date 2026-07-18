@@ -326,6 +326,7 @@
 
     <string name="open_main_menu">Ana menüyü aç</string>
 
+    <string name="menu_ai">AI Sulama Asistanı</string>
     <string name="menu_statistics">İstatistikler</string>
     <string name="menu_device_health">Cihaz Sağlığı</string>
     <string name="menu_watering_history">Sulama Geçmişi</string>
@@ -458,5 +459,92 @@
     <string name="adaptive_duration_minutes_seconds">%1$d dk %2$d sn</string>
     <string name="adaptive_duration_hours">%1$d sa</string>
     <string name="adaptive_duration_hours_minutes">%1$d sa %2$d dk</string>
+    <!-- ========================================================= -->
+    <!-- AI SULAMA ASİSTANI                                        -->
+    <!-- ========================================================= -->
+
+    <!-- Ekran başlığı -->
+
+    <string name="ai_assistant_title">AI Sulama Asistanı</string>
+    <string name="ai_assistant_subtitle">
+        Akıllı kararlar ve açıklanabilir sulama analizleri
+    </string>
+
+
+    <!-- Akıllı karar kartı -->
+
+    <string name="ai_decision_section_label">Akıllı Karar</string>
+    <string name="ai_decision_preparing_title">
+        Sistem verileri hazırlanıyor
+    </string>
+    <string name="ai_decision_preparing_summary">
+        AI motorlarından gelen bilgiler birleştirilerek açıklama hazırlanıyor.
+    </string>
+    <string name="ai_severity_info">BİLGİ</string>
+
+
+    <!-- Karar nedenleri -->
+
+    <string name="ai_reasons_title">Neden?</string>
+    <string name="ai_reasons_subtitle">
+        Kararı etkileyen başlıca veriler
+    </string>
+
+    <string name="ai_reason_sensor_waiting">
+        Sensör bilgileri bekleniyor.
+    </string>
+    <string name="ai_reason_history_analyzing">
+        Sulama geçmişi analiz ediliyor.
+    </string>
+    <string name="ai_reason_soil_profile_preparing">
+        Toprak öğrenme profili hazırlanıyor.
+    </string>
+
+
+    <!-- Öğrenme ilerlemesi -->
+
+    <string name="ai_learning_progress_title">Öğrenme İlerlemesi</string>
+    <string name="ai_learning_progress_subtitle">
+        Toprak profili oluşturuluyor
+    </string>
+    <string name="ai_progress_initial">%%0</string>
+
+
+    <!-- Sonraki adım -->
+
+    <string name="ai_next_step_title">Sonraki Adım</string>
+    <string name="ai_next_step_waiting">
+        Yeni sensör ölçümleri bekleniyor.
+    </string>
+
+
+    <!-- Teknik özet -->
+
+    <string name="ai_technical_summary_title">Teknik Özet</string>
+
+    <string name="ai_confidence_label">GÜVEN</string>
+    <string name="ai_soil_label">TOPRAK</string>
+    <string name="ai_trend_label">TREND</string>
+
+    <string name="ai_value_unavailable">—</string>
+    <string name="ai_soil_unknown">Bilinmiyor</string>
+    <string name="ai_status_waiting">Bekleniyor</string>
+
+    <string name="ai_last_updated_label">Son güncelleme</string>
+
+    <string name="menu_ai_assistant">AI Sulama Asistanı</string>
+    <string name="menu_ai_assistant_description"> Akıllı sulama kararları ve açıklamaları </string>
+
+
+    <!-- ========================================================= -->
+    <!-- ORTAK SEMBOLLER                                           -->
+    <!-- ========================================================= -->
+
+    <string name="symbol_back_arrow">←</string>
+    <string name="symbol_check">✓</string>
+    <string name="symbol_next_arrow">➜</string>
+    <string name="symbol_status_dot">●</string>
+    <string name="symbol_right_arrow">→</string>
+    <string name="symbol_menu_arrow">›</string>
 
 </resources>

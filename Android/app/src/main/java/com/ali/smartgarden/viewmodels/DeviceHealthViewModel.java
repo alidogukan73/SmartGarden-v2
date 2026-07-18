@@ -54,13 +54,9 @@ public class DeviceHealthViewModel extends ViewModel {
                                 Health.class
                         );
 
-                health.setValue(
-                        value
-                );
-
-                loading.setValue(
-                        false
-                );
+                health.setValue(value);
+                error.setValue(null);
+                loading.setValue(false);
             }
 
             @Override
@@ -68,13 +64,20 @@ public class DeviceHealthViewModel extends ViewModel {
                     @NonNull DatabaseError databaseError
             ) {
 
-                loading.setValue(
-                        false
-                );
+                loading.setValue(false);
 
-                error.setValue(
-                        databaseError.getMessage()
-                );
+                String message =
+                        databaseError.getMessage();
+
+                if (
+                        message == null
+                                || message.isBlank()
+                ) {
+                    message =
+                            "Cihaz sağlık bilgileri alınamadı.";
+                }
+
+                error.setValue(message);
             }
         };
 
