@@ -26,6 +26,8 @@ from models.irrigation_decision import IrrigationDecision
 from models.sensor_history_entry import SensorHistoryEntry
 from models.adaptive_irrigation_recommendation import AdaptiveIrrigationRecommendation
 from models.soil_learning_profile import SoilLearningProfile
+from models.ai_decision_summary import AIDecisionSummary
+from models.ai_explanation import AIExplanation
 
 class FirebaseService:
 
@@ -1229,6 +1231,119 @@ class FirebaseService:
 
                 "learned_at":
                     profile.learned_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+
+    def update_ai_decision(
+        self,
+        summary: AIDecisionSummary,
+    ) -> None:
+        """
+        Upload the latest unified AI decision summary.
+
+        Observation mode only.
+        This method does not modify irrigation commands.
+        """
+
+        self._device_ref().child(
+            "ai_decision",
+        ).set(
+            {
+                "decision_code":
+                    summary.decision_code,
+
+                "decision_title":
+                    summary.decision_title,
+
+                "decision_message":
+                    summary.decision_message,
+
+                "severity":
+                    summary.severity,
+
+                "confidence":
+                    round(
+                        summary.confidence,
+                        2,
+                    ),
+
+                "confidence_level":
+                    summary.confidence_level,
+
+                "should_water":
+                    summary.should_water,
+
+                "recommendation_type":
+                    summary.recommendation_type,
+
+                "soil_classification":
+                    summary.soil_classification,
+
+                "trend_classification":
+                    summary.trend_classification,
+
+                "primary_reason":
+                    summary.primary_reason,
+
+                "secondary_reason":
+                    summary.secondary_reason,
+
+                "generated_at":
+                    summary.generated_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+    def update_ai_explanation(
+        self,
+        explanation: AIExplanation,
+    ) -> None:
+        """
+        Upload the latest user-friendly AI explanation.
+
+        Observation mode only.
+        This method does not modify irrigation commands.
+        """
+
+        self._device_ref().child(
+            "ai_explanation",
+        ).set(
+            {
+                "explanation_code":
+                    explanation.explanation_code,
+
+                "title":
+                    explanation.title,
+
+                "summary":
+                    explanation.summary,
+
+                "reason_lines":
+                    list(
+                        explanation.reason_lines
+                    ),
+
+                "next_step":
+                    explanation.next_step,
+
+                "progress_percent":
+                    max(
+                        0,
+                        min(
+                            explanation.progress_percent,
+                            100,
+                        ),
+                    ),
+
+                "severity":
+                    explanation.severity,
+
+                "generated_at":
+                    explanation.generated_at,
 
                 "updated_at":
                     datetime.now().isoformat(),
