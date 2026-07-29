@@ -24,7 +24,7 @@ import com.google.android.material.slider.Slider;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final long DEFAULT_MOISTURE_LIMIT = 40;
-    private static final long DEFAULT_PUMP_DURATION = 120;
+    private static final long DEFAULT_PUMP_DURATION = 10;
     private static final long DEFAULT_COOLDOWN_SECONDS = 600;
     private static final long DEFAULT_RESTART_DELTA = 10;
     private static final boolean DEFAULT_SYSTEM_ENABLED = true;
@@ -380,13 +380,10 @@ public class SettingsActivity extends AppCompatActivity {
                 );
 
         originalPumpDuration =
-                roundToStep(
-                        clamp(
-                                command.getPumpDuration(),
-                                60,
-                                10800
-                        ),
-                        60
+                clamp(
+                        command.getPumpDuration(),
+                        1,
+                        300
                 );
 
         originalCooldownSeconds =
@@ -777,26 +774,26 @@ public class SettingsActivity extends AppCompatActivity {
                         seconds
                 );
 
-        long hours =
-                safeSeconds / 3600;
-
-        long minutes =
-                (safeSeconds % 3600) / 60;
-
-        if (hours > 0 && minutes > 0) {
+        if (safeSeconds < 60) {
 
             return getString(
-                    R.string.settings_hours_minutes_format,
-                    hours,
-                    minutes
+                    R.string.settings_seconds_format,
+                    safeSeconds
             );
         }
 
-        if (hours > 0) {
+        long minutes =
+                safeSeconds / 60;
+
+        long remainingSeconds =
+                safeSeconds % 60;
+
+        if (remainingSeconds > 0) {
 
             return getString(
-                    R.string.settings_hours_format,
-                    hours
+                    R.string.settings_minutes_seconds_format,
+                    minutes,
+                    remainingSeconds
             );
         }
 
