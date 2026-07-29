@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.Health;
+import com.ali.smartgarden.models.SoilSensor;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -18,6 +20,9 @@ public class DeviceHealthViewModel extends ViewModel {
     private final MutableLiveData<Health> health =
             new MutableLiveData<>();
 
+    private final MutableLiveData<SoilSensor> soilSensor =
+            new MutableLiveData<>();
+
     private final MutableLiveData<Boolean> loading =
             new MutableLiveData<>(true);
 
@@ -26,12 +31,15 @@ public class DeviceHealthViewModel extends ViewModel {
 
     private ValueEventListener healthListener;
 
+    private ValueEventListener soilSensorListener;
+
 
     public DeviceHealthViewModel() {
 
         repository = new FirebaseRepository();
 
         observeHealth();
+        observeSoilSensor();
     }
 
 
@@ -88,12 +96,51 @@ public class DeviceHealthViewModel extends ViewModel {
                 );
     }
 
+    private void observeSoilSensor() {
+
+        soilSensorListener =
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        SoilSensor value =
+                                snapshot.getValue(
+                                        SoilSensor.class
+                                );
+
+                        soilSensor.setValue(value);
+                    }
+
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                    }
+                };
+
+
+        repository
+                .getSensorRef()
+                .addValueEventListener(
+                        soilSensorListener
+                );
+    }
+
 
     public LiveData<Health> getHealth() {
 
         return health;
     }
 
+    public LiveData<SoilSensor> getSoilSensor() {
+
+        return soilSensor;
+    }
 
     public LiveData<Boolean> getLoading() {
 
@@ -107,6 +154,12 @@ public class DeviceHealthViewModel extends ViewModel {
     }
 
 
+    public void restartDevice() {
+
+        repository.restartDevice();
+
+    }
+
     @Override
     protected void onCleared() {
 
@@ -118,6 +171,15 @@ public class DeviceHealthViewModel extends ViewModel {
                     .getHealthRef()
                     .removeEventListener(
                             healthListener
+                    );
+        }
+
+        if (soilSensorListener != null) {
+
+            repository
+                    .getSensorRef()
+                    .removeEventListener(
+                            soilSensorListener
                     );
         }
     }

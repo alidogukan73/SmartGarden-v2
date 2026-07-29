@@ -1,6 +1,10 @@
 package com.ali.smartgarden.firebase;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -9,13 +13,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import com.ali.smartgarden.models.AdaptiveRecommendation;
+import com.ali.smartgarden.models.PredictionValidationStatus;
+import com.ali.smartgarden.models.MoisturePrediction;
+import com.ali.smartgarden.models.PredictionAccuracy;
+import com.ali.smartgarden.models.UnifiedConfidence;
+import com.ali.smartgarden.models.SoilSensor;
+import com.ali.smartgarden.models.SoilLearningProfile;
 
 import java.util.function.Consumer;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class FirebaseRepository {
 
+    private static final String TAG = "FirebaseRepository";
     private static final String DEVICE_ID = "smartgarden-001";
     private final DatabaseReference deviceRef;
     private final DatabaseReference sensorRef;
@@ -27,6 +39,11 @@ public class FirebaseRepository {
     private final DatabaseReference adaptiveRecommendationRef;
     private final DatabaseReference aiDecisionRef;
     private final DatabaseReference aiExplanationRef;
+    private final DatabaseReference predictionValidationRef;
+    private final DatabaseReference moisturePredictionRef;
+    private final DatabaseReference predictionAccuracyRef;
+    private final DatabaseReference unifiedConfidenceRef;
+    private final DatabaseReference soilLearningProfileRef;
 
     public FirebaseRepository() {
 
@@ -44,6 +61,22 @@ public class FirebaseRepository {
         adaptiveRecommendationRef = deviceRef.child("adaptive_recommendation");
         aiDecisionRef = deviceRef.child("ai_decision");
         aiExplanationRef = deviceRef.child("ai_explanation");
+
+        moisturePredictionRef =
+                deviceRef.child("moisture_prediction");
+
+        predictionAccuracyRef =
+                deviceRef.child("prediction_accuracy");
+
+        unifiedConfidenceRef =
+                deviceRef.child("unified_confidence");
+
+        soilLearningProfileRef =
+                deviceRef.child("soil_learning_profile");
+
+        predictionValidationRef = deviceRef
+                .child("ai")
+                .child("prediction_validation");
     }
 
     // ---------------------------------------------------------
@@ -82,6 +115,44 @@ public class FirebaseRepository {
             ValueEventListener listener
     ) {
         sensorRef.addValueEventListener(listener);
+    }
+    public LiveData<SoilSensor> observeSoilSensor() {
+
+        MutableLiveData<SoilSensor> liveData =
+                new MutableLiveData<>();
+
+        sensorRef.addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        SoilSensor sensor =
+                                snapshot.getValue(
+                                        SoilSensor.class
+                                );
+
+                        liveData.setValue(sensor);
+                    }
+
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                        Log.e(
+                                TAG,
+                                "Soil sensor read failed",
+                                error.toException()
+                        );
+                    }
+                }
+        );
+
+        return liveData;
     }
 
     public void observeStatus(
@@ -160,6 +231,7 @@ public class FirebaseRepository {
         );
     }
 
+
     // ---------------------------------------------------------
     // COMMANDS
     // ---------------------------------------------------------
@@ -180,6 +252,13 @@ public class FirebaseRepository {
         commandsRef
                 .child("auto_mode")
                 .setValue(value);
+    }
+
+    public void restartDevice() {
+
+        commandsRef
+                .child("restart_device")
+                .setValue(true);
     }
 
     public void startManualWatering() {
@@ -207,5 +286,199 @@ public class FirebaseRepository {
         commandsRef
                 .child("relay")
                 .setValue(false);
+    }
+
+    public LiveData<PredictionValidationStatus>
+    observePredictionValidationStatus() {
+
+        MutableLiveData<PredictionValidationStatus> liveData =
+                new MutableLiveData<>();
+
+        predictionValidationRef.addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        PredictionValidationStatus status =
+                                snapshot.getValue(
+                                        PredictionValidationStatus.class
+                                );
+
+                        liveData.setValue(status);
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                        Log.e(
+                                "FirebaseRepository",
+                                "Prediction validation observation failed: "
+                                        + error.getMessage()
+                        );
+                    }
+                }
+        );
+
+        return liveData;
+    }
+
+    public LiveData<MoisturePrediction>
+    observeMoisturePrediction() {
+
+        MutableLiveData<MoisturePrediction> liveData =
+                new MutableLiveData<>();
+
+        moisturePredictionRef.addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+                        MoisturePrediction value =
+                                snapshot.getValue(
+                                        MoisturePrediction.class
+                                );
+
+                        liveData.setValue(value);
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+                        Log.e(
+                                TAG,
+                                "Moisture prediction read failed",
+                                error.toException()
+                        );
+                    }
+                }
+        );
+
+        return liveData;
+    }
+
+    public LiveData<PredictionAccuracy>
+    observePredictionAccuracy() {
+
+        MutableLiveData<PredictionAccuracy> liveData =
+                new MutableLiveData<>();
+
+        predictionAccuracyRef.addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+                        PredictionAccuracy value =
+                                snapshot.getValue(
+                                        PredictionAccuracy.class
+                                );
+
+                        liveData.setValue(value);
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+                        Log.e(
+                                TAG,
+                                "Prediction accuracy read failed",
+                                error.toException()
+                        );
+                    }
+                }
+        );
+
+        return liveData;
+    }
+
+    public LiveData<SoilLearningProfile>
+    observeSoilLearningProfile() {
+
+        MutableLiveData<SoilLearningProfile> liveData =
+                new MutableLiveData<>();
+
+
+        soilLearningProfileRef.addValueEventListener(
+
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+
+                        SoilLearningProfile profile =
+                                snapshot.getValue(
+                                        SoilLearningProfile.class
+                                );
+
+                        liveData.setValue(profile);
+                    }
+
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+
+                        Log.e(
+                                TAG,
+                                "Soil learning profile read failed",
+                                error.toException()
+                        );
+                    }
+                }
+
+        );
+
+
+        return liveData;
+    }
+
+    public LiveData<UnifiedConfidence>
+    observeUnifiedConfidence() {
+
+        MutableLiveData<UnifiedConfidence> liveData =
+                new MutableLiveData<>();
+
+        unifiedConfidenceRef.addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+                        UnifiedConfidence value =
+                                snapshot.getValue(
+                                        UnifiedConfidence.class
+                                );
+
+                        liveData.setValue(value);
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+                        Log.e(
+                                TAG,
+                                "Unified confidence read failed",
+                                error.toException()
+                        );
+                    }
+                }
+        );
+
+        return liveData;
     }
 }

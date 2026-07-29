@@ -2,9 +2,11 @@ package com.ali.smartgarden.activities;
 
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.SystemClock;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +23,8 @@ import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
+import com.ali.smartgarden.models.SoilSensor;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -31,6 +35,8 @@ import android.os.Looper;
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
+
+    private long lastStatusReceivedElapsedMillis = 0L;
 
     // Header
     private MaterialCardView cardOnlineStatus;
@@ -65,9 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
 
-    private static final long ONLINE_TIMEOUT_SECONDS = 35;
-    private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000;
-    private static final long MAX_CLOCK_SKEW_SECONDS = 10;
+    private static final long ONLINE_TIMEOUT_MILLIS = 30_000L;
+    private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
 
     private final Handler onlineStatusHandler =
             new Handler(Looper.getMainLooper());
@@ -246,13 +251,18 @@ public class MainActivity extends AppCompatActivity {
         updateMoistureUi(moisture);
     }
 
-    private void renderStatus(Status status) {
+    private void renderStatus(
+            Status status
+    ) {
 
         if (status == null) {
             return;
         }
 
         latestStatus = status;
+
+        lastStatusReceivedElapsedMillis =
+                SystemClock.elapsedRealtime();
 
         renderEffectiveOnlineStatus();
 
@@ -265,49 +275,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderEffectiveOnlineStatus() {
 
-        if (latestStatus == null) {
+        if (
+                latestStatus == null
+                        || lastStatusReceivedElapsedMillis <= 0L
+        ) {
 
             updateOnlineUi(false);
             return;
         }
 
-        boolean effectivelyOnline =
+        long elapsedSinceLastStatusMillis =
+                SystemClock.elapsedRealtime()
+                        - lastStatusReceivedElapsedMillis;
+
+        boolean statusFresh =
+                elapsedSinceLastStatusMillis
+                        <= ONLINE_TIMEOUT_MILLIS;
+
+        boolean deviceOnline =
                 latestStatus.isOnline()
-                        && isHeartbeatFresh(
-                        latestStatus.getLastSeenEpoch()
-                );
+                        && statusFresh;
 
         updateOnlineUi(
-                effectivelyOnline
+                deviceOnline
         );
     }
 
-    private boolean isHeartbeatFresh(long lastSeenEpochSeconds) {
-
-        if (lastSeenEpochSeconds <= 0) {
-            return false;
-        }
-
-        long currentEpochSeconds =
-                System.currentTimeMillis() / 1000L;
-
-        long heartbeatAgeSeconds =
-                currentEpochSeconds - lastSeenEpochSeconds;
-
-        /*
-         * Telefon ve Raspberry Pi saatleri arasında birkaç saniyelik
-         * fark olabilir. Daha büyük gelecek zamanları geçerli heartbeat
-         * olarak kabul etmiyoruz.
-         */
-        if (heartbeatAgeSeconds < 0) {
-
-            return Math.abs(heartbeatAgeSeconds)
-                    <= MAX_CLOCK_SKEW_SECONDS;
-        }
-
-        return heartbeatAgeSeconds
-                <= ONLINE_TIMEOUT_SECONDS;
-    }
 
     private void renderCommand(Command command) {
 

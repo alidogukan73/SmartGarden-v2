@@ -47,6 +47,11 @@
         <activity
             android:name=".activities.AIAssistantActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".activities.SensorPointsActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

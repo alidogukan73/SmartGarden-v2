@@ -1,0 +1,30 @@
+[Unit]
+Description=SmartGarden Raspberry Pi Backend
+Wants=network-online.target mosquitto.service
+After=network-online.target mosquitto.service
+
+[Service]
+Type=simple
+
+User=ali
+Group=ali
+
+WorkingDirectory=/home/ali/SmartGarden-v2/RaspberryPi
+
+ExecStart=/home/ali/SmartGarden-v2/RaspberryPi/.venv/bin/python /home/ali/SmartGarden-v2/RaspberryPi/main.py
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+StandardOutput=journal
+StandardError=journal
+
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

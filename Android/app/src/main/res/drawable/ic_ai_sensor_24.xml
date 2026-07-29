@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Orta sensör noktası -->
+    <path
+        android:fillColor="@color/primary"
+        android:pathData="M12,10.25A1.75,1.75 0,1 0,12 13.75A1.75,1.75 0,1 0,12 10.25" />
+
+    <!-- Sensör gövdesi -->
+    <path
+        android:fillColor="@color/primary"
+        android:pathData="M11.15,13.2h1.7v5.1h-1.7z" />
+
+    <!-- Alt sensör ucu -->
+    <path
+        android:fillColor="@color/primary"
+        android:pathData="M12,17.2A2.1,2.1 0,1 0,12 21.4A2.1,2.1 0,1 0,12 17.2" />
+
+    <!-- Sol iç sinyal -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M8.6,8.5C7.3,9.8 7.3,12.2 8.6,13.5"
+        android:strokeColor="@color/primary"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.6" />
+
+    <!-- Sağ iç sinyal -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M15.4,8.5C16.7,9.8 16.7,12.2 15.4,13.5"
+        android:strokeColor="@color/primary"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.6" />
+
+    <!-- Sol dış sinyal -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M6.1,6.2C3.4,8.9 3.4,13.1 6.1,15.8"
+        android:strokeColor="@color/primary"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.6" />
+
+    <!-- Sağ dış sinyal -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M17.9,6.2C20.6,8.9 20.6,13.1 17.9,15.8"
+        android:strokeColor="@color/primary"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.6" />
+
+</vector>

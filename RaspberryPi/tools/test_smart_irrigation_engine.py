@@ -76,6 +76,78 @@ def run_scenario(
         )
 
 
+def run_hysteresis_scenario() -> None:
+    """
+    Verify that watering cannot repeat before recovery.
+    """
+
+    engine = SmartIrrigationEngine()
+    commands = create_commands()
+
+    decision = None
+
+    for moisture in [
+        30,
+        31,
+        30,
+        31,
+        30,
+    ]:
+        decision = engine.evaluate(
+            reading=create_reading(moisture),
+            commands=commands,
+            cooldown_active=False,
+        )
+
+    assert decision is not None
+    assert decision.should_water
+
+    engine.mark_watering_completed()
+
+    for moisture in [
+        44,
+        45,
+        44,
+        45,
+        44,
+    ]:
+        decision = engine.evaluate(
+            reading=create_reading(moisture),
+            commands=commands,
+            cooldown_active=False,
+        )
+
+    assert not decision.should_water
+    assert (
+        decision.reason
+        == "WAITING_FOR_MOISTURE_RECOVERY"
+    )
+
+    for _ in range(5):
+        decision = engine.evaluate(
+            reading=create_reading(50),
+            commands=commands,
+            cooldown_active=False,
+        )
+
+    assert not decision.should_water
+    assert decision.reason == "MOISTURE_SUFFICIENT"
+
+    for _ in range(5):
+        decision = engine.evaluate(
+            reading=create_reading(35),
+            commands=commands,
+            cooldown_active=False,
+        )
+
+    assert decision.should_water
+
+    print()
+    print(
+        "Scenario 5 - Post-watering hysteresis: PASS"
+    )
+
+
 def main() -> None:
     """
     Run manual engine tests.
@@ -91,6 +163,8 @@ def main() -> None:
             51,
         ],
     )
+
+    run_hysteresis_scenario()
 
     run_scenario(
         "Senaryo 2 - Nem düşük ve sensör kararlı",

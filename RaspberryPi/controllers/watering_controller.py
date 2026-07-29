@@ -153,8 +153,10 @@ class WateringController:
 
             self._state = WateringState.WATERING
 
-            if on_relay_changed is not None:
-                on_relay_changed(True)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=True,
+            )
 
             while (
                 time.monotonic()
@@ -169,8 +171,10 @@ class WateringController:
 
                     self._relay.off()
 
-                    if on_relay_changed is not None:
-                        on_relay_changed(False)
+                    self._notify_relay_changed(
+                        callback=on_relay_changed,
+                        relay_on=False,
+                    )
 
                     self._state = WateringState.DISABLED
 
@@ -189,8 +193,10 @@ class WateringController:
 
                     self._relay.off()
 
-                    if on_relay_changed is not None:
-                        on_relay_changed(False)
+                    self._notify_relay_changed(
+                        callback=on_relay_changed,
+                        relay_on=False,
+                    )
 
                     self._state = WateringState.MANUAL
 
@@ -208,13 +214,17 @@ class WateringController:
 
             self._relay.off()
 
-            if on_relay_changed is not None:
-                on_relay_changed(False)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=False,
+            )
 
             # Başarıyla sulandıysa
 
-            self._waiting_for_reset = True
             self._last_watering_time = time.monotonic()
+            self._last_command_cooldown = (
+                get_commands().cooldown_seconds
+            )
             self._state = WateringState.COOLDOWN
 
             self._logger.info(
@@ -235,8 +245,10 @@ class WateringController:
 
             self._relay.off()
 
-            if on_relay_changed is not None:
-                on_relay_changed(False)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=False,
+            )
 
             self._state = WateringState.ERROR
 
@@ -250,7 +262,33 @@ class WateringController:
                 completed=False,
                 stop_reason="ERROR",
                 duration=elapsed,
-            )       
+            )
+
+    def _notify_relay_changed(
+        self,
+        *,
+        callback: Callable[[bool], None] | None,
+        relay_on: bool,
+    ) -> None:
+        """
+        Report relay state without allowing a network callback
+        to interrupt physical relay control.
+        """
+
+        if callback is None:
+            return
+
+        try:
+            callback(
+                relay_on,
+            )
+        except Exception as exc:
+            self._logger.warning(
+                "Relay state callback failed. "
+                "relay=%s error=%s",
+                "ON" if relay_on else "OFF",
+                exc,
+            )
     
     @property
     def state(self) -> WateringState:

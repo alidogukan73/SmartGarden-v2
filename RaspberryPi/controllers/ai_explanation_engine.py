@@ -11,9 +11,23 @@ from models.ai_decision_summary import (
 )
 from models.ai_explanation import (
     AIExplanation,
+    AIDecisionFlow,
 )
+
 from models.soil_learning_profile import (
     SoilLearningProfile,
+)
+
+from models.moisture_prediction import (
+    MoisturePrediction,
+)
+
+from models.prediction_accuracy import (
+    PredictionAccuracy,
+)
+
+from models.unified_confidence import (
+    UnifiedConfidence,
 )
 
 
@@ -33,6 +47,9 @@ class AIExplanationEngine:
         *,
         decision: AIDecisionSummary,
         soil_profile: SoilLearningProfile,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
     ) -> AIExplanation:
         """
         Produce one user-friendly explanation.
@@ -42,6 +59,9 @@ class AIExplanationEngine:
 
             return self._learning(
                 decision=decision,
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
                 profile=soil_profile,
             )
 
@@ -49,28 +69,43 @@ class AIExplanationEngine:
 
             return self._sensor_unstable(
                 decision=decision,
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
             )
 
         if decision.decision_code == "SYSTEM_DISABLED":
 
             return self._system_disabled(
                 decision=decision,
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
             )
 
         if decision.decision_code == "MANUAL_MODE":
 
             return self._manual_mode(
                 decision=decision,
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
             )
 
         return self._healthy(
             decision=decision,
+            prediction=prediction,
+            prediction_accuracy=prediction_accuracy,
+            unified_confidence=unified_confidence,
         )
 
     def _learning(
         self,
         *,
         decision: AIDecisionSummary,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
         profile: SoilLearningProfile,
     ) -> AIExplanation:
         """
@@ -149,12 +184,45 @@ class AIExplanationEngine:
             severity="INFO",
 
             generated_at=datetime.now().isoformat(),
+
+            decision_flow=AIDecisionFlow.learning(
+
+                sensor=(
+                    f"{profile.sensor_history_count} sensör "
+                    "ölçümü başarıyla toplandı."
+                ),
+
+                moisture=(
+                    "Nem davranışı analiz ediliyor."
+                ),
+
+                soil=(
+                    profile.next_milestone_text
+                ),
+
+                history=(
+                    f"{profile.watering_count_analyzed} "
+                    "otomatik sulama incelendi."
+                ),
+
+                result=(
+                    "AI öğrenme süreci devam ediyor."
+                ),
+            ),
+            **self._ai_metadata(
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
+            ),
         )
 
     def _sensor_unstable(
         self,
         *,
         decision: AIDecisionSummary,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
     ) -> AIExplanation:
         """
         Explain why unstable sensor readings block decisions.
@@ -189,12 +257,42 @@ class AIExplanationEngine:
             severity="WARNING",
 
             generated_at=datetime.now().isoformat(),
+
+            decision_flow=AIDecisionFlow.sensor_unstable(
+                sensor=(
+                    "Sensör ölçümleri kararsız bulundu."
+                ),
+
+                moisture=(
+                    "Güvenilir nem değeri oluşturulamadı."
+                ),
+
+                soil=(
+                    "Toprak sınıflandırması geçici olarak bekletiliyor."
+                ),
+
+                history=(
+                    "Geçmiş veriler korunuyor ancak yeni karar üretilmiyor."
+                ),
+
+                result=(
+                    "Sulama kararı güvenlik amacıyla ertelendi."
+                ),
+            ),
+            **self._ai_metadata(
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
+            ),
         )
 
     def _system_disabled(
         self,
         *,
         decision: AIDecisionSummary,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
     ) -> AIExplanation:
         """
         Explain the disabled-system state.
@@ -225,12 +323,42 @@ class AIExplanationEngine:
             severity="INFO",
 
             generated_at=datetime.now().isoformat(),
+
+            decision_flow=AIDecisionFlow.observation(
+                sensor=(
+                    "Sensör sistemi izlenmeye devam ediyor."
+                ),
+
+                moisture=(
+                    "Nem verisi yalnızca gözlem amacıyla değerlendiriliyor."
+                ),
+
+                soil=(
+                    "Toprak analizi arka planda korunuyor."
+                ),
+
+                history=(
+                    "Geçmiş sulama kayıtları kullanılabilir durumda."
+                ),
+
+                result=(
+                    "Sistem devre dışı olduğu için sulama uygulanmıyor."
+                ),
+            ),
+            **self._ai_metadata(
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
+            ),
         )
 
     def _manual_mode(
         self,
         *,
         decision: AIDecisionSummary,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
     ) -> AIExplanation:
         """
         Explain the manual-control state.
@@ -266,12 +394,42 @@ class AIExplanationEngine:
             severity="INFO",
 
             generated_at=datetime.now().isoformat(),
+
+            decision_flow=AIDecisionFlow.observation(
+                sensor=(
+                    "Sensör verileri başarıyla alınıyor."
+                ),
+
+                moisture=(
+                    "Nem seviyesi izlenmeye devam ediyor."
+                ),
+
+                soil=(
+                    "Toprak davranışı öğrenme motoru tarafından analiz ediliyor."
+                ),
+
+                history=(
+                    "Geçmiş sensör ve sulama kayıtları güncelleniyor."
+                ),
+
+                result=(
+                    "Pompa kontrolü kullanıcıya bırakıldı."
+                ),
+            ),
+            **self._ai_metadata(
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
+            ),
         )
 
     def _healthy(
         self,
         *,
         decision: AIDecisionSummary,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
     ) -> AIExplanation:
         """
         Explain normal, watering and optimization decisions.
@@ -315,6 +473,33 @@ class AIExplanationEngine:
                 severity="WARNING",
 
                 generated_at=datetime.now().isoformat(),
+
+                decision_flow=AIDecisionFlow.completed(
+                    sensor=(
+                        "Sensör ölçümleri kararlı ve kullanılabilir durumda."
+                    ),
+
+                    moisture=(
+                        "Toprak nemi sulama sınırının altında değerlendirildi."
+                    ),
+
+                    soil=(
+                        "Toprak davranışı sulama ihtiyacını destekliyor."
+                    ),
+
+                    history=(
+                        "Geçmiş sulama sonuçları karar ile birlikte incelendi."
+                    ),
+
+                    result=(
+                        decision.decision_title
+                    ),
+                ),
+                **self._ai_metadata(
+                    prediction=prediction,
+                    prediction_accuracy=prediction_accuracy,
+                    unified_confidence=unified_confidence,
+                ),
             )
 
         if decision.decision_code == "INCREASE_PUMP_DURATION":
@@ -356,6 +541,33 @@ class AIExplanationEngine:
                 severity="WARNING",
 
                 generated_at=datetime.now().isoformat(),
+
+                decision_flow=AIDecisionFlow.completed(
+                    sensor=(
+                        "Sensör ölçümleri analiz için yeterli bulundu."
+                    ),
+
+                    moisture=(
+                        "Sulama sonrası nem artışı hedefin altında kaldı."
+                    ),
+
+                    soil=(
+                        "Toprağın mevcut sulama süresine tepkisi düşük bulundu."
+                    ),
+
+                    history=(
+                        "Tamamlanmış otomatik sulama kayıtları karşılaştırıldı."
+                    ),
+
+                    result=(
+                        decision.decision_title
+                    ),
+                ),
+                **self._ai_metadata(
+                    prediction=prediction,
+                    prediction_accuracy=prediction_accuracy,
+                    unified_confidence=unified_confidence,
+                ),
             )
 
         if decision.decision_code == "DECREASE_PUMP_DURATION":
@@ -398,6 +610,33 @@ class AIExplanationEngine:
                 severity="INFO",
 
                 generated_at=datetime.now().isoformat(),
+
+                decision_flow=AIDecisionFlow.completed(
+                    sensor=(
+                        "Sensör ölçümleri analiz için yeterli bulundu."
+                    ),
+
+                    moisture=(
+                        "Sulama sonrası nem artışı hedef aralığın üzerinde bulundu."
+                    ),
+
+                    soil=(
+                        "Toprağın daha kısa sulama süresine uygun olabileceği belirlendi."
+                    ),
+
+                    history=(
+                        "Geçmiş otomatik sulama sonuçları karşılaştırıldı."
+                    ),
+
+                    result=(
+                        decision.decision_title
+                    ),
+                ),
+                **self._ai_metadata(
+                    prediction=prediction,
+                    prediction_accuracy=prediction_accuracy,
+                    unified_confidence=unified_confidence,
+                ),
             )
 
         return AIExplanation(
@@ -431,4 +670,82 @@ class AIExplanationEngine:
             severity=decision.severity,
 
             generated_at=datetime.now().isoformat(),
+
+            decision_flow=AIDecisionFlow.completed(
+                sensor=(
+                    "Sensör ölçümleri kararlı ve güvenilir durumda."
+                ),
+
+                moisture=(
+                    "Toprak nemi mevcut ayarlarla uyumlu bulundu."
+                ),
+
+                soil=(
+                    "Toprak davranışında kritik bir değişiklik görülmedi."
+                ),
+
+                history=(
+                    "Geçmiş sulama sonuçları mevcut ayarları destekliyor."
+                ),
+
+                result=(
+                    decision.decision_title
+                ),
+            ),
+
+            **self._ai_metadata(
+                prediction=prediction,
+                prediction_accuracy=prediction_accuracy,
+                unified_confidence=unified_confidence,
+            ),
         )
+
+
+    def _ai_metadata(
+        self,
+        *,
+        prediction: MoisturePrediction,
+        prediction_accuracy: PredictionAccuracy,
+        unified_confidence: UnifiedConfidence,
+    ) -> dict:
+        """
+        Common AI metadata shared by every explanation.
+        """
+
+        return {
+            "ai_confidence": (
+                unified_confidence.overall_confidence
+            ),
+
+            "ai_confidence_level": (
+                unified_confidence.confidence_level
+            ),
+
+            "prediction_status": (
+                prediction.prediction_status
+            ),
+
+            "estimated_minutes_until_limit": (
+                prediction.estimated_minutes_until_limit
+            ),
+
+            "predicted_moisture_1_hour": (
+                prediction.predicted_moisture_1_hour
+            ),
+
+            "predicted_moisture_3_hours": (
+                prediction.predicted_moisture_3_hours
+            ),
+
+            "predicted_moisture_6_hours": (
+                prediction.predicted_moisture_6_hours
+            ),
+
+            "prediction_accuracy_percent": (
+                prediction_accuracy.accuracy_percent
+            ),
+
+            "prediction_count": (
+                prediction_accuracy.prediction_count
+            ),
+        }

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <!-- SOL ZAMAN ÇİZGİSİ -->
+    <LinearLayout
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:gravity="top|center_horizontal"
+        android:orientation="vertical">
+
+        <!-- Adım numarası -->
+        <TextView
+            android:id="@+id/txtDecisionStepNumber"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_ai_step_number"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- Durum işareti -->
+        <FrameLayout
+            android:id="@+id/layoutDecisionStepCheck"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/bg_ai_icon_soft_green">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgDecisionStepCheck"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_gravity="center"
+                android:contentDescription="Adım durumu"
+                android:src="@drawable/ic_ai_check_18"
+                app:tint="@color/primary" />
+
+        </FrameLayout>
+
+        <!-- Alt bağlantı çizgisi -->
+        <View
+            android:id="@+id/viewDecisionStepLine"
+            android:layout_width="2dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="4dp"
+            android:background="@color/primary" />
+
+    </LinearLayout>
+
+    <!-- ADIM KARTI -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardDecisionStep"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginBottom="10dp"
+        android:layout_weight="1"
+        app:cardBackgroundColor="#FCFDFC"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#E8EEE9"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="10dp">
+
+            <!-- Adım ikonu -->
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_ai_icon_soft_green">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgDecisionStepIcon"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="AI karar adımı"
+                    app:tint="@color/primary" />
+
+            </FrameLayout>
+
+            <!-- Başlık ve açıklama -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtDecisionStepTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sensör verisi"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtDecisionStepDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="1dp"
+                    android:maxLines="2"
+                    android:text="20 sensör ölçümü başarıyla toplandı."
+                    android:textColor="@color/textSecondary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- Durum rozeti -->
+            <TextView
+                android:id="@+id/txtDecisionStepBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_ai_badge_completed"
+                android:gravity="center"
+                android:minWidth="74dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="TAMAMLANDI"
+                android:textColor="@color/primaryDark"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

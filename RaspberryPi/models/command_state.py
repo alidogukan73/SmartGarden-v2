@@ -28,3 +28,6 @@ class CommandState:
 
     # Minimum interval between irrigations (seconds)
     cooldown_seconds: int = 120
+
+    # Device restart command
+    restart_device: bool = False

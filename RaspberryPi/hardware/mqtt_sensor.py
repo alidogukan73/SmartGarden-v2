@@ -1,0 +1,568 @@
+from __future__ import annotations
+
+import json
+import logging
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
+
+import paho.mqtt.client as mqtt
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class MqttSensorReading:
+
+    sensor_id: str
+    raw: int
+    voltage: float
+    moisture: int
+    rssi: int
+
+    firmware: str = ""
+    uptime_seconds: int = 0
+
+    received_at: datetime = field(
+        default_factory=datetime.now
+    )
+
+    received_monotonic: float = field(
+        default_factory=time.monotonic
+    )
+
+    @property
+    def age_seconds(self) -> float:
+        """
+        Ölçümün Raspberry Pi tarafından alınmasının üzerinden
+        geçen süreyi döndürür.
+
+        Sistem saatinden etkilenmemesi için monotonic saat kullanılır.
+        """
+        return max(
+            0.0,
+            time.monotonic() - self.received_monotonic,
+        )
+
+
+class MqttSoilMoistureSensor:
+    """
+    ESP32 kablosuz toprak nemi sensörünü MQTT üzerinden dinler.
+
+    MQTT mesajları arka planda alınır. Son geçerli ölçüm,
+    thread-safe biçimde bellekte tutulur.
+    """
+
+    def __init__(
+        self,
+        broker: str = "127.0.0.1",
+        port: int = 1883,
+        topic: str = "smartgarden/sensors/soil-001",
+        sensor_id: str = "soil-001",
+        stale_after_seconds: float = 30.0,
+        client_id: str = "smartgarden-pi-wireless-sensor",
+    ) -> None:
+        if not broker:
+            raise ValueError("MQTT broker adresi boş olamaz.")
+
+        if not 1 <= port <= 65535:
+            raise ValueError(
+                f"Geçersiz MQTT portu: {port}"
+            )
+
+        if not topic:
+            raise ValueError("MQTT konusu boş olamaz.")
+
+        if not sensor_id:
+            raise ValueError("Sensör kimliği boş olamaz.")
+
+        if stale_after_seconds <= 0:
+            raise ValueError(
+                "stale_after_seconds sıfırdan büyük olmalıdır."
+            )
+
+        self._broker = broker
+        self._port = port
+        self._topic = topic
+        self._sensor_id = sensor_id
+        self._stale_after_seconds = stale_after_seconds
+        self._client_id = client_id
+
+        self._reading_lock = threading.Lock()
+        self._state_lock = threading.Lock()
+
+        self._latest_reading: MqttSensorReading | None = None
+        self._is_connected = False
+        self._is_started = False
+
+        self._client = mqtt.Client(
+            callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
+            client_id=self._client_id,
+            protocol=mqtt.MQTTv311,
+        )
+
+        self._client.on_connect = self._on_connect
+        self._client.on_disconnect = self._on_disconnect
+        self._client.on_message = self._on_message
+
+        self._client.reconnect_delay_set(
+            min_delay=1,
+            max_delay=30,
+        )
+
+    @property
+    def broker(self) -> str:
+        return self._broker
+
+    @property
+    def port(self) -> int:
+        return self._port
+
+    @property
+    def topic(self) -> str:
+        return self._topic
+
+    @property
+    def expected_sensor_id(self) -> str:
+        return self._sensor_id
+
+    @property
+    def stale_after_seconds(self) -> float:
+        return self._stale_after_seconds
+
+    @property
+    def is_connected(self) -> bool:
+        with self._state_lock:
+            return self._is_connected
+
+    @property
+    def is_started(self) -> bool:
+        with self._state_lock:
+            return self._is_started
+
+    def start(self) -> None:
+        """
+        MQTT bağlantısını ve arka plan dinleme döngüsünü başlatır.
+        """
+
+        with self._state_lock:
+            if self._is_started:
+                logger.debug(
+                    "MQTT sensör dinleyicisi zaten çalışıyor."
+                )
+                return
+
+            self._is_started = True
+
+        logger.info(
+            "Kablosuz sensör başlatılıyor: broker=%s:%s topic=%s",
+            self._broker,
+            self._port,
+            self._topic,
+        )
+
+        try:
+            self._client.connect(
+                self._broker,
+                self._port,
+                keepalive=60,
+            )
+
+            self._client.loop_start()
+
+        except Exception:
+            with self._state_lock:
+                self._is_started = False
+                self._is_connected = False
+
+            logger.exception(
+                "MQTT broker bağlantısı başlatılamadı."
+            )
+            raise
+
+    def stop(self) -> None:
+        """
+        Arka plan MQTT döngüsünü güvenli biçimde durdurur.
+        """
+
+        with self._state_lock:
+            if not self._is_started:
+                return
+
+            self._is_started = False
+
+        logger.info(
+            "Kablosuz sensör durduruluyor."
+        )
+
+        try:
+            self._client.disconnect()
+        finally:
+            self._client.loop_stop()
+
+            with self._state_lock:
+                self._is_connected = False
+
+    def get_latest_reading(
+        self,
+    ) -> MqttSensorReading | None:
+        """
+        Son alınan ölçümü döndürür.
+
+        Ölçüm henüz gelmediyse None döner.
+        Eski ölçümü de döndürebilir; güncellik için
+        is_reading_fresh() kullanılmalıdır.
+        """
+
+        with self._reading_lock:
+            return self._latest_reading
+
+    def get_fresh_reading(
+        self,
+    ) -> MqttSensorReading | None:
+        """
+        Yalnızca güncel ölçümü döndürür.
+
+        Ölçüm yoksa veya zaman aşımına uğramışsa None döner.
+        """
+
+        reading = self.get_latest_reading()
+
+        if reading is None:
+            return None
+
+        if reading.age_seconds > self._stale_after_seconds:
+            return None
+
+        return reading
+
+    def is_reading_fresh(self) -> bool:
+        """
+        Son ölçümün kullanılabilecek kadar güncel olup
+        olmadığını döndürür.
+        """
+
+        return self.get_fresh_reading() is not None
+
+    def wait_for_reading(
+        self,
+        timeout_seconds: float = 15.0,
+    ) -> MqttSensorReading | None:
+        """
+        İlk güncel MQTT ölçümünü belirli süre bekler.
+
+        Süre dolarsa None döner.
+        """
+
+        if timeout_seconds <= 0:
+            raise ValueError(
+                "timeout_seconds sıfırdan büyük olmalıdır."
+            )
+
+        deadline = time.monotonic() + timeout_seconds
+
+        while time.monotonic() < deadline:
+            reading = self.get_fresh_reading()
+
+            if reading is not None:
+                return reading
+
+            time.sleep(0.1)
+
+        return None
+
+    def _on_connect(
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        flags: mqtt.ConnectFlags,
+        reason_code: mqtt.ReasonCode,
+        properties: mqtt.Properties | None,
+    ) -> None:
+        if reason_code != 0:
+            with self._state_lock:
+                self._is_connected = False
+
+            logger.error(
+                "MQTT broker bağlantısı başarısız: %s",
+                reason_code,
+            )
+            return
+
+        with self._state_lock:
+            self._is_connected = True
+
+        logger.info(
+            "MQTT broker bağlantısı kuruldu."
+        )
+
+        result, message_id = client.subscribe(
+            self._topic,
+            qos=0,
+        )
+
+        if result != mqtt.MQTT_ERR_SUCCESS:
+            logger.error(
+                "MQTT konusuna abone olunamadı: result=%s",
+                result,
+            )
+            return
+
+        logger.info(
+            "Kablosuz sensör konusu dinleniyor: "
+            "topic=%s message_id=%s",
+            self._topic,
+            message_id,
+        )
+
+    def _on_disconnect(
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        disconnect_flags: mqtt.DisconnectFlags,
+        reason_code: mqtt.ReasonCode,
+        properties: mqtt.Properties | None,
+    ) -> None:
+        with self._state_lock:
+            self._is_connected = False
+
+        if reason_code == 0:
+            logger.info(
+                "MQTT bağlantısı kapatıldı."
+            )
+        else:
+            logger.warning(
+                "MQTT bağlantısı beklenmedik şekilde koptu: %s",
+                reason_code,
+            )
+
+    def _on_message(
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        message: mqtt.MQTTMessage,
+    ) -> None:
+        try:
+            reading = self._parse_payload(
+                message.payload
+            )
+        except (ValueError, TypeError) as exc:
+            logger.warning(
+                "Geçersiz kablosuz sensör mesajı: %s; payload=%r",
+                exc,
+                message.payload,
+            )
+            return
+
+        if reading.sensor_id != self._sensor_id:
+            logger.warning(
+                "Beklenmeyen sensör kimliği yok sayıldı: "
+                "beklenen=%s gelen=%s",
+                self._sensor_id,
+                reading.sensor_id,
+            )
+            return
+
+        with self._reading_lock:
+            self._latest_reading = reading
+
+        logger.debug(
+            "Kablosuz sensör ölçümü alındı: "
+            "sensor_id=%s raw=%s voltage=%.3f "
+            "moisture=%s rssi=%s",
+            reading.sensor_id,
+            reading.raw,
+            reading.voltage,
+            reading.moisture,
+            reading.rssi,
+        )
+
+    @staticmethod
+    def _parse_payload(
+        payload: bytes,
+    ) -> MqttSensorReading:
+        try:
+            payload_text = payload.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(
+                "MQTT mesajı UTF-8 formatında değil."
+            ) from exc
+
+        try:
+            data = json.loads(payload_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                "MQTT mesajı geçerli JSON değil."
+            ) from exc
+
+        if not isinstance(data, dict):
+            raise ValueError(
+                "MQTT mesajının JSON nesnesi olması gerekir."
+            )
+
+        required_fields = {
+            "sensor_id",
+            "raw",
+            "voltage",
+            "moisture",
+            "rssi",
+        }
+
+        missing_fields = required_fields.difference(
+            data.keys()
+        )
+
+        if missing_fields:
+            missing_text = ", ".join(
+                sorted(missing_fields)
+            )
+
+            raise ValueError(
+                f"Eksik alanlar: {missing_text}"
+            )
+
+        try:
+            sensor_id = str(data["sensor_id"]).strip()
+            raw = int(data["raw"])
+            voltage = float(data["voltage"])
+            moisture = int(data["moisture"])
+            rssi = int(data["rssi"])
+            firmware = str(
+                data.get(
+                    "firmware",
+                    ""
+                )
+            )
+
+            uptime_seconds = int(
+                data.get(
+                    "uptime",
+                    0
+                )
+            )
+
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "MQTT sensör alanlarından biri "
+                "geçersiz veri tipinde."
+            ) from exc
+
+        if not sensor_id:
+            raise ValueError(
+                "sensor_id boş olamaz."
+            )
+
+        if not 0 <= raw <= 32767:
+            raise ValueError(
+                f"Raw değeri geçersiz: {raw}"
+            )
+
+        if not 0.0 <= voltage <= 3.3:
+            raise ValueError(
+                f"Voltaj değeri geçersiz: {voltage}"
+            )
+
+        if not 0 <= moisture <= 100:
+            raise ValueError(
+                f"Nem değeri geçersiz: {moisture}"
+            )
+
+        if not -120 <= rssi <= 0:
+            raise ValueError(
+                f"Wi-Fi RSSI değeri geçersiz: {rssi}"
+            )
+
+        return MqttSensorReading(
+            sensor_id=sensor_id,
+            raw=raw,
+            voltage=voltage,
+            moisture=moisture,
+            rssi=rssi,
+
+            firmware=firmware,
+            uptime_seconds=uptime_seconds,
+
+            received_at=datetime.now().astimezone(),
+            received_monotonic=time.monotonic(),
+        )
+
+
+def main() -> None:
+    """
+    Dosya doğrudan çalıştırıldığında basit donanım testi yapar.
+    """
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format=(
+            "%(asctime)s | %(levelname)-8s | %(message)s"
+        ),
+    )
+
+    sensor = MqttSoilMoistureSensor(
+        broker="127.0.0.1",
+        port=1883,
+        topic="smartgarden/sensors/soil-001",
+        sensor_id="soil-001",
+        stale_after_seconds=15.0,
+    )
+
+    try:
+        sensor.start()
+
+        print()
+        print("İlk kablosuz sensör ölçümü bekleniyor...")
+
+        reading = sensor.wait_for_reading(
+            timeout_seconds=15.0
+        )
+
+        if reading is None:
+            print(
+                "HATA: 15 saniye içinde sensör ölçümü alınamadı."
+            )
+            return
+
+        print()
+        print("İlk ölçüm başarıyla alındı:")
+        print(f"Sensör ID : {reading.sensor_id}")
+        print(f"Raw       : {reading.raw}")
+        print(f"Voltaj    : {reading.voltage:.3f} V")
+        print(f"Nem       : %{reading.moisture}")
+        print(f"Wi-Fi RSSI: {reading.rssi} dBm")
+        print()
+
+        print(
+            "Canlı ölçümler gösteriliyor. "
+            "Çıkmak için Ctrl+C kullan."
+        )
+
+        while True:
+            reading = sensor.get_fresh_reading()
+
+            if reading is None:
+                print(
+                    "UYARI: Kablosuz sensör verisi güncel değil."
+                )
+            else:
+                print(
+                    f"Raw={reading.raw} "
+                    f"Voltage={reading.voltage:.3f} V "
+                    f"Moisture={reading.moisture}% "
+                    f"RSSI={reading.rssi} dBm "
+                    f"Age={reading.age_seconds:.1f}s"
+                )
+
+            time.sleep(5)
+
+    except KeyboardInterrupt:
+        print("\nTest kullanıcı tarafından durduruldu.")
+    finally:
+        sensor.stop()
+
+
+if __name__ == "__main__":
+    main()

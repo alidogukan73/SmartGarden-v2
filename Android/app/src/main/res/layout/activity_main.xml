@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -8,9 +9,9 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:clipToPadding="false"
+    android:fadingEdgeLength="0dp"
     android:fillViewport="true"
-    android:overScrollMode="never"
-    android:fadingEdgeLength="0dp">
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +23,7 @@
         android:paddingBottom="48dp">
 
         <!-- ===================================================== -->
-        <!-- PROFESYONEL DASHBOARD HEADER                          -->
+        <!-- DASHBOARD HEADER                                      -->
         <!-- ===================================================== -->
 
         <com.google.android.material.card.MaterialCardView
@@ -36,7 +37,7 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <!-- ÜST SATIR: MARKA + ANA MENÜ -->
+                <!-- Marka ve menü -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -44,20 +45,18 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- MARKA İKONU -->
-
                     <com.google.android.material.card.MaterialCardView
-                        android:layout_width="46dp"
-                        android:layout_height="46dp"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
                         app:cardBackgroundColor="@color/primaryLight"
-                        app:cardCornerRadius="15dp"
+                        app:cardCornerRadius="17dp"
                         app:cardElevation="0dp"
                         app:strokeColor="@color/primary"
                         app:strokeWidth="1dp">
 
                         <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:scaleType="centerCrop"
@@ -65,12 +64,10 @@
 
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- UYGULAMA BAŞLIĞI -->
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="13dp"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
@@ -95,8 +92,6 @@
 
                     </LinearLayout>
 
-                    <!-- ANA MENÜ -->
-
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnMainMenu"
                         style="@style/Widget.Material3.Button.IconButton"
@@ -114,26 +109,43 @@
                         app:iconPadding="0dp"
                         app:iconSize="24dp"
                         app:iconTint="@color/textPrimary"
-                        app:rippleColor="@color/divider"/>
+                        app:rippleColor="@color/divider" />
 
                 </LinearLayout>
-
-                <!-- AYIRICI -->
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="17dp"
+                    android:layout_marginBottom="15dp"
                     android:background="@color/divider" />
 
-                <!-- CİHAZ BİLGİLERİ -->
+                <!-- Bağlı cihaz bilgisi -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginEnd="10dp"
+                        app:cardBackgroundColor="@color/iconBackground"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_auto_mode_24"
+                            app:tint="@color/primary" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -151,35 +163,48 @@
                             android:id="@+id/txtDevice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="3dp"
                             android:ellipsize="end"
                             android:maxLines="1"
                             android:text="@string/default_device_name"
                             android:textColor="@color/textPrimary"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                     </LinearLayout>
-
-                    <!-- ONLINE / OFFLINE ROZETİ -->
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardOnlineStatus"
                         style="@style/Widget.SmartGarden.Card.Success"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp">
+                        android:layout_height="34dp">
 
-                        <TextView
-                            android:id="@+id/txtOnline"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="12dp"
-                            android:text="@string/status_online"
-                            android:textColor="@color/online"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:orientation="horizontal"
+                            android:paddingStart="11dp"
+                            android:paddingEnd="11dp">
+
+                            <View
+                                android:layout_width="7dp"
+                                android:layout_height="7dp"
+                                android:background="@color/online" />
+
+                            <TextView
+                                android:id="@+id/txtOnline"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="7dp"
+                                android:gravity="center"
+                                android:includeFontPadding="false"
+                                android:text="@string/status_online"
+                                android:textColor="@color/online"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>
 
@@ -189,8 +214,9 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-
-        <!-- TOPRAK NEMİ KARTI -->
+        <!-- ===================================================== -->
+        <!-- TOPRAK NEMİ                                          -->
+        <!-- ===================================================== -->
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
@@ -203,6 +229,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
+
+                <!-- Başlık -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -232,44 +260,88 @@
 
                     </LinearLayout>
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        app:cardBackgroundColor="@color/primaryLight"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:text="@string/label_live"
+                            android:textColor="@color/primary"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <!-- Ana nem değeri -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        app:cardBackgroundColor="@color/iconBackground"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/primaryLight"
+                        app:strokeWidth="1dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_water_drop_24"
+                            app:tint="@color/primary" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
                     <TextView
+                        android:id="@+id/txtMoisture"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_live"
-                        android:textColor="@color/primary"
-                        android:textSize="10sp"
+                        android:layout_marginTop="8dp"
+                        android:includeFontPadding="false"
+                        android:text="0%"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.MoistureValue"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/txtMoistureStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="@string/moisture_waiting"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/txtMoisture"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
-                    android:includeFontPadding="false"
-                    android:text="0%"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.MoistureValue"
-                    tools:ignore="HardcodedText" />
-
-                <TextView
-                    android:id="@+id/txtMoistureStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/moisture_waiting"
-                    android:textColor="@color/textSecondary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                <!-- Nem progress -->
 
                 <ProgressBar
                     android:id="@+id/progressMoisture"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="17dp"
                     android:max="100"
                     android:progress="0"
                     android:progressBackgroundTint="@color/divider"
@@ -278,38 +350,83 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Kuru"
+                        android:textColor="@color/textTertiary"
+                        android:textSize="10sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="İdeal"
+                        android:textColor="@color/textTertiary"
+                        android:textSize="10sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Yüksek"
+                        android:textColor="@color/textTertiary"
+                        android:textSize="10sp"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
+
+                <!-- Teknik sensör metrikleri -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="17dp"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
 
                     <com.google.android.material.card.MaterialCardView
-                        style="@style/Widget.SmartGarden.Card.Inner"
+                        style="@style/Widget.SmartGarden.Card.Metric"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="92dp"
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1">
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingTop="13dp"
-                            android:paddingBottom="13dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/label_voltage"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
 
                             <TextView
                                 android:id="@+id/txtVoltage"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="7dp"
+                                android:includeFontPadding="false"
                                 android:text="0.00 V"
                                 android:textAppearance="@style/TextAppearance.SmartGarden.Value"
+                                tools:ignore="HardcodedText" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="ADS1115"
+                                android:textColor="@color/textTertiary"
+                                android:textSize="9sp"
                                 tools:ignore="HardcodedText" />
 
                         </LinearLayout>
@@ -317,33 +434,42 @@
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
-                        style="@style/Widget.SmartGarden.Card.Inner"
+                        style="@style/Widget.SmartGarden.Card.Metric"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="92dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1">
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingTop="13dp"
-                            android:paddingBottom="13dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/label_raw_value"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
 
                             <TextView
                                 android:id="@+id/txtRaw"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="7dp"
+                                android:includeFontPadding="false"
                                 android:text="0"
                                 android:textAppearance="@style/TextAppearance.SmartGarden.Value"
+                                tools:ignore="HardcodedText" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="Ham veri"
+                                android:textColor="@color/textTertiary"
+                                android:textSize="9sp"
                                 tools:ignore="HardcodedText" />
 
                         </LinearLayout>
@@ -357,7 +483,9 @@
         </com.google.android.material.card.MaterialCardView>
 
 
-        <!-- SULAMA KONTROL KARTI -->
+        <!-- ===================================================== -->
+        <!-- SULAMA KONTROLÜ                                      -->
+        <!-- ===================================================== -->
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
@@ -385,33 +513,36 @@
                     android:text="@string/subtitle_pump_and_mode"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
 
+                <!-- Pompa durumu -->
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardPumpStatus"
                     style="@style/Widget.SmartGarden.Card.Inner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="17dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:minHeight="88dp"
                         android:orientation="horizontal"
                         android:padding="14dp">
 
                         <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="12dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginEnd="13dp"
                             app:cardBackgroundColor="@color/offlineBackground"
-                            app:cardCornerRadius="13dp"
+                            app:cardCornerRadius="17dp"
                             app:cardElevation="0dp"
                             app:strokeWidth="0dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
                                 android:id="@+id/imgPumpStatus"
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_pump_24"
@@ -429,16 +560,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/label_pump_status"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
 
                             <TextView
                                 android:id="@+id/txtRelay"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
+                                android:includeFontPadding="false"
                                 android:text="@string/pump_stopped"
                                 android:textColor="@color/offline"
-                                android:textSize="18sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -446,9 +578,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
+                                android:maxLines="2"
                                 android:text="@string/pump_description_idle"
-                                android:textColor="@color/textSecondary"
-                                android:textSize="10sp" />
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
 
                         </LinearLayout>
 
@@ -462,6 +594,8 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Otomatik mod -->
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardAutoMode"
                     style="@style/Widget.SmartGarden.Card.Inner"
@@ -473,26 +607,26 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
-                        android:minHeight="68dp"
+                        android:minHeight="82dp"
                         android:orientation="horizontal"
                         android:paddingStart="14dp"
-                        android:paddingTop="10dp"
+                        android:paddingTop="11dp"
                         android:paddingEnd="12dp"
-                        android:paddingBottom="10dp">
+                        android:paddingBottom="11dp">
 
                         <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="12dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginEnd="13dp"
                             app:cardBackgroundColor="@color/surfaceGreen"
-                            app:cardCornerRadius="13dp"
+                            app:cardCornerRadius="17dp"
                             app:cardElevation="0dp"
                             app:strokeWidth="0dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
                                 android:id="@+id/imgAutoMode"
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_auto_mode_24"
@@ -500,29 +634,30 @@
 
                         </com.google.android.material.card.MaterialCardView>
 
-
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingEnd="12dp">
+                            android:paddingEnd="10dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
                                 android:text="@string/title_auto_watering"
                                 android:textColor="@color/textPrimary"
-                                android:textSize="15sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/txtAutoDescription"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="3dp"
+                                android:layout_marginTop="4dp"
+                                android:maxLines="2"
                                 android:text="@string/auto_mode_default_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
 
                         </LinearLayout>
 
@@ -537,12 +672,14 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Manuel sulama -->
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnWater"
                     style="@style/Widget.SmartGarden.Button.Primary"
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
-                    android:layout_marginTop="14dp"
+                    android:layout_height="58dp"
+                    android:layout_marginTop="15dp"
                     android:text="@string/button_start_manual_watering"
                     app:icon="@drawable/ic_water_drop_24"
                     app:iconGravity="textStart"
@@ -555,8 +692,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="9dp"
-                    android:layout_marginBottom="8dp"
                     android:gravity="center"
+                    android:lineSpacingExtra="1dp"
                     android:text="@string/manual_hint_idle"
                     android:textColor="@color/textTertiary"
                     android:textSize="10sp" />

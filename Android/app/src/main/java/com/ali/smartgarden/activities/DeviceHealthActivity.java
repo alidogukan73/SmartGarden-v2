@@ -5,6 +5,10 @@ import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Handler;
+import android.os.Looper;
+
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,20 +20,31 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Health;
+import com.ali.smartgarden.models.SoilSensor;
 import com.ali.smartgarden.viewmodels.DeviceHealthViewModel;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class DeviceHealthActivity extends AppCompatActivity {
 
     private DeviceHealthViewModel viewModel;
 
+    private Handler soilHandler =
+            new Handler(Looper.getMainLooper());
+
+    private Runnable soilChecker;
+
     private MaterialButton btnBack;
+    private MaterialButton btnRestartDevice;
 
     private MaterialCardView cardHealthSummary;
     private MaterialCardView cardOverallHealth;
@@ -66,9 +81,23 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtFirmware;
     private TextView txtUptime;
 
+    private TextView txtSoilSensorId;
+    private TextView txtSoilFirmware;
+    private TextView txtSoilRssi;
+    private TextView txtSoilUptime;
+
+    private TextView txtSoilConnection;
+    private TextView txtSoilLastUpdate;
+
+    private String lastSoilUpdateTime;
+
+
+    private MaterialCardView cardSoilConnection;
+
     private TextView txtCurrentPowerEvents;
     private TextView txtHistoricalPowerEvents;
     private TextView txtThrottlingRaw;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +113,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         initializeViewModel();
         observeViewModel();
         initializeActions();
+        startSoilConnectionMonitor();
     }
 
     private void applyWindowInsets() {
@@ -120,6 +150,11 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 findViewById(R.id.txtThrottlingRaw);
 
         btnBack = findViewById(R.id.btnBack);
+
+        btnRestartDevice =
+                findViewById(
+                        R.id.btnRestartDevice
+                );
 
         cardHealthSummary =
                 findViewById(R.id.cardHealthSummary);
@@ -201,6 +236,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         txtUptime =
                 findViewById(R.id.txtUptime);
+
     }
 
     private void initializeViewModel() {
@@ -241,8 +277,43 @@ public class DeviceHealthActivity extends AppCompatActivity {
         btnBack.setOnClickListener(
                 view -> finish()
         );
-    }
 
+        btnRestartDevice.setOnClickListener(
+                view -> showRestartConfirmationDialog()
+        );
+    }
+    private void showRestartConfirmationDialog() {
+
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                this
+        )
+                .setTitle(
+                        "Cihaz yeniden başlatılsın mı?"
+                )
+                .setMessage(
+                        "Raspberry Pi yeniden başlatılacak. "
+                                + "Bu sırada sulama ve sensör bağlantısı "
+                                + "kısa süreliğine kesilecektir."
+                )
+                .setNegativeButton(
+                        "İptal",
+                        (dialog, which) -> dialog.dismiss()
+                )
+                .setPositiveButton(
+                        "Yeniden Başlat",
+                        (dialog, which) -> {
+
+                            viewModel.restartDevice();
+
+                            Toast.makeText(
+                                    this,
+                                    "Yeniden başlatma komutu gönderildi.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                )
+                .show();
+    }
     private void renderHealth(Health health) {
 
         if (health == null) {
@@ -463,8 +534,28 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 )
         );
 
+        int cpuUsage =
+                (int) Math.round(
+                        health.getCpuUsage()
+                );
+
+        int visualCpuProgress;
+
+        if (cpuUsage <= 0) {
+
+            visualCpuProgress = 0;
+
+        } else {
+
+            visualCpuProgress =
+                    Math.max(
+                            cpuUsage,
+                            4
+                    );
+        }
+
         progressCpu.setProgress(
-                (int) Math.round(usage)
+                visualCpuProgress
         );
 
         int color =
@@ -705,6 +796,72 @@ public class DeviceHealthActivity extends AppCompatActivity {
         );
     }
 
+    private void updateSoilLastUpdate(long age) {
+
+        if(age < 5) {
+
+            txtSoilLastUpdate.setText(
+                    "Az önce"
+            );
+
+        }
+        else if(age < 60) {
+
+            txtSoilLastUpdate.setText(
+                    age + " sn önce"
+            );
+
+        }
+        else {
+
+            long minutes = age / 60;
+
+            txtSoilLastUpdate.setText(
+                    minutes + " dk önce"
+            );
+        }
+    }
+
+    private void updateSoilConnectionStatus(long age) {
+
+
+        if(age < 20) {
+
+            txtSoilConnection.setText(
+                    "● Bağlı"
+            );
+
+            cardSoilConnection.setCardBackgroundColor(
+                    getColor(R.color.online)
+            );
+
+
+        }
+        else if(age < 60) {
+
+            txtSoilConnection.setText(
+                    "● Beklemede"
+            );
+
+            cardSoilConnection.setCardBackgroundColor(
+                    getColor(R.color.warning)
+            );
+
+
+        }
+        else {
+
+            txtSoilConnection.setText(
+                    "● Bağlantı Yok"
+            );
+
+            cardSoilConnection.setCardBackgroundColor(
+                    getColor(R.color.offline)
+            );
+        }
+    }
+
+
     private void renderOverallHealth(Health health) {
 
         boolean critical =
@@ -934,4 +1091,127 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 colorResource
         );
     }
+
+    private long getSecondsSinceUpdate(
+            String updatedAt
+    ) {
+
+        if (updatedAt == null || updatedAt.isBlank()) {
+            return Long.MAX_VALUE;
+        }
+
+
+        try {
+
+            String normalized =
+                    updatedAt.substring(0, 19);
+
+
+            LocalDateTime updateTime =
+                    LocalDateTime.parse(
+                            normalized
+                    );
+
+
+            long updateSeconds =
+                    updateTime.atZone(
+                            ZoneId.systemDefault()
+                    ).toEpochSecond();
+
+
+            long nowSeconds =
+                    Instant.now()
+                            .getEpochSecond();
+
+
+            long age =
+                    nowSeconds - updateSeconds;
+
+
+            if (age < 0) {
+
+                age = 0;
+            }
+
+
+            return age;
+
+
+        } catch (Exception e) {
+
+            Log.e(
+                    "SOIL_TIME",
+                    "Timestamp parse hatası: "
+                            + updatedAt,
+                    e
+            );
+
+            return Long.MAX_VALUE;
+        }
+    }
+
+    private void startSoilConnectionMonitor() {
+
+        soilChecker = new Runnable() {
+
+            @Override
+            public void run() {
+
+                if(lastSoilUpdateTime != null) {
+
+                    long age =
+                            getSecondsSinceUpdate(
+                                    lastSoilUpdateTime
+                            );
+
+                    updateSoilConnectionStatus(age);
+                    updateSoilLastUpdate(age);
+                }
+
+
+                soilHandler.postDelayed(
+                        this,
+                        5000
+                );
+            }
+        };
+
+
+        soilHandler.post(soilChecker);
+    }
+
+    private String getRssiQuality(int rssi) {
+
+        if (rssi >= -55) {
+
+            return "Mükemmel (" + rssi + " dBm)";
+
+        } else if (rssi >= -70) {
+
+            return "İyi (" + rssi + " dBm)";
+
+        } else if (rssi >= -80) {
+
+            return "Zayıf (" + rssi + " dBm)";
+
+        } else {
+
+            return "Çok zayıf (" + rssi + " dBm)";
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+
+        if(soilChecker != null) {
+
+            soilHandler.removeCallbacks(
+                    soilChecker
+            );
+        }
+    }
+
+
 }

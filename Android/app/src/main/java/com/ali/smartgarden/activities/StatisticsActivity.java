@@ -19,6 +19,8 @@ import com.ali.smartgarden.viewmodels.StatisticsViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.Locale;
+
 public class StatisticsActivity extends AppCompatActivity {
 
     private StatisticsViewModel viewModel;
@@ -526,7 +528,7 @@ public class StatisticsActivity extends AppCompatActivity {
         String normalizedReason =
                 stopReason
                         .trim()
-                        .toLowerCase();
+                        .toLowerCase(Locale.ROOT);
 
         switch (normalizedReason) {
 

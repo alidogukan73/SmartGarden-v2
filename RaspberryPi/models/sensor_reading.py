@@ -9,10 +9,12 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SensorReading:
-    """
-    Represents one complete sensor measurement.
-    """
 
     raw: int
     voltage: float
     moisture: int
+
+    sensor_id: str = ""
+    firmware: str = ""
+    rssi: int = 0
+    uptime_seconds: int = 0

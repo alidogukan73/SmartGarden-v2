@@ -547,4 +547,34 @@
     <string name="symbol_right_arrow">→</string>
     <string name="symbol_menu_arrow">›</string>
 
+    <!-- AI KARAR AKIŞI -->
+
+    <string name="ai_decision_flow_title">AI Karar Akışı</string>
+    <string name="ai_decision_flow_subtitle">Kararın hangi analiz aşamalarından geçerek oluşturulduğunu gösterir.</string>
+
+    <string name="ai_flow_sensor_title">Sensör verisi</string>
+    <string name="ai_flow_sensor_waiting">Sensör ölçümü bekleniyor</string>
+
+    <string name="ai_flow_moisture_title">Nem analizi</string>
+    <string name="ai_flow_moisture_waiting">Nem seviyesi değerlendiriliyor</string>
+
+    <string name="ai_flow_soil_title">Toprak profili</string>
+    <string name="ai_flow_soil_waiting">Toprak davranışı analiz ediliyor</string>
+
+    <string name="ai_flow_history_title">Sulama geçmişi</string>
+    <string name="ai_flow_history_waiting">Geçmiş sonuçlar inceleniyor</string>
+
+    <string name="ai_flow_result_title">AI sonucu</string>
+    <string name="ai_flow_result_waiting">Karar hazırlanıyor</string>
+
+    <string name="ai_flow_connector">↓</string>
+
+    <!-- AI KARAR AKIŞI ADIM NUMARALARI -->
+
+    <string name="ai_flow_step_one">1</string>
+    <string name="ai_flow_step_two">2</string>
+    <string name="ai_flow_step_three">3</string>
+    <string name="ai_flow_step_four">4</string>
+    <string name="ai_flow_step_five">5</string>
+
 </resources>

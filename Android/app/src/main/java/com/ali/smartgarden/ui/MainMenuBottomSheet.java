@@ -18,6 +18,8 @@ import com.ali.smartgarden.activities.DeviceHealthActivity;
 import com.ali.smartgarden.activities.SettingsActivity;
 import com.ali.smartgarden.activities.StatisticsActivity;
 import com.ali.smartgarden.activities.WateringHistoryActivity;
+import com.ali.smartgarden.activities.SensorPointsActivity;
+
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -64,6 +66,11 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         MaterialCardView menuCardHealth =
                 view.findViewById(R.id.menuCardHealth);
 
+        MaterialCardView menuCardSensorPoints =
+                view.findViewById(
+                        R.id.menuCardSensorPoints
+                );
+
         MaterialCardView menuCardAIAssistant =
                 view.findViewById(
                         R.id.menuCardAIAssistant
@@ -93,6 +100,13 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
                 clickedView ->
                         openActivity(
                                 DeviceHealthActivity.class
+                        )
+        );
+
+        menuCardSensorPoints.setOnClickListener(
+                clickedView ->
+                        openActivity(
+                                SensorPointsActivity.class
                         )
         );
 

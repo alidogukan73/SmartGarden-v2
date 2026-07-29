@@ -18,12 +18,22 @@ import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.AIDecision;
 import com.ali.smartgarden.models.AIExplanation;
+import com.ali.smartgarden.models.PredictionValidationStatus;
+import com.ali.smartgarden.models.MoisturePrediction;
+import com.ali.smartgarden.models.PredictionAccuracy;
+import com.ali.smartgarden.models.UnifiedConfidence;
+import com.ali.smartgarden.models.SoilSensor;
+import com.ali.smartgarden.models.SoilLearningProfile;
+
 
 public class MainViewModel extends ViewModel {
 
     private static final String TAG = "MainViewModel";
 
     private final FirebaseRepository repository;
+
+    private final MutableLiveData<SoilSensor> soilSensor =
+            new MutableLiveData<>();
 
     private final MutableLiveData<Sensor> sensorLiveData =
             new MutableLiveData<>();
@@ -40,6 +50,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<AdaptiveRecommendation>
             adaptiveRecommendation =
             new MutableLiveData<>();
+
     private final MutableLiveData<AIDecision>
             aiDecisionLiveData =
             new MutableLiveData<>();
@@ -47,6 +58,17 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<AIExplanation>
             aiExplanationLiveData =
             new MutableLiveData<>();
+
+    private final LiveData<PredictionValidationStatus>
+            predictionValidationStatus;
+
+    private final LiveData<MoisturePrediction> moisturePrediction;
+
+    private final LiveData<PredictionAccuracy> predictionAccuracy;
+
+    private final LiveData<UnifiedConfidence> unifiedConfidence;
+
+    private final LiveData<SoilLearningProfile> soilLearningProfile;
 
     public MainViewModel() {
 
@@ -58,12 +80,32 @@ public class MainViewModel extends ViewModel {
         observeAdaptiveRecommendation();
         observeAIDecision();
         observeAIExplanation();
+
+        predictionValidationStatus =
+                repository.observePredictionValidationStatus();
+
+        moisturePrediction =
+                repository.observeMoisturePrediction();
+
+        predictionAccuracy =
+                repository.observePredictionAccuracy();
+
+        unifiedConfidence =
+                repository.observeUnifiedConfidence();
+
+        soilLearningProfile =
+                repository.observeSoilLearningProfile();
     }
 
     /*
      * Public LiveData
      */
 
+    public LiveData<SoilSensor> getSoilSensor(){
+
+        return soilSensor;
+
+    }
     public LiveData<Sensor> getSensor() {
         return sensorLiveData;
     }
@@ -71,7 +113,6 @@ public class MainViewModel extends ViewModel {
     public LiveData<Status> getStatus() {
         return statusLiveData;
     }
-
     public LiveData<Command> getCommand() {
         return commandLiveData;
     }
@@ -82,9 +123,9 @@ public class MainViewModel extends ViewModel {
 
     public LiveData<AdaptiveRecommendation>
     getAdaptiveRecommendation() {
-
         return adaptiveRecommendation;
     }
+
     public LiveData<AIDecision> getAIDecision() {
         return aiDecisionLiveData;
     }
@@ -92,6 +133,33 @@ public class MainViewModel extends ViewModel {
     public LiveData<AIExplanation> getAIExplanation() {
         return aiExplanationLiveData;
     }
+
+    public LiveData<PredictionValidationStatus>
+    getPredictionValidationStatus() {
+        return predictionValidationStatus;
+    }
+
+    public LiveData<MoisturePrediction>
+    getMoisturePrediction() {
+        return moisturePrediction;
+    }
+
+    public LiveData<PredictionAccuracy>
+    getPredictionAccuracy() {
+        return predictionAccuracy;
+    }
+
+    public LiveData<UnifiedConfidence>
+    getUnifiedConfidence() {
+        return unifiedConfidence;
+    }
+
+    public LiveData<SoilLearningProfile>
+    getSoilLearningProfile() {
+
+        return soilLearningProfile;
+    }
+
 
     /*
      * Commands
@@ -113,6 +181,12 @@ public class MainViewModel extends ViewModel {
         repository.setAutoMode(
                 enabled
         );
+    }
+
+    public void restartDevice() {
+
+        repository.restartDevice();
+
     }
 
     /*
@@ -163,6 +237,13 @@ public class MainViewModel extends ViewModel {
                     }
                 }
         );
+
+        repository.observeSoilSensor()
+                .observeForever(sensor -> {
+
+                    soilSensor.setValue(sensor);
+
+                });
     }
 
     private void observeStatus() {
@@ -209,6 +290,7 @@ public class MainViewModel extends ViewModel {
                     }
                 }
         );
+
     }
 
     private void observeCommands() {
@@ -262,6 +344,15 @@ public class MainViewModel extends ViewModel {
         repository.observeAdaptiveRecommendation(
 
                 recommendation -> {
+
+                    if (recommendation == null) {
+
+                        errorLiveData.setValue(
+                                "Uyarlanabilir sulama önerisi okunamadı."
+                        );
+
+                        return;
+                    }
 
                     adaptiveRecommendation.setValue(
                             recommendation
