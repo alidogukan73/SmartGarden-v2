@@ -382,8 +382,8 @@ public class SettingsActivity extends AppCompatActivity {
         originalPumpDuration =
                 clamp(
                         command.getPumpDuration(),
-                        1,
-                        300
+                        0,
+                        10800
                 );
 
         originalCooldownSeconds =
@@ -787,6 +787,26 @@ public class SettingsActivity extends AppCompatActivity {
 
         long remainingSeconds =
                 safeSeconds % 60;
+
+        if (safeSeconds >= 3600) {
+
+            long hours = safeSeconds / 3600;
+            long remainingMinutes =
+                    (safeSeconds % 3600) / 60;
+
+            if (remainingMinutes == 0) {
+                return getString(
+                        R.string.settings_hours_format,
+                        hours
+                );
+            }
+
+            return getString(
+                    R.string.settings_hours_minutes_format,
+                    hours,
+                    remainingMinutes
+            );
+        }
 
         if (remainingSeconds > 0) {
 

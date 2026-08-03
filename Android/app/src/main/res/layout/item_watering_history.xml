@@ -33,6 +33,16 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/txtHistoryZone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:text="@string/history_zone_legacy"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+
+                <TextView
                     android:id="@+id/txtHistoryDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

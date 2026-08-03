@@ -20,8 +20,6 @@
         android:paddingEnd="16dp"
         android:paddingBottom="40dp">
 
-        <!-- HEADER -->
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,14 +54,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
-                    android:text="Sensör Noktaları"
+                    android:text="@string/sensor_points_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="Bahçedeki kablosuz nem sensörleri"
+                    android:text="@string/sensor_points_subtitle"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
 
             </LinearLayout>
@@ -88,8 +86,6 @@
 
         </LinearLayout>
 
-        <!-- ÖZET -->
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Featured"
             android:layout_width="match_parent"
@@ -112,7 +108,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Sensör durumu"
+                        android:text="@string/sensor_status_title"
                         android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
 
                     <TextView
@@ -120,7 +116,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="1 / 3 sensör bağlı"
+                        android:text="@string/sensor_summary_empty"
                         android:textColor="@color/textPrimary"
                         android:textSize="21sp"
                         android:textStyle="bold"/>
@@ -129,7 +125,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Noktalar düzenli olarak kontrol ediliyor."
+                        android:text="@string/sensor_status_description"
                         android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
 
                 </LinearLayout>
@@ -149,7 +145,7 @@
                         android:gravity="center"
                         android:paddingStart="13dp"
                         android:paddingEnd="13dp"
-                        android:text="AKTİF"
+                        android:text="@string/sensor_active"
                         android:textColor="@color/online"
                         android:textSize="10sp"
                         android:textStyle="bold"/>
@@ -160,10 +156,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- DOMATES -->
-
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardTomatoSensor"
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -175,258 +168,38 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🍅 Domates"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/txtTomatoStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Bağlı"
-                        android:textColor="@color/online"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
+                    android:text="@string/queue_title"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
 
                 <TextView
-                    android:id="@+id/txtTomatoSensorId"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/txtQueuePumpState"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="soil-001"
+                    android:text="@string/queue_pump_idle"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
 
                 <LinearLayout
+                    android:id="@+id/layoutIrrigationQueue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Toprak nemi"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-                        <TextView
-                            android:id="@+id/txtTomatoMoisture"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="%42"
-                            android:textColor="@color/primary"
-                            android:textSize="28sp"
-                            android:textStyle="bold"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Wi-Fi"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-                        <TextView
-                            android:id="@+id/txtTomatoRssi"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="-71 dBm"
-                            android:textColor="@color/textPrimary"
-                            android:textStyle="bold"/>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/txtTomatoLastUpdate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Son veri: Az önce"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"/>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- BİBER -->
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardPepperSensor"
-            style="@style/Widget.SmartGarden.Card.Main"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="18dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🌶️ Biber"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/txtPepperStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sensör bekleniyor"
-                        android:textColor="@color/textSecondary"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/txtPepperSensorId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="soil-002"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Bu nokta için sensör bağlantısı bekleniyor."
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- SALATALIK -->
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardCucumberSensor"
-            style="@style/Widget.SmartGarden.Card.Main"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="18dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🥒 Salatalık"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/txtCucumberStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sensör bekleniyor"
-                        android:textColor="@color/textSecondary"
-                        android:textStyle="bold"/>
-
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/txtCucumberSensorId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="soil-003"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Bu nokta için sensör bağlantısı bekleniyor."
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- GELECEK NOKTA -->
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerGardenZones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/surfaceSoft">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="18dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🫘 Fasulye noktası için hazır"
-                    android:textColor="@color/textPrimary"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="soil-004"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
 
     </LinearLayout>
 

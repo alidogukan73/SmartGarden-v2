@@ -30,6 +30,9 @@ class WateringRecord:
 
     mode: str
     firmware: str
+
+    zone_id: str = ""
+    sensor_id: str = ""
     
     @property
     def firebase_key(

@@ -1,0 +1,640 @@
+package com.ali.smartgarden.activities;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.ali.smartgarden.R;
+import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.models.GardenZone;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.slider.Slider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import androidx.annotation.NonNull;
+
+public class ZoneDetailActivity extends AppCompatActivity {
+
+    public static final String EXTRA_ZONE_ID = "zone_id";
+
+    private final FirebaseRepository repository =
+            new FirebaseRepository();
+
+    private GardenZone currentZone;
+    private TextView title;
+    private TextView subtitle;
+    private TextView moistureValue;
+    private TextView durationValue;
+    private TextView cooldownValue;
+    private TextView restartDeltaValue;
+    private TextView valveMode;
+    private TextView irrigationDescription;
+    private TextView settingsStatus;
+    private MaterialSwitch irrigationEnabled;
+    private Slider moistureSlider;
+    private Slider durationSlider;
+    private Slider cooldownSlider;
+    private Slider restartDeltaSlider;
+    private MaterialButton testButton;
+    private MaterialButton saveButton;
+    private MaterialButton resetButton;
+    private MaterialCardView unsavedChangesCard;
+    private boolean hasLocalChanges;
+    private boolean renderingRemoteValues;
+    private boolean saveAndExit;
+    private int originalMoistureLimit = 40;
+    private int originalPumpDuration = 10;
+    private int originalCooldownMinutes = 10;
+    private int originalRestartDelta = 10;
+    private boolean originalIrrigationEnabled;
+    private boolean zoneTestActive;
+
+    @Override
+    protected void onCreate(
+            @Nullable Bundle savedInstanceState
+    ) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_zone_detail);
+
+        String zoneId = getIntent().getStringExtra(
+                EXTRA_ZONE_ID
+        );
+        if (zoneId == null || zoneId.isBlank()) {
+            finish();
+            return;
+        }
+
+        bindViews();
+        bindActions(zoneId);
+
+        repository.observeGardenZone(zoneId).observe(
+                this,
+                this::render
+        );
+
+        repository.observeCommands(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(
+                            @NonNull DataSnapshot snapshot
+                    ) {
+                        zoneTestActive = Boolean.TRUE.equals(
+                                snapshot.child("zone_test")
+                                        .child("active")
+                                        .getValue(Boolean.class)
+                        );
+                        updateZoneTestUi();
+                    }
+
+                    @Override
+                    public void onCancelled(
+                            @NonNull DatabaseError error
+                    ) {
+                        // The zone listener keeps the screen usable.
+                    }
+                }
+        );
+    }
+
+    private void bindViews() {
+        title = findViewById(R.id.txtZoneDetailTitle);
+        subtitle = findViewById(R.id.txtZoneDetailSubtitle);
+        moistureValue = findViewById(R.id.txtZoneMoistureLimitValue);
+        durationValue = findViewById(R.id.txtZonePumpDurationValue);
+        cooldownValue = findViewById(R.id.txtZoneCooldownValue);
+        restartDeltaValue = findViewById(
+                R.id.txtZoneRestartDeltaValue
+        );
+        valveMode = findViewById(R.id.txtZoneValveMode);
+        irrigationDescription = findViewById(
+                R.id.txtZoneIrrigationDescription
+        );
+        settingsStatus = findViewById(
+                R.id.txtZoneSettingsStatus
+        );
+        irrigationEnabled = findViewById(
+                R.id.switchZoneIrrigation
+        );
+        moistureSlider = findViewById(
+                R.id.sliderZoneMoistureLimit
+        );
+        durationSlider = findViewById(
+                R.id.sliderZonePumpDuration
+        );
+        cooldownSlider = findViewById(
+                R.id.sliderZoneCooldown
+        );
+        restartDeltaSlider = findViewById(
+                R.id.sliderZoneRestartDelta
+        );
+        testButton = findViewById(R.id.btnTestZoneValve);
+        saveButton = findViewById(R.id.btnSaveZone);
+        resetButton = findViewById(R.id.btnResetZone);
+        unsavedChangesCard = findViewById(
+                R.id.cardZoneUnsavedChanges
+        );
+
+        findViewById(R.id.btnBack).setOnClickListener(
+                view -> requestClose()
+        );
+
+        getOnBackPressedDispatcher().addCallback(
+                this,
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        requestClose();
+                    }
+                }
+        );
+
+        moistureSlider.addOnChangeListener(
+                (slider, value, fromUser) -> {
+                    moistureValue.setText(
+                            getString(
+                                    R.string.zone_percentage_format,
+                                    Math.round(value)
+                            )
+                    );
+                    if (fromUser) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+
+        durationSlider.addOnChangeListener(
+                (slider, value, fromUser) -> {
+                    durationValue.setText(
+                            formatPumpDuration(
+                                    Math.round(value)
+                            )
+                    );
+                    if (fromUser) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+
+        cooldownSlider.addOnChangeListener(
+                (slider, value, fromUser) -> {
+                    cooldownValue.setText(
+                            getString(
+                                    R.string.zone_minutes_format,
+                                    Math.round(value)
+                            )
+                    );
+                    if (fromUser) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+
+        restartDeltaSlider.addOnChangeListener(
+                (slider, value, fromUser) -> {
+                    restartDeltaValue.setText(
+                            getString(
+                                    R.string.zone_percentage_format,
+                                    Math.round(value)
+                            )
+                    );
+                    if (fromUser) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+
+        irrigationEnabled.setOnCheckedChangeListener(
+                (button, checked) -> {
+                    updateIrrigationDescription(checked);
+                    if (!renderingRemoteValues) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+    }
+
+    private void bindActions(String zoneId) {
+        saveButton.setOnClickListener(
+                view -> saveSettings(zoneId)
+        );
+
+        resetButton.setOnClickListener(
+                view -> showResetConfirmation()
+        );
+
+        testButton.setOnClickListener(
+                view -> {
+                    if (zoneTestActive) {
+                        cancelZoneTest();
+                        return;
+                    }
+                    if (
+                            currentZone == null
+                                    || currentZone.getValve_id() == null
+                    ) {
+                        return;
+                    }
+                    showZoneTestConfirmation();
+                }
+        );
+    }
+
+    private void showZoneTestConfirmation() {
+        int duration = Math.max(
+                1,
+                Math.round(durationSlider.getValue())
+        );
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.zone_test_start_title)
+                .setMessage(
+                        getString(
+                                R.string.zone_test_start_message,
+                                currentZone.getName(),
+                                formatPumpDuration(duration)
+                        )
+                )
+                .setNegativeButton(
+                        android.R.string.cancel,
+                        null
+                )
+                .setPositiveButton(
+                        R.string.zone_test_start,
+                        (dialog, which) ->
+                                startZoneTest(duration)
+                )
+                .show();
+    }
+
+    private void startZoneTest(int duration) {
+        testButton.setEnabled(false);
+        repository.requestZoneValveTest(
+                currentZone,
+                duration
+        ).addOnCompleteListener(
+                task -> {
+                    testButton.setEnabled(true);
+                    Toast.makeText(
+                            this,
+                            task.isSuccessful()
+                                    ? R.string.zone_test_sent
+                                    : R.string.zone_operation_failed,
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
+        );
+    }
+
+    private void cancelZoneTest() {
+        testButton.setEnabled(false);
+        repository.cancelZoneValveTest()
+                .addOnCompleteListener(
+                        task -> {
+                            testButton.setEnabled(true);
+                            Toast.makeText(
+                                    this,
+                                    task.isSuccessful()
+                                            ? R.string.zone_test_cancelled
+                                            : R.string.zone_operation_failed,
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                );
+    }
+
+    private void updateZoneTestUi() {
+        if (zoneTestActive) {
+            testButton.setText(R.string.zone_test_cancel);
+            valveMode.setText(R.string.zone_test_active);
+        } else if (currentZone != null) {
+            boolean simulation =
+                    !"PHYSICAL".equals(
+                            currentZone.getValve_mode()
+                    );
+            testButton.setText(
+                    simulation
+                            ? R.string.zone_test_simulation
+                            : R.string.zone_test_physical
+            );
+            valveMode.setText(
+                    simulation
+                            ? R.string.zone_valve_simulation
+                            : R.string.zone_valve_physical
+            );
+        }
+    }
+
+    private void saveSettings(String zoneId) {
+        if (!hasUnsavedChanges()) {
+            Toast.makeText(
+                    this,
+                    R.string.settings_no_changes,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        setControlsEnabled(false);
+        saveButton.setText(R.string.settings_saving);
+        settingsStatus.setText(
+                R.string.settings_status_saving
+        );
+
+        repository.updateGardenZoneSettings(
+                        zoneId,
+                        irrigationEnabled.isChecked(),
+                        Math.round(moistureSlider.getValue()),
+                        Math.round(durationSlider.getValue()),
+                        Math.round(cooldownSlider.getValue()) * 60,
+                        Math.round(restartDeltaSlider.getValue())
+                ).addOnSuccessListener(
+                        unused -> {
+                            saveCurrentValuesAsOriginal();
+                            updateUnsavedState();
+                            settingsStatus.setText(
+                                    R.string.settings_status_saved
+                            );
+                            setControlsEnabled(true);
+                            saveButton.setText(
+                                    R.string.zone_save_settings
+                            );
+                            Toast.makeText(
+                                    this,
+                                    R.string.zone_settings_saved,
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            if (saveAndExit) {
+                                finish();
+                            }
+                        }
+                ).addOnFailureListener(
+                        error -> {
+                            saveAndExit = false;
+                            setControlsEnabled(true);
+                            saveButton.setText(
+                                    R.string.zone_save_settings
+                            );
+                            settingsStatus.setText(
+                                    R.string.settings_status_error
+                            );
+                            Toast.makeText(
+                                    this,
+                                    R.string.zone_operation_failed,
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                );
+    }
+
+    private void render(GardenZone zone) {
+        if (zone == null) {
+            return;
+        }
+
+        currentZone = zone;
+        title.setText(
+                (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
+                        + " "
+                        + zone.getName()
+        );
+        subtitle.setText(
+                zone.getSensor_id() + " · " + zone.getValve_id()
+        );
+        if (!hasLocalChanges) {
+            renderingRemoteValues = true;
+
+            originalIrrigationEnabled =
+                    zone.isIrrigation_enabled();
+            originalMoistureLimit = Math.max(
+                    5,
+                    Math.min(95, zone.getMoisture_limit())
+            );
+            originalPumpDuration = Math.max(
+                    0,
+                    Math.min(10800, zone.getPump_duration())
+            );
+            originalCooldownMinutes = Math.max(
+                    1,
+                    Math.min(
+                            1440,
+                            Math.round(
+                                    zone.getCooldown_seconds() / 60f
+                            )
+                    )
+            );
+            originalRestartDelta = Math.max(
+                    1,
+                    Math.min(30, zone.getRestart_delta())
+            );
+
+            irrigationEnabled.setChecked(
+                    originalIrrigationEnabled
+            );
+            moistureSlider.setValue(
+                    originalMoistureLimit
+            );
+            durationSlider.setValue(
+                    originalPumpDuration
+            );
+            cooldownSlider.setValue(
+                    originalCooldownMinutes
+            );
+            restartDeltaSlider.setValue(
+                    originalRestartDelta
+            );
+
+            renderingRemoteValues = false;
+            updateIrrigationDescription(
+                    originalIrrigationEnabled
+            );
+            updateUnsavedState();
+        }
+
+        boolean simulation =
+                !"PHYSICAL".equals(zone.getValve_mode());
+        updateZoneTestUi();
+    }
+
+    private String formatPumpDuration(long seconds) {
+        long safeSeconds = Math.max(0, seconds);
+
+        if (safeSeconds < 60) {
+            return getString(
+                    R.string.settings_seconds_format,
+                    safeSeconds
+            );
+        }
+
+        if (safeSeconds < 3600) {
+            long minutes = safeSeconds / 60;
+            long remainingSeconds = safeSeconds % 60;
+
+            if (remainingSeconds == 0) {
+                return getString(
+                        R.string.settings_minutes_format,
+                        minutes
+                );
+            }
+
+            return getString(
+                    R.string.settings_minutes_seconds_format,
+                    minutes,
+                    remainingSeconds
+            );
+        }
+
+        long hours = safeSeconds / 3600;
+        long remainingMinutes =
+                (safeSeconds % 3600) / 60;
+
+        if (remainingMinutes == 0) {
+            return getString(
+                    R.string.settings_hours_format,
+                    hours
+            );
+        }
+
+        return getString(
+                R.string.settings_hours_minutes_format,
+                hours,
+                remainingMinutes
+        );
+    }
+
+    private void updateUnsavedState() {
+        hasLocalChanges = hasUnsavedChanges();
+        unsavedChangesCard.setVisibility(
+                hasLocalChanges ? View.VISIBLE : View.GONE
+        );
+        saveButton.setEnabled(hasLocalChanges);
+        settingsStatus.setText(
+                hasLocalChanges
+                        ? R.string.settings_status_unsaved
+                        : R.string.settings_status_ready
+        );
+    }
+
+    private boolean hasUnsavedChanges() {
+        return Math.round(moistureSlider.getValue())
+                != originalMoistureLimit
+                || Math.round(durationSlider.getValue())
+                != originalPumpDuration
+                || Math.round(cooldownSlider.getValue())
+                != originalCooldownMinutes
+                || Math.round(restartDeltaSlider.getValue())
+                != originalRestartDelta
+                || irrigationEnabled.isChecked()
+                != originalIrrigationEnabled;
+    }
+
+    private void saveCurrentValuesAsOriginal() {
+        originalMoistureLimit =
+                Math.round(moistureSlider.getValue());
+        originalPumpDuration =
+                Math.round(durationSlider.getValue());
+        originalCooldownMinutes =
+                Math.round(cooldownSlider.getValue());
+        originalRestartDelta =
+                Math.round(restartDeltaSlider.getValue());
+        originalIrrigationEnabled =
+                irrigationEnabled.isChecked();
+    }
+
+    private void updateIrrigationDescription(
+            boolean enabled
+    ) {
+        irrigationDescription.setText(
+                enabled
+                        ? R.string.zone_irrigation_enabled_description
+                        : R.string.zone_irrigation_disabled_description
+        );
+        irrigationDescription.setTextColor(
+                getColor(
+                        enabled
+                                ? R.color.online
+                                : R.color.textSecondary
+                )
+        );
+    }
+
+    private void setControlsEnabled(boolean enabled) {
+        moistureSlider.setEnabled(enabled);
+        durationSlider.setEnabled(enabled);
+        cooldownSlider.setEnabled(enabled);
+        restartDeltaSlider.setEnabled(enabled);
+        irrigationEnabled.setEnabled(enabled);
+        resetButton.setEnabled(enabled);
+        testButton.setEnabled(enabled);
+        saveButton.setEnabled(
+                enabled && hasUnsavedChanges()
+        );
+    }
+
+    private void showResetConfirmation() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_reset_dialog_title)
+                .setMessage(R.string.settings_reset_dialog_message)
+                .setNegativeButton(R.string.settings_cancel, null)
+                .setPositiveButton(
+                        R.string.settings_reset_confirm,
+                        (dialog, which) -> applyDefaultValues()
+                )
+                .show();
+    }
+
+    private void applyDefaultValues() {
+        renderingRemoteValues = true;
+        moistureSlider.setValue(40);
+        durationSlider.setValue(10);
+        cooldownSlider.setValue(10);
+        restartDeltaSlider.setValue(10);
+        irrigationEnabled.setChecked(false);
+        renderingRemoteValues = false;
+
+        updateIrrigationDescription(false);
+        updateUnsavedState();
+        settingsStatus.setText(
+                R.string.settings_defaults_applied
+        );
+    }
+
+    private void requestClose() {
+        if (!hasLocalChanges) {
+            finish();
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.zone_unsaved_dialog_title)
+                .setMessage(R.string.zone_unsaved_dialog_message)
+                .setNegativeButton(
+                        R.string.zone_continue_editing,
+                        null
+                )
+                .setNeutralButton(
+                        R.string.zone_discard_changes,
+                        (dialog, which) -> finish()
+                )
+                .setPositiveButton(
+                        R.string.settings_save_and_exit,
+                        (dialog, which) -> {
+                            if (currentZone == null) {
+                                return;
+                            }
+                            saveAndExit = true;
+                            saveSettings(
+                                    currentZone.getZone_id()
+                            );
+                        }
+                )
+                .show();
+    }
+}

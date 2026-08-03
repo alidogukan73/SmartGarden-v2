@@ -1,0 +1,288 @@
+package com.ali.smartgarden.adapters;
+
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.ali.smartgarden.R;
+import com.ali.smartgarden.models.GardenZone;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+public class HomeZonePagerAdapter
+        extends RecyclerView.Adapter<HomeZonePagerAdapter.ZoneViewHolder> {
+
+    public interface OnZoneClickListener {
+        void onZoneClick(GardenZone zone);
+    }
+
+    private final List<GardenZone> zones =
+            new ArrayList<>();
+    private final OnZoneClickListener listener;
+
+    public HomeZonePagerAdapter(
+            OnZoneClickListener listener
+    ) {
+        this.listener = listener;
+    }
+
+    public void submitList(List<GardenZone> items) {
+        zones.clear();
+        if (items != null) {
+            zones.addAll(items);
+        }
+        notifyDataSetChanged();
+    }
+
+    public int getZoneCount() {
+        return zones.size();
+    }
+
+    public int toZonePosition(int adapterPosition) {
+        if (zones.isEmpty()) {
+            return 0;
+        }
+        return Math.floorMod(
+                adapterPosition,
+                zones.size()
+        );
+    }
+
+    public int initialAdapterPosition() {
+        if (zones.isEmpty()) {
+            return 0;
+        }
+        int middle = Integer.MAX_VALUE / 2;
+        return middle - Math.floorMod(
+                middle,
+                zones.size()
+        );
+    }
+
+    public int nearestAdapterPosition(
+            int currentAdapterPosition,
+            int requestedZonePosition
+    ) {
+        if (zones.isEmpty()) {
+            return 0;
+        }
+
+        int count = zones.size();
+        int currentZonePosition =
+                toZonePosition(currentAdapterPosition);
+        int forward = Math.floorMod(
+                requestedZonePosition - currentZonePosition,
+                count
+        );
+        int backward = forward - count;
+        int delta = Math.abs(backward) < Math.abs(forward)
+                ? backward
+                : forward;
+        return currentAdapterPosition + delta;
+    }
+
+    @NonNull
+    @Override
+    public ZoneViewHolder onCreateViewHolder(
+            @NonNull ViewGroup parent,
+            int viewType
+    ) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(
+                        R.layout.item_home_zone_page,
+                        parent,
+                        false
+                );
+
+        int parentWidth = parent.getMeasuredWidth();
+        if (parentWidth <= 0) {
+            int fallbackPadding = Math.round(
+                    32f * parent.getResources()
+                            .getDisplayMetrics().density
+            );
+            parentWidth = parent.getResources()
+                    .getDisplayMetrics().widthPixels
+                    - fallbackPadding;
+        }
+        view.getLayoutParams().width =
+                Math.max(1, parentWidth);
+
+        return new ZoneViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(
+            @NonNull ZoneViewHolder holder,
+            int position
+    ) {
+        holder.bind(
+                zones.get(toZonePosition(position))
+        );
+    }
+
+    @Override
+    public int getItemCount() {
+        return zones.isEmpty()
+                ? 0
+                : Integer.MAX_VALUE;
+    }
+
+    class ZoneViewHolder extends RecyclerView.ViewHolder {
+
+        private final TextView name;
+        private final TextView sensor;
+        private final TextView badge;
+        private final TextView moisture;
+        private final TextView moistureState;
+        private final TextView voltage;
+        private final TextView raw;
+        private final ProgressBar progress;
+
+        ZoneViewHolder(@NonNull View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.txtPageZoneName);
+            sensor = itemView.findViewById(R.id.txtPageZoneSensor);
+            badge = itemView.findViewById(R.id.txtPageZoneBadge);
+            moisture = itemView.findViewById(R.id.txtPageZoneMoisture);
+            moistureState = itemView.findViewById(
+                    R.id.txtPageZoneMoistureState
+            );
+            voltage = itemView.findViewById(
+                    R.id.txtPageZoneVoltage
+            );
+            raw = itemView.findViewById(R.id.txtPageZoneRaw);
+            progress = itemView.findViewById(
+                    R.id.progressPageZoneMoisture
+            );
+        }
+
+        void bind(GardenZone zone) {
+            Context context = itemView.getContext();
+            String emoji = zone.getEmoji() == null
+                    || zone.getEmoji().isBlank()
+                    ? "🌱"
+                    : zone.getEmoji();
+            String zoneName = zone.getName() == null
+                    ? "Bölge"
+                    : zone.getName();
+            String sensorId = zone.getSensor_id() == null
+                    ? "—"
+                    : zone.getSensor_id();
+
+            name.setText(emoji + " " + zoneName);
+            sensor.setText(
+                    context.getString(
+                            R.string.home_zone_sensor_subtitle,
+                            sensorId
+                    )
+            );
+
+            boolean connected = isConnected(zone);
+            if (connected) {
+                bindConnected(context, zone);
+            } else {
+                bindWaiting(context);
+            }
+
+            itemView.setOnClickListener(
+                    view -> listener.onZoneClick(zone)
+            );
+        }
+
+        private void bindConnected(
+                Context context,
+                GardenZone zone
+        ) {
+            int value = Math.max(
+                    0,
+                    Math.min(100, zone.getMoisture())
+            );
+            badge.setText("CANLI");
+            badge.setTextColor(color(context, R.color.primary));
+            moisture.setText(
+                    context.getString(
+                            R.string.sensor_moisture_format,
+                            value
+                    )
+            );
+            progress.setProgress(value);
+            voltage.setText(
+                    String.format(
+                            Locale.getDefault(),
+                            "%.3f V",
+                            zone.getVoltage()
+                    )
+            );
+            raw.setText(String.valueOf(zone.getRaw()));
+
+            int statusColor;
+            String statusText;
+            if (value < 35) {
+                statusColor = color(context, R.color.moistureLow);
+                statusText = "Düşük nem seviyesi";
+            } else if (value > 70) {
+                statusColor = color(context, R.color.info);
+                statusText = "Yüksek nem seviyesi";
+            } else {
+                statusColor = color(context, R.color.moistureIdeal);
+                statusText = "İdeal nem seviyesi";
+            }
+
+            moisture.setTextColor(statusColor);
+            moistureState.setText(statusText);
+            moistureState.setTextColor(statusColor);
+            progress.setProgressTintList(
+                    ColorStateList.valueOf(statusColor)
+            );
+        }
+
+        private void bindWaiting(Context context) {
+            badge.setText("BEKLİYOR");
+            badge.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            moisture.setText("—");
+            moisture.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            moistureState.setText("Sensör bağlantısı bekleniyor");
+            moistureState.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            progress.setProgress(0);
+            progress.setProgressTintList(
+                    ColorStateList.valueOf(
+                            color(context, R.color.textSecondary)
+                    )
+            );
+            voltage.setText("—");
+            raw.setText("—");
+        }
+
+        private boolean isConnected(GardenZone zone) {
+            if (zone.getUpdated_at_epoch() <= 0L) {
+                return false;
+            }
+            long age = Math.max(
+                    0L,
+                    System.currentTimeMillis() / 1000L
+                            - zone.getUpdated_at_epoch()
+            );
+            return age <= 90L;
+        }
+
+        private int color(Context context, int resource) {
+            return ContextCompat.getColor(context, resource);
+        }
+    }
+}

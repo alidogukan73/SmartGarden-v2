@@ -22,8 +22,10 @@ import com.ali.smartgarden.models.PredictionValidationStatus;
 import com.ali.smartgarden.models.MoisturePrediction;
 import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.UnifiedConfidence;
-import com.ali.smartgarden.models.SoilSensor;
 import com.ali.smartgarden.models.SoilLearningProfile;
+import com.ali.smartgarden.models.GardenZone;
+
+import java.util.List;
 
 
 public class MainViewModel extends ViewModel {
@@ -31,9 +33,6 @@ public class MainViewModel extends ViewModel {
     private static final String TAG = "MainViewModel";
 
     private final FirebaseRepository repository;
-
-    private final MutableLiveData<SoilSensor> soilSensor =
-            new MutableLiveData<>();
 
     private final MutableLiveData<Sensor> sensorLiveData =
             new MutableLiveData<>();
@@ -69,6 +68,7 @@ public class MainViewModel extends ViewModel {
     private final LiveData<UnifiedConfidence> unifiedConfidence;
 
     private final LiveData<SoilLearningProfile> soilLearningProfile;
+    private final LiveData<List<GardenZone>> gardenZones;
 
     public MainViewModel() {
 
@@ -95,17 +95,14 @@ public class MainViewModel extends ViewModel {
 
         soilLearningProfile =
                 repository.observeSoilLearningProfile();
+
+        gardenZones = repository.observeGardenZones();
     }
 
     /*
      * Public LiveData
      */
 
-    public LiveData<SoilSensor> getSoilSensor(){
-
-        return soilSensor;
-
-    }
     public LiveData<Sensor> getSensor() {
         return sensorLiveData;
     }
@@ -158,6 +155,10 @@ public class MainViewModel extends ViewModel {
     getSoilLearningProfile() {
 
         return soilLearningProfile;
+    }
+
+    public LiveData<List<GardenZone>> getGardenZones() {
+        return gardenZones;
     }
 
 
@@ -238,12 +239,17 @@ public class MainViewModel extends ViewModel {
                 }
         );
 
-        repository.observeSoilSensor()
-                .observeForever(sensor -> {
+    }
 
-                    soilSensor.setValue(sensor);
+    public void openManualValve(GardenZone zone) {
+        repository.requestZoneValveTest(
+                zone,
+                10800
+        );
+    }
 
-                });
+    public void closeManualValve() {
+        repository.cancelZoneValveTest();
     }
 
     private void observeStatus() {

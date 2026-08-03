@@ -44,6 +44,12 @@
 
     <color name="info">#1E88E5</color>
     <color name="infoBackground">#EAF3FD</color>
+    <color name="organic">#8D6E63</color>
+    <color name="organicBackground">#F3E9E5</color>
+    <color name="conditioner">#7E57C2</color>
+    <color name="conditionerBackground">#EEE8FA</color>
+    <color name="microbial">#00897B</color>
+    <color name="microbialBackground">#E1F4F1</color>
 
     <color name="success">#2E7D32</color>
     <color name="successBackground">#EAF6EC</color>

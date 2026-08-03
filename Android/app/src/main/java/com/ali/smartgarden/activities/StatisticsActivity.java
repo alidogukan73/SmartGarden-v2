@@ -14,16 +14,28 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Statistics;
+import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.viewmodels.StatisticsViewModel;
+import com.ali.smartgarden.viewmodels.WateringHistoryViewModel;
 
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.ChipGroup;
 
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class StatisticsActivity extends AppCompatActivity {
 
     private StatisticsViewModel viewModel;
+    private WateringHistoryViewModel historyViewModel;
+    private Statistics globalStatistics;
+    private List<WateringHistory> wateringHistory =
+            Collections.emptyList();
+    private String selectedZoneId = "";
 
     // Sulama özeti
     private TextView txtTodayWaterings;
@@ -56,6 +68,7 @@ public class StatisticsActivity extends AppCompatActivity {
 
 
     private MaterialButton btnBack;
+    private ChipGroup chipGroupStatisticZones;
 
 
     @Override
@@ -121,6 +134,8 @@ public class StatisticsActivity extends AppCompatActivity {
         btnBack = findViewById(
                 R.id.btnBack
         );
+        chipGroupStatisticZones =
+                findViewById(R.id.chipGroupStatisticZones);
 
         // Sulama özeti
         txtTodayWaterings =
@@ -188,6 +203,8 @@ public class StatisticsActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this)
                 .get(StatisticsViewModel.class);
+        historyViewModel = new ViewModelProvider(this)
+                .get(WateringHistoryViewModel.class);
     }
 
 
@@ -198,7 +215,20 @@ public class StatisticsActivity extends AppCompatActivity {
 
         viewModel.getStatistics().observe(
                 this,
-                this::renderStatistics
+                statistics -> {
+                    globalStatistics = statistics;
+                    renderSelectedStatistics();
+                }
+        );
+
+        historyViewModel.getHistory().observe(
+                this,
+                history -> {
+                    wateringHistory = history != null
+                            ? history
+                            : Collections.emptyList();
+                    renderSelectedStatistics();
+                }
         );
 
         viewModel.getError().observe(
@@ -232,7 +262,11 @@ public class StatisticsActivity extends AppCompatActivity {
         }
 
         renderWateringSummary(statistics);
-        renderSuccessRate(statistics.getSuccessRate());
+        if (statistics.getTotalWaterings() == 0L) {
+            renderEmptySuccessRate();
+        } else {
+            renderSuccessRate(statistics.getSuccessRate());
+        }
         renderWateringResults(statistics);
         renderDurations(statistics);
         renderMoistureChange(statistics);
@@ -335,6 +369,35 @@ public class StatisticsActivity extends AppCompatActivity {
 
         cardSuccessRate.setStrokeColor(
                 statusColor
+        );
+    }
+
+
+    private void renderEmptySuccessRate() {
+
+        int neutralColor =
+                color(R.color.textSecondary);
+
+        txtSuccessRate.setText(
+                getString(
+                        R.string.percentage_format,
+                        0
+                )
+        );
+        txtSuccessRate.setTextColor(
+                neutralColor
+        );
+        txtSuccessDescription.setText(
+                R.string.statistics_waiting
+        );
+        txtSuccessDescription.setTextColor(
+                neutralColor
+        );
+        cardSuccessRate.setCardBackgroundColor(
+                color(R.color.surfaceSoft)
+        );
+        cardSuccessRate.setStrokeColor(
+                color(R.color.border)
         );
     }
 
@@ -625,5 +688,143 @@ public class StatisticsActivity extends AppCompatActivity {
         btnBack.setOnClickListener(
                 view -> finish()
         );
+
+        chipGroupStatisticZones.setOnCheckedStateChangeListener(
+                (group, checkedIds) -> {
+                    int checkedId = checkedIds.isEmpty()
+                            ? R.id.chipStatisticZoneAll
+                            : checkedIds.get(0);
+                    selectedZoneId =
+                            zoneIdForChip(checkedId);
+                    renderSelectedStatistics();
+                }
+        );
+    }
+
+
+    private void renderSelectedStatistics() {
+
+        if (selectedZoneId.isEmpty()) {
+            renderStatistics(globalStatistics);
+            return;
+        }
+
+        renderStatistics(
+                buildZoneStatistics(selectedZoneId)
+        );
+    }
+
+
+    private Statistics buildZoneStatistics(String zoneId) {
+
+        Statistics result = new Statistics();
+        long completed = 0L;
+        long totalDuration = 0L;
+        long todayCount = 0L;
+        long recordCount = 0L;
+        WateringHistory latest = null;
+
+        String today = new SimpleDateFormat(
+                "yyyy-MM-dd",
+                Locale.getDefault()
+        ).format(new Date());
+
+        for (WateringHistory item : wateringHistory) {
+
+            if (!zoneId.equals(item.getZoneId())) {
+                continue;
+            }
+
+            if (latest == null) {
+                latest = item;
+            }
+
+            recordCount++;
+            totalDuration += Math.max(
+                    0L,
+                    item.getDuration()
+            );
+
+            if (item.isCompleted()) {
+                completed++;
+            }
+
+            if (
+                    item.getStartedAt() != null
+                            && item.getStartedAt().startsWith(today)
+            ) {
+                todayCount++;
+            }
+        }
+
+        result.setTotalWaterings(recordCount);
+        result.setWateringsToday(todayCount);
+        result.setCompletedWaterings(completed);
+        result.setInterruptedWaterings(
+                recordCount - completed
+        );
+        result.setTotalWateringSeconds(totalDuration);
+        result.setAverageDuration(
+                recordCount == 0L
+                        ? 0L
+                        : totalDuration / recordCount
+        );
+        result.setSuccessRate(
+                recordCount == 0L
+                        ? 0L
+                        : Math.round(
+                                completed * 100.0 / recordCount
+                        )
+        );
+
+        if (latest != null) {
+            result.setLastWateringDuration(
+                    latest.getDuration()
+            );
+            result.setBeforeMoisture(
+                    latest.getMoistureBefore()
+            );
+            result.setAfterMoisture(
+                    latest.getMoistureAfter()
+            );
+            result.setMoistureDelta(
+                    latest.getMoistureDelta()
+            );
+            result.setLastStopReason(
+                    latest.getStopReason()
+            );
+
+            String finishedAt =
+                    latest.getFinishedAt();
+            result.setStatisticsDate(
+                    finishedAt == null
+                            || finishedAt.isBlank()
+                            ? latest.getStartedAt()
+                            : finishedAt
+            );
+        }
+
+        return result;
+    }
+
+
+    private String zoneIdForChip(int chipId) {
+
+        if (chipId == R.id.chipStatisticZone001) {
+            return "zone-001";
+        }
+        if (chipId == R.id.chipStatisticZone002) {
+            return "zone-002";
+        }
+        if (chipId == R.id.chipStatisticZone003) {
+            return "zone-003";
+        }
+        if (chipId == R.id.chipStatisticZone004) {
+            return "zone-004";
+        }
+        if (chipId == R.id.chipStatisticZone005) {
+            return "zone-005";
+        }
+        return "";
     }
 }

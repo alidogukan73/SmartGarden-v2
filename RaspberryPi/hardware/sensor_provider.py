@@ -179,6 +179,37 @@ class SoilMoistureSensorProvider:
 
         return self._read_mqtt_sensor()
 
+    def get_fresh_readings(
+        self,
+    ) -> dict[str, SensorReading]:
+        """
+        Return fresh readings from every wireless sensor.
+        """
+
+        self._ensure_initialized()
+
+        if (
+            self._mode != "mqtt"
+            or self._mqtt_sensor is None
+        ):
+            return {}
+
+        return {
+            sensor_id: SensorReading(
+                raw=reading.raw,
+                voltage=reading.voltage,
+                moisture=reading.moisture,
+                sensor_id=reading.sensor_id,
+                firmware=reading.firmware,
+                rssi=reading.rssi,
+                uptime_seconds=reading.uptime_seconds,
+            )
+            for sensor_id, reading
+            in self._mqtt_sensor
+            .get_fresh_readings()
+            .items()
+        }
+
     def _initialize_wired_sensor(self) -> None:
         """
         Initialize the Raspberry Pi ADS1115 sensor.

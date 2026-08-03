@@ -72,6 +72,67 @@
 
         <!-- SULAMA ÖZETİ -->
 
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupStatisticZones"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZoneAll"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/history_zone_all"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZone001"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_zone_tomato"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZone002"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_zone_pepper"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZone003"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_zone_cucumber"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZone004"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_zone_eggplant"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipStatisticZone005"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_zone_bean"/>
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </HorizontalScrollView>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

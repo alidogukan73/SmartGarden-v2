@@ -1,11 +1,16 @@
 package com.ali.smartgarden.activities;
 
 import android.content.res.ColorStateList;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.os.SystemClock;
 
 import androidx.activity.EdgeToEdge;
@@ -16,27 +21,38 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
+import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
 import com.ali.smartgarden.models.Command;
 import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
+import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
-import com.ali.smartgarden.models.SoilSensor;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import android.os.Handler;
 import android.os.Looper;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
 
     private long lastStatusReceivedElapsedMillis = 0L;
+    private long connectionStartedElapsedMillis;
 
     // Header
     private MaterialCardView cardOnlineStatus;
@@ -67,12 +83,45 @@ public class MainActivity extends AppCompatActivity {
     private AppCompatImageView imgPumpStatus;
 
     private MaterialButton btnMainMenu;
+    private TextView txtGardenSensors;
+    private TextView txtGardenWateringSummary;
+    private TextView txtGardenPumpSummary;
+    private MaterialCardView cardSimulationWarning;
+    private MaterialCardView cardHomeAlerts;
+    private LinearLayout layoutHomeAlerts;
+    private RecyclerView recyclerHomeZones;
+    private LinearLayout layoutHomeZoneDots;
+    private HomeZonePagerAdapter homeZonePagerAdapter;
+    private LinearLayout layoutHomeZones;
+    private boolean homeZonePagerPositioned = false;
+    private List<GardenZone> latestZones;
+    private MaterialCardView cardHomeAi;
+    private TextView txtHomeAiDecision;
+    private TextView txtHomeAiSummary;
+    private TextView txtHomeAiProgress;
+    private ProgressBar progressHomeAi;
+    private boolean valveSimulationMode = true;
+    private TextView txtPrimaryZoneTitle;
+    private TextView txtPrimaryZoneSubtitle;
+    private MaterialButton btnHomeZones;
+    private MaterialButton btnHomeAi;
+    private MaterialButton btnHomeSettings;
+    private MaterialButton btnToggleAdvanced;
+    private MaterialCardView cardPrimaryZoneDetails;
+    private MaterialCardView cardWateringControl;
+    private boolean advancedControlsVisible = false;
 
     private boolean updatingAutoSwitch = false;
     private boolean relayOn = false;
 
     private static final long ONLINE_TIMEOUT_MILLIS = 30_000L;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
+
+    private enum ConnectionState {
+        CONNECTING,
+        ONLINE,
+        OFFLINE
+    }
 
     private final Handler onlineStatusHandler =
             new Handler(Looper.getMainLooper());
@@ -103,11 +152,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        connectionStartedElapsedMillis = SystemClock.elapsedRealtime();
+        moveZoneCarouselAboveGardenSummary();
         applyWindowInsets();
         initializeViews();
         initializeViewModel();
         observeViewModel();
         initializeButtons();
+        FertilizerReminderScheduler.schedule(this);
     }
 
     private void applyWindowInsets() {
@@ -133,12 +185,97 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    private void moveZoneCarouselAboveGardenSummary() {
+        View zoneSection = findViewById(
+                R.id.layoutHomeZoneCarouselSection
+        );
+        View gardenSummary = findViewById(
+                R.id.cardGardenSummary
+        );
+        if (
+                zoneSection == null
+                        || gardenSummary == null
+                        || zoneSection.getParent()
+                        != gardenSummary.getParent()
+        ) {
+            return;
+        }
+
+        ViewGroup parent =
+                (ViewGroup) zoneSection.getParent();
+        int targetIndex =
+                parent.indexOfChild(gardenSummary);
+        parent.removeView(zoneSection);
+        parent.addView(zoneSection, targetIndex);
+    }
+
     private void initializeViews() {
 
         imgPumpStatus = findViewById(R.id.imgPumpStatus);
 
         btnMainMenu = findViewById(
                 R.id.btnMainMenu
+        );
+        txtGardenSensors = findViewById(
+                R.id.txtGardenSensors
+        );
+        txtGardenWateringSummary = findViewById(
+                R.id.txtGardenWateringSummary
+        );
+        txtGardenPumpSummary = findViewById(
+                R.id.txtGardenPumpSummary
+        );
+        cardSimulationWarning = findViewById(
+                R.id.cardSimulationWarning
+        );
+        cardHomeAlerts = findViewById(
+                R.id.cardHomeAlerts
+        );
+        layoutHomeAlerts = findViewById(
+                R.id.layoutHomeAlerts
+        );
+        recyclerHomeZones = findViewById(
+                R.id.recyclerHomeZones
+        );
+        layoutHomeZoneDots = findViewById(
+                R.id.layoutHomeZoneDots
+        );
+        layoutHomeZones = findViewById(
+                R.id.layoutHomeZones
+        );
+        initializeHomeZonePager();
+        cardHomeAi = findViewById(R.id.cardHomeAi);
+        txtHomeAiDecision = findViewById(
+                R.id.txtHomeAiDecision
+        );
+        txtHomeAiSummary = findViewById(
+                R.id.txtHomeAiSummary
+        );
+        txtHomeAiProgress = findViewById(
+                R.id.txtHomeAiProgress
+        );
+        progressHomeAi = findViewById(
+                R.id.progressHomeAi
+        );
+        txtPrimaryZoneTitle = findViewById(
+                R.id.txtPrimaryZoneTitle
+        );
+        txtPrimaryZoneSubtitle = findViewById(
+                R.id.txtPrimaryZoneSubtitle
+        );
+        btnHomeZones = findViewById(R.id.btnHomeZones);
+        btnHomeAi = findViewById(R.id.btnHomeAi);
+        btnHomeSettings = findViewById(
+                R.id.btnHomeSettings
+        );
+        btnToggleAdvanced = findViewById(
+                R.id.btnToggleAdvanced
+        );
+        cardPrimaryZoneDetails = findViewById(
+                R.id.cardPrimaryZoneDetails
+        );
+        cardWateringControl = findViewById(
+                R.id.cardWateringControl
         );
 
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
@@ -190,6 +327,16 @@ public class MainActivity extends AppCompatActivity {
                 this::renderCommand
         );
 
+        viewModel.getGardenZones().observe(
+                this,
+                this::renderGardenZones
+        );
+
+        viewModel.getAIExplanation().observe(
+                this,
+                this::renderHomeAi
+        );
+
         viewModel.getError().observe(
                 this,
                 message -> {
@@ -208,6 +355,33 @@ public class MainActivity extends AppCompatActivity {
                     ).show();
                 }
         );
+    }
+
+    private void renderHomeAi(AIExplanation explanation) {
+        if (explanation == null) {
+            return;
+        }
+
+        String title = explanation.getTitle();
+        String summary = explanation.getSummary();
+        int progress = (int) Math.max(
+                0L,
+                Math.min(100L, explanation.getProgressPercent())
+        );
+
+        if (title != null && !title.isBlank()) {
+            txtHomeAiDecision.setText(title);
+        }
+        if (summary != null && !summary.isBlank()) {
+            txtHomeAiSummary.setText(summary);
+        }
+        txtHomeAiProgress.setText(
+                getString(
+                        R.string.home_ai_progress_format,
+                        progress
+                )
+        );
+        progressHomeAi.setProgress(progress);
     }
 
     private void renderSensor(Sensor sensor) {
@@ -271,34 +445,489 @@ public class MainActivity extends AppCompatActivity {
         updatePumpUi(
                 relayOn
         );
+        renderGardenSummary();
+    }
+
+    private void renderPrimaryZoneIdentity(
+            List<GardenZone> zones
+    ) {
+        if (zones == null || zones.isEmpty()) {
+            return;
+        }
+
+        GardenZone primary = zones.get(0);
+        for (GardenZone zone : zones) {
+            if ("zone-001".equals(zone.getZone_id())) {
+                primary = zone;
+                break;
+            }
+        }
+
+        String emoji = primary.getEmoji() == null
+                ? "🌱"
+                : primary.getEmoji();
+        String name = primary.getName() == null
+                ? getString(R.string.title_soil_moisture)
+                : primary.getName();
+        String sensorId = primary.getSensor_id() == null
+                ? "—"
+                : primary.getSensor_id();
+
+        txtPrimaryZoneTitle.setText(emoji + " " + name);
+        txtPrimaryZoneSubtitle.setText(
+                getString(
+                        R.string.home_primary_zone_subtitle,
+                        sensorId
+                )
+        );
+    }
+
+    private void renderGardenZones(List<GardenZone> zones) {
+        latestZones = zones;
+        layoutHomeZones.removeAllViews();
+
+        if (zones == null) {
+            homeZonePagerAdapter.submitList(null);
+            homeZonePagerPositioned = false;
+            renderHomeZoneDots(0, 0);
+            renderGardenSummary();
+            return;
+        }
+
+        homeZonePagerAdapter.submitList(zones);
+        if (
+                !homeZonePagerPositioned
+                        && !zones.isEmpty()
+        ) {
+            recyclerHomeZones.scrollToPosition(
+                    homeZonePagerAdapter.initialAdapterPosition()
+            );
+            homeZonePagerPositioned = true;
+        }
+        renderHomeZoneDots(
+                zones.size(),
+                homeZonePagerAdapter.toZonePosition(
+                        currentHomeZonePage()
+                )
+        );
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (GardenZone zone : zones) {
+            View row = inflater.inflate(
+                    R.layout.item_home_zone_summary,
+                    layoutHomeZones,
+                    false
+            );
+            TextView name = row.findViewById(
+                    R.id.txtHomeZoneName
+            );
+            TextView moisture = row.findViewById(
+                    R.id.txtHomeZoneMoisture
+            );
+            TextView state = row.findViewById(
+                    R.id.txtHomeZoneState
+            );
+
+            String emoji = zone.getEmoji() == null
+                    ? "🌱"
+                    : zone.getEmoji();
+            name.setText(emoji + " " + zone.getName());
+
+            boolean connected = isZoneConnected(zone);
+            moisture.setText(
+                    connected
+                            ? getString(
+                                    R.string.sensor_moisture_format,
+                                    zone.getMoisture()
+                            )
+                            : "—"
+            );
+
+            bindHomeZoneState(zone, connected, state);
+            row.setOnClickListener(
+                    view -> {
+                        Intent intent = new Intent(
+                                this,
+                                FertilizationZoneDetailActivity.class
+                        );
+                        intent.putExtra(
+                                FertilizationZoneDetailActivity.EXTRA_ZONE_ID,
+                                zone.getZone_id()
+                        );
+                        startActivity(intent);
+                    }
+            );
+            layoutHomeZones.addView(row);
+        }
+
+        renderPrimaryZoneIdentity(zones);
+        renderGardenSummary();
+        renderHomeAlerts();
+    }
+
+    private void initializeHomeZonePager() {
+        homeZonePagerAdapter = new HomeZonePagerAdapter(
+                zone -> {
+                    Intent intent = new Intent(
+                            this,
+                            FertilizationZoneDetailActivity.class
+                    );
+                    intent.putExtra(
+                            FertilizationZoneDetailActivity.EXTRA_ZONE_ID,
+                            zone.getZone_id()
+                    );
+                    startActivity(intent);
+                }
+        );
+
+        LinearLayoutManager layoutManager =
+                new LinearLayoutManager(
+                        this,
+                        LinearLayoutManager.HORIZONTAL,
+                        false
+                );
+        recyclerHomeZones.setLayoutManager(layoutManager);
+        recyclerHomeZones.setAdapter(homeZonePagerAdapter);
+        new PagerSnapHelper().attachToRecyclerView(
+                recyclerHomeZones
+        );
+        recyclerHomeZones.addOnScrollListener(
+                new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(
+                            @androidx.annotation.NonNull RecyclerView view,
+                            int newState
+                    ) {
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                            renderHomeZoneDots(
+                                    homeZonePagerAdapter.getZoneCount(),
+                                    homeZonePagerAdapter.toZonePosition(
+                                            currentHomeZonePage()
+                                    )
+                            );
+                        }
+                    }
+                }
+        );
+    }
+
+    private int currentHomeZonePage() {
+        RecyclerView.LayoutManager manager =
+                recyclerHomeZones.getLayoutManager();
+        if (!(manager instanceof LinearLayoutManager)) {
+            return 0;
+        }
+        int position = (
+                (LinearLayoutManager) manager
+        ).findFirstCompletelyVisibleItemPosition();
+        if (position < 0) {
+            position = (
+                    (LinearLayoutManager) manager
+            ).findFirstVisibleItemPosition();
+        }
+        return Math.max(0, position);
+    }
+
+    private void renderHomeZoneDots(
+            int count,
+            int selected
+    ) {
+        layoutHomeZoneDots.removeAllViews();
+        for (int index = 0; index < count; index++) {
+            TextView dot = new TextView(this);
+            dot.setText("●");
+            dot.setTextSize(index == selected ? 11f : 8f);
+            dot.setTextColor(
+                    color(
+                            index == selected
+                                    ? R.color.primary
+                                    : R.color.border
+                    )
+            );
+            dot.setGravity(android.view.Gravity.CENTER);
+            int size = Math.round(
+                    18f * getResources()
+                            .getDisplayMetrics().density
+            );
+            dot.setLayoutParams(
+                    new LinearLayout.LayoutParams(size, size)
+            );
+            final int page = index;
+            dot.setOnClickListener(
+                    view -> {
+                        int target =
+                                homeZonePagerAdapter
+                                        .nearestAdapterPosition(
+                                                currentHomeZonePage(),
+                                                page
+                                        );
+                        recyclerHomeZones.smoothScrollToPosition(
+                                target
+                        );
+                    }
+            );
+            layoutHomeZoneDots.addView(dot);
+        }
+    }
+
+    private void bindHomeZoneState(
+            GardenZone zone,
+            boolean connected,
+            TextView state
+    ) {
+        if (!connected) {
+            setHomeZoneState(
+                    state,
+                    R.string.home_zone_sensor_waiting,
+                    R.color.textSecondary
+            );
+            return;
+        }
+        if (!zone.isIrrigation_enabled()) {
+            setHomeZoneState(
+                    state,
+                    R.string.home_zone_disabled,
+                    R.color.textSecondary
+            );
+            return;
+        }
+
+        ZoneIrrigationStatus status =
+                zone.getIrrigation_status();
+        if (status != null && status.isWatering_active()) {
+            setHomeZoneState(
+                    state,
+                    R.string.home_zone_watering,
+                    R.color.info
+            );
+        } else if (
+                status != null
+                        && status.isCooldown_active()
+        ) {
+            setHomeZoneState(
+                    state,
+                    R.string.home_zone_cooldown,
+                    R.color.warning
+            );
+        } else if (
+                status != null
+                        && status.getQueue_position() > 1
+        ) {
+            state.setText(
+                    getString(
+                            R.string.home_zone_queued,
+                            status.getQueue_position()
+                    )
+            );
+            state.setTextColor(color(R.color.accentOrange));
+        } else {
+            setHomeZoneState(
+                    state,
+                    R.string.home_zone_ready,
+                    R.color.online
+            );
+        }
+    }
+
+    private void setHomeZoneState(
+            TextView view,
+            int textResource,
+            int colorResource
+    ) {
+        view.setText(textResource);
+        view.setTextColor(color(colorResource));
+    }
+
+    private boolean isZoneConnected(GardenZone zone) {
+        if (zone == null || zone.getUpdated_at_epoch() <= 0L) {
+            return false;
+        }
+        long age = Math.max(
+                0L,
+                System.currentTimeMillis() / 1000L
+                        - zone.getUpdated_at_epoch()
+        );
+        return age <= 90L;
+    }
+
+    private void renderGardenSummary() {
+        if (latestZones == null) {
+            return;
+        }
+
+        int connected = 0;
+        int cooldownCount = 0;
+        GardenZone active = null;
+        GardenZone queued = null;
+        boolean simulation = false;
+
+        for (GardenZone zone : latestZones) {
+            if (isZoneConnected(zone)) {
+                connected++;
+            }
+            if (!"PHYSICAL".equals(zone.getValve_mode())) {
+                simulation = true;
+            }
+
+            ZoneIrrigationStatus irrigation =
+                    zone.getIrrigation_status();
+            if (irrigation == null) {
+                continue;
+            }
+            if (irrigation.isWatering_active()) {
+                active = zone;
+            } else if (irrigation.isCooldown_active()) {
+                cooldownCount++;
+            } else if (
+                    irrigation.getQueue_position() > 0
+                            && queued == null
+            ) {
+                queued = zone;
+            }
+        }
+
+        txtGardenSensors.setText(
+                getString(
+                        R.string.home_sensor_count,
+                        connected,
+                        latestZones.size()
+                )
+        );
+        cardSimulationWarning.setVisibility(
+                simulation ? View.VISIBLE : View.GONE
+        );
+        valveSimulationMode = simulation;
+        updatePumpUi(relayOn);
+        txtGardenPumpSummary.setText(
+                relayOn
+                        ? R.string.home_pump_running
+                        : R.string.home_pump_closed
+        );
+
+        if (active != null) {
+            txtGardenWateringSummary.setText(
+                    getString(
+                            R.string.home_watering_active,
+                            active.getName()
+                    )
+            );
+        } else if (queued != null) {
+            txtGardenWateringSummary.setText(
+                    getString(
+                            R.string.home_watering_queued,
+                            queued.getName()
+                    )
+            );
+        } else if (cooldownCount > 0) {
+            txtGardenWateringSummary.setText(
+                    getString(
+                            R.string.home_watering_cooldown,
+                            cooldownCount
+                    )
+            );
+        } else {
+            txtGardenWateringSummary.setText(
+                    R.string.home_watering_idle
+            );
+        }
     }
 
     private void renderEffectiveOnlineStatus() {
+        updateOnlineUi(getConnectionState());
+        renderHomeAlerts();
+    }
 
+    private ConnectionState getConnectionState() {
         if (
                 latestStatus == null
                         || lastStatusReceivedElapsedMillis <= 0L
         ) {
+            long connectionWaitMillis =
+                    SystemClock.elapsedRealtime()
+                            - connectionStartedElapsedMillis;
 
-            updateOnlineUi(false);
-            return;
+            return connectionWaitMillis <= ONLINE_TIMEOUT_MILLIS
+                    ? ConnectionState.CONNECTING
+                    : ConnectionState.OFFLINE;
+        }
+
+        return isDeviceEffectivelyOnline()
+                ? ConnectionState.ONLINE
+                : ConnectionState.OFFLINE;
+    }
+
+    private boolean isDeviceEffectivelyOnline() {
+        if (
+                latestStatus == null
+                        || lastStatusReceivedElapsedMillis <= 0L
+        ) {
+            return false;
         }
 
         long elapsedSinceLastStatusMillis =
                 SystemClock.elapsedRealtime()
                         - lastStatusReceivedElapsedMillis;
 
-        boolean statusFresh =
-                elapsedSinceLastStatusMillis
-                        <= ONLINE_TIMEOUT_MILLIS;
+        return latestStatus.isOnline()
+                && elapsedSinceLastStatusMillis
+                <= ONLINE_TIMEOUT_MILLIS;
+    }
 
-        boolean deviceOnline =
-                latestStatus.isOnline()
-                        && statusFresh;
+    private void renderHomeAlerts() {
+        if (cardHomeAlerts == null || layoutHomeAlerts == null) {
+            return;
+        }
 
-        updateOnlineUi(
-                deviceOnline
+        layoutHomeAlerts.removeAllViews();
+
+        if (getConnectionState() == ConnectionState.OFFLINE) {
+            addHomeAlert(R.string.home_alert_device_offline);
+        }
+
+        if (
+                latestStatus != null
+                        && latestStatus.getLastError() != null
+                        && !latestStatus.getLastError().trim().isEmpty()
+        ) {
+            addHomeAlert(
+                    getString(
+                            R.string.home_alert_system_error,
+                            latestStatus.getLastError().trim()
+                    )
+            );
+        }
+
+        if (latestZones != null && !latestZones.isEmpty()) {
+            boolean anySensorConnected = false;
+            for (GardenZone zone : latestZones) {
+                if (isZoneConnected(zone)) {
+                    anySensorConnected = true;
+                    break;
+                }
+            }
+            if (!anySensorConnected) {
+                addHomeAlert(R.string.home_alert_no_sensors);
+            }
+        }
+
+        cardHomeAlerts.setVisibility(
+                layoutHomeAlerts.getChildCount() > 0
+                        ? View.VISIBLE
+                        : View.GONE
         );
+    }
+
+    private void addHomeAlert(int textResource) {
+        addHomeAlert(getString(textResource));
+    }
+
+    private void addHomeAlert(String message) {
+        TextView alert = new TextView(this);
+        alert.setText("• " + message);
+        alert.setTextColor(color(R.color.textPrimary));
+        alert.setTextSize(13f);
+        alert.setPadding(0, 4, 0, 4);
+        layoutHomeAlerts.addView(alert);
     }
 
 
@@ -330,23 +959,27 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void updateOnlineUi(boolean online) {
+    private void updateOnlineUi(ConnectionState state) {
+        boolean online = state == ConnectionState.ONLINE;
+        int textResource;
+        int textColor;
+        int backgroundColor;
 
-        txtOnline.setText(
-                online
-                        ? R.string.status_online
-                        : R.string.status_offline
-        );
+        if (online) {
+            textResource = R.string.status_online;
+            textColor = color(R.color.online);
+            backgroundColor = color(R.color.onlineBackground);
+        } else if (state == ConnectionState.CONNECTING) {
+            textResource = R.string.status_connecting;
+            textColor = color(R.color.warning);
+            backgroundColor = color(R.color.warningBackground);
+        } else {
+            textResource = R.string.status_offline;
+            textColor = color(R.color.offline);
+            backgroundColor = color(R.color.offlineBackground);
+        }
 
-        int textColor =
-                online
-                        ? color(R.color.online)
-                        : color(R.color.offline);
-
-        int backgroundColor =
-                online
-                        ? color(R.color.onlineBackground)
-                        : color(R.color.offlineBackground);
+        txtOnline.setText(textResource);
 
         txtOnline.setTextColor(
                 textColor
@@ -359,6 +992,9 @@ public class MainActivity extends AppCompatActivity {
         cardOnlineStatus.setStrokeColor(
                 textColor
         );
+
+        switchAuto.setEnabled(online);
+        btnWater.setEnabled(online || relayOn);
     }
 
     private void updateMoistureUi(long moisture) {
@@ -499,7 +1135,9 @@ public class MainActivity extends AppCompatActivity {
         );
 
         btnWater.setText(
-                R.string.button_start_manual_watering
+                valveSimulationMode
+                        ? R.string.manual_relay_test_button
+                        : R.string.button_start_manual_watering
         );
 
         btnWater.setBackgroundTintList(
@@ -509,7 +1147,9 @@ public class MainActivity extends AppCompatActivity {
         );
 
         txtManualHint.setText(
-                R.string.manual_hint_idle
+                valveSimulationMode
+                        ? R.string.manual_relay_test_hint
+                        : R.string.manual_hint_idle
         );
     }
 
@@ -559,6 +1199,46 @@ public class MainActivity extends AppCompatActivity {
                 view -> showMainMenu()
         );
 
+        cardHomeAi.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                AIAssistantActivity.class
+                        )
+                )
+        );
+
+        btnHomeZones.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                SensorPointsActivity.class
+                        )
+                )
+        );
+
+        btnHomeAi.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                AIAssistantActivity.class
+                        )
+                )
+        );
+
+        btnHomeSettings.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                SettingsActivity.class
+                        )
+                )
+        );
+
+        btnToggleAdvanced.setOnClickListener(
+                view -> toggleAdvancedControls()
+        );
+
         btnWater.setOnClickListener(
                 view -> {
 
@@ -571,13 +1251,16 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    viewModel.setAutoMode(
-                            false
-                    );
-
-                    viewModel.setRelay(
-                            true
-                    );
+                    if (valveSimulationMode) {
+                        showRelayTestConfirmation();
+                    } else {
+                        startActivity(
+                                new Intent(
+                                        this,
+                                        SensorPointsActivity.class
+                                )
+                        );
+                    }
                 }
         );
 
@@ -607,6 +1290,39 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void toggleAdvancedControls() {
+        advancedControlsVisible = !advancedControlsVisible;
+        int visibility = advancedControlsVisible
+                ? View.VISIBLE
+                : View.GONE;
+
+        cardPrimaryZoneDetails.setVisibility(visibility);
+        cardWateringControl.setVisibility(visibility);
+        btnToggleAdvanced.setText(
+                advancedControlsVisible
+                        ? R.string.home_hide_advanced
+                        : R.string.home_show_advanced
+        );
+    }
+
+    private void showRelayTestConfirmation() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.manual_relay_test_title)
+                .setMessage(R.string.manual_relay_test_message)
+                .setNegativeButton(
+                        R.string.manual_relay_test_cancel,
+                        null
+                )
+                .setPositiveButton(
+                        R.string.manual_relay_test_confirm,
+                        (dialog, which) -> {
+                            viewModel.setAutoMode(false);
+                            viewModel.setRelay(true);
+                        }
+                )
+                .show();
     }
     private void showMainMenu() {
 

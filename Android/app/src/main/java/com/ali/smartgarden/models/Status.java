@@ -24,6 +24,9 @@ public class Status {
     private long cooldown_remaining;
 
     private long last_seen_epoch;
+    private String active_valve_id = "";
+    private boolean valve_open;
+    private String valve_mode = "";
 
     public Status() {
         // Firebase
@@ -119,5 +122,35 @@ public class Status {
 
     public void setCooldownRemaining(long cooldown_remaining) {
         this.cooldown_remaining = cooldown_remaining;
+    }
+
+    @PropertyName("active_valve_id")
+    public String getActiveValveId() {
+        return active_valve_id;
+    }
+
+    @PropertyName("active_valve_id")
+    public void setActiveValveId(String activeValveId) {
+        this.active_valve_id = activeValveId;
+    }
+
+    @PropertyName("valve_open")
+    public boolean isValveOpen() {
+        return valve_open;
+    }
+
+    @PropertyName("valve_open")
+    public void setValveOpen(boolean valveOpen) {
+        this.valve_open = valveOpen;
+    }
+
+    @PropertyName("valve_mode")
+    public String getValveMode() {
+        return valve_mode;
+    }
+
+    @PropertyName("valve_mode")
+    public void setValveMode(String valveMode) {
+        this.valve_mode = valveMode;
     }
 }

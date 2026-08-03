@@ -43,6 +43,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.work:work-runtime:2.11.2")
 
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)

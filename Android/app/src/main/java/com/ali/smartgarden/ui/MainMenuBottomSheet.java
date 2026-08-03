@@ -19,6 +19,8 @@ import com.ali.smartgarden.activities.SettingsActivity;
 import com.ali.smartgarden.activities.StatisticsActivity;
 import com.ali.smartgarden.activities.WateringHistoryActivity;
 import com.ali.smartgarden.activities.SensorPointsActivity;
+import com.ali.smartgarden.activities.WateringControlActivity;
+import com.ali.smartgarden.activities.FertilizationCalendarActivity;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -60,6 +62,11 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         MaterialCardView menuCardStatistics =
                 view.findViewById(R.id.menuCardStatistics);
 
+        MaterialCardView menuCardWateringControl =
+                view.findViewById(
+                        R.id.menuCardWateringControl
+                );
+
         MaterialCardView menuCardHistory =
                 view.findViewById(R.id.menuCardHistory);
 
@@ -69,6 +76,11 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         MaterialCardView menuCardSensorPoints =
                 view.findViewById(
                         R.id.menuCardSensorPoints
+                );
+
+        MaterialCardView menuCardFertilization =
+                view.findViewById(
+                        R.id.menuCardFertilization
                 );
 
         MaterialCardView menuCardAIAssistant =
@@ -81,6 +93,34 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
 
         MaterialCardView menuCardAbout =
                 view.findViewById(R.id.menuCardAbout);
+
+        ViewGroup menuParent =
+                (ViewGroup) menuCardSensorPoints.getParent();
+        menuParent.removeView(
+                menuCardWateringControl
+        );
+        menuParent.removeView(
+                menuCardFertilization
+        );
+        int sensorPointsIndex =
+                menuParent.indexOfChild(
+                        menuCardSensorPoints
+                );
+        menuParent.addView(
+                menuCardWateringControl,
+                sensorPointsIndex
+        );
+        menuParent.addView(
+                menuCardFertilization,
+                sensorPointsIndex + 1
+        );
+
+        menuCardWateringControl.setOnClickListener(
+                clickedView ->
+                        openActivity(
+                                WateringControlActivity.class
+                        )
+        );
 
         menuCardStatistics.setOnClickListener(
                 clickedView ->
@@ -107,6 +147,13 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
                 clickedView ->
                         openActivity(
                                 SensorPointsActivity.class
+                        )
+        );
+
+        menuCardFertilization.setOnClickListener(
+                clickedView ->
+                        openActivity(
+                                FertilizationCalendarActivity.class
                         )
         );
 

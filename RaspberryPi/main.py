@@ -12,9 +12,13 @@ from core.logger import AppLogger
 from services.irrigation_service import IrrigationService
 
 
-class ShutdownRequested(Exception):
+class ShutdownRequested(BaseException):
     """
     Raised when the operating system requests a clean stop.
+
+    BaseException prevents service-level ``except Exception``
+    handlers from mistaking shutdown for a recoverable cycle
+    error.
     """
 
 

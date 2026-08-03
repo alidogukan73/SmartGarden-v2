@@ -94,7 +94,10 @@ class MqttSoilMoistureSensor:
         self._reading_lock = threading.Lock()
         self._state_lock = threading.Lock()
 
-        self._latest_reading: MqttSensorReading | None = None
+        self._latest_readings: dict[
+            str,
+            MqttSensorReading,
+        ] = {}
         self._is_connected = False
         self._is_started = False
 
@@ -208,6 +211,7 @@ class MqttSoilMoistureSensor:
 
     def get_latest_reading(
         self,
+        sensor_id: str | None = None,
     ) -> MqttSensorReading | None:
         """
         Son alınan ölçümü döndürür.
@@ -217,11 +221,31 @@ class MqttSoilMoistureSensor:
         is_reading_fresh() kullanılmalıdır.
         """
 
+        requested_sensor_id = (
+            sensor_id
+            or self._sensor_id
+        )
+
         with self._reading_lock:
-            return self._latest_reading
+            return self._latest_readings.get(
+                requested_sensor_id,
+            )
+
+    def get_latest_readings(
+        self,
+    ) -> dict[str, MqttSensorReading]:
+        """
+        Return a snapshot of all known sensor readings.
+        """
+
+        with self._reading_lock:
+            return dict(
+                self._latest_readings,
+            )
 
     def get_fresh_reading(
         self,
+        sensor_id: str | None = None,
     ) -> MqttSensorReading | None:
         """
         Yalnızca güncel ölçümü döndürür.
@@ -229,7 +253,9 @@ class MqttSoilMoistureSensor:
         Ölçüm yoksa veya zaman aşımına uğramışsa None döner.
         """
 
-        reading = self.get_latest_reading()
+        reading = self.get_latest_reading(
+            sensor_id,
+        )
 
         if reading is None:
             return None
@@ -238,6 +264,23 @@ class MqttSoilMoistureSensor:
             return None
 
         return reading
+
+    def get_fresh_readings(
+        self,
+    ) -> dict[str, MqttSensorReading]:
+        """
+        Return fresh readings from every known sensor.
+        """
+
+        return {
+            sensor_id: reading
+            for sensor_id, reading
+            in self.get_latest_readings().items()
+            if (
+                reading.age_seconds
+                <= self._stale_after_seconds
+            )
+        }
 
     def is_reading_fresh(self) -> bool:
         """
@@ -357,17 +400,28 @@ class MqttSoilMoistureSensor:
             )
             return
 
-        if reading.sensor_id != self._sensor_id:
+        topic_sensor_id = (
+            message.topic
+            .rsplit("/", maxsplit=1)[-1]
+            .strip()
+        )
+
+        if (
+            topic_sensor_id
+            and topic_sensor_id != reading.sensor_id
+        ):
             logger.warning(
                 "Beklenmeyen sensör kimliği yok sayıldı: "
                 "beklenen=%s gelen=%s",
-                self._sensor_id,
+                message.topic,
                 reading.sensor_id,
             )
             return
 
         with self._reading_lock:
-            self._latest_reading = reading
+            self._latest_readings[
+                reading.sensor_id
+            ] = reading
 
         logger.debug(
             "Kablosuz sensör ölçümü alındı: "

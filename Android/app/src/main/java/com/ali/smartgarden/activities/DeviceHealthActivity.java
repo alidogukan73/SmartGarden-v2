@@ -4,6 +4,7 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,8 +21,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Health;
-import com.ali.smartgarden.models.SoilSensor;
+import com.ali.smartgarden.models.Status;
+import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.viewmodels.DeviceHealthViewModel;
+import com.ali.smartgarden.viewmodels.MainViewModel;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -33,6 +36,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Collections;
 
 public class DeviceHealthActivity extends AppCompatActivity {
 
@@ -97,6 +102,12 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtCurrentPowerEvents;
     private TextView txtHistoricalPowerEvents;
     private TextView txtThrottlingRaw;
+    private TextView txtDiagnosticsSummary;
+    private LinearLayout layoutDiagnostics;
+    private Health latestHealth;
+    private Status latestStatus;
+    private List<GardenZone> latestZones =
+            Collections.emptyList();
 
 
     @Override
@@ -148,6 +159,12 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         txtThrottlingRaw =
                 findViewById(R.id.txtThrottlingRaw);
+
+        txtDiagnosticsSummary =
+                findViewById(R.id.txtDiagnosticsSummary);
+
+        layoutDiagnostics =
+                findViewById(R.id.layoutDiagnostics);
 
         btnBack = findViewById(R.id.btnBack);
 
@@ -270,6 +287,28 @@ public class DeviceHealthActivity extends AppCompatActivity {
                     ).show();
                 }
         );
+
+        MainViewModel mainViewModel =
+                new ViewModelProvider(this)
+                        .get(MainViewModel.class);
+
+        mainViewModel.getStatus().observe(
+                this,
+                status -> {
+                    latestStatus = status;
+                    renderDiagnostics();
+                }
+        );
+
+        mainViewModel.getGardenZones().observe(
+                this,
+                zones -> {
+                    latestZones = zones == null
+                            ? Collections.emptyList()
+                            : zones;
+                    renderDiagnostics();
+                }
+        );
     }
 
     private void initializeActions() {
@@ -320,6 +359,8 @@ public class DeviceHealthActivity extends AppCompatActivity {
             return;
         }
 
+        latestHealth = health;
+
         renderCpu(health);
         renderMemory(health);
         renderDisk(health);
@@ -328,6 +369,139 @@ public class DeviceHealthActivity extends AppCompatActivity {
         renderSystemInfo(health);
         renderOverallHealth(health);
         renderPowerDetails(health);
+        renderDiagnostics();
+    }
+
+    private void renderDiagnostics() {
+        if (
+                layoutDiagnostics == null
+                        || txtDiagnosticsSummary == null
+        ) {
+            return;
+        }
+
+        layoutDiagnostics.removeAllViews();
+        int normalCount = 0;
+        final int totalChecks = 5;
+        long nowEpoch = System.currentTimeMillis() / 1000L;
+
+        boolean piOnline =
+                latestStatus != null
+                        && latestStatus.isOnline()
+                        && latestStatus.getLastSeenEpoch() > 0L
+                        && nowEpoch
+                        - latestStatus.getLastSeenEpoch() <= 30L;
+        addDiagnosticRow(
+                piOnline,
+                piOnline
+                        ? R.string.diagnostics_pi_ok
+                        : R.string.diagnostics_pi_error
+        );
+        if (piOnline) normalCount++;
+
+        boolean sensorFresh = false;
+        for (GardenZone zone : latestZones) {
+            if (
+                    zone.getUpdated_at_epoch() > 0L
+                            && nowEpoch
+                            - zone.getUpdated_at_epoch() <= 90L
+            ) {
+                sensorFresh = true;
+                break;
+            }
+        }
+        addDiagnosticRow(
+                sensorFresh,
+                sensorFresh
+                        ? R.string.diagnostics_sensor_ok
+                        : R.string.diagnostics_sensor_error
+        );
+        if (sensorFresh) normalCount++;
+
+        boolean relaySafe =
+                latestStatus != null
+                        && !latestStatus.isRelay();
+        addDiagnosticRow(
+                relaySafe,
+                relaySafe
+                        ? R.string.diagnostics_relay_ok
+                        : R.string.diagnostics_relay_active
+        );
+        if (relaySafe) normalCount++;
+
+        boolean simulationMode =
+                !latestZones.isEmpty();
+        for (GardenZone zone : latestZones) {
+            if ("PHYSICAL".equals(zone.getValve_mode())) {
+                simulationMode = false;
+                break;
+            }
+        }
+        addDiagnosticRow(
+                simulationMode,
+                simulationMode
+                        ? R.string.diagnostics_valve_simulation
+                        : R.string.diagnostics_valve_physical
+        );
+        if (simulationMode) normalCount++;
+
+        String lastError = latestStatus == null
+                ? ""
+                : latestStatus.getLastError();
+        boolean errorClear =
+                lastError == null || lastError.trim().isEmpty();
+        addDiagnosticRow(
+                errorClear,
+                errorClear
+                        ? getString(
+                                R.string.diagnostics_error_clear
+                        )
+                        : getString(
+                                R.string.diagnostics_error_active,
+                                lastError.trim()
+                        )
+        );
+        if (errorClear) normalCount++;
+
+        txtDiagnosticsSummary.setText(
+                getString(
+                        R.string.diagnostics_summary,
+                        normalCount,
+                        totalChecks
+                )
+        );
+        txtDiagnosticsSummary.setTextColor(
+                color(
+                        normalCount == totalChecks
+                                ? R.color.online
+                                : R.color.warning
+                )
+        );
+    }
+
+    private void addDiagnosticRow(
+            boolean healthy,
+            int textResource
+    ) {
+        addDiagnosticRow(healthy, getString(textResource));
+    }
+
+    private void addDiagnosticRow(
+            boolean healthy,
+            String message
+    ) {
+        TextView row = new TextView(this);
+        row.setText((healthy ? "✓ " : "⚠ ") + message);
+        row.setTextColor(
+                color(
+                        healthy
+                                ? R.color.online
+                                : R.color.warning
+                )
+        );
+        row.setTextSize(13f);
+        row.setPadding(0, 7, 0, 7);
+        layoutDiagnostics.addView(row);
     }
     private void renderPowerDetails(
             Health health
@@ -1057,7 +1231,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
             SimpleDateFormat displayFormat =
                     new SimpleDateFormat(
-                            "dd MMM yyyy, HH:mm",
+                            "dd-MM-yyyy HH:mm",
                             new Locale("tr", "TR")
                     );
 

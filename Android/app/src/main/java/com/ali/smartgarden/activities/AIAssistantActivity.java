@@ -3,6 +3,7 @@ package com.ali.smartgarden.activities;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.util.Log;
 
@@ -24,6 +25,8 @@ import com.ali.smartgarden.models.MoisturePrediction;
 import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
+import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -54,6 +57,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardPredictionAccuracyStatusBadge;
     private MaterialCardView cardUnifiedConfidence;
     private MaterialCardView cardUnifiedConfidenceStatusBadge;
+    private LinearLayout layoutAIZoneSummary;
 
     private TextView txtPredictionValidationStatus;
     private TextView txtPredictionValidationRemaining;
@@ -193,6 +197,9 @@ public class AIAssistantActivity extends AppCompatActivity {
                 findViewById(
                         R.id.cardUnifiedConfidenceStatusBadge
                 );
+
+        layoutAIZoneSummary =
+                findViewById(R.id.layoutAIZoneSummary);
 
 
         btnBack =
@@ -618,6 +625,173 @@ public class AIAssistantActivity extends AppCompatActivity {
                 this,
                 this::renderSoilLearningProfile
         );
+
+        viewModel.getGardenZones().observe(
+                this,
+                this::renderZoneDecisionSummary
+        );
+    }
+
+    private void renderZoneDecisionSummary(
+            List<GardenZone> zones
+    ) {
+        layoutAIZoneSummary.removeAllViews();
+
+        if (zones == null || zones.isEmpty()) {
+            addZoneDecisionRow(
+                    "🌱",
+                    getString(R.string.ai_zone_waiting),
+                    R.color.textSecondary
+            );
+            return;
+        }
+
+        for (GardenZone zone : zones) {
+            String emoji = zone.getEmoji() == null
+                    ? "🌱"
+                    : zone.getEmoji();
+            String name = zone.getName() == null
+                    ? zone.getZone_id()
+                    : zone.getName();
+            ZoneIrrigationStatus status =
+                    zone.getIrrigation_status();
+
+            String detail;
+            int detailColor = R.color.textSecondary;
+
+            if (!zone.isIrrigation_enabled()) {
+                detail = getString(R.string.ai_zone_disabled);
+            } else if (!isZoneFresh(zone)) {
+                detail = getString(R.string.ai_zone_waiting);
+            } else if (
+                    status != null
+                            && status.isWatering_active()
+            ) {
+                detail = getString(R.string.ai_zone_watering);
+                detailColor = R.color.info;
+            } else if (
+                    status != null
+                            && status.isCooldown_active()
+            ) {
+                detail = getString(
+                        R.string.ai_zone_cooldown,
+                        formatZoneDuration(
+                                status.getCooldown_remaining()
+                        )
+                );
+                detailColor = R.color.warning;
+            } else if (
+                    status != null
+                            && status.getQueue_position() > 0
+            ) {
+                detail = getString(
+                        R.string.ai_zone_queued,
+                        status.getQueue_position()
+                );
+                detailColor = R.color.accentOrange;
+            } else {
+                detail = formatZoneDecision(zone, status);
+                if (
+                        status != null
+                                && status.getMoisture_deficit() > 0
+                ) {
+                    detailColor = R.color.warning;
+                } else {
+                    detailColor = R.color.online;
+                }
+            }
+
+            addZoneDecisionRow(
+                    emoji + " " + name,
+                    detail,
+                    detailColor
+            );
+        }
+    }
+
+    private String formatZoneDecision(
+            GardenZone zone,
+            ZoneIrrigationStatus status
+    ) {
+        if (status == null) {
+            return getString(R.string.ai_zone_learning);
+        }
+
+        String reason = status.getDecision_reason();
+        if ("MOISTURE_SUFFICIENT".equals(reason)) {
+            return getString(
+                    R.string.ai_zone_moisture_sufficient,
+                    zone.getMoisture()
+            );
+        }
+        if ("MOISTURE_BELOW_LIMIT".equals(reason)) {
+            return getString(
+                    R.string.ai_zone_moisture_low,
+                    status.getMoisture_deficit()
+            );
+        }
+        if ("SENSOR_UNSTABLE".equals(reason)) {
+            return getString(R.string.ai_zone_unstable);
+        }
+        return getString(R.string.ai_zone_learning);
+    }
+
+    private void addZoneDecisionRow(
+            String title,
+            String detail,
+            int detailColor
+    ) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, 12, 0, 12);
+
+        TextView titleView = new TextView(this);
+        titleView.setText(title);
+        titleView.setTextColor(
+                ContextCompat.getColor(this, R.color.textPrimary)
+        );
+        titleView.setTextSize(15f);
+        titleView.setTypeface(
+                titleView.getTypeface(),
+                android.graphics.Typeface.BOLD
+        );
+
+        TextView detailView = new TextView(this);
+        detailView.setText(detail);
+        detailView.setTextColor(
+                ContextCompat.getColor(this, detailColor)
+        );
+        detailView.setTextSize(13f);
+        detailView.setPadding(0, 3, 0, 0);
+
+        row.addView(titleView);
+        row.addView(detailView);
+        layoutAIZoneSummary.addView(row);
+    }
+
+    private boolean isZoneFresh(GardenZone zone) {
+        if (zone == null || zone.getUpdated_at_epoch() <= 0L) {
+            return false;
+        }
+        long age = Math.max(
+                0L,
+                System.currentTimeMillis() / 1000L
+                        - zone.getUpdated_at_epoch()
+        );
+        return age <= 90L;
+    }
+
+    private String formatZoneDuration(int seconds) {
+        int safeSeconds = Math.max(0, seconds);
+        if (safeSeconds < 60) {
+            return safeSeconds + " sn";
+        }
+        int minutes = safeSeconds / 60;
+        int remainingSeconds = safeSeconds % 60;
+        if (remainingSeconds == 0) {
+            return minutes + " dk";
+        }
+        return minutes + " dk " + remainingSeconds + " sn";
     }
 
     private void renderSoilLearningProfile(
@@ -2848,7 +3022,7 @@ public class AIAssistantActivity extends AppCompatActivity {
             return dateTime.format(
                     java.time.format.DateTimeFormatter
                             .ofPattern(
-                                    "dd.MM.yyyy HH:mm",
+                                    "dd-MM-yyyy HH:mm",
                                     Locale.getDefault()
                             )
             );
@@ -3224,7 +3398,7 @@ public class AIAssistantActivity extends AppCompatActivity {
             return dateTime.format(
                     java.time.format.DateTimeFormatter
                             .ofPattern(
-                                    "dd.MM.yyyy HH:mm:ss",
+                                    "dd-MM-yyyy HH:mm:ss",
                                     java.util.Locale.getDefault()
                             )
             );

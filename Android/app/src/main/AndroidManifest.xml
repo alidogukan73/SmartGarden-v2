@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:allowBackup="true"
@@ -13,6 +14,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGarden">
+
+        <activity
+            android:name=".activities.FertilizationCalendarActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activities.FertilizationZoneDetailActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activities.FertilizerHistoryActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activities.FertilizerProductsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activities.WateringControlActivity"
+            android:exported="false"/>
 
         <activity
             android:name=".activities.AboutActivity"
@@ -50,6 +71,10 @@
 
         <activity
             android:name=".activities.SensorPointsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ZoneDetailActivity"
             android:exported="false" />
 
     </application>

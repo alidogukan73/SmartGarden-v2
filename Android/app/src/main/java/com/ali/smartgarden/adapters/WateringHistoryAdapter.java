@@ -36,7 +36,7 @@ public class WateringHistoryAdapter extends ListAdapter<
 
     private static final SimpleDateFormat DISPLAY_DATE_FORMAT =
             new SimpleDateFormat(
-                    "dd MMMM yyyy",
+                    "dd-MM-yyyy",
                     new Locale("tr", "TR")
             );
 
@@ -110,6 +110,14 @@ public class WateringHistoryAdapter extends ListAdapter<
                             && Objects.equals(
                             oldItem.getFirmware(),
                             newItem.getFirmware()
+                    )
+                            && Objects.equals(
+                            oldItem.getZoneId(),
+                            newItem.getZoneId()
+                    )
+                            && Objects.equals(
+                            oldItem.getSensorId(),
+                            newItem.getSensorId()
                     );
                 }
             };
@@ -153,6 +161,7 @@ public class WateringHistoryAdapter extends ListAdapter<
         private final MaterialCardView cardHistoryStatus;
         private final MaterialCardView cardHistoryDelta;
 
+        private final TextView txtHistoryZone;
         private final TextView txtHistoryDate;
         private final TextView txtHistoryTime;
         private final TextView txtHistoryStatus;
@@ -191,6 +200,11 @@ public class WateringHistoryAdapter extends ListAdapter<
             txtHistoryDate =
                     itemView.findViewById(
                             R.id.txtHistoryDate
+                    );
+
+            txtHistoryZone =
+                    itemView.findViewById(
+                            R.id.txtHistoryZone
                     );
 
             txtHistoryTime =
@@ -244,6 +258,13 @@ public class WateringHistoryAdapter extends ListAdapter<
 
             Context context =
                     itemView.getContext();
+
+            txtHistoryZone.setText(
+                    formatZone(
+                            context,
+                            history.getZoneId()
+                    )
+            );
 
             bindDate(
                     context,
@@ -301,6 +322,44 @@ public class WateringHistoryAdapter extends ListAdapter<
                     context,
                     history.getMoistureDelta()
             );
+        }
+
+        private String formatZone(
+                Context context,
+                String zoneId
+        ) {
+            if (zoneId == null) {
+                return context.getString(
+                        R.string.history_zone_legacy
+                );
+            }
+
+            switch (zoneId) {
+                case "zone-001":
+                    return context.getString(
+                            R.string.history_zone_tomato
+                    );
+                case "zone-002":
+                    return context.getString(
+                            R.string.history_zone_pepper
+                    );
+                case "zone-003":
+                    return context.getString(
+                            R.string.history_zone_cucumber
+                    );
+                case "zone-004":
+                    return context.getString(
+                            R.string.history_zone_eggplant
+                    );
+                case "zone-005":
+                    return context.getString(
+                            R.string.history_zone_bean
+                    );
+                default:
+                    return context.getString(
+                            R.string.history_zone_legacy
+                    );
+            }
         }
 
 

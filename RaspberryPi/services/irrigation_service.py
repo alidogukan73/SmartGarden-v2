@@ -7,6 +7,7 @@ Coordinates sensor, controller and Firebase.
 from __future__ import annotations
 
 import time
+from dataclasses import replace
 from datetime import datetime
 
 
@@ -21,11 +22,21 @@ from core.logger import AppLogger
 from core.system_monitor import SystemMonitor
 
 from controllers.smart_irrigation_engine import SmartIrrigationEngine
+from controllers.multi_zone_decision_engine import (
+    MultiZoneDecisionEngine,
+    ZoneDecisionResult,
+)
+from controllers.zone_irrigation_scheduler import (
+    ZoneIrrigationScheduler,
+)
 from controllers.ai_pipeline import AIPipeline
 from controllers.prediction_validation_queue import PredictionValidationQueue
-from controllers.watering_controller import WateringController
+from controllers.shared_pump_zone_executor import (
+    SharedPumpZoneExecutor,
+)
 
 from hardware.relay import RelayController
+from hardware.valve_controller import ValveController
 from hardware.sensor_provider import SoilMoistureSensorProvider
 
 from models.sensor_history_entry import SensorHistoryEntry
@@ -58,13 +69,18 @@ class IrrigationService:
 
         self._system_monitor = SystemMonitor()
         self._relay = RelayController()
+        self._valves = ValveController()
         self._firebase = FirebaseService()
 
-        self._controller = WateringController(
+        self._zone_executor = SharedPumpZoneExecutor(
             self._relay,
+            self._valves,
         )
 
         self._smart_engine = SmartIrrigationEngine()
+        self._multi_zone_engine = MultiZoneDecisionEngine()
+        self._zone_scheduler = ZoneIrrigationScheduler()
+        self._last_multi_zone_status_signature = None
 
         self._ai_pipeline = AIPipeline()
         self._prediction_validation_queue = PredictionValidationQueue()
@@ -103,6 +119,11 @@ class IrrigationService:
 
         self._manual_relay_started_at = 0.0
         self._manual_relay_timeout_latched = False
+        self._last_zone_test_request_id = ""
+        self._active_zone_test_request_id = ""
+        self._active_zone_test_valve_id = ""
+        self._active_zone_test_deadline = 0.0
+        self._last_zone_config_signature = None
 
     def initialize(self) -> None:
         """
@@ -112,8 +133,11 @@ class IrrigationService:
         self._sensor.initialize()
 
         self._relay.initialize()
+        self._valves.initialize()
 
         self._firebase.initialize()
+
+        self._restore_zone_cooldowns()
 
         self._restore_prediction_history()
 
@@ -578,13 +602,44 @@ class IrrigationService:
         Execute one irrigation cycle.
         """
 
+        zone_id = ""
+
         try:
 
             commands = self._firebase.command_state
 
+            self._process_zone_test_command(
+                commands,
+            )
+
             reading = self._sensor.read()
 
-            self._firebase.update_sensor(reading)
+            fresh_readings = self._sensor.get_fresh_readings()
+
+            self._firebase.update_zone_sensors(
+                fresh_readings,
+            )
+
+            selected_zone_result = self._update_multi_zone_decisions(
+                readings=fresh_readings,
+                global_commands=commands,
+            )
+
+            zone_config = (
+                self._firebase.get_zone_config_for_sensor(
+                    reading.sensor_id,
+                )
+            )
+
+            (
+                effective_commands,
+                zone_irrigation_enabled,
+                zone_id,
+                valve_id,
+            ) = self._effective_zone_commands(
+                commands,
+                zone_config,
+            )
 
             self._validate_due_predictions(
                 actual_moisture=reading.moisture,
@@ -602,9 +657,11 @@ class IrrigationService:
 
             decision = self._smart_engine.evaluate(
                 reading=reading,
-                commands=commands,
+                commands=effective_commands,
                 cooldown_active=(
-                    self._controller.cooldown_remaining > 0
+                    self._zone_executor.is_cooldown_active(
+                        zone_id,
+                    )
                 ),
             )
 
@@ -621,7 +678,7 @@ class IrrigationService:
 
             self._update_ai_pipeline_if_needed(
                 reading=reading,
-                commands=commands,
+                commands=effective_commands,
             )
 
             self._logger.debug(
@@ -661,7 +718,31 @@ class IrrigationService:
 
                 self._reset_manual_relay_safety()
 
-                if decision.should_water:
+                if (
+                    selected_zone_result is not None
+                    and not self._valves.simulation_mode
+                ):
+                    selected_candidate = (
+                        selected_zone_result.candidate
+                    )
+                    reading = fresh_readings[
+                        selected_candidate.sensor_id
+                    ]
+                    zone_config = (
+                        self._firebase
+                        .get_zone_config_for_sensor(
+                            selected_candidate.sensor_id,
+                        )
+                    )
+                    (
+                        effective_commands,
+                        zone_irrigation_enabled,
+                        zone_id,
+                        valve_id,
+                    ) = self._effective_zone_commands(
+                        commands,
+                        zone_config,
+                    )
 
                     self._cancel_pending_prediction_validations(
                         reason="AUTO_IRRIGATION_STARTED",
@@ -671,22 +752,62 @@ class IrrigationService:
 
                     started_at = datetime.now()
 
-                    result = self._controller.water(
-                        duration=commands.pump_duration,
-                        get_commands=lambda: self._firebase.command_state,
+                    result = self._zone_executor.execute(
+                        zone_id=zone_id,
+                        valve_id=valve_id,
+                        duration=effective_commands.pump_duration,
+                        get_commands=(
+                            lambda:
+                            self._effective_zone_commands(
+                                self._firebase.command_state,
+                                zone_config,
+                            )[0]
+                        ),
                         on_relay_changed=(
                             lambda relay_on:
                             self._firebase.update_relay_status(
                                 relay_on,
                             )
                         ),
+                        on_valve_changed=(
+                            lambda active_valve_id, is_open:
+                            self._firebase.update_active_zone_valve(
+                                active_valve_id,
+                                is_open,
+                                zone_id,
+                            )
+                        ),
                     )
 
                     if result.completed:
-                        self._smart_engine.mark_watering_completed()
+                        self._multi_zone_engine.mark_watering_completed(
+                            selected_candidate.sensor_id,
+                        )
+                        if (
+                            selected_candidate.sensor_id
+                            == SensorConfig.MQTT_SENSOR_ID
+                        ):
+                            self._smart_engine.mark_watering_completed()
+
+                        self._firebase.update_zone_cooldown(
+                            zone_id=zone_id,
+                            cooldown_until_epoch=(
+                                self._zone_executor
+                                .cooldown_until_epoch_for(zone_id)
+                            ),
+                            cooldown_remaining=(
+                                self._zone_executor
+                                .cooldown_remaining_for(zone_id)
+                            ),
+                        )
 
                     finished_at = datetime.now()
-                    finished_reading = self._sensor.read()
+                    finished_reading = (
+                        self._sensor.get_fresh_readings().get(
+                            selected_candidate.sensor_id,
+                            reading,
+                        )
+                    )
 
                     # Röle kapandı
 
@@ -701,10 +822,16 @@ class IrrigationService:
                             finished_reading.moisture
                             - reading.moisture
                         ),
-                        moisture_limit=commands.moisture_limit,
+                        moisture_limit=(
+                            effective_commands.moisture_limit
+                        ),
 
-                        restart_delta=commands.restart_delta,
-                        cooldown_seconds=commands.cooldown_seconds,
+                        restart_delta=(
+                            effective_commands.restart_delta
+                        ),
+                        cooldown_seconds=(
+                            effective_commands.cooldown_seconds
+                        ),
 
                         completed=result.completed,
 
@@ -713,6 +840,8 @@ class IrrigationService:
                         mode="AUTO",
 
                         firmware=AppConfig.VERSION,
+                        zone_id=selected_candidate.zone_id,
+                        sensor_id=selected_candidate.sensor_id,
                     )
 
                     self._firebase.save_watering(
@@ -729,13 +858,28 @@ class IrrigationService:
 
             else:
 
+                relay_requested = commands.relay
+                if (
+                    relay_requested
+                    and not self._is_recent_command(
+                        commands.relay_requested_at_ms
+                    )
+                ):
+                    relay_requested = False
+                    self._relay.off()
+                    self._reset_manual_relay_safety()
+                    self._logger.warning(
+                        "Stale manual relay command rejected.",
+                    )
+                    self._firebase.set_relay_command(False)
+
                 manual_timed_out = (
                     self._apply_manual_relay_command(
-                        commands.relay,
+                        relay_requested,
                     )
                 )
 
-                if commands.relay:
+                if relay_requested:
                     self._cancel_pending_prediction_validations(
                         reason="MANUAL_IRRIGATION_STARTED",
                     )
@@ -769,7 +913,7 @@ class IrrigationService:
                 reading.raw,
                 reading.voltage,
                 reading.moisture,
-                commands.moisture_limit,
+                effective_commands.moisture_limit,
                 "ON" if self._relay.is_on else "OFF",
             )
 
@@ -782,7 +926,9 @@ class IrrigationService:
 
         except Exception as exc:
 
-            self._relay.off()
+            self._enter_fail_safe(
+                reason=type(exc).__name__,
+            )
 
             current_time = time.monotonic()
 
@@ -833,8 +979,12 @@ class IrrigationService:
                     relay=self._relay.is_on,
                     uptime=uptime,
                     sensor_time=datetime.now().isoformat(),
-                    watering_state=self._controller.state.value,
-                    cooldown_remaining=self._controller.cooldown_remaining,
+                    watering_state=self._zone_executor.state.value,
+                    cooldown_remaining=(
+                        self._zone_executor.cooldown_remaining_for(
+                            zone_id,
+                        )
+                    ),
                 )
 
             except Exception as exc:
@@ -843,6 +993,371 @@ class IrrigationService:
                     "Runtime status update failed: %s",
                     exc,
                 )
+
+    def _enter_fail_safe(
+        self,
+        *,
+        reason: str,
+    ) -> None:
+        """
+        Independently attempt every physical safety action.
+
+        One hardware cleanup failure must never prevent the
+        remaining pump/valve shutdown steps.
+        """
+
+        relay_error = None
+        valve_error = None
+
+        try:
+            self._relay.off()
+        except Exception as exc:
+            relay_error = exc
+
+        try:
+            self._valves.close_all()
+        except Exception as exc:
+            valve_error = exc
+
+        self._reset_manual_relay_safety()
+
+        if relay_error is not None:
+            self._logger.error(
+                "Fail-safe relay shutdown failed. "
+                "reason=%s error=%s",
+                reason,
+                relay_error,
+            )
+
+        if valve_error is not None:
+            self._logger.error(
+                "Fail-safe valve shutdown failed. "
+                "reason=%s error=%s",
+                reason,
+                valve_error,
+            )
+
+        self._logger.warning(
+            "Fail-safe applied. reason=%s relay=%s",
+            reason,
+            "ON" if self._relay.is_on else "OFF",
+        )
+
+    def _effective_zone_commands(
+        self,
+        commands,
+        zone_config,
+    ):
+        """
+        Overlay one zone's irrigation settings on global commands.
+        """
+
+        if not isinstance(zone_config, dict):
+            return commands, False, "", ""
+
+        def bounded_int(
+            field,
+            default,
+            minimum,
+            maximum,
+        ):
+            try:
+                value = int(
+                    zone_config.get(field, default),
+                )
+            except (TypeError, ValueError):
+                value = default
+
+            return max(minimum, min(maximum, value))
+
+        effective = replace(
+            commands,
+            moisture_limit=bounded_int(
+                "moisture_limit",
+                commands.moisture_limit,
+                IrrigationConfig.MIN_MOISTURE_LIMIT,
+                IrrigationConfig.MAX_MOISTURE_LIMIT,
+            ),
+            pump_duration=bounded_int(
+                "pump_duration",
+                commands.pump_duration,
+                IrrigationConfig.MIN_PUMP_DURATION_SECONDS,
+                IrrigationConfig.MAX_PUMP_DURATION_SECONDS,
+            ),
+            restart_delta=bounded_int(
+                "restart_delta",
+                commands.restart_delta,
+                IrrigationConfig.MIN_RESTART_DELTA,
+                IrrigationConfig.MAX_RESTART_DELTA,
+            ),
+            cooldown_seconds=bounded_int(
+                "cooldown_seconds",
+                commands.cooldown_seconds,
+                IrrigationConfig.MIN_COOLDOWN_SECONDS,
+                IrrigationConfig.MAX_COOLDOWN_SECONDS,
+            ),
+        )
+
+        zone_enabled = (
+            zone_config.get("enabled", True) is True
+            and zone_config.get(
+                "irrigation_enabled",
+                False,
+            ) is True
+        )
+        zone_id = str(
+            zone_config.get("zone_id", ""),
+        )
+        valve_id = str(
+            zone_config.get("valve_id", ""),
+        )
+
+        signature = (
+            zone_id,
+            zone_enabled,
+            effective.moisture_limit,
+            effective.pump_duration,
+            effective.cooldown_seconds,
+            effective.restart_delta,
+            valve_id,
+        )
+
+        if signature != self._last_zone_config_signature:
+            self._last_zone_config_signature = signature
+            self._logger.info(
+                "Zone irrigation settings applied. "
+                "zone_id=%s enabled=%s limit=%d duration=%d "
+                "cooldown=%d restart_delta=%d valve_id=%s",
+                zone_id,
+                zone_enabled,
+                effective.moisture_limit,
+                effective.pump_duration,
+                effective.cooldown_seconds,
+                effective.restart_delta,
+                valve_id,
+            )
+
+        return (
+            effective,
+            zone_enabled,
+            zone_id,
+            valve_id,
+        )
+
+    def _update_multi_zone_decisions(
+        self,
+        *,
+        readings,
+        global_commands,
+    ) -> ZoneDecisionResult | None:
+        """
+        Evaluate every connected zone and publish queue state.
+        """
+
+        configs = (
+            self._firebase.get_all_zone_configs_by_sensor()
+        )
+        results = []
+
+        for sensor_id, reading in readings.items():
+            zone = configs.get(sensor_id)
+            if not isinstance(zone, dict):
+                continue
+
+            (
+                commands,
+                irrigation_enabled,
+                zone_id,
+                valve_id,
+            ) = self._effective_zone_commands(
+                global_commands,
+                zone,
+            )
+
+            results.append(
+                self._multi_zone_engine.evaluate(
+                    zone_id=zone_id,
+                    valve_id=valve_id,
+                    order=int(zone.get("order", 0)),
+                    irrigation_enabled=(
+                        irrigation_enabled
+                        and global_commands.enabled
+                        and global_commands.auto_mode
+                        and commands.pump_duration > 0
+                    ),
+                    reading=reading,
+                    commands=commands,
+                    cooldown_active=(
+                        self._zone_executor.is_cooldown_active(
+                            zone_id,
+                        )
+                    ),
+                )
+            )
+
+        selected = self._zone_scheduler.select([
+            result.candidate
+            for result in results
+        ])
+        selected_result = next(
+            (
+                result
+                for result in results
+                if (
+                    selected is not None
+                    and result.candidate.zone_id
+                    == selected.zone_id
+                )
+            ),
+            None,
+        )
+
+        ordered_candidates = sorted(
+            (
+                result.candidate
+                for result in results
+                if (
+                    result.candidate.irrigation_enabled
+                    and result.candidate.should_water
+                    and result.candidate.valve_id
+                )
+            ),
+            key=lambda item: (
+                -item.moisture_deficit,
+                item.order,
+                item.zone_id,
+            ),
+        )
+        queue_positions = {
+            item.zone_id: index
+            for index, item in enumerate(
+                ordered_candidates,
+                start=1,
+            )
+        }
+
+        states = {}
+        signature_items = []
+
+        for result in results:
+            candidate = result.candidate
+            decision = result.decision
+            is_selected = (
+                selected is not None
+                and selected.zone_id == candidate.zone_id
+            )
+            state = {
+                "decision": (
+                    "WATER"
+                    if decision.should_water
+                    else "WAIT"
+                ),
+                "decision_reason": decision.reason,
+                "sensor_stable": decision.sensor_stable,
+                "cooldown_active": decision.cooldown_active,
+                "cooldown_remaining": (
+                    self._zone_executor.cooldown_remaining_for(
+                        candidate.zone_id,
+                    )
+                ),
+                "cooldown_until_epoch": (
+                    self._zone_executor.cooldown_until_epoch_for(
+                        candidate.zone_id,
+                    )
+                ),
+                "queue_position": queue_positions.get(
+                    candidate.zone_id,
+                    0,
+                ),
+                "selected_for_watering": is_selected,
+                "moisture_deficit": candidate.moisture_deficit,
+            }
+            states[candidate.zone_id] = state
+            signature_items.append(
+                (
+                    candidate.zone_id,
+                    *state.values(),
+                )
+            )
+
+        signature = tuple(sorted(signature_items))
+        if signature == self._last_multi_zone_status_signature:
+            return selected_result
+
+        self._last_multi_zone_status_signature = signature
+        self._firebase.update_zone_irrigation_decisions(
+            states,
+        )
+        self._logger.info(
+            "Multi-zone decisions updated. "
+            "connected=%d queued=%d selected=%s",
+            len(results),
+            len(ordered_candidates),
+            (
+                selected.zone_id
+                if selected is not None
+                else "none"
+            ),
+        )
+
+        return selected_result
+
+    def _restore_zone_cooldowns(self) -> None:
+        """
+        Restore valid per-zone cooldowns after a service restart.
+        """
+
+        restored_count = 0
+        configs = self._firebase.get_all_zone_configs_by_sensor()
+
+        for zone in configs.values():
+            if not isinstance(zone, dict):
+                continue
+
+            zone_id = str(zone.get("zone_id", ""))
+            irrigation_status = zone.get("irrigation_status")
+            if (
+                not zone_id
+                or not isinstance(irrigation_status, dict)
+            ):
+                continue
+
+            persisted_until = irrigation_status.get(
+                "cooldown_until_epoch",
+                0,
+            )
+            configured_cooldown = min(
+                IrrigationConfig.MAX_COOLDOWN_SECONDS,
+                max(
+                    0,
+                    int(
+                        zone.get(
+                            "cooldown_seconds",
+                            IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
+                        )
+                    ),
+                ),
+            )
+
+            remaining = self._zone_executor.restore_cooldown(
+                zone_id=zone_id,
+                cooldown_until_epoch=persisted_until,
+                max_remaining_seconds=configured_cooldown,
+            )
+
+            if remaining > 0:
+                restored_count += 1
+            elif persisted_until:
+                self._firebase.update_zone_cooldown(
+                    zone_id=zone_id,
+                    cooldown_until_epoch=0,
+                    cooldown_remaining=0,
+                )
+
+        self._logger.info(
+            "Zone cooldowns restored. count=%d",
+            restored_count,
+        )
 
     def _apply_manual_relay_command(
         self,
@@ -892,6 +1407,120 @@ class IrrigationService:
 
         return False
 
+    def _process_zone_test_command(
+        self,
+        commands,
+    ) -> None:
+        """
+        Run one safe valve-only test requested by Android.
+
+        The real pump remains blocked while valves are simulated.
+        """
+
+        if self._active_zone_test_request_id:
+            remaining = max(
+                0,
+                int(
+                    self._active_zone_test_deadline
+                    - time.monotonic()
+                ),
+            )
+            if (
+                commands.zone_test_cancel_requested
+                or remaining <= 0
+            ):
+                self._relay.off()
+                self._valves.close_all()
+                self._firebase.update_active_zone_valve(
+                    None,
+                    False,
+                )
+                self._firebase.acknowledge_zone_test(
+                    request_id=(
+                        self._active_zone_test_request_id
+                    ),
+                    result=(
+                        "SIMULATION_CANCELLED"
+                        if commands.zone_test_cancel_requested
+                        else "SIMULATION_COMPLETED"
+                    ),
+                )
+                self._active_zone_test_request_id = ""
+                self._active_zone_test_valve_id = ""
+                self._active_zone_test_deadline = 0.0
+
+        if (
+            not commands.zone_test_requested
+            or self._active_zone_test_request_id
+        ):
+            return
+
+        request_id = commands.zone_test_request_id
+
+        if (
+            not request_id
+            or request_id == self._last_zone_test_request_id
+        ):
+            return
+
+        self._last_zone_test_request_id = request_id
+
+        if not commands.zone_test_valve_id:
+            result = "INVALID_VALVE"
+        elif not self._is_recent_command(
+            commands.zone_test_requested_at_ms
+        ):
+            result = "STALE_COMMAND"
+        elif not self._valves.simulation_mode:
+            result = "PHYSICAL_TEST_BLOCKED"
+        else:
+            duration = max(1, commands.zone_test_duration)
+            self._relay.off()
+            self._valves.open(
+                commands.zone_test_valve_id,
+            )
+            self._firebase.update_active_zone_valve(
+                commands.zone_test_valve_id,
+                True,
+            )
+            self._active_zone_test_request_id = request_id
+            self._active_zone_test_valve_id = (
+                commands.zone_test_valve_id
+            )
+            self._active_zone_test_deadline = (
+                time.monotonic() + duration
+            )
+            result = "SIMULATION_ACTIVE"
+
+        self._firebase.acknowledge_zone_test(
+            request_id=request_id,
+            result=result,
+            active=(result == "SIMULATION_ACTIVE"),
+            remaining_seconds=(
+                commands.zone_test_duration
+                if result == "SIMULATION_ACTIVE"
+                else 0
+            ),
+        )
+
+    @staticmethod
+    def _is_recent_command(
+        requested_at_ms: int,
+        maximum_age_seconds: int = 30,
+    ) -> bool:
+        """
+        Reject actuator commands queued while the device was offline.
+        """
+
+        if requested_at_ms <= 0:
+            return False
+
+        age_seconds = (
+            int(time.time() * 1000) - requested_at_ms
+        ) / 1000.0
+
+        return -300 <= age_seconds <= maximum_age_seconds
+
     def _reset_manual_relay_safety(self) -> None:
         """
         Reset manual relay timeout state after an OFF command
@@ -916,6 +1545,14 @@ class IrrigationService:
             "Update cycle recovered.",
         )
 
+        try:
+            self._firebase.clear_error()
+        except Exception as exc:
+            self._logger.warning(
+                "Recovered error status could not be cleared: %s",
+                exc,
+            )
+
 
     def cleanup(self) -> None:
         """
@@ -928,6 +1565,14 @@ class IrrigationService:
         except Exception as exc:
             self._logger.exception(
                 "Relay cleanup failed: %s",
+                exc,
+            )
+
+        try:
+            self._valves.cleanup()
+        except Exception as exc:
+            self._logger.exception(
+                "Valve cleanup failed: %s",
                 exc,
             )
 

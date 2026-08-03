@@ -3,6 +3,7 @@ package com.ali.smartgarden.activities;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,7 +20,10 @@ import com.ali.smartgarden.adapters.WateringHistoryAdapter;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.viewmodels.WateringHistoryViewModel;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.ChipGroup;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WateringHistoryActivity extends AppCompatActivity {
@@ -31,6 +35,15 @@ public class WateringHistoryActivity extends AppCompatActivity {
     private RecyclerView recyclerHistory;
     private LinearLayout layoutLoading;
     private LinearLayout layoutEmpty;
+    private TextView txtHistoryEmptyDescription;
+    private TextView txtHistoryStatCount;
+    private TextView txtHistoryStatDuration;
+    private TextView txtHistoryStatSuccess;
+    private TextView txtHistoryStatDelta;
+    private ChipGroup chipGroupZones;
+    private List<WateringHistory> allHistory =
+            Collections.emptyList();
+    private String selectedZoneId = "";
 
 
     @Override
@@ -96,6 +109,21 @@ public class WateringHistoryActivity extends AppCompatActivity {
 
         layoutEmpty =
                 findViewById(R.id.layoutEmpty);
+
+        txtHistoryEmptyDescription =
+                findViewById(R.id.txtHistoryEmptyDescription);
+
+        chipGroupZones =
+                findViewById(R.id.chipGroupZones);
+
+        txtHistoryStatCount =
+                findViewById(R.id.txtHistoryStatCount);
+        txtHistoryStatDuration =
+                findViewById(R.id.txtHistoryStatDuration);
+        txtHistoryStatSuccess =
+                findViewById(R.id.txtHistoryStatSuccess);
+        txtHistoryStatDelta =
+                findViewById(R.id.txtHistoryStatDelta);
     }
 
 
@@ -204,9 +232,27 @@ public class WateringHistoryActivity extends AppCompatActivity {
                         ? historyItems
                         : java.util.Collections.emptyList();
 
-        adapter.submitList(safeItems);
+        allHistory = safeItems;
+        applyZoneFilter();
+    }
 
-        boolean isEmpty = safeItems.isEmpty();
+    private void applyZoneFilter() {
+        List<WateringHistory> visibleItems =
+                new ArrayList<>();
+
+        for (WateringHistory item : allHistory) {
+            if (
+                    selectedZoneId.isEmpty()
+                            || selectedZoneId.equals(item.getZoneId())
+            ) {
+                visibleItems.add(item);
+            }
+        }
+
+        adapter.submitList(visibleItems);
+        renderStatistics(visibleItems);
+
+        boolean isEmpty = visibleItems.isEmpty();
 
         recyclerHistory.setVisibility(
                 isEmpty
@@ -223,6 +269,12 @@ public class WateringHistoryActivity extends AppCompatActivity {
         layoutLoading.setVisibility(
                 View.GONE
         );
+
+        txtHistoryEmptyDescription.setText(
+                selectedZoneId.isEmpty()
+                        ? R.string.history_empty_description
+                        : R.string.history_empty_zone_description
+        );
     }
 
 
@@ -234,5 +286,105 @@ public class WateringHistoryActivity extends AppCompatActivity {
         btnBack.setOnClickListener(
                 view -> finish()
         );
+
+        chipGroupZones.setOnCheckedStateChangeListener(
+                (group, checkedIds) -> {
+                    int checkedId = checkedIds.isEmpty()
+                            ? R.id.chipZoneAll
+                            : checkedIds.get(0);
+                    selectedZoneId = zoneIdForChip(checkedId);
+                    applyZoneFilter();
+                }
+        );
+    }
+
+    private void renderStatistics(
+            List<WateringHistory> items
+    ) {
+        int count = items.size();
+        int completedCount = 0;
+        long totalDuration = 0L;
+        long totalDelta = 0L;
+
+        for (WateringHistory item : items) {
+            totalDuration += Math.max(0L, item.getDuration());
+            totalDelta += item.getMoistureDelta();
+            if (item.isCompleted()) {
+                completedCount++;
+            }
+        }
+
+        int successRate = count == 0
+                ? 0
+                : Math.round(
+                        completedCount * 100f / count
+                );
+        double averageDelta = count == 0
+                ? 0.0
+                : totalDelta / (double) count;
+
+        txtHistoryStatCount.setText(
+                getString(
+                        R.string.history_stat_count,
+                        count
+                )
+        );
+        txtHistoryStatDuration.setText(
+                getString(
+                        R.string.history_stat_duration,
+                        formatTotalDuration(totalDuration)
+                )
+        );
+        txtHistoryStatSuccess.setText(
+                getString(
+                        R.string.history_stat_success,
+                        successRate
+                )
+        );
+        txtHistoryStatDelta.setText(
+                getString(
+                        R.string.history_stat_delta,
+                        averageDelta
+                )
+        );
+    }
+
+    private String formatTotalDuration(long seconds) {
+        long safeSeconds = Math.max(0L, seconds);
+        if (safeSeconds < 60L) {
+            return safeSeconds + " sn";
+        }
+
+        long hours = safeSeconds / 3600L;
+        long minutes = (safeSeconds % 3600L) / 60L;
+        long remainingSeconds = safeSeconds % 60L;
+
+        if (hours > 0L) {
+            return minutes > 0L
+                    ? hours + " sa " + minutes + " dk"
+                    : hours + " sa";
+        }
+        return remainingSeconds > 0L
+                ? minutes + " dk " + remainingSeconds + " sn"
+                : minutes + " dk";
+    }
+
+    private String zoneIdForChip(int chipId) {
+        if (chipId == R.id.chipZone001) {
+            return "zone-001";
+        }
+        if (chipId == R.id.chipZone002) {
+            return "zone-002";
+        }
+        if (chipId == R.id.chipZone003) {
+            return "zone-003";
+        }
+        if (chipId == R.id.chipZone004) {
+            return "zone-004";
+        }
+        if (chipId == R.id.chipZone005) {
+            return "zone-005";
+        }
+        return "";
     }
 }

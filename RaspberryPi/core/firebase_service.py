@@ -72,6 +72,11 @@ class FirebaseService:
         self._retry_delay = 0.5
         self._max_retry_delay = 30.0
 
+        self._zone_by_sensor_id: dict[str, str] = {}
+        self._zone_config_by_sensor_id: dict[str, dict] = {}
+        self._zone_map_refreshed_at = 0.0
+        self._zone_map_refresh_seconds = 10.0
+
         self.device_control = DeviceControl()
 
     def initialize(self) -> None:
@@ -108,6 +113,7 @@ class FirebaseService:
             self._initialized = True
 
             self.initialize_commands()
+            self._refresh_zone_sensor_map()
 
             initial_command_state = self.get_commands()
 
@@ -289,12 +295,46 @@ class FirebaseService:
             },
         )
 
+    def update_active_zone_valve(
+        self,
+        valve_id: str | None,
+        is_open: bool,
+        zone_id: str | None = None,
+    ) -> None:
         """
-        self._logger.info(
-            "Relay status sent to Firebase: %s",
-            relay,
+        Publish the selected valve state for UI and simulation tests.
+        """
+
+        from core.config import ValveConfig
+
+        self._device_ref().child("irrigation_hardware").update(
+            {
+                "active_valve_id": valve_id or "",
+                "valve_open": is_open,
+                "valve_mode": (
+                    "SIMULATION"
+                    if ValveConfig.SIMULATION_MODE
+                    else "PHYSICAL"
+                ),
+                "pump_interlock": (
+                    "BLOCKED"
+                    if ValveConfig.SIMULATION_MODE
+                    else "READY"
+                ),
+                "updated_at": datetime.now().isoformat(),
+            },
         )
-        """
+
+        if zone_id:
+            self._device_ref().child(
+                f"zones/{zone_id}/irrigation_status",
+            ).update(
+                {
+                    "watering_active": is_open,
+                    "updated_at": datetime.now().isoformat(),
+                },
+            )
+
     def update_health_status(
         self,
         health: HealthStatus,
@@ -411,42 +451,218 @@ class FirebaseService:
             },
         )
 
+    def clear_error(self) -> None:
+        """
+        Clear the active application error after a successful
+        recovery cycle.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "last_error": "",
+                "last_seen": datetime.now().isoformat(),
+            },
+        )
+
     # -------------------------------------------------
     # Sensor
     # -------------------------------------------------
 
-    def update_sensor(
+    def update_zone_sensors(
         self,
-        reading: SensorReading,
+        readings: dict[str, SensorReading],
     ) -> None:
         """
-        Upload sensor values.
+        Upload all fresh MQTT readings to their garden zones.
+
+        The legacy top-level sensor node remains managed by
+        update_sensor() for the primary irrigation sensor.
+        """
+
+        if not readings:
+            return
+
+        current_time = time.monotonic()
+
+        if (
+            not self._zone_by_sensor_id
+            or (
+                current_time
+                - self._zone_map_refreshed_at
+                >= self._zone_map_refresh_seconds
+            )
+        ):
+            self._refresh_zone_sensor_map()
+
+        updates: dict[str, object] = {}
+        updated_at = datetime.now().isoformat()
+        updated_at_epoch = int(time.time())
+
+        for sensor_id, reading in readings.items():
+            zone_id = self._zone_by_sensor_id.get(
+                sensor_id,
+            )
+
+            if zone_id is None:
+                continue
+
+            prefix = f"zones/{zone_id}"
+
+            updates.update(
+                {
+                    f"{prefix}/raw": reading.raw,
+                    f"{prefix}/voltage": round(
+                        reading.voltage,
+                        3,
+                    ),
+                    f"{prefix}/moisture": reading.moisture,
+                    f"{prefix}/sensor_id": reading.sensor_id,
+                    f"{prefix}/firmware": reading.firmware,
+                    f"{prefix}/rssi": reading.rssi,
+                    f"{prefix}/uptime_seconds":
+                        reading.uptime_seconds,
+                    f"{prefix}/updated_at": updated_at,
+                    f"{prefix}/updated_at_epoch":
+                        updated_at_epoch,
+                },
+            )
+
+        if updates:
+            self._device_ref().update(
+                updates,
+            )
+
+    def _refresh_zone_sensor_map(self) -> None:
+        """
+        Cache the Firebase zone assigned to each sensor ID.
+        """
+
+        zones = (
+            self._device_ref()
+            .child("zones")
+            .get()
+        )
+
+        zone_by_sensor_id: dict[str, str] = {}
+        zone_config_by_sensor_id: dict[str, dict] = {}
+
+        if isinstance(zones, dict):
+            for zone_id, zone in zones.items():
+                if not isinstance(zone, dict):
+                    continue
+
+                sensor_id = str(
+                    zone.get(
+                        "sensor_id",
+                        "",
+                    ),
+                ).strip()
+
+                if sensor_id:
+                    zone_by_sensor_id[
+                        sensor_id
+                    ] = str(zone_id)
+                    zone_config_by_sensor_id[
+                        sensor_id
+                    ] = {
+                        **zone,
+                        "zone_id": str(zone_id),
+                    }
+
+        self._zone_by_sensor_id = (
+            zone_by_sensor_id
+        )
+        self._zone_config_by_sensor_id = (
+            zone_config_by_sensor_id
+        )
+        self._zone_map_refreshed_at = (
+            time.monotonic()
+        )
+
+        self._logger.info(
+            "Garden zone sensor map refreshed. count=%d",
+            len(self._zone_by_sensor_id),
+        )
+
+    def get_zone_config_for_sensor(
+        self,
+        sensor_id: str,
+    ) -> dict | None:
+        """
+        Return the cached irrigation configuration for a sensor.
+        """
+
+        zone = self._zone_config_by_sensor_id.get(
+            sensor_id,
+        )
+
+        if zone is None:
+            return None
+
+        return dict(zone)
+
+    def get_all_zone_configs_by_sensor(
+        self,
+    ) -> dict[str, dict]:
+        """
+        Return a copy of all cached sensor-to-zone settings.
+        """
+
+        return {
+            sensor_id: dict(zone)
+            for sensor_id, zone
+            in self._zone_config_by_sensor_id.items()
+        }
+
+    def update_zone_irrigation_decisions(
+        self,
+        states: dict[str, dict],
+    ) -> None:
+        """
+        Publish independent irrigation decisions under each zone.
+        """
+
+        if not states:
+            return
+
+        updates: dict[str, object] = {}
+        updated_at = datetime.now().isoformat()
+
+        for zone_id, state in states.items():
+            prefix = f"zones/{zone_id}/irrigation_status"
+            for field, value in state.items():
+                updates[f"{prefix}/{field}"] = value
+            updates[f"{prefix}/updated_at"] = updated_at
+
+        self._device_ref().update(updates)
+
+    def update_zone_cooldown(
+        self,
+        *,
+        zone_id: str,
+        cooldown_until_epoch: int,
+        cooldown_remaining: int,
+    ) -> None:
+        """
+        Persist a zone cooldown immediately after watering.
         """
 
         self._device_ref().child(
-            "sensor",
+            f"zones/{zone_id}/irrigation_status",
         ).update(
             {
-                "raw": reading.raw,
-
-                "voltage": round(
-                    reading.voltage,
-                    3,
+                "cooldown_active": cooldown_remaining > 0,
+                "cooldown_remaining": max(
+                    0,
+                    int(cooldown_remaining),
                 ),
-
-                "moisture": reading.moisture,
-
-                "sensor_id": reading.sensor_id,
-
-                "firmware": reading.firmware,
-
-                "rssi": reading.rssi,
-
-                "uptime_seconds": reading.uptime_seconds,
-
+                "cooldown_until_epoch": max(
+                    0,
+                    int(cooldown_until_epoch),
+                ),
                 "updated_at": datetime.now().isoformat(),
-
-                "updated_at_epoch": int(time.time()),
             },
         )
     
@@ -654,6 +870,12 @@ class FirebaseService:
 
             "firmware":
                 record.firmware,
+
+            "zone_id":
+                record.zone_id,
+
+            "sensor_id":
+                record.sensor_id,
         }
 
         updates = {
@@ -899,6 +1121,20 @@ class FirebaseService:
                             "",
                         ),
                     ),
+
+                    zone_id=str(
+                        item.get(
+                            "zone_id",
+                            "",
+                        ),
+                    ),
+
+                    sensor_id=str(
+                        item.get(
+                            "sensor_id",
+                            "",
+                        ),
+                    ),
                 )
 
                 records.append(
@@ -1058,6 +1294,10 @@ class FirebaseService:
                 "Firebase commands must be a JSON object.",
             )
 
+        zone_test = commands.get("zone_test", {})
+        if not isinstance(zone_test, dict):
+            zone_test = {}
+
         return CommandState(
             auto_mode=self._boolean_command(
                 commands=commands,
@@ -1068,6 +1308,9 @@ class FirebaseService:
                 commands=commands,
                 field="relay",
                 default=False,
+            ),
+            relay_requested_at_ms=int(
+                commands.get("relay_requested_at", 0) or 0
             ),
             enabled=self._boolean_command(
                 commands=commands,
@@ -1107,6 +1350,61 @@ class FirebaseService:
                 field="restart_device",
                 default=False,
             ),
+            zone_test_requested=self._boolean_command(
+                commands=zone_test,
+                field="requested",
+                default=False,
+            ),
+            zone_test_request_id=str(
+                zone_test.get("request_id", ""),
+            ),
+            zone_test_zone_id=str(
+                zone_test.get("zone_id", ""),
+            ),
+            zone_test_valve_id=str(
+                zone_test.get("valve_id", ""),
+            ),
+            zone_test_duration=self._bounded_command_int(
+                commands=zone_test,
+                field="duration",
+                default=10,
+                minimum=1,
+                maximum=IrrigationConfig.MAX_PUMP_DURATION_SECONDS,
+            ),
+            zone_test_cancel_requested=self._boolean_command(
+                commands=zone_test,
+                field="cancel_requested",
+                default=False,
+            ),
+            zone_test_requested_at_ms=int(
+                zone_test.get("requested_at", 0) or 0
+            ),
+        )
+
+    def acknowledge_zone_test(
+        self,
+        *,
+        request_id: str,
+        result: str,
+        active: bool = False,
+        remaining_seconds: int = 0,
+    ) -> None:
+        """
+        Complete a one-shot Android zone test command.
+        """
+
+        self._device_ref().child("commands").child(
+            "zone_test",
+        ).update(
+            {
+                "requested": False,
+                "cancel_requested": False,
+                "active": active,
+                "remaining_seconds": max(0, remaining_seconds),
+                "result": result,
+                "completed_request_id": request_id,
+                "completed_at": datetime.now().isoformat(),
+            },
         )
 
     @property

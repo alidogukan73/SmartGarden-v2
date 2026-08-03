@@ -78,10 +78,68 @@
     <!-- İSTATİSTİKLER -->
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/menuCardWateringControl"
+        style="@style/Widget.SmartGarden.Card.Inner"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:visibility="visible"
+        android:clickable="true"
+        android:focusable="true"
+        app:rippleColor="@color/accentLight">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="💧"
+                android:textSize="22sp"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title_watering_control"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/menu_watering_control_description"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/symbol_menu_arrow"
+                android:textColor="@color/textTertiary"
+                android:textSize="26sp"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/menuCardStatistics"
         style="@style/Widget.SmartGarden.Card.Inner"
         android:layout_width="match_parent"
         android:layout_height="64dp"
+        android:layout_marginTop="12dp"
         android:clickable="true"
         android:focusable="true"
         app:rippleColor="@color/accentLight">
@@ -368,6 +426,76 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- AI SULAMA ASİSTANI -->
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/menuCardFertilization"
+        style="@style/Widget.SmartGarden.Card.Inner"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:rippleColor="@color/accentLight">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardBackgroundColor="@color/warningBackground"
+                app:cardCornerRadius="13dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="🌿"
+                    android:textSize="21sp"/>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fertilization_title"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/menu_fertilization_description"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/symbol_menu_arrow"
+                android:textColor="@color/textTertiary"
+                android:textSize="26sp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/menuCardAIAssistant"

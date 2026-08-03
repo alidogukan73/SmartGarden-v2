@@ -66,6 +66,151 @@
 
     </LinearLayout>
 
+    <HorizontalScrollView
+        android:id="@+id/historyZoneFilters"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/historyHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupZones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZoneAll"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/history_zone_all"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZone001"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_zone_tomato"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZone002"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_zone_pepper"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZone003"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_zone_cucumber"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZone004"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_zone_eggplant"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipZone005"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_zone_bean"/>
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardHistoryStatistics"
+        style="@style/Widget.SmartGarden.Card.Main"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/historyZoneFilters"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/history_statistics_title"
+                android:textColor="@color/textPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/txtHistoryStatCount"
+                    style="@style/TextAppearance.SmartGarden.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/history_stat_count_empty"/>
+
+                <TextView
+                    android:id="@+id/txtHistoryStatDuration"
+                    style="@style/TextAppearance.SmartGarden.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/history_stat_duration_empty"/>
+
+                <TextView
+                    android:id="@+id/txtHistoryStatSuccess"
+                    style="@style/TextAppearance.SmartGarden.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/history_stat_success_empty"/>
+
+                <TextView
+                    android:id="@+id/txtHistoryStatDelta"
+                    style="@style/TextAppearance.SmartGarden.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/history_stat_delta_empty"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
 
     <!-- AYIRICI -->
 
@@ -74,7 +219,7 @@
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="@color/divider"
-        app:layout_constraintTop_toBottomOf="@id/historyHeader"
+        app:layout_constraintTop_toBottomOf="@id/cardHistoryStatistics"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -168,6 +313,7 @@
             android:textStyle="bold"/>
 
         <TextView
+            android:id="@+id/txtHistoryEmptyDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"

@@ -75,7 +75,7 @@ class SensorConfig:
     MQTT_PORT = 1883
 
     MQTT_TOPIC = (
-        "smartgarden/sensors/soil-001"
+        "smartgarden/sensors/+"
     )
 
     MQTT_SENSOR_ID = "soil-001"
@@ -93,6 +93,30 @@ class RelayConfig:
     GPIO_PIN = 17
 
     ACTIVE_LOW = False
+
+
+class ValveConfig:
+    """
+    Two-wire, power-open / power-off-close zone valves.
+
+    Keep simulation enabled until every physical valve and
+    its separate 12 V supply have been installed and tested.
+    """
+
+    SIMULATION_MODE = True
+
+    ACTIVE_LOW = False
+
+    GPIO_PINS = {
+        "valve-001": 5,
+        "valve-002": 6,
+        "valve-003": 13,
+        "valve-004": 19,
+        "valve-005": 26,
+    }
+
+    OPENING_DELAY_SECONDS = 8.0
+    CLOSING_DELAY_SECONDS = 8.0
 
 class LogConfig:
     """
@@ -134,8 +158,8 @@ class IrrigationConfig:
     MIN_MOISTURE_LIMIT = 5
     MAX_MOISTURE_LIMIT = 95
 
-    MIN_PUMP_DURATION_SECONDS = 1
-    MAX_PUMP_DURATION_SECONDS = 300
+    MIN_PUMP_DURATION_SECONDS = 0
+    MAX_PUMP_DURATION_SECONDS = 10800
 
     MIN_RESTART_DELTA = 1
     MAX_RESTART_DELTA = 30

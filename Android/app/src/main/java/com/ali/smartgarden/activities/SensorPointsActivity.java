@@ -1,69 +1,62 @@
 package com.ali.smartgarden.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.view.View;
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.ali.smartgarden.models.SoilSensor;
-import com.ali.smartgarden.viewmodels.SensorPointsViewModel;
 import com.ali.smartgarden.R;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-
+import com.ali.smartgarden.adapters.GardenZoneAdapter;
+import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.viewmodels.SensorPointsViewModel;
 import com.google.android.material.button.MaterialButton;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Comparator;
 
 public class SensorPointsActivity extends AppCompatActivity {
 
-    private static final long SENSOR_CONNECTED_SECONDS = 30L;
-    private static final long SENSOR_WEAK_SECONDS = 90L;
+    private static final long STATUS_REFRESH_MILLIS =
+            5_000L;
 
-    private static final long SENSOR_STATUS_REFRESH_MILLIS = 5_000L;
-
-
-    private final Handler sensorStatusHandler =
+    private final Handler statusHandler =
             new Handler(
                     Looper.getMainLooper()
             );
 
-    private SoilSensor latestTomatoSensor;
+    private final GardenZoneAdapter adapter =
+            new GardenZoneAdapter();
 
-
-    private SensorPointsViewModel viewModel;
-
-    private MaterialButton btnBack;
+    private final List<GardenZone> latestZones =
+            new ArrayList<>();
 
     private TextView txtSensorSummary;
+    private TextView txtQueuePumpState;
+    private LinearLayout layoutIrrigationQueue;
 
-    private TextView txtTomatoStatus;
-    private TextView txtTomatoSensorId;
-    private TextView txtTomatoMoisture;
-    private TextView txtTomatoRssi;
-    private TextView txtTomatoLastUpdate;
-
-    private TextView txtPepperStatus;
-    private TextView txtPepperSensorId;
-
-    private TextView txtCucumberStatus;
-    private TextView txtCucumberSensorId;
-
-    private final Runnable sensorStatusUpdater =
+    private final Runnable statusUpdater =
             new Runnable() {
 
                 @Override
                 public void run() {
+                    adapter.refreshStatuses();
+                    updateSummary();
 
-                    refreshTomatoSensorStatus();
-
-                    sensorStatusHandler.postDelayed(
+                    statusHandler.postDelayed(
                             this,
-                            SENSOR_STATUS_REFRESH_MILLIS
+                            STATUS_REFRESH_MILLIS
                     );
                 }
             };
@@ -78,400 +71,236 @@ public class SensorPointsActivity extends AppCompatActivity {
                 R.layout.activity_sensor_points
         );
 
-        initializeViews();
-        initializeActions();
-        initializeViewModel();
-        observeViewModel();
-    }
+        MaterialButton btnBack =
+                findViewById(R.id.btnBack);
 
-    private void initializeViews() {
+        txtSensorSummary =
+                findViewById(R.id.txtSensorSummary);
 
-        btnBack = findViewById(
-                R.id.btnBack
+        txtQueuePumpState =
+                findViewById(R.id.txtQueuePumpState);
+
+        layoutIrrigationQueue =
+                findViewById(R.id.layoutIrrigationQueue);
+
+        RecyclerView recyclerZones =
+                findViewById(R.id.recyclerGardenZones);
+
+        recyclerZones.setLayoutManager(
+                new LinearLayoutManager(this)
         );
+        recyclerZones.setAdapter(adapter);
+        recyclerZones.setNestedScrollingEnabled(false);
 
-        txtSensorSummary = findViewById(
-                R.id.txtSensorSummary
+        adapter.setOnZoneClickListener(
+                zone -> {
+                    Intent intent = new Intent(
+                            this,
+                            ZoneDetailActivity.class
+                    );
+                    intent.putExtra(
+                            ZoneDetailActivity.EXTRA_ZONE_ID,
+                            zone.getZone_id()
+                    );
+                    startActivity(intent);
+                }
         );
-
-        txtTomatoStatus = findViewById(
-                R.id.txtTomatoStatus
-        );
-
-        txtTomatoSensorId = findViewById(
-                R.id.txtTomatoSensorId
-        );
-
-        txtTomatoMoisture = findViewById(
-                R.id.txtTomatoMoisture
-        );
-
-        txtTomatoRssi = findViewById(
-                R.id.txtTomatoRssi
-        );
-
-        txtTomatoLastUpdate = findViewById(
-                R.id.txtTomatoLastUpdate
-        );
-
-        txtPepperStatus = findViewById(
-                R.id.txtPepperStatus
-        );
-
-        txtPepperSensorId = findViewById(
-                R.id.txtPepperSensorId
-        );
-
-        txtCucumberStatus = findViewById(
-                R.id.txtCucumberStatus
-        );
-
-        txtCucumberSensorId = findViewById(
-                R.id.txtCucumberSensorId
-        );
-    }
-
-    private void initializeActions() {
 
         btnBack.setOnClickListener(
                 view -> finish()
         );
-    }
 
-    private void initializeViewModel() {
-
-        viewModel =
+        SensorPointsViewModel viewModel =
                 new ViewModelProvider(this)
                         .get(
                                 SensorPointsViewModel.class
                         );
-    }
 
-    private void observeViewModel() {
-
-        viewModel.getSoilSensor().observe(
+        viewModel.getZones().observe(
                 this,
-                this::renderTomatoSensor
+                this::renderZones
         );
-    }
-
-    private void renderTomatoSensor(
-            SoilSensor sensor
-    ) {
-
-        latestTomatoSensor = sensor;
-
-        if (sensor == null) {
-
-            txtSensorSummary.setText(
-                    "0 / 3 sensör bağlı"
-            );
-
-            txtTomatoStatus.setText(
-                    "Bağlantı yok"
-            );
-
-            txtTomatoStatus.setTextColor(
-                    getColor(
-                            R.color.offline
-                    )
-            );
-
-            txtTomatoSensorId.setText(
-                    "soil-001"
-            );
-
-            txtTomatoMoisture.setText(
-                    "-"
-            );
-
-            txtTomatoRssi.setText(
-                    "-"
-            );
-
-            txtTomatoLastUpdate.setText(
-                    "Son veri: Bekleniyor"
-            );
-
-            return;
-        }
-
-        txtSensorSummary.setText(
-                "1 / 3 sensör bağlı"
-        );
-
-        updateTomatoConnectionStatus(
-                sensor
-        );
-
-        String sensorId =
-                sensor.getSensor_id();
-
-        if (
-                sensorId == null
-                        || sensorId.isBlank()
-        ) {
-
-            sensorId = "soil-001";
-        }
-
-        txtTomatoSensorId.setText(
-                sensorId
-        );
-
-        txtTomatoMoisture.setText(
-                "%" + sensor.getMoisture()
-        );
-
-        txtTomatoRssi.setText(
-                sensor.getRssi() + " dBm"
-        );
-
-        txtTomatoLastUpdate.setText(
-                getLastUpdateText(
-                        sensor
-                )
-        );
-    }
-
-    private void refreshTomatoSensorStatus() {
-
-        if (latestTomatoSensor == null) {
-
-            txtSensorSummary.setText(
-                    "0 / 3 sensör bağlı"
-            );
-
-            txtTomatoStatus.setText(
-                    "Bağlantı yok"
-            );
-
-            txtTomatoStatus.setTextColor(
-                    getColor(
-                            R.color.offline
-                    )
-            );
-
-            txtTomatoLastUpdate.setText(
-                    "Son veri: Bekleniyor"
-            );
-
-            return;
-        }
-
-        String updatedAt =
-                latestTomatoSensor.getUpdated_at();
-
-        updateTomatoConnectionStatus(
-                latestTomatoSensor
-        );
-
-        txtTomatoLastUpdate.setText(
-                getLastUpdateText(
-                        latestTomatoSensor
-                )
-        );
-
-        updateSensorSummary();
-    }
-
-    private void updateSensorSummary() {
-
-        if (latestTomatoSensor == null) {
-
-            txtSensorSummary.setText(
-                    "0 / 3 sensör bağlı"
-            );
-
-            return;
-        }
-
-        long ageSeconds =
-                getSensorAgeSeconds(
-                        latestTomatoSensor
-                );
-
-        boolean connected =
-                ageSeconds >= 0
-                        && ageSeconds
-                        <= SENSOR_WEAK_SECONDS;
-
-        txtSensorSummary.setText(
-                connected
-                        ? "1 / 3 sensör bağlı"
-                        : "0 / 3 sensör bağlı"
-        );
-    }
-
-    private void updateTomatoConnectionStatus(
-            SoilSensor sensor
-    ) {
-
-        long ageSeconds =
-                getSensorAgeSeconds(
-                        sensor
-                );
-
-        if (ageSeconds < 0) {
-
-            txtTomatoStatus.setText(
-                    "Bağlantı yok"
-            );
-
-            txtTomatoStatus.setTextColor(
-                    getColor(
-                            R.color.offline
-                    )
-            );
-
-            return;
-        }
-
-        if (
-                ageSeconds
-                        <= SENSOR_CONNECTED_SECONDS
-        ) {
-
-            txtTomatoStatus.setText(
-                    "Bağlı"
-            );
-
-            txtTomatoStatus.setTextColor(
-                    getColor(
-                            R.color.online
-                    )
-            );
-
-            return;
-        }
-
-        if (
-                ageSeconds
-                        <= SENSOR_WEAK_SECONDS
-        ) {
-
-            txtTomatoStatus.setText(
-                    "Bağlantı zayıf"
-            );
-
-            txtTomatoStatus.setTextColor(
-                    getColor(
-                            R.color.warning
-                    )
-            );
-
-            return;
-        }
-
-        txtTomatoStatus.setText(
-                "Bağlantı yok"
-        );
-
-        txtTomatoStatus.setTextColor(
-                getColor(
-                        R.color.offline
-                )
-        );
-    }
-
-    private long getSensorAgeSeconds(
-            SoilSensor sensor
-    ) {
-
-        if (sensor == null) {
-            return -1L;
-        }
-
-        long updatedAtEpoch =
-                sensor.getUpdated_at_epoch();
-
-        if (updatedAtEpoch <= 0L) {
-            return -1L;
-        }
-
-        long currentEpochSeconds =
-                System.currentTimeMillis()
-                        / 1000L;
-
-        long ageSeconds =
-                currentEpochSeconds
-                        - updatedAtEpoch;
-
-        return Math.max(
-                ageSeconds,
-                0L
-        );
-    }
-
-    private String getLastUpdateText(
-            SoilSensor sensor
-    ) {
-
-        long seconds =
-                getSensorAgeSeconds(
-                        sensor
-                );
-
-        if (seconds < 0) {
-
-            return "Son veri: Bilinmiyor";
-        }
-
-        if (seconds < 60) {
-
-            return "Son veri: Az önce";
-        }
-
-        long minutes =
-                seconds / 60;
-
-        if (minutes < 60) {
-
-            return "Son veri: "
-                    + minutes
-                    + " dk önce";
-        }
-
-        long hours =
-                minutes / 60;
-
-        if (hours < 24) {
-
-            return "Son veri: "
-                    + hours
-                    + " saat önce";
-        }
-
-        long days =
-                hours / 24;
-
-        return "Son veri: "
-                + days
-                + " gün önce";
     }
 
     @Override
     protected void onStart() {
-
         super.onStart();
 
-        sensorStatusHandler.removeCallbacks(
-                sensorStatusUpdater
-        );
-
-        sensorStatusHandler.post(
-                sensorStatusUpdater
+        statusHandler.post(
+                statusUpdater
         );
     }
 
     @Override
     protected void onStop() {
-
-        sensorStatusHandler.removeCallbacks(
-                sensorStatusUpdater
+        statusHandler.removeCallbacks(
+                statusUpdater
         );
 
         super.onStop();
     }
 
+    private void renderZones(
+            List<GardenZone> zones
+    ) {
+        latestZones.clear();
+
+        if (zones != null) {
+            latestZones.addAll(zones);
+        }
+
+        adapter.submitZones(
+                latestZones
+        );
+
+        updateSummary();
+        renderIrrigationQueue();
+    }
+
+    private void updateSummary() {
+        txtSensorSummary.setText(
+                getString(
+                        R.string.sensor_summary_format,
+                        adapter.getConnectedCount(),
+                        latestZones.size()
+                )
+        );
+    }
+
+    private void renderIrrigationQueue() {
+        layoutIrrigationQueue.removeAllViews();
+
+        GardenZone activeZone = null;
+        List<GardenZone> queuedZones =
+                new ArrayList<>();
+
+        for (GardenZone zone : latestZones) {
+            ZoneIrrigationStatus status =
+                    zone.getIrrigation_status();
+            if (status == null) {
+                continue;
+            }
+            if (status.isWatering_active()) {
+                activeZone = zone;
+            } else if (status.getQueue_position() > 0) {
+                queuedZones.add(zone);
+            }
+        }
+
+        queuedZones.sort(
+                Comparator.comparingInt(
+                        zone -> zone.getIrrigation_status()
+                                .getQueue_position()
+                )
+        );
+
+        txtQueuePumpState.setText(
+                activeZone == null
+                        ? getString(R.string.queue_pump_idle)
+                        : getString(
+                                R.string.queue_pump_active,
+                                activeZone.getName()
+                        )
+        );
+        txtQueuePumpState.setTextColor(
+                ContextCompat.getColor(
+                        this,
+                        activeZone == null
+                                ? R.color.textSecondary
+                                : R.color.info
+                )
+        );
+
+        if (queuedZones.isEmpty()) {
+            addQueueEmptyRow();
+            return;
+        }
+
+        for (GardenZone zone : queuedZones) {
+            addQueueZoneRow(zone);
+        }
+    }
+
+    private void addQueueEmptyRow() {
+        TextView empty = new TextView(this);
+        empty.setText(R.string.queue_empty);
+        empty.setTextColor(
+                ContextCompat.getColor(
+                        this,
+                        R.color.online
+                )
+        );
+        empty.setTextSize(13f);
+        empty.setPadding(0, 10, 0, 6);
+        layoutIrrigationQueue.addView(empty);
+    }
+
+    private void addQueueZoneRow(GardenZone zone) {
+        ZoneIrrigationStatus status =
+                zone.getIrrigation_status();
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(0, 10, 0, 10);
+        row.setOnClickListener(
+                view -> {
+                    Intent intent = new Intent(
+                            this,
+                            ZoneDetailActivity.class
+                    );
+                    intent.putExtra(
+                            ZoneDetailActivity.EXTRA_ZONE_ID,
+                            zone.getZone_id()
+                    );
+                    startActivity(intent);
+                }
+        );
+
+        TextView name = new TextView(this);
+        name.setText(
+                (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
+                        + " "
+                        + zone.getName()
+                        + "\n"
+                        + getString(
+                                R.string.queue_zone_detail,
+                                zone.getMoisture(),
+                                status.getMoisture_deficit()
+                        )
+        );
+        name.setTextColor(
+                ContextCompat.getColor(
+                        this,
+                        R.color.textPrimary
+                )
+        );
+        name.setTextSize(14f);
+        name.setLayoutParams(
+                new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+        );
+
+        TextView position = new TextView(this);
+        position.setText(
+                getString(
+                        R.string.queue_position,
+                        status.getQueue_position()
+                )
+        );
+        position.setTextColor(
+                ContextCompat.getColor(
+                        this,
+                        R.color.accentOrange
+                )
+        );
+        position.setTextSize(13f);
+
+        row.addView(name);
+        row.addView(position);
+        layoutIrrigationQueue.addView(row);
+    }
 }

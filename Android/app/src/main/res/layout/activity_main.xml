@@ -187,16 +187,10 @@
                             android:paddingStart="11dp"
                             android:paddingEnd="11dp">
 
-                            <View
-                                android:layout_width="7dp"
-                                android:layout_height="7dp"
-                                android:background="@color/online" />
-
                             <TextView
                                 android:id="@+id/txtOnline"
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
-                                android:layout_marginStart="7dp"
                                 android:gravity="center"
                                 android:includeFontPadding="false"
                                 android:text="@string/status_online"
@@ -214,15 +208,330 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===================================================== -->
-        <!-- TOPRAK NEMİ                                          -->
-        <!-- ===================================================== -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardHomeAlerts"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/warningBackground"
+            app:strokeColor="@color/warning"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/home_alerts_title"
+                    android:textColor="@color/warning"
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutHomeAlerts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardGardenSummary"
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/home_garden_title"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+
+                <TextView
+                    android:id="@+id/txtGardenSensors"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/home_sensor_count_waiting"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+
+                <TextView
+                    android:id="@+id/txtGardenWateringSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/home_watering_idle"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/txtGardenPumpSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/home_pump_closed"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Supporting"/>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSimulationWarning"
+                    style="@style/Widget.SmartGarden.Card.Inner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    app:cardBackgroundColor="@color/warningBackground"
+                    app:strokeColor="@color/warning"
+                    app:strokeWidth="1dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp"
+                        android:text="@string/home_simulation_warning"
+                        android:textColor="@color/warning"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/layoutHomeZoneCarouselSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/home_zones_title"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="@string/home_zones_subtitle"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerHomeZones"
+                    android:layout_width="match_parent"
+                    android:layout_height="370dp"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutHomeZoneDots"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutHomeZones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardHomeAi"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/home_ai_title"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+
+                    <TextView
+                        android:id="@+id/txtHomeAiProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/home_ai_progress_waiting"
+                        android:textColor="@color/info"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtHomeAiDecision"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/home_ai_waiting"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/txtHomeAiSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:maxLines="2"
+                    android:text="@string/home_ai_summary_waiting"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Supporting"/>
+
+                <ProgressBar
+                    android:id="@+id/progressHomeAi"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="7dp"
+                    android:layout_marginTop="12dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressBackgroundTint="@color/divider"
+                    android:progressTint="@color/info"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="@string/home_ai_open_details"
+                    android:textColor="@color/info"
+                    android:textSize="11sp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardQuickActions"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/home_quick_actions_title"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHomeZones"
+                        style="@style/Widget.SmartGarden.Button.Secondary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:minHeight="50dp"
+                        android:text="@string/home_quick_zones"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHomeAi"
+                        style="@style/Widget.SmartGarden.Button.Secondary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:minHeight="50dp"
+                        android:text="@string/home_quick_ai"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHomeSettings"
+                        style="@style/Widget.SmartGarden.Button.Secondary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:minHeight="50dp"
+                        android:text="@string/home_quick_settings"/>
+
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleAdvanced"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="48dp"
+                    android:text="@string/home_show_advanced"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===================================================== -->
+        <!-- BİRİNCİL BÖLGE                                       -->
+        <!-- ===================================================== -->
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPrimaryZoneDetails"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -245,6 +554,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/txtPrimaryZoneTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:includeFontPadding="false"
@@ -252,6 +562,7 @@
                             android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
 
                         <TextView
+                            android:id="@+id/txtPrimaryZoneSubtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
@@ -488,10 +799,12 @@
         <!-- ===================================================== -->
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardWateringControl"
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp">
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
