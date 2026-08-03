@@ -3,6 +3,7 @@ credentials/
 smartgarden.log
 
 firebase_key.json
+Arduino/ESP32/**/secrets*.h
 
 # Python
 __pycache__/

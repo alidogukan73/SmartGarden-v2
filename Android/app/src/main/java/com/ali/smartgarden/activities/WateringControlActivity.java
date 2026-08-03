@@ -7,6 +7,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import android.view.View;
+import android.view.Gravity;
 import androidx.appcompat.widget.AppCompatImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -104,6 +105,9 @@ public class WateringControlActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(
                 view -> finish()
         );
+        findViewById(R.id.btnValveSetup).setOnClickListener(
+                view -> showValveSetup()
+        );
 
         viewModel = new ViewModelProvider(this)
                 .get(MainViewModel.class);
@@ -145,7 +149,12 @@ public class WateringControlActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (!valveOpen) {
+                    // Stopping automatic watering must always be possible.
+                    // A valve is required only when starting automatic mode.
+                    if (checked && !hasConfiguredPhysicalValve()) {
+                        updatingSwitch = true;
+                        autoSwitch.setChecked(false);
+                        updatingSwitch = false;
                         Toast.makeText(
                                 this,
                                 "Pompa açılamadı: önce bir vana açın.",
@@ -154,7 +163,10 @@ public class WateringControlActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (!physicalValveMode) {
+                    if (checked && !hasConfiguredPhysicalValve()) {
+                        updatingSwitch = true;
+                        autoSwitch.setChecked(false);
+                        updatingSwitch = false;
                         Toast.makeText(
                                 this,
                                 "Pompa koruma altında: vanalar simülasyon modunda.",
@@ -369,7 +381,7 @@ public class WateringControlActivity extends AppCompatActivity {
         updatingValveSwitch = true;
         manualValves.removeAllViews();
         manualValveSafety.setText(
-                physicalValveMode
+                hasConfiguredPhysicalValve()
                         ? R.string.manual_valves_physical
                         : R.string.manual_valves_simulation
         );
@@ -393,11 +405,14 @@ public class WateringControlActivity extends AppCompatActivity {
             String emoji = zone.getEmoji() == null
                     ? "🌱"
                     : zone.getEmoji();
+            boolean zonePhysical = "PHYSICAL".equalsIgnoreCase(
+                    zone.getValve_mode()
+            );
             name.setText(emoji + " " + zone.getName());
             detail.setText(
                     zone.getValve_id()
                             + (
-                            physicalValveMode
+                            zonePhysical
                                     ? " · Fiziksel"
                                     : " · Simülasyon"
                     )
@@ -414,12 +429,13 @@ public class WateringControlActivity extends AppCompatActivity {
                         }
 
                         if (!checked) {
-                            if (thisValveOpen) {
-                                if (relayOn) {
-                                    viewModel.setRelay(false);
-                                }
-                                viewModel.closeManualValve();
+                            if (relayOn) {
+                                viewModel.setRelay(false);
                             }
+                            // Always send the cancellation.  A stale screen
+                            // state must never leave a manual valve command
+                            // running in Firebase.
+                            viewModel.closeManualValve();
                             return;
                         }
 
@@ -442,11 +458,148 @@ public class WateringControlActivity extends AppCompatActivity {
                             ).show();
                             return;
                         }
+                        // Wait for Raspberry Pi status confirmation before
+                        // rendering this switch as open.  This avoids a
+                        // locally green switch when a command is rejected.
+                        updatingValveSwitch = true;
+                        button.setChecked(false);
+                        updatingValveSwitch = false;
                         viewModel.openManualValve(zone);
+                        Toast.makeText(
+                                this,
+                                "Vana açma komutu gönderildi.",
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
             );
             manualValves.addView(row);
         }
         updatingValveSwitch = false;
+    }
+
+    private boolean hasConfiguredPhysicalValve() {
+        for (GardenZone zone : zones) {
+            if ("PHYSICAL".equalsIgnoreCase(
+                    zone.getValve_mode()
+            )) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showValveSetup() {
+        if (relayOn || valveOpen) {
+            Toast.makeText(
+                    this,
+                    "Pompa veya vana açıkken vana modu değiştirilemez.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources()
+                .getDisplayMetrics().density);
+        content.setPadding(padding, 0, padding, 0);
+
+        TextView hint = new TextView(this);
+        hint.setText(R.string.valve_setup_hint);
+        content.addView(hint);
+
+        for (GardenZone zone : zones) {
+            LinearLayout row = new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(0, padding / 2, 0, padding / 2);
+
+            TextView label = new TextView(this);
+            label.setLayoutParams(new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+            ));
+            String valveId = zone.getValve_id() == null
+                    ? ""
+                    : zone.getValve_id();
+            boolean physical = "PHYSICAL".equalsIgnoreCase(
+                    zone.getValve_mode()
+            );
+            String wiring = zone.getValve_gpio_bcm() > 0
+                    && zone.getValve_gpio_physical_pin() > 0
+                    ? "GPIO " + zone.getValve_gpio_bcm()
+                    + " · Fiziksel Pin "
+                    + zone.getValve_gpio_physical_pin()
+                    : "Bağlantı bilgisi yükleniyor";
+            label.setText(
+                    zone.getEmoji() + " " + zone.getName()
+                            + "\n" + valveId + " · "
+                            + getString(
+                            physical
+                                    ? R.string.valve_setup_physical
+                                    : R.string.valve_setup_simulation
+                    )
+                            + "\n" + wiring
+            );
+
+            MaterialSwitch modeSwitch = new MaterialSwitch(this);
+            modeSwitch.setChecked(physical);
+            modeSwitch.setEnabled(!valveId.isBlank());
+            modeSwitch.setOnCheckedChangeListener(
+                    (button, checked) -> {
+                        if (checked == physical) {
+                            return;
+                        }
+                        if (!checked) {
+                            saveValveMode(zone, false);
+                            return;
+                        }
+                        new MaterialAlertDialogBuilder(this)
+                                .setTitle(
+                                        R.string.valve_setup_confirm_title
+                                )
+                                .setMessage(getString(
+                                        R.string.valve_setup_confirm_message,
+                                        zone.getName()
+                                ))
+                                .setNegativeButton(
+                                        android.R.string.cancel,
+                                        (dialog, which) ->
+                                                modeSwitch.setChecked(false)
+                                )
+                                .setPositiveButton(
+                                        android.R.string.ok,
+                                        (dialog, which) ->
+                                                saveValveMode(zone, true)
+                                )
+                                .show();
+                    }
+            );
+            row.addView(label);
+            row.addView(modeSwitch);
+            content.addView(row);
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.valve_setup_title)
+                .setView(content)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private void saveValveMode(
+            GardenZone zone,
+            boolean physical
+    ) {
+        viewModel.setZoneValvePhysicalMode(zone, physical);
+        Toast.makeText(
+                this,
+                zone.getName() + ": " + getString(
+                        physical
+                                ? R.string.valve_setup_physical
+                                : R.string.valve_setup_simulation
+                ),
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

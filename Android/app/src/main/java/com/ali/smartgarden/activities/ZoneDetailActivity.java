@@ -1,6 +1,8 @@
 package com.ali.smartgarden.activities;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +19,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -39,7 +42,11 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private TextView valveMode;
     private TextView irrigationDescription;
     private TextView settingsStatus;
+    private TextView sensorIdValue;
     private MaterialSwitch irrigationEnabled;
+    private MaterialSwitch sensorEnabled;
+    private TextInputEditText sensorDryRawInput;
+    private TextInputEditText sensorWetRawInput;
     private Slider moistureSlider;
     private Slider durationSlider;
     private Slider cooldownSlider;
@@ -56,6 +63,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private int originalCooldownMinutes = 10;
     private int originalRestartDelta = 10;
     private boolean originalIrrigationEnabled;
+    private boolean originalSensorEnabled = true;
+    private int originalSensorDryRaw = 12650;
+    private int originalSensorWetRaw = 505;
     private boolean zoneTestActive;
 
     @Override
@@ -121,8 +131,16 @@ public class ZoneDetailActivity extends AppCompatActivity {
         settingsStatus = findViewById(
                 R.id.txtZoneSettingsStatus
         );
+        sensorIdValue = findViewById(R.id.txtZoneSensorId);
         irrigationEnabled = findViewById(
                 R.id.switchZoneIrrigation
+        );
+        sensorEnabled = findViewById(R.id.switchZoneSensor);
+        sensorDryRawInput = findViewById(
+                R.id.inputZoneSensorDryRaw
+        );
+        sensorWetRawInput = findViewById(
+                R.id.inputZoneSensorWetRaw
         );
         moistureSlider = findViewById(
                 R.id.sliderZoneMoistureLimit
@@ -220,6 +238,41 @@ public class ZoneDetailActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        sensorEnabled.setOnCheckedChangeListener(
+                (button, checked) -> {
+                    if (!renderingRemoteValues) {
+                        updateUnsavedState();
+                    }
+                }
+        );
+
+        TextWatcher calibrationWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(
+                    CharSequence value,
+                    int start,
+                    int count,
+                    int after
+            ) { }
+
+            @Override
+            public void onTextChanged(
+                    CharSequence value,
+                    int start,
+                    int before,
+                    int count
+            ) {
+                if (!renderingRemoteValues) {
+                    updateUnsavedState();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable value) { }
+        };
+        sensorDryRawInput.addTextChangedListener(calibrationWatcher);
+        sensorWetRawInput.addTextChangedListener(calibrationWatcher);
     }
 
     private void bindActions(String zoneId) {
@@ -342,6 +395,21 @@ public class ZoneDetailActivity extends AppCompatActivity {
             return;
         }
 
+        Integer sensorDryRaw = readCalibrationInput(sensorDryRawInput);
+        Integer sensorWetRaw = readCalibrationInput(sensorWetRawInput);
+        if (
+                sensorDryRaw == null
+                        || sensorWetRaw == null
+                        || sensorDryRaw <= sensorWetRaw
+        ) {
+            Toast.makeText(
+                    this,
+                    R.string.zone_sensor_calibration_invalid,
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
         setControlsEnabled(false);
         saveButton.setText(R.string.settings_saving);
         settingsStatus.setText(
@@ -354,7 +422,10 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         Math.round(moistureSlider.getValue()),
                         Math.round(durationSlider.getValue()),
                         Math.round(cooldownSlider.getValue()) * 60,
-                        Math.round(restartDeltaSlider.getValue())
+                        Math.round(restartDeltaSlider.getValue()),
+                        sensorEnabled.isChecked(),
+                        sensorDryRaw,
+                        sensorWetRaw
                 ).addOnSuccessListener(
                         unused -> {
                             saveCurrentValuesAsOriginal();
@@ -400,6 +471,11 @@ public class ZoneDetailActivity extends AppCompatActivity {
         }
 
         currentZone = zone;
+        sensorIdValue.setText(
+                getString(R.string.zone_sensor_id_label)
+                        + ": "
+                        + zone.getSensor_id()
+        );
         title.setText(
                 (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
                         + " "
@@ -413,6 +489,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
             originalIrrigationEnabled =
                     zone.isIrrigation_enabled();
+            originalSensorEnabled = zone.isSensor_enabled();
+            originalSensorDryRaw = zone.getSensor_calibration_dry_raw();
+            originalSensorWetRaw = zone.getSensor_calibration_wet_raw();
             originalMoistureLimit = Math.max(
                     5,
                     Math.min(95, zone.getMoisture_limit())
@@ -437,6 +516,13 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
             irrigationEnabled.setChecked(
                     originalIrrigationEnabled
+            );
+            sensorEnabled.setChecked(originalSensorEnabled);
+            sensorDryRawInput.setText(
+                    String.valueOf(originalSensorDryRaw)
+            );
+            sensorWetRawInput.setText(
+                    String.valueOf(originalSensorWetRaw)
             );
             moistureSlider.setValue(
                     originalMoistureLimit
@@ -532,7 +618,17 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 || Math.round(restartDeltaSlider.getValue())
                 != originalRestartDelta
                 || irrigationEnabled.isChecked()
-                != originalIrrigationEnabled;
+                != originalIrrigationEnabled
+                || sensorEnabled.isChecked()
+                != originalSensorEnabled
+                || calibrationInputChanged(
+                        sensorDryRawInput,
+                        originalSensorDryRaw
+                )
+                || calibrationInputChanged(
+                        sensorWetRawInput,
+                        originalSensorWetRaw
+                );
     }
 
     private void saveCurrentValuesAsOriginal() {
@@ -546,6 +642,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 Math.round(restartDeltaSlider.getValue());
         originalIrrigationEnabled =
                 irrigationEnabled.isChecked();
+        originalSensorEnabled = sensorEnabled.isChecked();
+        originalSensorDryRaw = readCalibrationInput(sensorDryRawInput);
+        originalSensorWetRaw = readCalibrationInput(sensorWetRawInput);
     }
 
     private void updateIrrigationDescription(
@@ -571,11 +670,39 @@ public class ZoneDetailActivity extends AppCompatActivity {
         cooldownSlider.setEnabled(enabled);
         restartDeltaSlider.setEnabled(enabled);
         irrigationEnabled.setEnabled(enabled);
+        sensorEnabled.setEnabled(enabled);
+        sensorDryRawInput.setEnabled(enabled);
+        sensorWetRawInput.setEnabled(enabled);
         resetButton.setEnabled(enabled);
         testButton.setEnabled(enabled);
         saveButton.setEnabled(
                 enabled && hasUnsavedChanges()
         );
+    }
+
+    private Integer readCalibrationInput(
+            TextInputEditText input
+    ) {
+        String value = input.getText() == null
+                ? ""
+                : input.getText().toString().trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException error) {
+            return null;
+        }
+    }
+
+    private boolean calibrationInputChanged(
+            TextInputEditText input,
+            int originalValue
+    ) {
+        Integer currentValue = readCalibrationInput(input);
+        return currentValue == null || currentValue != originalValue;
     }
 
     private void showResetConfirmation() {

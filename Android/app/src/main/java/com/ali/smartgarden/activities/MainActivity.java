@@ -41,6 +41,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.auth.FirebaseAuth;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -151,6 +152,44 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         setContentView(R.layout.activity_main);
+
+        authenticateThenInitialize();
+    }
+
+    /**
+     * Realtime Database rules require an authenticated Firebase user.  The
+     * garden has a single trusted mobile app, so it obtains a persisted
+     * anonymous Firebase session before attaching any database listeners.
+     */
+    private void authenticateThenInitialize() {
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+
+        if (auth.getCurrentUser() != null) {
+            initializeAuthenticatedApp();
+            return;
+        }
+
+        auth.signInAnonymously().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                initializeAuthenticatedApp();
+                return;
+            }
+
+            Log.e(
+                    "MainActivity",
+                    "Firebase anonymous sign-in failed",
+                    task.getException()
+            );
+            Toast.makeText(
+                    this,
+                    "Güvenli Firebase bağlantısı kurulamadı. İnternet bağlantısını kontrol edin.",
+                    Toast.LENGTH_LONG
+            ).show();
+        });
+    }
+
+    private void initializeAuthenticatedApp() {
 
         connectionStartedElapsedMillis = SystemClock.elapsedRealtime();
         moveZoneCarouselAboveGardenSummary();
@@ -759,14 +798,16 @@ public class MainActivity extends AppCompatActivity {
         int cooldownCount = 0;
         GardenZone active = null;
         GardenZone queued = null;
-        boolean simulation = false;
+        boolean hasPhysicalValve = false;
 
         for (GardenZone zone : latestZones) {
             if (isZoneConnected(zone)) {
                 connected++;
             }
-            if (!"PHYSICAL".equals(zone.getValve_mode())) {
-                simulation = true;
+            if ("PHYSICAL".equalsIgnoreCase(
+                    zone.getValve_mode()
+            )) {
+                hasPhysicalValve = true;
             }
 
             ZoneIrrigationStatus irrigation =
@@ -794,9 +835,9 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
         cardSimulationWarning.setVisibility(
-                simulation ? View.VISIBLE : View.GONE
+                hasPhysicalValve ? View.GONE : View.VISIBLE
         );
-        valveSimulationMode = simulation;
+        valveSimulationMode = !hasPhysicalValve;
         updatePumpUi(relayOn);
         txtGardenPumpSummary.setText(
                 relayOn
@@ -833,6 +874,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderEffectiveOnlineStatus() {
+
+        // onStart may run while the anonymous Firebase session is still being
+        // created.  Do not render the dashboard until its views are ready.
+        if (txtOnline == null || cardOnlineStatus == null) {
+            return;
+        }
+
         updateOnlineUi(getConnectionState());
         renderHomeAlerts();
     }

@@ -17,8 +17,12 @@ from firebase_admin import db
 from core.config import AppConfig
 from core.config import FirebaseConfig
 from core.config import IrrigationConfig
+from core.config import SensorConfig
 from core.logger import AppLogger
 from core.device_control import DeviceControl
+from hardware.esp32_sensor_config_publisher import (
+    Esp32SensorConfigPublisher,
+)
 
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
@@ -76,6 +80,20 @@ class FirebaseService:
         self._zone_config_by_sensor_id: dict[str, dict] = {}
         self._zone_map_refreshed_at = 0.0
         self._zone_map_refresh_seconds = 10.0
+        self._published_sensor_configs: dict[
+            str,
+            tuple[bool, int, int],
+        ] = {}
+        self._published_valve_hardware_map: dict[
+            str,
+            tuple[int, int],
+        ] = {}
+        self._sensor_config_publisher = (
+            Esp32SensorConfigPublisher(
+                broker=SensorConfig.MQTT_BROKER,
+                port=SensorConfig.MQTT_PORT,
+            )
+        )
 
         self.device_control = DeviceControl()
 
@@ -113,6 +131,7 @@ class FirebaseService:
             self._initialized = True
 
             self.initialize_commands()
+            self._sensor_config_publisher.start()
             self._refresh_zone_sensor_map()
 
             initial_command_state = self.get_commands()
@@ -214,6 +233,8 @@ class FirebaseService:
 
         self._sync_thread = None
 
+        self._sensor_config_publisher.stop()
+
     # -------------------------------------------------
     # Device status
     # -------------------------------------------------
@@ -300,6 +321,8 @@ class FirebaseService:
         valve_id: str | None,
         is_open: bool,
         zone_id: str | None = None,
+        hardware_valve_id: str | None = None,
+        is_physical: bool | None = None,
     ) -> None:
         """
         Publish the selected valve state for UI and simulation tests.
@@ -307,21 +330,40 @@ class FirebaseService:
 
         from core.config import ValveConfig
 
+        physical = is_physical
+        if physical is None:
+            # Compatibility fallback for callers that do not yet provide the
+            # live controller result.
+            physical = (
+                (valve_id or hardware_valve_id)
+                in ValveConfig.PHYSICAL_VALVE_IDS
+                and not ValveConfig.SIMULATION_MODE
+            )
+
+        valve_mode = "PHYSICAL" if physical else "SIMULATION"
+        updated_at = datetime.now().isoformat()
+        valve_status = {
+            "active_valve_id": valve_id or "",
+            "valve_open": is_open,
+            "valve_mode": valve_mode,
+        }
+
         self._device_ref().child("irrigation_hardware").update(
             {
-                "active_valve_id": valve_id or "",
-                "valve_open": is_open,
-                "valve_mode": (
-                    "SIMULATION"
-                    if ValveConfig.SIMULATION_MODE
-                    else "PHYSICAL"
-                ),
+                **valve_status,
                 "pump_interlock": (
-                    "BLOCKED"
-                    if ValveConfig.SIMULATION_MODE
-                    else "READY"
+                    "READY" if physical else "BLOCKED"
                 ),
-                "updated_at": datetime.now().isoformat(),
+                "updated_at": updated_at,
+            },
+        )
+
+        # WateringControlActivity observes /status. Mirror the authoritative
+        # state so a real open valve is never rendered as simulated.
+        self._device_ref().child("status").update(
+            {
+                **valve_status,
+                "last_seen": updated_at,
             },
         )
 
@@ -332,6 +374,15 @@ class FirebaseService:
                 {
                     "watering_active": is_open,
                     "updated_at": datetime.now().isoformat(),
+                },
+            )
+            self._device_ref().child(
+                f"zones/{zone_id}",
+            ).update(
+                {
+                    "valve_mode": (
+                        "PHYSICAL" if physical else "SIMULATION"
+                    ),
                 },
             )
 
@@ -481,9 +532,6 @@ class FirebaseService:
         update_sensor() for the primary irrigation sensor.
         """
 
-        if not readings:
-            return
-
         current_time = time.monotonic()
 
         if (
@@ -495,6 +543,9 @@ class FirebaseService:
             )
         ):
             self._refresh_zone_sensor_map()
+
+        if not readings:
+            return
 
         updates: dict[str, object] = {}
         updated_at = datetime.now().isoformat()
@@ -581,10 +632,111 @@ class FirebaseService:
             time.monotonic()
         )
 
+        self._publish_saved_sensor_configs(
+            zone_config_by_sensor_id,
+        )
+        self._publish_valve_hardware_map(
+            zone_config_by_sensor_id,
+        )
+
         self._logger.info(
             "Garden zone sensor map refreshed. count=%d",
             len(self._zone_by_sensor_id),
         )
+
+    def _publish_saved_sensor_configs(
+        self,
+        zones_by_sensor: dict[str, dict],
+    ) -> None:
+        """Send only explicitly saved app settings to the ESP32."""
+        current_configs: dict[str, tuple[bool, int, int]] = {}
+
+        for sensor_id, zone in zones_by_sensor.items():
+            required_fields = {
+                "sensor_enabled",
+                "sensor_calibration_dry_raw",
+                "sensor_calibration_wet_raw",
+            }
+            if not required_fields.issubset(zone):
+                # Existing zones keep the ESP32 firmware defaults until the
+                # user saves their sensor settings from Android.
+                continue
+
+            try:
+                enabled = bool(zone["sensor_enabled"])
+                dry_raw = int(zone["sensor_calibration_dry_raw"])
+                wet_raw = int(zone["sensor_calibration_wet_raw"])
+            except (TypeError, ValueError):
+                self._logger.warning(
+                    "Invalid saved sensor configuration ignored. sensor_id=%s",
+                    sensor_id,
+                )
+                continue
+
+            if dry_raw <= wet_raw:
+                self._logger.warning(
+                    "Unsafe saved sensor calibration ignored. sensor_id=%s",
+                    sensor_id,
+                )
+                continue
+
+            current_configs[sensor_id] = (
+                enabled,
+                dry_raw,
+                wet_raw,
+            )
+
+        for sensor_id, config in current_configs.items():
+            if self._published_sensor_configs.get(sensor_id) == config:
+                continue
+
+            try:
+                self._sensor_config_publisher.publish(
+                    sensor_id=sensor_id,
+                    enabled=config[0],
+                    dry_raw=config[1],
+                    wet_raw=config[2],
+                )
+                self._published_sensor_configs[sensor_id] = config
+                self._logger.info(
+                    "ESP32 sensor configuration published. sensor_id=%s enabled=%s",
+                    sensor_id,
+                    config[0],
+                )
+            except Exception as exc:
+                self._logger.warning(
+                    "ESP32 sensor configuration publish failed. sensor_id=%s error=%s",
+                    sensor_id,
+                    exc,
+                )
+
+    def _publish_valve_hardware_map(
+        self,
+        zones_by_sensor: dict[str, dict],
+    ) -> None:
+        """Expose the fixed Pi wiring map to the app without making it editable."""
+        from core.config import ValveConfig
+
+        updates: dict[str, object] = {}
+        for zone in zones_by_sensor.values():
+            zone_id = str(zone.get("zone_id", "")).strip()
+            valve_id = str(zone.get("valve_id", "")).strip()
+            gpio = ValveConfig.GPIO_PINS.get(valve_id)
+            physical_pin = ValveConfig.GPIO_PHYSICAL_PINS.get(valve_id)
+            if not zone_id or gpio is None or physical_pin is None:
+                continue
+
+            current = (gpio, physical_pin)
+            if self._published_valve_hardware_map.get(zone_id) == current:
+                continue
+
+            path = f"zones/{zone_id}/"
+            updates[path + "valve_gpio_bcm"] = gpio
+            updates[path + "valve_gpio_physical_pin"] = physical_pin
+            self._published_valve_hardware_map[zone_id] = current
+
+        if updates:
+            self._device_ref().update(updates)
 
     def get_zone_config_for_sensor(
         self,
@@ -614,6 +766,16 @@ class FirebaseService:
             sensor_id: dict(zone)
             for sensor_id, zone
             in self._zone_config_by_sensor_id.items()
+        }
+
+    def get_physical_valve_ids(self) -> set[str]:
+        """Return only zones explicitly approved for real valve control."""
+        return {
+            str(zone.get("valve_id", "")).strip()
+            for zone in self._zone_config_by_sensor_id.values()
+            if str(zone.get("valve_mode", "SIMULATION")).upper()
+            == "PHYSICAL"
+            and str(zone.get("valve_id", "")).strip()
         }
 
     def update_zone_irrigation_decisions(

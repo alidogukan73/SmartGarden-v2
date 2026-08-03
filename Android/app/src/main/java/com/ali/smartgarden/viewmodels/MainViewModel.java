@@ -252,6 +252,19 @@ public class MainViewModel extends ViewModel {
         repository.cancelZoneValveTest();
     }
 
+    public void setZoneValvePhysicalMode(
+            GardenZone zone,
+            boolean physical
+    ) {
+        if (zone == null || zone.getZone_id() == null) {
+            return;
+        }
+        repository.updateGardenZoneValveMode(
+                zone.getZone_id(),
+                physical
+        );
+    }
+
     private void observeStatus() {
 
         repository.observeStatus(

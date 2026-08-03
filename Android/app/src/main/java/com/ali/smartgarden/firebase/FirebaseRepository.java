@@ -248,7 +248,10 @@ public class FirebaseRepository {
             int moistureLimit,
             int pumpDuration,
             int cooldownSeconds,
-            int restartDelta
+            int restartDelta,
+            boolean sensorEnabled,
+            int sensorDryRaw,
+            int sensorWetRaw
     ) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("irrigation_enabled", irrigationEnabled);
@@ -256,7 +259,21 @@ public class FirebaseRepository {
         updates.put("pump_duration", pumpDuration);
         updates.put("cooldown_seconds", cooldownSeconds);
         updates.put("restart_delta", restartDelta);
+        updates.put("sensor_enabled", sensorEnabled);
+        updates.put("sensor_calibration_dry_raw", sensorDryRaw);
+        updates.put("sensor_calibration_wet_raw", sensorWetRaw);
+        updates.put("sensor_config_updated_at_epoch", ServerValue.TIMESTAMP);
 
+        return zonesRef.child(zoneId).updateChildren(updates);
+    }
+
+    public Task<Void> updateGardenZoneValveMode(
+            String zoneId,
+            boolean physical
+    ) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("valve_mode", physical ? "PHYSICAL" : "SIMULATION");
+        updates.put("valve_mode_updated_at_epoch", ServerValue.TIMESTAMP);
         return zonesRef.child(zoneId).updateChildren(updates);
     }
 

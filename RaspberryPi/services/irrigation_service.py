@@ -122,6 +122,7 @@ class IrrigationService:
         self._last_zone_test_request_id = ""
         self._active_zone_test_request_id = ""
         self._active_zone_test_valve_id = ""
+        self._active_zone_test_mode = ""
         self._active_zone_test_deadline = 0.0
         self._last_zone_config_signature = None
 
@@ -136,6 +137,13 @@ class IrrigationService:
         self._valves.initialize()
 
         self._firebase.initialize()
+        # A service restart closes every relay/valve. Clear any stale
+        # Firebase status as well, otherwise Android can keep a manual valve
+        # switch visually locked after the hardware is already safe.
+        self._firebase.update_active_zone_valve(
+            None,
+            False,
+        )
 
         self._restore_zone_cooldowns()
 
@@ -625,6 +633,10 @@ class IrrigationService:
                 global_commands=commands,
             )
 
+            self._valves.configure_physical_valves(
+                self._firebase.get_physical_valve_ids(),
+            )
+
             zone_config = (
                 self._firebase.get_zone_config_for_sensor(
                     reading.sensor_id,
@@ -720,7 +732,9 @@ class IrrigationService:
 
                 if (
                     selected_zone_result is not None
-                    and not self._valves.simulation_mode
+                    and self._valves.is_physical_valve(
+                        selected_zone_result.candidate.valve_id,
+                    )
                 ):
                     selected_candidate = (
                         selected_zone_result.candidate
@@ -775,6 +789,8 @@ class IrrigationService:
                                 active_valve_id,
                                 is_open,
                                 zone_id,
+                                valve_id,
+                                self._valves.is_physical_valve(valve_id),
                             )
                         ),
                     )
@@ -859,6 +875,22 @@ class IrrigationService:
             else:
 
                 relay_requested = commands.relay
+                if (
+                    relay_requested
+                    and not self._manual_pump_interlock_ready()
+                ):
+                    # Never allow the manual pump command to run dry.  The
+                    # Android screen is only a convenience layer; the Pi is
+                    # the final safety authority.
+                    relay_requested = False
+                    self._relay.off()
+                    self._reset_manual_relay_safety()
+                    self._logger.warning(
+                        "Manual relay command rejected: no physical valve "
+                        "is open.",
+                    )
+                    self._firebase.set_relay_command(False)
+
                 if (
                     relay_requested
                     and not self._is_recent_command(
@@ -1407,6 +1439,14 @@ class IrrigationService:
 
         return False
 
+    def _manual_pump_interlock_ready(self) -> bool:
+        """A manual pump run requires one configured physical valve open."""
+        active_valve_id = self._valves.active_valve_id
+        return (
+            active_valve_id is not None
+            and self._valves.is_physical_valve(active_valve_id)
+        )
+
     def _process_zone_test_command(
         self,
         commands,
@@ -1430,23 +1470,27 @@ class IrrigationService:
                 or remaining <= 0
             ):
                 self._relay.off()
-                self._valves.close_all()
                 self._firebase.update_active_zone_valve(
                     None,
                     False,
+                    commands.zone_test_zone_id,
+                    self._active_zone_test_valve_id,
+                    self._active_zone_test_mode == "PHYSICAL_TEST",
                 )
+                self._valves.close_all()
                 self._firebase.acknowledge_zone_test(
                     request_id=(
                         self._active_zone_test_request_id
                     ),
                     result=(
-                        "SIMULATION_CANCELLED"
+                        f"{self._active_zone_test_mode}_CANCELLED"
                         if commands.zone_test_cancel_requested
-                        else "SIMULATION_COMPLETED"
+                        else f"{self._active_zone_test_mode}_COMPLETED"
                     ),
                 )
                 self._active_zone_test_request_id = ""
                 self._active_zone_test_valve_id = ""
+                self._active_zone_test_mode = ""
                 self._active_zone_test_deadline = 0.0
 
         if (
@@ -1471,10 +1515,15 @@ class IrrigationService:
             commands.zone_test_requested_at_ms
         ):
             result = "STALE_COMMAND"
-        elif not self._valves.simulation_mode:
-            result = "PHYSICAL_TEST_BLOCKED"
         else:
             duration = max(1, commands.zone_test_duration)
+            test_mode = (
+                "PHYSICAL_TEST"
+                if self._valves.is_physical_valve(
+                    commands.zone_test_valve_id,
+                )
+                else "SIMULATION"
+            )
             self._relay.off()
             self._valves.open(
                 commands.zone_test_valve_id,
@@ -1482,23 +1531,36 @@ class IrrigationService:
             self._firebase.update_active_zone_valve(
                 commands.zone_test_valve_id,
                 True,
+                commands.zone_test_zone_id,
+                commands.zone_test_valve_id,
+                test_mode == "PHYSICAL_TEST",
+            )
+            self._valves.wait_for_opening(
+                commands.zone_test_valve_id,
             )
             self._active_zone_test_request_id = request_id
             self._active_zone_test_valve_id = (
                 commands.zone_test_valve_id
             )
+            self._active_zone_test_mode = test_mode
             self._active_zone_test_deadline = (
                 time.monotonic() + duration
             )
-            result = "SIMULATION_ACTIVE"
+            result = f"{test_mode}_ACTIVE"
 
         self._firebase.acknowledge_zone_test(
             request_id=request_id,
             result=result,
-            active=(result == "SIMULATION_ACTIVE"),
+            active=result in {
+                "SIMULATION_ACTIVE",
+                "PHYSICAL_TEST_ACTIVE",
+            },
             remaining_seconds=(
                 commands.zone_test_duration
-                if result == "SIMULATION_ACTIVE"
+                if result in {
+                    "SIMULATION_ACTIVE",
+                    "PHYSICAL_TEST_ACTIVE",
+                }
                 else 0
             ),
         )

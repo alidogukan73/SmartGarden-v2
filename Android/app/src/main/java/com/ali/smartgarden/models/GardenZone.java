@@ -7,9 +7,14 @@ public class GardenZone {
     private String plant_type;
     private String emoji;
     private String sensor_id;
+    private boolean sensor_enabled = true;
+    private int sensor_calibration_dry_raw = 12650;
+    private int sensor_calibration_wet_raw = 505;
     private String valve_id;
     private String valve_type;
     private String valve_mode;
+    private int valve_gpio_bcm;
+    private int valve_gpio_physical_pin;
     private boolean enabled = true;
     private boolean irrigation_enabled;
     private int order;
@@ -91,6 +96,30 @@ public class GardenZone {
         this.sensor_id = sensorId;
     }
 
+    public boolean isSensor_enabled() {
+        return sensor_enabled;
+    }
+
+    public void setSensor_enabled(boolean sensorEnabled) {
+        this.sensor_enabled = sensorEnabled;
+    }
+
+    public int getSensor_calibration_dry_raw() {
+        return sensor_calibration_dry_raw;
+    }
+
+    public void setSensor_calibration_dry_raw(int dryRaw) {
+        this.sensor_calibration_dry_raw = dryRaw;
+    }
+
+    public int getSensor_calibration_wet_raw() {
+        return sensor_calibration_wet_raw;
+    }
+
+    public void setSensor_calibration_wet_raw(int wetRaw) {
+        this.sensor_calibration_wet_raw = wetRaw;
+    }
+
     public String getValve_id() {
         return valve_id;
     }
@@ -113,6 +142,22 @@ public class GardenZone {
 
     public void setValve_mode(String valveMode) {
         this.valve_mode = valveMode;
+    }
+
+    public int getValve_gpio_bcm() {
+        return valve_gpio_bcm;
+    }
+
+    public void setValve_gpio_bcm(int valveGpioBcm) {
+        this.valve_gpio_bcm = valveGpioBcm;
+    }
+
+    public int getValve_gpio_physical_pin() {
+        return valve_gpio_physical_pin;
+    }
+
+    public void setValve_gpio_physical_pin(int valveGpioPhysicalPin) {
+        this.valve_gpio_physical_pin = valveGpioPhysicalPin;
     }
 
     public boolean isEnabled() {

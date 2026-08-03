@@ -162,7 +162,7 @@ public class SensorPointsActivity extends AppCompatActivity {
                 getString(
                         R.string.sensor_summary_format,
                         adapter.getConnectedCount(),
-                        latestZones.size()
+                        adapter.getEnabledSensorCount()
                 )
         );
     }

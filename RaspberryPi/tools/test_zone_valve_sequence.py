@@ -24,6 +24,7 @@ except ModuleNotFoundError:
     sys.modules["RPi.GPIO"] = gpio_module
 
 from controllers.watering_controller import WateringController
+from core.config import ValveConfig
 from hardware.valve_controller import ValveController
 from models.command_state import CommandState
 
@@ -42,6 +43,10 @@ class FakePumpRelay:
 
 
 def main() -> None:
+    # Verify an unfinished valve remains a hard simulation interlock even
+    # after another valve has been configured as physical hardware.
+    original_physical_valves = ValveConfig.PHYSICAL_VALVE_IDS
+    ValveConfig.PHYSICAL_VALVE_IDS = frozenset()
     pump = FakePumpRelay()
     valves = ValveController()
     valves.initialize()
@@ -73,6 +78,7 @@ def main() -> None:
     ]
 
     valves.cleanup()
+    ValveConfig.PHYSICAL_VALVE_IDS = original_physical_valves
 
     print(
         "[PASS] Simulated valve sequence kept the real pump OFF.",

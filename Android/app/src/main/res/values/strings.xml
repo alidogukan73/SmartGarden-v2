@@ -434,6 +434,7 @@
     <string name="diagnostics_relay_active">Pompa rölesi şu anda çalışıyor</string>
     <string name="diagnostics_valve_simulation">Vana simülasyon koruması aktif</string>
     <string name="diagnostics_valve_physical">Fiziksel vana modu aktif</string>
+    <string name="diagnostics_valve_physical_ready">Fiziksel vana kontrolü hazır</string>
     <string name="diagnostics_error_clear">Aktif backend hatası yok</string>
     <string name="diagnostics_error_active">Backend hatası: %1$s</string>
     <string name="health_update_waiting">Son güncelleme bekleniyor</string>
@@ -585,6 +586,8 @@
     <string name="sensor_wifi">Wi-Fi</string>
     <string name="sensor_waiting_description">Bu bölge için sensör bağlantısı bekleniyor.</string>
     <string name="sensor_status_waiting">Sensör bekleniyor</string>
+    <string name="sensor_status_paused">Beklemede</string>
+    <string name="sensor_disabled_description">Sensör uygulamadan kapatıldı.</string>
     <string name="sensor_status_connected">Bağlı</string>
     <string name="sensor_status_delayed">Bağlantı zayıf</string>
     <string name="sensor_status_disconnected">Bağlantı yok</string>
@@ -881,6 +884,14 @@
     <string name="zone_seconds_format">%1$d sn</string>
     <string name="zone_save_settings">Bölge ayarlarını kaydet</string>
     <string name="zone_settings_saved">Bölge ayarları kaydedildi</string>
+    <string name="zone_sensor_settings_title">Sensör ayarları</string>
+    <string name="zone_sensor_enabled">Bu sensörü etkin kullan</string>
+    <string name="zone_sensor_enabled_description">Kapalıyken bu bölgenin sensör ölçümleri sulama kararında kullanılmaz.</string>
+    <string name="zone_sensor_id_label">Sensör kimliği</string>
+    <string name="zone_sensor_dry_raw_label">Kuru toprak ham değeri</string>
+    <string name="zone_sensor_wet_raw_label">Islak toprak ham değeri</string>
+    <string name="zone_sensor_calibration_hint">Sensör değiştiğinde kuru ve tamamen ıslak toprakta ölçtüğün ham değerleri gir.</string>
+    <string name="zone_sensor_calibration_invalid">Kuru değer, ıslak değerden büyük olmalıdır.</string>
     <string name="zone_operation_failed">İşlem tamamlanamadı</string>
     <string name="zone_valve_title">Elektrikli vana</string>
     <string name="zone_valve_simulation">Simülasyon modu · Fiziksel vana kapalı</string>
@@ -926,6 +937,8 @@
     <string name="home_zones_title">Bölgeler</string>
     <string name="home_zones_subtitle">O bölgenin gübreleme planını açmak için bir bölgeye dokunun.</string>
     <string name="home_zone_sensor_waiting">Sensör bekleniyor</string>
+    <string name="home_zone_sensor_paused">Sensör uygulamadan kapatıldı</string>
+    <string name="home_zone_sensor_paused_badge">BEKLEMEDE</string>
     <string name="home_zone_ready">Hazır</string>
     <string name="home_zone_watering">Sulanıyor</string>
     <string name="home_zone_queued">Sırada · %1$d</string>
@@ -939,7 +952,14 @@
     <string name="home_ai_open_details">AI açıklamasını görüntüle ›</string>
     <string name="manual_relay_test_button">Pompa rölesini test et</string>
     <string name="manual_relay_test_title">Pompa rölesi testi</string>
-    <string name="manual_relay_test_message">Bu işlem vanaları açmadan pompayı çalıştırır. Pompanın güvenli ve susuz çalışmayacağından eminseniz devam edin.</string>
+    <string name="manual_relay_test_message">Pompa yalnız açık fiziksel vana varken çalışır. İlk su testinde pompayı birkaç saniye sonra kapatın.</string>
+    <string name="valve_setup_button">Vana kurulumunu yönet</string>
+    <string name="valve_setup_title">Vana kurulumu</string>
+    <string name="valve_setup_hint">Yalnız rölesi ve vanası bağlı bölgeleri fiziksel moda alın.</string>
+    <string name="valve_setup_physical">Fiziksel vana</string>
+    <string name="valve_setup_simulation">Simülasyon</string>
+    <string name="valve_setup_confirm_title">Fiziksel vana modu açılsın mı?</string>
+    <string name="valve_setup_confirm_message">%1$s için gerçek vana kontrolü açılacak. Bağlantı doğrulanmadıysa pompa güvenliği riske girebilir.</string>
     <string name="manual_relay_test_confirm">Testi başlat</string>
     <string name="manual_relay_test_cancel">Vazgeç</string>
     <string name="manual_relay_test_hint">Donanım testi · Bölgesel sulama değildir</string>

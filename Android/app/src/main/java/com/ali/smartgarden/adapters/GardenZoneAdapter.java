@@ -47,8 +47,21 @@ public class GardenZoneAdapter
     public int getConnectedCount() {
         int count = 0;
         for (GardenZone zone : zones) {
+            if (!zone.isSensor_enabled()) {
+                continue;
+            }
             long age = getAgeSeconds(zone);
             if (age >= 0 && age <= WEAK_SECONDS) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getEnabledSensorCount() {
+        int count = 0;
+        for (GardenZone zone : zones) {
+            if (zone.isSensor_enabled()) {
                 count++;
             }
         }
@@ -181,6 +194,21 @@ public class GardenZoneAdapter
 
             name.setText(emoji + " " + zoneName);
             sensorId.setText(sensor);
+
+            waiting.setText(R.string.sensor_waiting_description);
+
+            if (!zone.isSensor_enabled()) {
+                measurement.setVisibility(View.GONE);
+                waiting.setVisibility(View.VISIBLE);
+                lastUpdate.setVisibility(View.GONE);
+                irrigationStatus.setVisibility(View.GONE);
+                waiting.setText(R.string.sensor_disabled_description);
+                setStatus(
+                        R.string.sensor_status_paused,
+                        R.color.textSecondary
+                );
+                return;
+            }
 
             long age = getAgeSeconds(zone);
             boolean hasData = age >= 0L;

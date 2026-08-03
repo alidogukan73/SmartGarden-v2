@@ -429,21 +429,22 @@ public class DeviceHealthActivity extends AppCompatActivity {
         );
         if (relaySafe) normalCount++;
 
-        boolean simulationMode =
-                !latestZones.isEmpty();
+        boolean physicalValveReady = false;
         for (GardenZone zone : latestZones) {
-            if ("PHYSICAL".equals(zone.getValve_mode())) {
-                simulationMode = false;
+            if ("PHYSICAL".equalsIgnoreCase(
+                    zone.getValve_mode()
+            )) {
+                physicalValveReady = true;
                 break;
             }
         }
         addDiagnosticRow(
-                simulationMode,
-                simulationMode
-                        ? R.string.diagnostics_valve_simulation
-                        : R.string.diagnostics_valve_physical
+                true,
+                physicalValveReady
+                        ? R.string.diagnostics_valve_physical_ready
+                        : R.string.diagnostics_valve_simulation
         );
-        if (simulationMode) normalCount++;
+        normalCount++;
 
         String lastError = latestStatus == null
                 ? ""

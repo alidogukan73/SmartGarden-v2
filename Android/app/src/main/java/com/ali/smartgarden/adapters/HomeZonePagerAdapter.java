@@ -187,8 +187,9 @@ public class HomeZonePagerAdapter
                     )
             );
 
-            boolean connected = isConnected(zone);
-            if (connected) {
+            if (!zone.isSensor_enabled()) {
+                bindPaused(context);
+            } else if (isConnected(zone)) {
                 bindConnected(context, zone);
             } else {
                 bindWaiting(context);
@@ -267,6 +268,33 @@ public class HomeZonePagerAdapter
             );
             voltage.setText("—");
             raw.setText("—");
+        }
+
+        private void bindPaused(Context context) {
+            badge.setText(
+                    R.string.home_zone_sensor_paused_badge
+            );
+            badge.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            moisture.setText("-");
+            moisture.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            moistureState.setText(
+                    R.string.home_zone_sensor_paused
+            );
+            moistureState.setTextColor(
+                    color(context, R.color.textSecondary)
+            );
+            progress.setProgress(0);
+            progress.setProgressTintList(
+                    ColorStateList.valueOf(
+                            color(context, R.color.textSecondary)
+                    )
+            );
+            voltage.setText("-");
+            raw.setText("-");
         }
 
         private boolean isConnected(GardenZone zone) {

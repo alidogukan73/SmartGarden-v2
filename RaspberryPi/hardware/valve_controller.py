@@ -24,12 +24,17 @@ class ValveController:
         self._logger = AppLogger().logger
         self._initialized = False
         self._active_valve_id: str | None = None
+        self._physical_valve_ids = frozenset(
+            ValveConfig.PHYSICAL_VALVE_IDS,
+        )
+        self._configured_gpio_pins: set[int] = set()
 
     def initialize(self) -> None:
         if self._initialized:
             return
 
-        if ValveConfig.SIMULATION_MODE:
+        physical_pins = self._physical_pins()
+        if not physical_pins:
             self._initialized = True
             self._logger.info(
                 "Zone valves initialized in simulation mode. "
@@ -40,8 +45,9 @@ class ValveController:
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
-        for pin in ValveConfig.GPIO_PINS.values():
+        for pin in physical_pins:
             GPIO.setup(pin, GPIO.OUT)
+            self._configured_gpio_pins.add(pin)
             GPIO.output(
                 pin,
                 GPIO.HIGH
@@ -51,7 +57,8 @@ class ValveController:
 
         self._initialized = True
         self._logger.info(
-            "Zone valves initialized. count=%d",
+            "Zone valves initialized. physical_count=%d total_count=%d",
+            len(physical_pins),
             len(ValveConfig.GPIO_PINS),
         )
 
@@ -68,7 +75,7 @@ class ValveController:
 
         self.close_all()
 
-        if not ValveConfig.SIMULATION_MODE:
+        if self.is_physical_valve(valve_id):
             GPIO.output(
                 ValveConfig.GPIO_PINS[valve_id],
                 GPIO.LOW
@@ -79,24 +86,22 @@ class ValveController:
         self._active_valve_id = valve_id
         self._logger.info(
             "Zone valve %s. valve_id=%s",
-            "simulated OPEN"
-            if ValveConfig.SIMULATION_MODE
-            else "OPEN",
+            "OPEN" if self.is_physical_valve(valve_id) else "simulated OPEN",
             valve_id,
         )
 
-        if not ValveConfig.SIMULATION_MODE:
-            time.sleep(
-                ValveConfig.OPENING_DELAY_SECONDS,
-            )
+    def wait_for_opening(self, valve_id: str) -> None:
+        """Wait for a physical valve before starting the shared pump."""
+        if self.is_physical_valve(valve_id):
+            time.sleep(ValveConfig.OPENING_DELAY_SECONDS)
 
     def close_all(self) -> None:
         self._require_initialized()
 
         previous = self._active_valve_id
 
-        if not ValveConfig.SIMULATION_MODE:
-            for pin in ValveConfig.GPIO_PINS.values():
+        if self._physical_pins():
+            for pin in self._physical_pins():
                 GPIO.output(
                     pin,
                     GPIO.HIGH
@@ -109,24 +114,69 @@ class ValveController:
         if previous is not None:
             self._logger.info(
                 "Zone valve %s. valve_id=%s",
-                "simulated CLOSED"
-                if ValveConfig.SIMULATION_MODE
-                else "CLOSED",
+                "CLOSED"
+                if self.is_physical_valve(previous)
+                else "simulated CLOSED",
                 previous,
             )
 
-            if not ValveConfig.SIMULATION_MODE:
-                time.sleep(
-                    ValveConfig.CLOSING_DELAY_SECONDS,
-                )
+            if self.is_physical_valve(previous):
+                time.sleep(ValveConfig.CLOSING_DELAY_SECONDS)
 
     @property
     def simulation_mode(self) -> bool:
-        return ValveConfig.SIMULATION_MODE
+        """Compatibility status: true only when no physical valve exists."""
+        return not bool(self._physical_pins())
+
+    def is_physical_valve(self, valve_id: str | None) -> bool:
+        return (
+            not ValveConfig.SIMULATION_MODE
+            and valve_id in self._physical_valve_ids
+            and valve_id in ValveConfig.GPIO_PINS
+        )
+
+    def is_simulated_valve(self, valve_id: str | None) -> bool:
+        return not self.is_physical_valve(valve_id)
 
     @property
     def active_valve_id(self) -> str | None:
         return self._active_valve_id
+
+    def configure_physical_valves(
+        self,
+        valve_ids: set[str] | frozenset[str],
+    ) -> None:
+        """Apply Firebase physical/simulation selections safely."""
+        requested = frozenset(
+            valve_id
+            for valve_id in valve_ids
+            if valve_id in ValveConfig.GPIO_PINS
+        )
+        if requested == self._physical_valve_ids:
+            return
+
+        if self._active_valve_id is not None:
+            self.close_all()
+
+        if requested and not self._configured_gpio_pins:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setwarnings(False)
+
+        for valve_id in requested:
+            pin = ValveConfig.GPIO_PINS[valve_id]
+            if pin not in self._configured_gpio_pins:
+                GPIO.setup(pin, GPIO.OUT)
+                self._configured_gpio_pins.add(pin)
+            GPIO.output(
+                pin,
+                GPIO.HIGH if ValveConfig.ACTIVE_LOW else GPIO.LOW,
+            )
+
+        self._physical_valve_ids = requested
+        self._logger.info(
+            "Physical valve configuration updated. valve_ids=%s",
+            ",".join(sorted(requested)) or "none",
+        )
 
     def cleanup(self) -> None:
         if not self._initialized:
@@ -134,8 +184,8 @@ class ValveController:
 
         try:
             self.close_all()
-            if not ValveConfig.SIMULATION_MODE:
-                for pin in ValveConfig.GPIO_PINS.values():
+            if self._configured_gpio_pins:
+                for pin in self._configured_gpio_pins:
                     GPIO.cleanup(pin)
         finally:
             self._initialized = False
@@ -146,3 +196,10 @@ class ValveController:
             raise RuntimeError(
                 "Valve controller is not initialized.",
             )
+
+    def _physical_pins(self) -> tuple[int, ...]:
+        return tuple(
+            ValveConfig.GPIO_PINS[valve_id]
+            for valve_id in self._physical_valve_ids
+            if valve_id in ValveConfig.GPIO_PINS
+        )
