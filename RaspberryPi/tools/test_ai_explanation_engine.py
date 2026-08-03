@@ -11,6 +11,15 @@ from models.ai_decision_summary import (
 from models.soil_learning_profile import (
     SoilLearningProfile,
 )
+from models.moisture_prediction import (
+    MoisturePrediction,
+)
+from models.prediction_accuracy import (
+    PredictionAccuracy,
+)
+from models.unified_confidence import (
+    UnifiedConfidence,
+)
 
 
 def create_decision(
@@ -109,6 +118,64 @@ def create_soil_profile(
     )
 
 
+def create_prediction() -> MoisturePrediction:
+    """
+    Create one moisture prediction for testing.
+    """
+
+    return MoisturePrediction(
+        prediction_status="READY",
+        prediction_method="LINEAR_TREND",
+        current_moisture=45.0,
+        moisture_limit=40.0,
+        drying_rate_per_minute=-0.5,
+        predicted_moisture_1_hour=44.5,
+        predicted_moisture_3_hours=43.5,
+        predicted_moisture_6_hours=42.0,
+        estimated_minutes_until_limit=600.0,
+        estimated_limit_reached_at="2026-07-17T06:30:00",
+        confidence=0.80,
+        confidence_level="MEDIUM",
+        generated_at="2026-07-16T20:30:00",
+    )
+
+
+def create_prediction_accuracy() -> PredictionAccuracy:
+    """
+    Create one prediction-accuracy summary for testing.
+    """
+
+    return PredictionAccuracy(
+        prediction_count=10,
+        successful_predictions=8,
+        average_error=1.2,
+        maximum_error=2.5,
+        minimum_error=0.2,
+        accuracy_percent=80.0,
+        confidence_multiplier=0.8,
+        status="READY",
+        generated_at="2026-07-16T20:30:00",
+    )
+
+
+def create_unified_confidence() -> UnifiedConfidence:
+    """
+    Create one unified-confidence summary for testing.
+    """
+
+    return UnifiedConfidence(
+        overall_confidence=0.80,
+        confidence_level="MEDIUM",
+        soil_learning_confidence=0.90,
+        prediction_accuracy=0.80,
+        sensor_confidence=0.85,
+        trend_confidence=0.75,
+        weighted_score=0.80,
+        status="READY",
+        generated_at="2026-07-16T20:30:00",
+    )
+
+
 def print_explanation(
     name: str,
     explanation,
@@ -171,6 +238,9 @@ def run_scenario(
     explanation = engine.analyze(
         decision=decision,
         soil_profile=soil_profile,
+        prediction=create_prediction(),
+        prediction_accuracy=create_prediction_accuracy(),
+        unified_confidence=create_unified_confidence(),
     )
 
     print_explanation(

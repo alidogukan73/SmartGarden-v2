@@ -9,13 +9,17 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+
 from core.config import AppConfig
 from core.config import FirebaseConfig
 from core.config import IrrigationConfig
 from core.logger import AppLogger
+from core.device_control import DeviceControl
+
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from models.watering_record import WateringRecord
@@ -28,6 +32,10 @@ from models.adaptive_irrigation_recommendation import AdaptiveIrrigationRecommen
 from models.soil_learning_profile import SoilLearningProfile
 from models.ai_decision_summary import AIDecisionSummary
 from models.ai_explanation import AIExplanation
+from models.moisture_prediction import MoisturePrediction
+from models.prediction_accuracy import PredictionAccuracy
+from models.unified_confidence import UnifiedConfidence
+from models.prediction_validation_status import PredictionValidationStatus
 
 class FirebaseService:
 
@@ -48,7 +56,7 @@ class FirebaseService:
         self._command_state = CommandState(
             auto_mode=True,
             relay=False,
-            enabled=True,
+            enabled=False,
             moisture_limit=IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
             pump_duration=IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
             restart_delta=IrrigationConfig.DEFAULT_RESTART_DELTA,
@@ -59,9 +67,17 @@ class FirebaseService:
 
         self._sync_thread: threading.Thread | None = None
         self._running = False
+        self._stop_event = threading.Event()
 
         self._retry_delay = 0.5
         self._max_retry_delay = 30.0
+
+        self._zone_by_sensor_id: dict[str, str] = {}
+        self._zone_config_by_sensor_id: dict[str, dict] = {}
+        self._zone_map_refreshed_at = 0.0
+        self._zone_map_refresh_seconds = 10.0
+
+        self.device_control = DeviceControl()
 
     def initialize(self) -> None:
         """
@@ -73,10 +89,18 @@ class FirebaseService:
 
         try:
 
+            credentials_path = Path(
+                FirebaseConfig.CREDENTIALS_FILE,
+            )
+
+            if not credentials_path.is_absolute():
+                credentials_path = (
+                    Path(__file__).resolve().parents[1]
+                    / credentials_path
+                )
+
             credential = credentials.Certificate(
-                Path(
-                    FirebaseConfig.CREDENTIALS_FILE,
-                ),
+                credentials_path,
             )
 
             firebase_admin.initialize_app(
@@ -89,6 +113,16 @@ class FirebaseService:
             self._initialized = True
 
             self.initialize_commands()
+            self._refresh_zone_sensor_map()
+
+            initial_command_state = self.get_commands()
+
+            with self._command_lock:
+                self._command_state = initial_command_state
+
+            self.check_restart_command(
+                initial_command_state,
+            )
 
             self.increment_restart_count()
 
@@ -128,6 +162,9 @@ class FirebaseService:
                 "pump_duration": IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
                 "restart_delta": IrrigationConfig.DEFAULT_RESTART_DELTA,
                 "cooldown_seconds": IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
+
+                # Device restart command
+                "restart_device": False,
             },
         )
 
@@ -144,6 +181,7 @@ class FirebaseService:
             return
 
         self._running = True
+        self._stop_event.clear()
 
         self._sync_thread = threading.Thread(
             target=self._sync_commands,
@@ -159,6 +197,7 @@ class FirebaseService:
         """
 
         self._running = False
+        self._stop_event.set()
 
         if self._sync_thread is None:
             return
@@ -256,12 +295,46 @@ class FirebaseService:
             },
         )
 
+    def update_active_zone_valve(
+        self,
+        valve_id: str | None,
+        is_open: bool,
+        zone_id: str | None = None,
+    ) -> None:
         """
-        self._logger.info(
-            "Relay status sent to Firebase: %s",
-            relay,
+        Publish the selected valve state for UI and simulation tests.
+        """
+
+        from core.config import ValveConfig
+
+        self._device_ref().child("irrigation_hardware").update(
+            {
+                "active_valve_id": valve_id or "",
+                "valve_open": is_open,
+                "valve_mode": (
+                    "SIMULATION"
+                    if ValveConfig.SIMULATION_MODE
+                    else "PHYSICAL"
+                ),
+                "pump_interlock": (
+                    "BLOCKED"
+                    if ValveConfig.SIMULATION_MODE
+                    else "READY"
+                ),
+                "updated_at": datetime.now().isoformat(),
+            },
         )
-        """
+
+        if zone_id:
+            self._device_ref().child(
+                f"zones/{zone_id}/irrigation_status",
+            ).update(
+                {
+                    "watering_active": is_open,
+                    "updated_at": datetime.now().isoformat(),
+                },
+            )
+
     def update_health_status(
         self,
         health: HealthStatus,
@@ -378,28 +451,217 @@ class FirebaseService:
             },
         )
 
+    def clear_error(self) -> None:
+        """
+        Clear the active application error after a successful
+        recovery cycle.
+        """
+
+        self._device_ref().child(
+            "status",
+        ).update(
+            {
+                "last_error": "",
+                "last_seen": datetime.now().isoformat(),
+            },
+        )
+
     # -------------------------------------------------
     # Sensor
     # -------------------------------------------------
 
-    def update_sensor(
+    def update_zone_sensors(
         self,
-        reading: SensorReading,
+        readings: dict[str, SensorReading],
     ) -> None:
         """
-        Upload sensor values.
+        Upload all fresh MQTT readings to their garden zones.
+
+        The legacy top-level sensor node remains managed by
+        update_sensor() for the primary irrigation sensor.
+        """
+
+        if not readings:
+            return
+
+        current_time = time.monotonic()
+
+        if (
+            not self._zone_by_sensor_id
+            or (
+                current_time
+                - self._zone_map_refreshed_at
+                >= self._zone_map_refresh_seconds
+            )
+        ):
+            self._refresh_zone_sensor_map()
+
+        updates: dict[str, object] = {}
+        updated_at = datetime.now().isoformat()
+        updated_at_epoch = int(time.time())
+
+        for sensor_id, reading in readings.items():
+            zone_id = self._zone_by_sensor_id.get(
+                sensor_id,
+            )
+
+            if zone_id is None:
+                continue
+
+            prefix = f"zones/{zone_id}"
+
+            updates.update(
+                {
+                    f"{prefix}/raw": reading.raw,
+                    f"{prefix}/voltage": round(
+                        reading.voltage,
+                        3,
+                    ),
+                    f"{prefix}/moisture": reading.moisture,
+                    f"{prefix}/sensor_id": reading.sensor_id,
+                    f"{prefix}/firmware": reading.firmware,
+                    f"{prefix}/rssi": reading.rssi,
+                    f"{prefix}/uptime_seconds":
+                        reading.uptime_seconds,
+                    f"{prefix}/updated_at": updated_at,
+                    f"{prefix}/updated_at_epoch":
+                        updated_at_epoch,
+                },
+            )
+
+        if updates:
+            self._device_ref().update(
+                updates,
+            )
+
+    def _refresh_zone_sensor_map(self) -> None:
+        """
+        Cache the Firebase zone assigned to each sensor ID.
+        """
+
+        zones = (
+            self._device_ref()
+            .child("zones")
+            .get()
+        )
+
+        zone_by_sensor_id: dict[str, str] = {}
+        zone_config_by_sensor_id: dict[str, dict] = {}
+
+        if isinstance(zones, dict):
+            for zone_id, zone in zones.items():
+                if not isinstance(zone, dict):
+                    continue
+
+                sensor_id = str(
+                    zone.get(
+                        "sensor_id",
+                        "",
+                    ),
+                ).strip()
+
+                if sensor_id:
+                    zone_by_sensor_id[
+                        sensor_id
+                    ] = str(zone_id)
+                    zone_config_by_sensor_id[
+                        sensor_id
+                    ] = {
+                        **zone,
+                        "zone_id": str(zone_id),
+                    }
+
+        self._zone_by_sensor_id = (
+            zone_by_sensor_id
+        )
+        self._zone_config_by_sensor_id = (
+            zone_config_by_sensor_id
+        )
+        self._zone_map_refreshed_at = (
+            time.monotonic()
+        )
+
+        self._logger.info(
+            "Garden zone sensor map refreshed. count=%d",
+            len(self._zone_by_sensor_id),
+        )
+
+    def get_zone_config_for_sensor(
+        self,
+        sensor_id: str,
+    ) -> dict | None:
+        """
+        Return the cached irrigation configuration for a sensor.
+        """
+
+        zone = self._zone_config_by_sensor_id.get(
+            sensor_id,
+        )
+
+        if zone is None:
+            return None
+
+        return dict(zone)
+
+    def get_all_zone_configs_by_sensor(
+        self,
+    ) -> dict[str, dict]:
+        """
+        Return a copy of all cached sensor-to-zone settings.
+        """
+
+        return {
+            sensor_id: dict(zone)
+            for sensor_id, zone
+            in self._zone_config_by_sensor_id.items()
+        }
+
+    def update_zone_irrigation_decisions(
+        self,
+        states: dict[str, dict],
+    ) -> None:
+        """
+        Publish independent irrigation decisions under each zone.
+        """
+
+        if not states:
+            return
+
+        updates: dict[str, object] = {}
+        updated_at = datetime.now().isoformat()
+
+        for zone_id, state in states.items():
+            prefix = f"zones/{zone_id}/irrigation_status"
+            for field, value in state.items():
+                updates[f"{prefix}/{field}"] = value
+            updates[f"{prefix}/updated_at"] = updated_at
+
+        self._device_ref().update(updates)
+
+    def update_zone_cooldown(
+        self,
+        *,
+        zone_id: str,
+        cooldown_until_epoch: int,
+        cooldown_remaining: int,
+    ) -> None:
+        """
+        Persist a zone cooldown immediately after watering.
         """
 
         self._device_ref().child(
-            "sensor",
+            f"zones/{zone_id}/irrigation_status",
         ).update(
             {
-                "raw": reading.raw,
-                "voltage": round(
-                    reading.voltage,
-                    3,
+                "cooldown_active": cooldown_remaining > 0,
+                "cooldown_remaining": max(
+                    0,
+                    int(cooldown_remaining),
                 ),
-                "moisture": reading.moisture,
+                "cooldown_until_epoch": max(
+                    0,
+                    int(cooldown_until_epoch),
+                ),
                 "updated_at": datetime.now().isoformat(),
             },
         )
@@ -608,6 +870,12 @@ class FirebaseService:
 
             "firmware":
                 record.firmware,
+
+            "zone_id":
+                record.zone_id,
+
+            "sensor_id":
+                record.sensor_id,
         }
 
         updates = {
@@ -624,10 +892,6 @@ class FirebaseService:
         self._device_ref().update(
             updates,
         )
-
-
-
-
 
     def get_statistics(
         self,
@@ -857,6 +1121,20 @@ class FirebaseService:
                             "",
                         ),
                     ),
+
+                    zone_id=str(
+                        item.get(
+                            "zone_id",
+                            "",
+                        ),
+                    ),
+
+                    sensor_id=str(
+                        item.get(
+                            "sensor_id",
+                            "",
+                        ),
+                    ),
                 )
 
                 records.append(
@@ -885,6 +1163,105 @@ class FirebaseService:
     # Commands
     # -------------------------------------------------
 
+    def set_relay_command(
+        self,
+        relay: bool,
+    ) -> None:
+        """
+        Update the manual relay command.
+        """
+
+        self._device_ref().child(
+            "commands",
+        ).update(
+            {
+                "relay": relay,
+            },
+        )
+
+    def _bounded_command_int(
+        self,
+        *,
+        commands: dict,
+        field: str,
+        default: int,
+        minimum: int,
+        maximum: int,
+    ) -> int:
+        """
+        Parse and constrain one numeric Firebase command.
+        """
+
+        raw_value = commands.get(
+            field,
+            default,
+        )
+
+        try:
+            value = int(raw_value)
+        except (TypeError, ValueError):
+            self._logger.warning(
+                "Invalid Firebase command ignored. "
+                "field=%s value=%r default=%d",
+                field,
+                raw_value,
+                default,
+            )
+            return default
+
+        bounded_value = max(
+            minimum,
+            min(
+                maximum,
+                value,
+            ),
+        )
+
+        if bounded_value != value:
+            self._logger.warning(
+                "Firebase command constrained. "
+                "field=%s value=%d bounded=%d range=%d..%d",
+                field,
+                value,
+                bounded_value,
+                minimum,
+                maximum,
+            )
+
+        return bounded_value
+
+    def _boolean_command(
+        self,
+        *,
+        commands: dict,
+        field: str,
+        default: bool,
+    ) -> bool:
+        """
+        Accept only real boolean Firebase command values.
+        """
+
+        value = commands.get(
+            field,
+            default,
+        )
+
+        if isinstance(
+            value,
+            bool,
+        ):
+            return value
+
+        self._logger.warning(
+            "Invalid boolean Firebase command ignored. "
+            "field=%s value=%r default=%s",
+            field,
+            value,
+            default,
+        )
+
+        return default
+
     def get_commands(self) -> CommandState:
         """
         Read commands from Firebase.
@@ -906,51 +1283,128 @@ class FirebaseService:
                 pump_duration=IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
                 restart_delta=IrrigationConfig.DEFAULT_RESTART_DELTA,
                 cooldown_seconds=IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
+
             )
 
+        if not isinstance(
+            commands,
+            dict,
+        ):
+            raise ValueError(
+                "Firebase commands must be a JSON object.",
+            )
+
+        zone_test = commands.get("zone_test", {})
+        if not isinstance(zone_test, dict):
+            zone_test = {}
+
         return CommandState(
-            auto_mode=bool(
-                commands.get(
-                    "auto_mode",
-                    True,
-                ),
+            auto_mode=self._boolean_command(
+                commands=commands,
+                field="auto_mode",
+                default=True,
             ),
-            relay=bool(
-                commands.get(
-                    "relay",
-                    False,
-                ),
+            relay=self._boolean_command(
+                commands=commands,
+                field="relay",
+                default=False,
             ),
-            enabled=bool(
-                commands.get(
-                    "enabled",
-                    True,
-                ),
+            relay_requested_at_ms=int(
+                commands.get("relay_requested_at", 0) or 0
             ),
-            moisture_limit=int(
-                commands.get(
-                    "moisture_limit",
-                    IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
-                ),
+            enabled=self._boolean_command(
+                commands=commands,
+                field="enabled",
+                default=True,
             ),
-            pump_duration=int(
-                commands.get(
-                    "pump_duration",
-                    IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
-                ),
+            moisture_limit=self._bounded_command_int(
+                commands=commands,
+                field="moisture_limit",
+                default=IrrigationConfig.DEFAULT_MOISTURE_LIMIT,
+                minimum=IrrigationConfig.MIN_MOISTURE_LIMIT,
+                maximum=IrrigationConfig.MAX_MOISTURE_LIMIT,
             ),
-            restart_delta=int(
-                commands.get(
-                    "restart_delta",
-                    IrrigationConfig.DEFAULT_RESTART_DELTA,
-                ),
+            pump_duration=self._bounded_command_int(
+                commands=commands,
+                field="pump_duration",
+                default=IrrigationConfig.DEFAULT_PUMP_DURATION_SECONDS,
+                minimum=IrrigationConfig.MIN_PUMP_DURATION_SECONDS,
+                maximum=IrrigationConfig.MAX_PUMP_DURATION_SECONDS,
             ),
-            cooldown_seconds=int(
-                commands.get(
-                    "cooldown_seconds",
-                    IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
-                ),
+            restart_delta=self._bounded_command_int(
+                commands=commands,
+                field="restart_delta",
+                default=IrrigationConfig.DEFAULT_RESTART_DELTA,
+                minimum=IrrigationConfig.MIN_RESTART_DELTA,
+                maximum=IrrigationConfig.MAX_RESTART_DELTA,
             ),
+            cooldown_seconds=self._bounded_command_int(
+                commands=commands,
+                field="cooldown_seconds",
+                default=IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
+                minimum=IrrigationConfig.MIN_COOLDOWN_SECONDS,
+                maximum=IrrigationConfig.MAX_COOLDOWN_SECONDS,
+            ),
+            restart_device=self._boolean_command(
+                commands=commands,
+                field="restart_device",
+                default=False,
+            ),
+            zone_test_requested=self._boolean_command(
+                commands=zone_test,
+                field="requested",
+                default=False,
+            ),
+            zone_test_request_id=str(
+                zone_test.get("request_id", ""),
+            ),
+            zone_test_zone_id=str(
+                zone_test.get("zone_id", ""),
+            ),
+            zone_test_valve_id=str(
+                zone_test.get("valve_id", ""),
+            ),
+            zone_test_duration=self._bounded_command_int(
+                commands=zone_test,
+                field="duration",
+                default=10,
+                minimum=1,
+                maximum=IrrigationConfig.MAX_PUMP_DURATION_SECONDS,
+            ),
+            zone_test_cancel_requested=self._boolean_command(
+                commands=zone_test,
+                field="cancel_requested",
+                default=False,
+            ),
+            zone_test_requested_at_ms=int(
+                zone_test.get("requested_at", 0) or 0
+            ),
+        )
+
+    def acknowledge_zone_test(
+        self,
+        *,
+        request_id: str,
+        result: str,
+        active: bool = False,
+        remaining_seconds: int = 0,
+    ) -> None:
+        """
+        Complete a one-shot Android zone test command.
+        """
+
+        self._device_ref().child("commands").child(
+            "zone_test",
+        ).update(
+            {
+                "requested": False,
+                "cancel_requested": False,
+                "active": active,
+                "remaining_seconds": max(0, remaining_seconds),
+                "result": result,
+                "completed_request_id": request_id,
+                "completed_at": datetime.now().isoformat(),
+            },
         )
 
     @property
@@ -981,6 +1435,40 @@ class FirebaseService:
             f"devices/{AppConfig.DEVICE_ID}",
         )
 
+    def check_restart_command(
+            self,
+            command: CommandState,
+    ) -> None:
+        """
+        Handle a one-time device restart request.
+
+        The Firebase command is acknowledged before rebooting
+        to prevent an endless restart loop.
+        """
+
+        if not command.restart_device:
+            return
+
+        self._logger.warning(
+            "Device restart request detected.",
+        )
+
+        # Önce komutu tüketiyoruz.
+        # Raspberry yeniden açıldığında tekrar restart etmesin.
+        self._device_ref().child(
+            "commands",
+        ).update(
+            {
+                "restart_device": False,
+            },
+        )
+
+        self._logger.warning(
+            "Restart command acknowledged in Firebase.",
+        )
+
+        self.device_control.restart_device()
+
     def _sync_commands(self) -> None:
         """
         Background command synchronization.
@@ -990,7 +1478,10 @@ class FirebaseService:
             "Command synchronization started.",
         )
 
-        while self._running:
+        while (
+            self._running
+            and not self._stop_event.is_set()
+        ):
 
             try:
 
@@ -998,6 +1489,10 @@ class FirebaseService:
 
                 with self._command_lock:
                     self._command_state = new_state
+
+                self.check_restart_command(
+                    new_state
+                )
 
                 # Connection recovered
                 self._retry_delay = 0.5
@@ -1014,9 +1509,10 @@ class FirebaseService:
                     exc,
                 )
 
-                time.sleep(
+                if self._stop_event.wait(
                     self._retry_delay,
-                )
+                ):
+                    break
 
                 self._retry_delay = min(
                     self._retry_delay * 2,
@@ -1025,9 +1521,10 @@ class FirebaseService:
 
                 continue
 
-            time.sleep(
+            if self._stop_event.wait(
                 FirebaseConfig.COMMAND_SYNC_INTERVAL_SECONDS,
-            )
+            ):
+                break
 
         self._logger.info(
             "Command synchronization stopped.",
@@ -1345,7 +1842,541 @@ class FirebaseService:
                 "generated_at":
                     explanation.generated_at,
 
+                "decision_flow": {
+                    "sensor": explanation.decision_flow.sensor,
+                    "sensor_status": (
+                        explanation.decision_flow.sensor_status
+                    ),
+
+                    "moisture": explanation.decision_flow.moisture,
+                    "moisture_status": (
+                        explanation.decision_flow.moisture_status
+                    ),
+
+                    "soil": explanation.decision_flow.soil,
+                    "soil_status": (
+                        explanation.decision_flow.soil_status
+                    ),
+
+                    "history": explanation.decision_flow.history,
+                    "history_status": (
+                        explanation.decision_flow.history_status
+                    ),
+
+                    "result": explanation.decision_flow.result,
+                    "result_status": (
+                        explanation.decision_flow.result_status
+                    ),
+                },
+
                 "updated_at":
                     datetime.now().isoformat(),
             },
-        )  
+        )
+
+    def update_prediction_validation_status(
+        self,
+        status: PredictionValidationStatus,
+    ) -> None:
+        """
+        Upload prediction-validation queue status.
+
+        Observation mode only.
+        """
+
+        self._device_ref().child(
+            "ai",
+        ).child(
+            "prediction_validation",
+        ).set(
+            {
+                "validation_status":
+                    status.validation_status,
+
+                "pending_count":
+                    status.pending_count,
+
+                "target_minutes":
+                    status.target_minutes,
+
+                "next_validation_at":
+                    status.next_validation_at,
+
+                "remaining_seconds":
+                    status.remaining_seconds,
+
+                "updated_at":
+                    status.updated_at,
+            }
+        )
+
+        self._logger.debug(
+            "Prediction validation status updated. "
+            "status=%s pending=%d remaining=%d",
+            status.validation_status,
+            status.pending_count,
+            status.remaining_seconds,
+        )
+
+    def update_moisture_prediction(
+        self,
+        prediction: MoisturePrediction,
+    ) -> None:
+        """
+        Upload the latest moisture prediction.
+
+        Observation mode only.
+        """
+
+        self._device_ref().child(
+            "moisture_prediction",
+        ).set(
+            {
+                "prediction_status":
+                    prediction.prediction_status,
+
+                "prediction_method":
+                    prediction.prediction_method,
+
+                "current_moisture":
+                    round(
+                        prediction.current_moisture,
+                        2,
+                    ),
+
+                "moisture_limit":
+                    round(
+                        prediction.moisture_limit,
+                        2,
+                    ),
+
+                "drying_rate_per_minute":
+                    round(
+                        prediction.drying_rate_per_minute,
+                        3,
+                    ),
+
+                "predicted_moisture_1_hour":
+                    round(
+                        prediction.predicted_moisture_1_hour,
+                        2,
+                    ),
+
+                "predicted_moisture_3_hours":
+                    round(
+                        prediction.predicted_moisture_3_hours,
+                        2,
+                    ),
+
+                "predicted_moisture_6_hours":
+                    round(
+                        prediction.predicted_moisture_6_hours,
+                        2,
+                    ),
+
+                "estimated_minutes_until_limit":
+                    round(
+                        prediction.estimated_minutes_until_limit,
+                        2,
+                    ),
+
+                "estimated_limit_reached_at":
+                    prediction.estimated_limit_reached_at,
+
+                "confidence":
+                    round(
+                        prediction.confidence,
+                        2,
+                    ),
+
+                "confidence_level":
+                    prediction.confidence_level,
+
+                "generated_at":
+                    prediction.generated_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+
+    def update_prediction_accuracy(
+        self,
+        accuracy: PredictionAccuracy,
+    ) -> None:
+        """
+        Upload prediction accuracy statistics.
+
+        Observation mode only.
+        """
+
+        self._device_ref().child(
+            "prediction_accuracy",
+        ).set(
+            {
+                "prediction_count":
+                    accuracy.prediction_count,
+
+                "successful_predictions":
+                    accuracy.successful_predictions,
+
+                "average_error":
+                    round(
+                        accuracy.average_error,
+                        2,
+                    ),
+
+                "maximum_error":
+                    round(
+                        accuracy.maximum_error,
+                        2,
+                    ),
+
+                "minimum_error":
+                    round(
+                        accuracy.minimum_error,
+                        2,
+                    ),
+
+                "accuracy_percent":
+                    round(
+                        accuracy.accuracy_percent,
+                        2,
+                    ),
+
+                "confidence_multiplier":
+                    round(
+                        accuracy.confidence_multiplier,
+                        3,
+                    ),
+
+                "status":
+                    accuracy.status,
+
+                "generated_at":
+                    accuracy.generated_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+
+    def update_unified_confidence(
+        self,
+        confidence: UnifiedConfidence,
+    ) -> None:
+        """
+        Upload unified AI confidence.
+
+        Observation mode only.
+        """
+
+        self._device_ref().child(
+            "unified_confidence",
+        ).set(
+            {
+                "overall_confidence":
+                    round(
+                        confidence.overall_confidence,
+                        2,
+                    ),
+
+                "confidence_level":
+                    confidence.confidence_level,
+
+                "soil_learning_confidence":
+                    round(
+                        confidence.soil_learning_confidence,
+                        2,
+                    ),
+
+                "prediction_accuracy":
+                    round(
+                        confidence.prediction_accuracy,
+                        2,
+                    ),
+
+                "sensor_confidence":
+                    round(
+                        confidence.sensor_confidence,
+                        2,
+                    ),
+
+                "trend_confidence":
+                    round(
+                        confidence.trend_confidence,
+                        2,
+                    ),
+
+                "weighted_score":
+                    round(
+                        confidence.weighted_score,
+                        3,
+                    ),
+
+                "status":
+                    confidence.status,
+
+                "generated_at":
+                    confidence.generated_at,
+
+                "updated_at":
+                    datetime.now().isoformat(),
+            },
+        )
+
+    def save_prediction_history(
+        self,
+        history: list[
+            tuple[
+                MoisturePrediction,
+                float,
+            ]
+        ],
+    ) -> None:
+        """
+        Save prediction history to Firebase.
+
+        Each history item contains:
+
+            (
+                prediction,
+                actual_moisture,
+            )
+
+        Observation mode only.
+        """
+
+        history_data: dict[str, dict] = {}
+
+        for index, (
+            prediction,
+            actual_moisture,
+        ) in enumerate(
+            history,
+            start=1,
+        ):
+            item_key = f"item_{index:04d}"
+
+            history_data[item_key] = {
+                "prediction_status":
+                    prediction.prediction_status,
+
+                "prediction_method":
+                    prediction.prediction_method,
+
+                "current_moisture":
+                    prediction.current_moisture,
+
+                "moisture_limit":
+                    prediction.moisture_limit,
+
+                "drying_rate_per_minute":
+                    prediction.drying_rate_per_minute,
+
+                "predicted_moisture_1_hour":
+                    prediction.predicted_moisture_1_hour,
+
+                "predicted_moisture_3_hours":
+                    prediction.predicted_moisture_3_hours,
+
+                "predicted_moisture_6_hours":
+                    prediction.predicted_moisture_6_hours,
+
+                "estimated_minutes_until_limit":
+                    prediction.estimated_minutes_until_limit,
+
+                "estimated_limit_reached_at":
+                    prediction.estimated_limit_reached_at,
+
+                "confidence":
+                    prediction.confidence,
+
+                "confidence_level":
+                    prediction.confidence_level,
+
+                "generated_at":
+                    prediction.generated_at,
+
+                "actual_moisture":
+                    actual_moisture,
+            }
+
+        history_ref = (
+            self._device_ref()
+            .child("ai")
+            .child("prediction_history")
+        )
+
+        if not history_data:
+            history_ref.delete()
+
+            self._logger.debug(
+                "Prediction history cleared.",
+            )
+
+            return
+
+        history_ref.set(history_data)
+
+        self._logger.debug(
+            "Prediction history saved. count=%d",
+            len(history),
+        )
+
+    def load_prediction_history(
+        self,
+    ) -> list[
+        tuple[
+            MoisturePrediction,
+            float,
+        ]
+    ]:
+        """
+        Load prediction history from Firebase.
+
+        Invalid or incomplete history items are skipped.
+
+        Observation mode only.
+        """
+
+        history_ref = (
+            self._device_ref()
+            .child("ai")
+            .child("prediction_history")
+        )
+
+        history_data = history_ref.get()
+
+        if not isinstance(
+            history_data,
+            dict,
+        ):
+            self._logger.info(
+                "No prediction history found.",
+            )
+
+            return []
+
+        loaded_history: list[
+            tuple[
+                MoisturePrediction,
+                float,
+            ]
+        ] = []
+
+        for item_key in sorted(
+            history_data.keys(),
+        ):
+            item = history_data[item_key]
+
+            if not isinstance(
+                item,
+                dict,
+            ):
+                self._logger.warning(
+                    "Invalid prediction history item skipped. "
+                    "key=%s",
+                    item_key,
+                )
+
+                continue
+
+            try:
+                prediction = MoisturePrediction(
+                    prediction_status=str(
+                        item["prediction_status"],
+                    ),
+
+                    prediction_method=str(
+                        item["prediction_method"],
+                    ),
+
+                    current_moisture=float(
+                        item["current_moisture"],
+                    ),
+
+                    moisture_limit=float(
+                        item["moisture_limit"],
+                    ),
+
+                    drying_rate_per_minute=float(
+                        item[
+                            "drying_rate_per_minute"
+                        ],
+                    ),
+
+                    predicted_moisture_1_hour=float(
+                        item[
+                            "predicted_moisture_1_hour"
+                        ],
+                    ),
+
+                    predicted_moisture_3_hours=float(
+                        item[
+                            "predicted_moisture_3_hours"
+                        ],
+                    ),
+
+                    predicted_moisture_6_hours=float(
+                        item[
+                            "predicted_moisture_6_hours"
+                        ],
+                    ),
+
+                    estimated_minutes_until_limit=float(
+                        item[
+                            "estimated_minutes_until_limit"
+                        ],
+                    ),
+
+                    estimated_limit_reached_at=str(
+                        item[
+                            "estimated_limit_reached_at"
+                        ],
+                    ),
+
+                    confidence=float(
+                        item["confidence"],
+                    ),
+
+                    confidence_level=str(
+                        item["confidence_level"],
+                    ),
+
+                    generated_at=str(
+                        item["generated_at"],
+                    ),
+                )
+
+                actual_moisture = float(
+                    item["actual_moisture"],
+                )
+
+            except (
+                KeyError,
+                TypeError,
+                ValueError,
+            ) as error:
+                self._logger.warning(
+                    "Prediction history item could not "
+                    "be loaded. key=%s error=%s",
+                    item_key,
+                    error,
+                )
+
+                continue
+
+            loaded_history.append(
+                (
+                    prediction,
+                    actual_moisture,
+                )
+            )
+
+        self._logger.info(
+            "Prediction history loaded. count=%d",
+            len(loaded_history),
+        )
+
+        return loaded_history

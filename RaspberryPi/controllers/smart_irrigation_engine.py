@@ -62,6 +62,8 @@ class SmartIrrigationEngine:
             history=self._history,
         )
 
+        self._waiting_for_moisture_recovery = False
+
     def evaluate(
         self,
         *,
@@ -142,6 +144,33 @@ class SmartIrrigationEngine:
                 trend=trend,
             )
 
+        if self._waiting_for_moisture_recovery:
+            recovery_limit = min(
+                100,
+                moisture_limit
+                + int(commands.restart_delta),
+            )
+
+            if moisture < recovery_limit:
+                return self._decision(
+                    should_water=False,
+                    reason="WAITING_FOR_MOISTURE_RECOVERY",
+                    moisture=moisture,
+                    moisture_limit=moisture_limit,
+                    sensor_stable=True,
+                    cooldown_active=cooldown_active,
+                    trend=trend,
+                )
+
+            self._waiting_for_moisture_recovery = False
+
+            self._logger.info(
+                "Soil moisture recovery completed. "
+                "moisture=%d%% recovery_limit=%d%%",
+                moisture,
+                recovery_limit,
+            )
+
         if cooldown_active:
 
             return self._decision(
@@ -176,6 +205,13 @@ class SmartIrrigationEngine:
             trend=trend,
         )
 
+    def mark_watering_completed(self) -> None:
+        """
+        Require moisture recovery before another watering.
+        """
+
+        self._waiting_for_moisture_recovery = True
+
     def get_current_trend(
         self,
     ) -> MoistureTrend:
@@ -193,6 +229,7 @@ class SmartIrrigationEngine:
         """
 
         self._history.clear()
+        self._waiting_for_moisture_recovery = False
 
     def _has_enough_samples(
         self,

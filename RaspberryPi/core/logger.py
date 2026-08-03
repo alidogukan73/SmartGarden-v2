@@ -5,6 +5,7 @@ Application logging.
 from __future__ import annotations
 
 import logging
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from core.config import LogConfig
@@ -38,13 +39,21 @@ class AppLogger:
                 LogConfig.LOG_FILE,
             )
 
+            if not log_path.is_absolute():
+                log_path = (
+                    Path(__file__).resolve().parents[1]
+                    / log_path
+                )
+
             log_path.parent.mkdir(
                 parents=True,
                 exist_ok=True,
             )
 
-            file_handler = logging.FileHandler(
+            file_handler = RotatingFileHandler(
                 log_path,
+                maxBytes=LogConfig.MAX_BYTES,
+                backupCount=LogConfig.BACKUP_COUNT,
                 encoding="utf-8",
             )
 

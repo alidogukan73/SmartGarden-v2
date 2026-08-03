@@ -11,6 +11,7 @@ from collections.abc import Callable
 
 from core.logger import AppLogger
 from hardware.relay import RelayController
+from hardware.valve_controller import ValveController
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from models.watering_state import WateringState
@@ -24,9 +25,11 @@ class WateringController:
     def __init__(
         self,
         relay: RelayController,
+        valves: ValveController | None = None,
     ) -> None:
 
         self._relay = relay
+        self._valves = valves
         self._logger = AppLogger().logger
 
         # Histerezis
@@ -153,8 +156,10 @@ class WateringController:
 
             self._state = WateringState.WATERING
 
-            if on_relay_changed is not None:
-                on_relay_changed(True)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=True,
+            )
 
             while (
                 time.monotonic()
@@ -169,8 +174,10 @@ class WateringController:
 
                     self._relay.off()
 
-                    if on_relay_changed is not None:
-                        on_relay_changed(False)
+                    self._notify_relay_changed(
+                        callback=on_relay_changed,
+                        relay_on=False,
+                    )
 
                     self._state = WateringState.DISABLED
 
@@ -189,8 +196,10 @@ class WateringController:
 
                     self._relay.off()
 
-                    if on_relay_changed is not None:
-                        on_relay_changed(False)
+                    self._notify_relay_changed(
+                        callback=on_relay_changed,
+                        relay_on=False,
+                    )
 
                     self._state = WateringState.MANUAL
 
@@ -208,13 +217,17 @@ class WateringController:
 
             self._relay.off()
 
-            if on_relay_changed is not None:
-                on_relay_changed(False)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=False,
+            )
 
             # Başarıyla sulandıysa
 
-            self._waiting_for_reset = True
             self._last_watering_time = time.monotonic()
+            self._last_command_cooldown = (
+                get_commands().cooldown_seconds
+            )
             self._state = WateringState.COOLDOWN
 
             self._logger.info(
@@ -235,8 +248,10 @@ class WateringController:
 
             self._relay.off()
 
-            if on_relay_changed is not None:
-                on_relay_changed(False)
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=False,
+            )
 
             self._state = WateringState.ERROR
 
@@ -250,7 +265,90 @@ class WateringController:
                 completed=False,
                 stop_reason="ERROR",
                 duration=elapsed,
-            )       
+            )
+
+    def water_zone(
+        self,
+        *,
+        valve_id: str,
+        duration: int,
+        get_commands: Callable[[], CommandState],
+        on_relay_changed: Callable[[bool], None] | None = None,
+        on_valve_changed: Callable[[str | None, bool], None] | None = None,
+    ) -> WateringResult:
+        """
+        Water one zone using the safe valve/pump sequence.
+
+        In valve simulation mode the physical pump is deliberately
+        blocked, because no real water path has been opened.
+        """
+
+        if self._valves is None:
+            raise RuntimeError(
+                "Zone valve controller is not configured.",
+            )
+
+        started = time.monotonic()
+
+        try:
+            self._valves.open(valve_id)
+            if on_valve_changed is not None:
+                on_valve_changed(valve_id, True)
+
+            if self._valves.simulation_mode:
+                self._logger.info(
+                    "Zone watering simulated; pump was not started. "
+                    "valve_id=%s requested_duration=%d",
+                    valve_id,
+                    duration,
+                )
+                return WateringResult(
+                    completed=False,
+                    stop_reason="VALVE_SIMULATION",
+                    duration=0,
+                )
+
+            return self.water(
+                duration=duration,
+                get_commands=get_commands,
+                on_relay_changed=on_relay_changed,
+            )
+
+        finally:
+            self._relay.off()
+            self._notify_relay_changed(
+                callback=on_relay_changed,
+                relay_on=False,
+            )
+            self._valves.close_all()
+            if on_valve_changed is not None:
+                on_valve_changed(None, False)
+
+    def _notify_relay_changed(
+        self,
+        *,
+        callback: Callable[[bool], None] | None,
+        relay_on: bool,
+    ) -> None:
+        """
+        Report relay state without allowing a network callback
+        to interrupt physical relay control.
+        """
+
+        if callback is None:
+            return
+
+        try:
+            callback(
+                relay_on,
+            )
+        except Exception as exc:
+            self._logger.warning(
+                "Relay state callback failed. "
+                "relay=%s error=%s",
+                "ON" if relay_on else "OFF",
+                exc,
+            )
     
     @property
     def state(self) -> WateringState:

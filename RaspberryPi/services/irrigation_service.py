@@ -7,23 +7,42 @@ Coordinates sensor, controller and Firebase.
 from __future__ import annotations
 
 import time
+from dataclasses import replace
 from datetime import datetime
 
-from controllers.watering_controller import WateringController
-from core.config import FirebaseConfig
+
+from core.config import (
+    AppConfig,
+    FirebaseConfig,
+    IrrigationConfig,
+    SensorConfig,
+)
 from core.firebase_service import FirebaseService
 from core.logger import AppLogger
-from hardware.relay import RelayController
-from hardware.sensor import SoilMoistureSensor
-from models.watering_record import WateringRecord
-from core.config import AppConfig
 from core.system_monitor import SystemMonitor
+
 from controllers.smart_irrigation_engine import SmartIrrigationEngine
+from controllers.multi_zone_decision_engine import (
+    MultiZoneDecisionEngine,
+    ZoneDecisionResult,
+)
+from controllers.zone_irrigation_scheduler import (
+    ZoneIrrigationScheduler,
+)
+from controllers.ai_pipeline import AIPipeline
+from controllers.prediction_validation_queue import PredictionValidationQueue
+from controllers.shared_pump_zone_executor import (
+    SharedPumpZoneExecutor,
+)
+
+from hardware.relay import RelayController
+from hardware.valve_controller import ValveController
+from hardware.sensor_provider import SoilMoistureSensorProvider
+
 from models.sensor_history_entry import SensorHistoryEntry
-from controllers.adaptive_irrigation_engine import AdaptiveIrrigationEngine
-from controllers.soil_learning_engine import SoilLearningEngine
-from controllers.ai_decision_engine import AIDecisionEngine
-from controllers.ai_explanation_engine import AIExplanationEngine
+from models.watering_record import WateringRecord
+from models.moisture_prediction import MoisturePrediction
+
 
 class IrrigationService:
     """
@@ -33,39 +52,57 @@ class IrrigationService:
     def __init__(self) -> None:
 
         self._logger = AppLogger().logger
-        self._sensor = SoilMoistureSensor()
+
+        self._sensor = SoilMoistureSensorProvider(
+            mode=SensorConfig.SENSOR_MODE,
+            mqtt_broker=SensorConfig.MQTT_BROKER,
+            mqtt_port=SensorConfig.MQTT_PORT,
+            mqtt_topic=SensorConfig.MQTT_TOPIC,
+            mqtt_sensor_id=SensorConfig.MQTT_SENSOR_ID,
+            mqtt_stale_after_seconds=(
+                SensorConfig.MQTT_STALE_AFTER_SECONDS
+            ),
+            mqtt_startup_timeout_seconds=(
+                SensorConfig.MQTT_STARTUP_TIMEOUT_SECONDS
+            ),
+        )
+
         self._system_monitor = SystemMonitor()
         self._relay = RelayController()
+        self._valves = ValveController()
         self._firebase = FirebaseService()
 
-        self._controller = WateringController(
+        self._zone_executor = SharedPumpZoneExecutor(
             self._relay,
+            self._valves,
         )
 
         self._smart_engine = SmartIrrigationEngine()
+        self._multi_zone_engine = MultiZoneDecisionEngine()
+        self._zone_scheduler = ZoneIrrigationScheduler()
+        self._last_multi_zone_status_signature = None
 
-        self._adaptive_engine = (
-            AdaptiveIrrigationEngine()
-        )
+        self._ai_pipeline = AIPipeline()
+        self._prediction_validation_queue = PredictionValidationQueue()
 
-        self._soil_learning_engine = (
-            SoilLearningEngine()
-        )
+        self._prediction_history = []
+        self._prediction_history_limit = 100
 
-        self._last_soil_learning_analysis = 0.0
-        self._last_adaptive_analysis = 0.0
+        self._last_moisture_prediction = None
+        self._last_prediction_accuracy = None
+        self._last_unified_confidence = None
+        self._last_ai_decision = None
+        self._last_ai_explanation = None
+        self._last_soil_learning_profile = None
+        self._last_adaptive_recommendation = None
+
         self._last_ai_decision_update = 0.0
-
-        self._soil_learning_interval_seconds = 1800         #1800 sn olacak
-        self._adaptive_analysis_interval_seconds = 1800     #1800 sn olacak
         self._ai_decision_interval_seconds = 30             #30 sn olacak   
 
-        self._ai_decision_engine = AIDecisionEngine()
-        self._ai_explanation_engine = AIExplanationEngine()
+        self._last_prediction_validation_status_update = 0.0
+        self._prediction_validation_status_interval_seconds = 30
 
         self._last_irrigation_decision = None
-        self._last_adaptive_recommendation = None
-        self._last_soil_learning_profile = None              
 
         self._last_status_update = 0.0
         self._last_health_update = 0.0
@@ -74,7 +111,19 @@ class IrrigationService:
         self._sensor_history_interval_seconds = 300
 
         self._started_at = 0.0
-        self._last_watering_iso = ""       
+        self._last_watering_iso = ""
+
+        self._update_error_active = False
+        self._last_update_error_log = 0.0
+        self._update_error_log_interval_seconds = 30.0
+
+        self._manual_relay_started_at = 0.0
+        self._manual_relay_timeout_latched = False
+        self._last_zone_test_request_id = ""
+        self._active_zone_test_request_id = ""
+        self._active_zone_test_valve_id = ""
+        self._active_zone_test_deadline = 0.0
+        self._last_zone_config_signature = None
 
     def initialize(self) -> None:
         """
@@ -84,10 +133,19 @@ class IrrigationService:
         self._sensor.initialize()
 
         self._relay.initialize()
+        self._valves.initialize()
 
         self._firebase.initialize()
 
+        self._restore_zone_cooldowns()
+
+        self._restore_prediction_history()
+
         self._firebase.update_status()
+
+        self._update_prediction_validation_status(
+            force=True,
+        )
 
         health = self._system_monitor.read()
 
@@ -100,8 +158,6 @@ class IrrigationService:
 
         self._last_sensor_history_update = time.monotonic()
 
-        self._last_adaptive_analysis = 0.0
-        self._last_soil_learning_analysis = 0.0
         self._last_ai_decision_update = 0.0
 
         self._started_at = time.monotonic()
@@ -109,6 +165,51 @@ class IrrigationService:
         self._logger.info(
             "Irrigation service initialized.",
         )
+
+    def _restore_prediction_history(
+        self,
+    ) -> None:
+        """
+        Restore prediction history from Firebase.
+
+        A restore failure must not prevent the irrigation
+        service from starting.
+        """
+
+        try:
+            loaded_history = (
+                self._firebase.load_prediction_history()
+            )
+
+            if not isinstance(
+                loaded_history,
+                list,
+            ):
+                self._logger.warning(
+                    "Prediction history restore returned "
+                    "an invalid value."
+                )
+
+                self._prediction_history = []
+
+                return
+
+            self._prediction_history = loaded_history[
+                -self._prediction_history_limit:
+            ]
+
+            self._logger.info(
+                "Prediction history restored. count=%d",
+                len(self._prediction_history),
+            )
+
+        except Exception as exc:
+            self._prediction_history = []
+
+            self._logger.exception(
+                "Prediction history could not be restored: %s",
+                exc,
+            )
 
     def _update_status_if_needed(self) -> None:
         """
@@ -147,6 +248,303 @@ class IrrigationService:
             )
 
             self._last_health_update = current_time
+
+
+
+
+
+    def _update_ai_pipeline_if_needed(
+        self,
+        *,
+        reading,
+        commands,
+    ) -> None:
+        """
+        Execute the complete observation-mode AI pipeline
+        periodically and upload its outputs to Firebase.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            current_time
+            - self._last_ai_decision_update
+            < self._ai_decision_interval_seconds
+        ):
+            return
+
+        if self._last_irrigation_decision is None:
+            return
+
+        trend = self._smart_engine.get_current_trend()
+
+        watering_records = (
+            self._firebase.get_recent_watering_records(
+                limit=30,
+            )
+        )
+
+        (
+            soil_profile,
+            adaptive,
+            prediction,
+            prediction_accuracy,
+            unified_confidence,
+            ai_decision,
+            explanation,
+        ) = self._ai_pipeline.analyze(
+            irrigation_decision=(
+                self._last_irrigation_decision
+            ),
+            trend=trend,
+            reading=reading,
+            watering_records=watering_records,
+            prediction_history=self._prediction_history,
+            current_pump_duration_seconds=(
+                commands.pump_duration
+            ),
+            current_cooldown_seconds=(
+                commands.cooldown_seconds
+            ),
+        )
+
+        self._firebase.update_moisture_prediction(
+            prediction,
+        )
+
+        self._firebase.update_prediction_accuracy(
+            prediction_accuracy,
+        )
+
+        self._firebase.update_unified_confidence(
+            unified_confidence,
+        )
+
+        # -------------------------------------------------
+        # Keep latest AI outputs in memory
+        # -------------------------------------------------
+
+        self._last_soil_learning_profile = (
+            soil_profile
+        )
+
+        self._last_adaptive_recommendation = (
+            adaptive
+        )
+
+        self._last_moisture_prediction = (
+            prediction
+        )
+
+        self._last_prediction_accuracy = (
+            prediction_accuracy
+        )
+
+        self._last_unified_confidence = (
+            unified_confidence
+        )
+
+        self._last_ai_decision = (
+            ai_decision
+        )
+
+        self._last_ai_explanation = (
+            explanation
+        )
+
+        if prediction.prediction_status == "READY":
+
+            prediction_queued = (
+                self._prediction_validation_queue.enqueue(
+                    prediction=prediction,
+                )
+            )
+
+            if prediction_queued:
+                self._logger.info(
+                    "Moisture prediction queued for "
+                    "one-hour validation. pending=%d",
+                    self._prediction_validation_queue.count,
+                )
+                self._update_prediction_validation_status(
+                    force=True,
+                )
+
+            else:
+                self._logger.debug(
+                    "Moisture prediction was not queued "
+                    "because a validation is already pending.",
+                )
+
+        # -------------------------------------------------
+        # Upload currently supported outputs
+        # -------------------------------------------------
+
+        self._firebase.update_soil_learning_profile(
+            soil_profile,
+        )
+
+        self._firebase.update_adaptive_recommendation(
+            adaptive,
+        )
+
+        self._firebase.update_ai_decision(
+            ai_decision,
+        )
+
+        self._firebase.update_ai_explanation(
+            explanation,
+        )
+
+        self._last_ai_decision_update = current_time
+
+        # -------------------------------------------------
+        # Logs
+        # -------------------------------------------------
+
+        self._logger.info(
+            "AI pipeline updated. "
+            "decision=%s severity=%s "
+            "should_water=%s confidence=%s "
+            "prediction_status=%s",
+            ai_decision.decision_code,
+            ai_decision.severity,
+            ai_decision.should_water,
+            unified_confidence.overall_confidence,
+            prediction.prediction_status,
+        )
+
+        self._logger.info(
+            "AI explanation updated. "
+            "code=%s progress=%d severity=%s "
+            "prediction_accuracy=%.1f count=%d",
+            explanation.explanation_code,
+            explanation.progress_percent,
+            explanation.severity,
+            prediction_accuracy.accuracy_percent,
+            prediction_accuracy.prediction_count,
+        )
+
+    def _store_prediction_result(
+        self,
+        *,
+        prediction: MoisturePrediction,
+        actual_moisture: float,
+    ) -> None:
+        """
+        Store a time-validated prediction together with
+        the measured future moisture value.
+
+        The updated history is persisted to Firebase.
+        """
+
+        self._prediction_history.append(
+            (
+                prediction,
+                actual_moisture,
+            )
+        )
+
+        if (
+            len(self._prediction_history)
+            > self._prediction_history_limit
+        ):
+            self._prediction_history = (
+                self._prediction_history[
+                    -self._prediction_history_limit:
+                ]
+            )
+
+        self._logger.info(
+            "Validated prediction stored. "
+            "actual_moisture=%.2f count=%d",
+            actual_moisture,
+            len(self._prediction_history),
+        )
+
+        try:
+            self._firebase.save_prediction_history(
+                self._prediction_history,
+            )
+
+            self._logger.debug(
+                "Prediction history persisted to Firebase. "
+                "count=%d",
+                len(self._prediction_history),
+            )
+
+        except Exception as exc:
+            self._logger.exception(
+                "Prediction history could not be saved: %s",
+                exc,
+            )
+
+    def _validate_due_predictions(
+        self,
+        *,
+        actual_moisture: float,
+    ) -> None:
+        """
+        Validate pending predictions whose target time
+        has arrived.
+
+        The current sensor reading is used as the actual
+        future moisture value.
+        """
+
+        validated_results = (
+            self._prediction_validation_queue.validate_due(
+                actual_moisture=actual_moisture,
+            )
+        )
+
+        if not validated_results:
+            return
+
+        for prediction, measured_moisture in (
+            validated_results
+        ):
+            self._store_prediction_result(
+                prediction=prediction,
+                actual_moisture=measured_moisture,
+            )
+
+        self._logger.info(
+            "Due prediction validations completed. "
+            "validated=%d pending=%d",
+            len(validated_results),
+            self._prediction_validation_queue.count,
+        )
+        self._update_prediction_validation_status(
+            force=True,
+        )
+
+    def _cancel_pending_prediction_validations(
+        self,
+        *,
+        reason: str,
+    ) -> None:
+        """
+        Cancel pending predictions when irrigation changes
+        the natural soil-moisture behaviour.
+        """
+
+        cancelled_count = (
+            self._prediction_validation_queue.cancel_all()
+        )
+
+        if cancelled_count == 0:
+            return
+
+        self._logger.info(
+            "Pending prediction validations cancelled. "
+            "count=%d reason=%s",
+            cancelled_count,
+            reason,
+        )
+        self._update_prediction_validation_status(
+            force=True,
+        )
 
     def _save_sensor_history_if_needed(
         self,
@@ -197,211 +595,57 @@ class IrrigationService:
 
         self._last_sensor_history_update = current_time
 
-    def _update_adaptive_recommendation_if_needed(
-        self,
-        *,
-        commands,
-    ) -> None:
-        """
-        Analyze watering history periodically and upload
-        an observation-mode adaptive recommendation.
-        """
 
-        current_time = time.monotonic()
-
-        if (
-            current_time
-            - self._last_adaptive_analysis
-            < self._adaptive_analysis_interval_seconds
-        ):
-            return
-
-        records = (
-            self._firebase
-            .get_recent_watering_records(
-                limit=30,
-            )
-        )
-
-        recommendation = (
-            self._adaptive_engine.analyze(
-                records=records,
-                current_pump_duration_seconds=(
-                    commands.pump_duration
-                ),
-                current_cooldown_seconds=(
-                    commands.cooldown_seconds
-                ),
-            )
-        )
-
-        self._last_adaptive_recommendation = (
-            recommendation
-        )        
-
-        self._firebase.update_adaptive_recommendation(
-            recommendation,
-        )
-
-        self._last_adaptive_analysis = current_time
-
-        self._logger.info(
-            "Adaptive recommendation updated. "
-            "type=%s confidence=%s level=%s "
-            "records=%d apply=%s",
-            recommendation.recommendation_type,
-            recommendation.confidence,
-            recommendation.confidence_level,
-            recommendation.watering_count_analyzed,
-            recommendation.should_apply,
-        )
-
-    def _update_soil_learning_profile_if_needed(
-        self,
-    ) -> None:
-        """
-        Analyze soil behaviour periodically and upload
-        the latest observation-mode learning profile.
-        """
-
-        current_time = time.monotonic()
-
-        if (
-            current_time
-            - self._last_soil_learning_analysis
-            < self._soil_learning_interval_seconds
-        ):
-            return
-
-        moisture_trend = (
-            self._smart_engine.get_current_trend()
-        )
-
-        watering_records = (
-            self._firebase
-            .get_recent_watering_records(
-                limit=30,
-            )
-        )
-
-        profile = (
-            self._soil_learning_engine.analyze(
-                moisture_trend=moisture_trend,
-                watering_records=watering_records,
-            )
-        )
-
-        self._last_soil_learning_profile = profile
-
-        self._firebase.update_soil_learning_profile(
-            profile,
-        )
-
-        self._last_soil_learning_analysis = (
-            current_time
-        )
-
-        self._logger.info(
-            "Soil learning profile updated. "
-            "status=%s classification=%s "
-            "confidence=%s level=%s "
-            "sensor_records=%d waterings=%d",
-            profile.profile_status,
-            profile.soil_classification,
-            profile.confidence,
-            profile.confidence_level,
-            profile.sensor_history_count,
-            profile.watering_count_analyzed,
-        )
-
-    def _update_ai_decision_if_needed(
-        self,
-    ) -> None:
-        """
-        Combine the latest engine outputs and upload one
-        unified, explainable AI decision summary.
-        """
-
-        current_time = time.monotonic()
-
-        if (
-            current_time
-            - self._last_ai_decision_update
-            < self._ai_decision_interval_seconds
-        ):
-            return
-
-        if self._last_irrigation_decision is None:
-            return
-
-        if self._last_adaptive_recommendation is None:
-            return
-
-        if self._last_soil_learning_profile is None:
-            return
-
-        summary = self._ai_decision_engine.analyze(
-            irrigation_decision=(
-                self._last_irrigation_decision
-            ),
-            adaptive_recommendation=(
-                self._last_adaptive_recommendation
-            ),
-            soil_profile=(
-                self._last_soil_learning_profile
-            ),
-        )
-
-        explanation = (
-            self._ai_explanation_engine.analyze(
-                decision=summary,
-                soil_profile=(
-                    self._last_soil_learning_profile
-                ),
-            )
-        )
-
-        self._firebase.update_ai_decision(
-            summary,
-        )
-
-        self._firebase.update_ai_explanation(
-            explanation,
-        )
-
-        self._last_ai_decision_update = current_time
-
-        self._logger.info(
-            "AI decision updated. "
-            "code=%s severity=%s confidence=%s "
-            "level=%s should_water=%s",
-            summary.decision_code,
-            summary.severity,
-            summary.confidence,
-            summary.confidence_level,
-            summary.should_water,
-        )
-
-        self._logger.info(
-            "AI explanation updated. "
-            "code=%s progress=%d severity=%s",
-            explanation.explanation_code,
-            explanation.progress_percent,
-            explanation.severity,
-        )
 
     def update(self) -> None:
         """
         Execute one irrigation cycle.
         """
 
+        zone_id = ""
+
         try:
 
             commands = self._firebase.command_state
 
+            self._process_zone_test_command(
+                commands,
+            )
+
             reading = self._sensor.read()
 
-            self._firebase.update_sensor(reading)
+            fresh_readings = self._sensor.get_fresh_readings()
+
+            self._firebase.update_zone_sensors(
+                fresh_readings,
+            )
+
+            selected_zone_result = self._update_multi_zone_decisions(
+                readings=fresh_readings,
+                global_commands=commands,
+            )
+
+            zone_config = (
+                self._firebase.get_zone_config_for_sensor(
+                    reading.sensor_id,
+                )
+            )
+
+            (
+                effective_commands,
+                zone_irrigation_enabled,
+                zone_id,
+                valve_id,
+            ) = self._effective_zone_commands(
+                commands,
+                zone_config,
+            )
+
+            self._validate_due_predictions(
+                actual_moisture=reading.moisture,
+            )
+
+            self._update_prediction_validation_status()
 
             self._update_status_if_needed()
 
@@ -413,9 +657,11 @@ class IrrigationService:
 
             decision = self._smart_engine.evaluate(
                 reading=reading,
-                commands=commands,
+                commands=effective_commands,
                 cooldown_active=(
-                    self._controller.cooldown_remaining > 0
+                    self._zone_executor.is_cooldown_active(
+                        zone_id,
+                    )
                 ),
             )
 
@@ -430,13 +676,10 @@ class IrrigationService:
                 decision=decision,
             )
 
-            self._update_adaptive_recommendation_if_needed(
-                commands=commands,
+            self._update_ai_pipeline_if_needed(
+                reading=reading,
+                commands=effective_commands,
             )
-
-            self._update_soil_learning_profile_if_needed()
-
-            self._update_ai_decision_if_needed()
 
             self._logger.debug(
                 "Smart irrigation decision: "
@@ -459,10 +702,13 @@ class IrrigationService:
             if not commands.enabled:
 
                 self._relay.off()
+                self._reset_manual_relay_safety()
 
                 self._logger.info(
                     "System disabled from Firebase.",
                 )
+
+                self._mark_update_cycle_recovered()
 
                 return
 
@@ -470,25 +716,98 @@ class IrrigationService:
 
             if commands.auto_mode:
 
-                if decision.should_water:
+                self._reset_manual_relay_safety()
+
+                if (
+                    selected_zone_result is not None
+                    and not self._valves.simulation_mode
+                ):
+                    selected_candidate = (
+                        selected_zone_result.candidate
+                    )
+                    reading = fresh_readings[
+                        selected_candidate.sensor_id
+                    ]
+                    zone_config = (
+                        self._firebase
+                        .get_zone_config_for_sensor(
+                            selected_candidate.sensor_id,
+                        )
+                    )
+                    (
+                        effective_commands,
+                        zone_irrigation_enabled,
+                        zone_id,
+                        valve_id,
+                    ) = self._effective_zone_commands(
+                        commands,
+                        zone_config,
+                    )
+
+                    self._cancel_pending_prediction_validations(
+                        reason="AUTO_IRRIGATION_STARTED",
+                    )
 
                     # Röle açılıyor
 
                     started_at = datetime.now()
 
-                    result = self._controller.water(
-                        duration=commands.pump_duration,
-                        get_commands=lambda: self._firebase.command_state,
+                    result = self._zone_executor.execute(
+                        zone_id=zone_id,
+                        valve_id=valve_id,
+                        duration=effective_commands.pump_duration,
+                        get_commands=(
+                            lambda:
+                            self._effective_zone_commands(
+                                self._firebase.command_state,
+                                zone_config,
+                            )[0]
+                        ),
                         on_relay_changed=(
                             lambda relay_on:
                             self._firebase.update_relay_status(
                                 relay_on,
                             )
                         ),
+                        on_valve_changed=(
+                            lambda active_valve_id, is_open:
+                            self._firebase.update_active_zone_valve(
+                                active_valve_id,
+                                is_open,
+                                zone_id,
+                            )
+                        ),
                     )
 
+                    if result.completed:
+                        self._multi_zone_engine.mark_watering_completed(
+                            selected_candidate.sensor_id,
+                        )
+                        if (
+                            selected_candidate.sensor_id
+                            == SensorConfig.MQTT_SENSOR_ID
+                        ):
+                            self._smart_engine.mark_watering_completed()
+
+                        self._firebase.update_zone_cooldown(
+                            zone_id=zone_id,
+                            cooldown_until_epoch=(
+                                self._zone_executor
+                                .cooldown_until_epoch_for(zone_id)
+                            ),
+                            cooldown_remaining=(
+                                self._zone_executor
+                                .cooldown_remaining_for(zone_id)
+                            ),
+                        )
+
                     finished_at = datetime.now()
-                    finished_reading = self._sensor.read()
+                    finished_reading = (
+                        self._sensor.get_fresh_readings().get(
+                            selected_candidate.sensor_id,
+                            reading,
+                        )
+                    )
 
                     # Röle kapandı
 
@@ -503,10 +822,16 @@ class IrrigationService:
                             finished_reading.moisture
                             - reading.moisture
                         ),
-                        moisture_limit=commands.moisture_limit,
+                        moisture_limit=(
+                            effective_commands.moisture_limit
+                        ),
 
-                        restart_delta=commands.restart_delta,
-                        cooldown_seconds=commands.cooldown_seconds,
+                        restart_delta=(
+                            effective_commands.restart_delta
+                        ),
+                        cooldown_seconds=(
+                            effective_commands.cooldown_seconds
+                        ),
 
                         completed=result.completed,
 
@@ -515,6 +840,8 @@ class IrrigationService:
                         mode="AUTO",
 
                         firmware=AppConfig.VERSION,
+                        zone_id=selected_candidate.zone_id,
+                        sensor_id=selected_candidate.sensor_id,
                     )
 
                     self._firebase.save_watering(
@@ -531,10 +858,43 @@ class IrrigationService:
 
             else:
 
-                if commands.relay:
-                    self._relay.on()
-                else:
+                relay_requested = commands.relay
+                if (
+                    relay_requested
+                    and not self._is_recent_command(
+                        commands.relay_requested_at_ms
+                    )
+                ):
+                    relay_requested = False
                     self._relay.off()
+                    self._reset_manual_relay_safety()
+                    self._logger.warning(
+                        "Stale manual relay command rejected.",
+                    )
+                    self._firebase.set_relay_command(False)
+
+                manual_timed_out = (
+                    self._apply_manual_relay_command(
+                        relay_requested,
+                    )
+                )
+
+                if relay_requested:
+                    self._cancel_pending_prediction_validations(
+                        reason="MANUAL_IRRIGATION_STARTED",
+                    )
+
+                if manual_timed_out:
+                    try:
+                        self._firebase.set_relay_command(
+                            False,
+                        )
+                    except Exception as exc:
+                        self._logger.exception(
+                            "Manual relay command could not "
+                            "be reset after timeout: %s",
+                            exc,
+                        )
                     
                 self._firebase.update_relay_status(
                     self._relay.is_on,
@@ -553,7 +913,7 @@ class IrrigationService:
                 reading.raw,
                 reading.voltage,
                 reading.moisture,
-                commands.moisture_limit,
+                effective_commands.moisture_limit,
                 "ON" if self._relay.is_on else "OFF",
             )
 
@@ -562,11 +922,37 @@ class IrrigationService:
                 commands,
             )
 
+            self._mark_update_cycle_recovered()
+
         except Exception as exc:
 
-            self._relay.off()
+            self._enter_fail_safe(
+                reason=type(exc).__name__,
+            )
 
-            self._logger.exception(exc)
+            current_time = time.monotonic()
+
+            should_report_error = (
+                not self._update_error_active
+                or (
+                    current_time
+                    - self._last_update_error_log
+                    >= self._update_error_log_interval_seconds
+                )
+            )
+
+            self._update_error_active = True
+
+            if not should_report_error:
+                return
+
+            self._last_update_error_log = current_time
+
+            self._logger.exception(
+                "Update cycle failed. Relay=%s Error=%s",
+                "ON" if self._relay.is_on else "OFF",
+                exc,
+            )
 
             try:
 
@@ -574,14 +960,11 @@ class IrrigationService:
                     str(exc),
                 )
 
-            except Exception:
-
-                pass
-
-            self._logger.error(
-                "Update cycle failed. Relay=%s",
-                "ON" if self._relay.is_on else "OFF",
-            )
+            except Exception as report_exc:
+                self._logger.debug(
+                    "Firebase error report failed: %s",
+                    report_exc,
+                )
 
         finally:
 
@@ -596,8 +979,12 @@ class IrrigationService:
                     relay=self._relay.is_on,
                     uptime=uptime,
                     sensor_time=datetime.now().isoformat(),
-                    watering_state=self._controller.state.value,
-                    cooldown_remaining=self._controller.cooldown_remaining,
+                    watering_state=self._zone_executor.state.value,
+                    cooldown_remaining=(
+                        self._zone_executor.cooldown_remaining_for(
+                            zone_id,
+                        )
+                    ),
                 )
 
             except Exception as exc:
@@ -607,18 +994,663 @@ class IrrigationService:
                     exc,
                 )
 
+    def _enter_fail_safe(
+        self,
+        *,
+        reason: str,
+    ) -> None:
+        """
+        Independently attempt every physical safety action.
+
+        One hardware cleanup failure must never prevent the
+        remaining pump/valve shutdown steps.
+        """
+
+        relay_error = None
+        valve_error = None
+
+        try:
+            self._relay.off()
+        except Exception as exc:
+            relay_error = exc
+
+        try:
+            self._valves.close_all()
+        except Exception as exc:
+            valve_error = exc
+
+        self._reset_manual_relay_safety()
+
+        if relay_error is not None:
+            self._logger.error(
+                "Fail-safe relay shutdown failed. "
+                "reason=%s error=%s",
+                reason,
+                relay_error,
+            )
+
+        if valve_error is not None:
+            self._logger.error(
+                "Fail-safe valve shutdown failed. "
+                "reason=%s error=%s",
+                reason,
+                valve_error,
+            )
+
+        self._logger.warning(
+            "Fail-safe applied. reason=%s relay=%s",
+            reason,
+            "ON" if self._relay.is_on else "OFF",
+        )
+
+    def _effective_zone_commands(
+        self,
+        commands,
+        zone_config,
+    ):
+        """
+        Overlay one zone's irrigation settings on global commands.
+        """
+
+        if not isinstance(zone_config, dict):
+            return commands, False, "", ""
+
+        def bounded_int(
+            field,
+            default,
+            minimum,
+            maximum,
+        ):
+            try:
+                value = int(
+                    zone_config.get(field, default),
+                )
+            except (TypeError, ValueError):
+                value = default
+
+            return max(minimum, min(maximum, value))
+
+        effective = replace(
+            commands,
+            moisture_limit=bounded_int(
+                "moisture_limit",
+                commands.moisture_limit,
+                IrrigationConfig.MIN_MOISTURE_LIMIT,
+                IrrigationConfig.MAX_MOISTURE_LIMIT,
+            ),
+            pump_duration=bounded_int(
+                "pump_duration",
+                commands.pump_duration,
+                IrrigationConfig.MIN_PUMP_DURATION_SECONDS,
+                IrrigationConfig.MAX_PUMP_DURATION_SECONDS,
+            ),
+            restart_delta=bounded_int(
+                "restart_delta",
+                commands.restart_delta,
+                IrrigationConfig.MIN_RESTART_DELTA,
+                IrrigationConfig.MAX_RESTART_DELTA,
+            ),
+            cooldown_seconds=bounded_int(
+                "cooldown_seconds",
+                commands.cooldown_seconds,
+                IrrigationConfig.MIN_COOLDOWN_SECONDS,
+                IrrigationConfig.MAX_COOLDOWN_SECONDS,
+            ),
+        )
+
+        zone_enabled = (
+            zone_config.get("enabled", True) is True
+            and zone_config.get(
+                "irrigation_enabled",
+                False,
+            ) is True
+        )
+        zone_id = str(
+            zone_config.get("zone_id", ""),
+        )
+        valve_id = str(
+            zone_config.get("valve_id", ""),
+        )
+
+        signature = (
+            zone_id,
+            zone_enabled,
+            effective.moisture_limit,
+            effective.pump_duration,
+            effective.cooldown_seconds,
+            effective.restart_delta,
+            valve_id,
+        )
+
+        if signature != self._last_zone_config_signature:
+            self._last_zone_config_signature = signature
+            self._logger.info(
+                "Zone irrigation settings applied. "
+                "zone_id=%s enabled=%s limit=%d duration=%d "
+                "cooldown=%d restart_delta=%d valve_id=%s",
+                zone_id,
+                zone_enabled,
+                effective.moisture_limit,
+                effective.pump_duration,
+                effective.cooldown_seconds,
+                effective.restart_delta,
+                valve_id,
+            )
+
+        return (
+            effective,
+            zone_enabled,
+            zone_id,
+            valve_id,
+        )
+
+    def _update_multi_zone_decisions(
+        self,
+        *,
+        readings,
+        global_commands,
+    ) -> ZoneDecisionResult | None:
+        """
+        Evaluate every connected zone and publish queue state.
+        """
+
+        configs = (
+            self._firebase.get_all_zone_configs_by_sensor()
+        )
+        results = []
+
+        for sensor_id, reading in readings.items():
+            zone = configs.get(sensor_id)
+            if not isinstance(zone, dict):
+                continue
+
+            (
+                commands,
+                irrigation_enabled,
+                zone_id,
+                valve_id,
+            ) = self._effective_zone_commands(
+                global_commands,
+                zone,
+            )
+
+            results.append(
+                self._multi_zone_engine.evaluate(
+                    zone_id=zone_id,
+                    valve_id=valve_id,
+                    order=int(zone.get("order", 0)),
+                    irrigation_enabled=(
+                        irrigation_enabled
+                        and global_commands.enabled
+                        and global_commands.auto_mode
+                        and commands.pump_duration > 0
+                    ),
+                    reading=reading,
+                    commands=commands,
+                    cooldown_active=(
+                        self._zone_executor.is_cooldown_active(
+                            zone_id,
+                        )
+                    ),
+                )
+            )
+
+        selected = self._zone_scheduler.select([
+            result.candidate
+            for result in results
+        ])
+        selected_result = next(
+            (
+                result
+                for result in results
+                if (
+                    selected is not None
+                    and result.candidate.zone_id
+                    == selected.zone_id
+                )
+            ),
+            None,
+        )
+
+        ordered_candidates = sorted(
+            (
+                result.candidate
+                for result in results
+                if (
+                    result.candidate.irrigation_enabled
+                    and result.candidate.should_water
+                    and result.candidate.valve_id
+                )
+            ),
+            key=lambda item: (
+                -item.moisture_deficit,
+                item.order,
+                item.zone_id,
+            ),
+        )
+        queue_positions = {
+            item.zone_id: index
+            for index, item in enumerate(
+                ordered_candidates,
+                start=1,
+            )
+        }
+
+        states = {}
+        signature_items = []
+
+        for result in results:
+            candidate = result.candidate
+            decision = result.decision
+            is_selected = (
+                selected is not None
+                and selected.zone_id == candidate.zone_id
+            )
+            state = {
+                "decision": (
+                    "WATER"
+                    if decision.should_water
+                    else "WAIT"
+                ),
+                "decision_reason": decision.reason,
+                "sensor_stable": decision.sensor_stable,
+                "cooldown_active": decision.cooldown_active,
+                "cooldown_remaining": (
+                    self._zone_executor.cooldown_remaining_for(
+                        candidate.zone_id,
+                    )
+                ),
+                "cooldown_until_epoch": (
+                    self._zone_executor.cooldown_until_epoch_for(
+                        candidate.zone_id,
+                    )
+                ),
+                "queue_position": queue_positions.get(
+                    candidate.zone_id,
+                    0,
+                ),
+                "selected_for_watering": is_selected,
+                "moisture_deficit": candidate.moisture_deficit,
+            }
+            states[candidate.zone_id] = state
+            signature_items.append(
+                (
+                    candidate.zone_id,
+                    *state.values(),
+                )
+            )
+
+        signature = tuple(sorted(signature_items))
+        if signature == self._last_multi_zone_status_signature:
+            return selected_result
+
+        self._last_multi_zone_status_signature = signature
+        self._firebase.update_zone_irrigation_decisions(
+            states,
+        )
+        self._logger.info(
+            "Multi-zone decisions updated. "
+            "connected=%d queued=%d selected=%s",
+            len(results),
+            len(ordered_candidates),
+            (
+                selected.zone_id
+                if selected is not None
+                else "none"
+            ),
+        )
+
+        return selected_result
+
+    def _restore_zone_cooldowns(self) -> None:
+        """
+        Restore valid per-zone cooldowns after a service restart.
+        """
+
+        restored_count = 0
+        configs = self._firebase.get_all_zone_configs_by_sensor()
+
+        for zone in configs.values():
+            if not isinstance(zone, dict):
+                continue
+
+            zone_id = str(zone.get("zone_id", ""))
+            irrigation_status = zone.get("irrigation_status")
+            if (
+                not zone_id
+                or not isinstance(irrigation_status, dict)
+            ):
+                continue
+
+            persisted_until = irrigation_status.get(
+                "cooldown_until_epoch",
+                0,
+            )
+            configured_cooldown = min(
+                IrrigationConfig.MAX_COOLDOWN_SECONDS,
+                max(
+                    0,
+                    int(
+                        zone.get(
+                            "cooldown_seconds",
+                            IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
+                        )
+                    ),
+                ),
+            )
+
+            remaining = self._zone_executor.restore_cooldown(
+                zone_id=zone_id,
+                cooldown_until_epoch=persisted_until,
+                max_remaining_seconds=configured_cooldown,
+            )
+
+            if remaining > 0:
+                restored_count += 1
+            elif persisted_until:
+                self._firebase.update_zone_cooldown(
+                    zone_id=zone_id,
+                    cooldown_until_epoch=0,
+                    cooldown_remaining=0,
+                )
+
+        self._logger.info(
+            "Zone cooldowns restored. count=%d",
+            restored_count,
+        )
+
+    def _apply_manual_relay_command(
+        self,
+        commanded_on: bool,
+    ) -> bool:
+        """
+        Apply manual relay control with a hard safety timeout.
+
+        Returns True when the timeout has been reached.
+        """
+
+        if not commanded_on:
+            self._relay.off()
+            self._reset_manual_relay_safety()
+            return False
+
+        if self._manual_relay_timeout_latched:
+            self._relay.off()
+            return True
+
+        current_time = time.monotonic()
+
+        if self._manual_relay_started_at <= 0:
+            self._manual_relay_started_at = current_time
+
+        elapsed = (
+            current_time
+            - self._manual_relay_started_at
+        )
+
+        if (
+            elapsed
+            >= IrrigationConfig.MAX_MANUAL_PUMP_DURATION_SECONDS
+        ):
+            self._relay.off()
+            self._manual_relay_timeout_latched = True
+
+            self._logger.warning(
+                "Manual irrigation safety timeout reached. "
+                "maximum=%d seconds",
+                IrrigationConfig.MAX_MANUAL_PUMP_DURATION_SECONDS,
+            )
+
+            return True
+
+        self._relay.on()
+
+        return False
+
+    def _process_zone_test_command(
+        self,
+        commands,
+    ) -> None:
+        """
+        Run one safe valve-only test requested by Android.
+
+        The real pump remains blocked while valves are simulated.
+        """
+
+        if self._active_zone_test_request_id:
+            remaining = max(
+                0,
+                int(
+                    self._active_zone_test_deadline
+                    - time.monotonic()
+                ),
+            )
+            if (
+                commands.zone_test_cancel_requested
+                or remaining <= 0
+            ):
+                self._relay.off()
+                self._valves.close_all()
+                self._firebase.update_active_zone_valve(
+                    None,
+                    False,
+                )
+                self._firebase.acknowledge_zone_test(
+                    request_id=(
+                        self._active_zone_test_request_id
+                    ),
+                    result=(
+                        "SIMULATION_CANCELLED"
+                        if commands.zone_test_cancel_requested
+                        else "SIMULATION_COMPLETED"
+                    ),
+                )
+                self._active_zone_test_request_id = ""
+                self._active_zone_test_valve_id = ""
+                self._active_zone_test_deadline = 0.0
+
+        if (
+            not commands.zone_test_requested
+            or self._active_zone_test_request_id
+        ):
+            return
+
+        request_id = commands.zone_test_request_id
+
+        if (
+            not request_id
+            or request_id == self._last_zone_test_request_id
+        ):
+            return
+
+        self._last_zone_test_request_id = request_id
+
+        if not commands.zone_test_valve_id:
+            result = "INVALID_VALVE"
+        elif not self._is_recent_command(
+            commands.zone_test_requested_at_ms
+        ):
+            result = "STALE_COMMAND"
+        elif not self._valves.simulation_mode:
+            result = "PHYSICAL_TEST_BLOCKED"
+        else:
+            duration = max(1, commands.zone_test_duration)
+            self._relay.off()
+            self._valves.open(
+                commands.zone_test_valve_id,
+            )
+            self._firebase.update_active_zone_valve(
+                commands.zone_test_valve_id,
+                True,
+            )
+            self._active_zone_test_request_id = request_id
+            self._active_zone_test_valve_id = (
+                commands.zone_test_valve_id
+            )
+            self._active_zone_test_deadline = (
+                time.monotonic() + duration
+            )
+            result = "SIMULATION_ACTIVE"
+
+        self._firebase.acknowledge_zone_test(
+            request_id=request_id,
+            result=result,
+            active=(result == "SIMULATION_ACTIVE"),
+            remaining_seconds=(
+                commands.zone_test_duration
+                if result == "SIMULATION_ACTIVE"
+                else 0
+            ),
+        )
+
+    @staticmethod
+    def _is_recent_command(
+        requested_at_ms: int,
+        maximum_age_seconds: int = 30,
+    ) -> bool:
+        """
+        Reject actuator commands queued while the device was offline.
+        """
+
+        if requested_at_ms <= 0:
+            return False
+
+        age_seconds = (
+            int(time.time() * 1000) - requested_at_ms
+        ) / 1000.0
+
+        return -300 <= age_seconds <= maximum_age_seconds
+
+    def _reset_manual_relay_safety(self) -> None:
+        """
+        Reset manual relay timeout state after an OFF command
+        or a mode change.
+        """
+
+        self._manual_relay_started_at = 0.0
+        self._manual_relay_timeout_latched = False
+
+    def _mark_update_cycle_recovered(self) -> None:
+        """
+        Log one recovery event after a failed update period.
+        """
+
+        if not self._update_error_active:
+            return
+
+        self._update_error_active = False
+        self._last_update_error_log = 0.0
+
+        self._logger.info(
+            "Update cycle recovered.",
+        )
+
+        try:
+            self._firebase.clear_error()
+        except Exception as exc:
+            self._logger.warning(
+                "Recovered error status could not be cleared: %s",
+                exc,
+            )
+
 
     def cleanup(self) -> None:
         """
-        Release hardware resources.
+        Release resources without allowing one cleanup failure
+        to prevent the remaining safety steps.
         """
 
-        self._firebase.set_online(False)
+        try:
+            self._relay.cleanup()
+        except Exception as exc:
+            self._logger.exception(
+                "Relay cleanup failed: %s",
+                exc,
+            )
 
-        self._firebase.stop_command_sync()
+        try:
+            self._valves.cleanup()
+        except Exception as exc:
+            self._logger.exception(
+                "Valve cleanup failed: %s",
+                exc,
+            )
 
-        self._relay.cleanup()
+        try:
+            self._sensor.stop()
+        except Exception as exc:
+            self._logger.exception(
+                "Sensor provider cleanup failed: %s",
+                exc,
+            )
+
+        try:
+            self._firebase.stop_command_sync()
+        except Exception as exc:
+            self._logger.exception(
+                "Firebase command synchronization cleanup failed: %s",
+                exc,
+            )
+
+        try:
+            self._firebase.set_online(False)
+        except Exception as exc:
+            self._logger.exception(
+                "Device could not be marked offline: %s",
+                exc,
+            )
 
         self._logger.info(
             "Irrigation service stopped.",
         )
+
+    def _update_prediction_validation_status(
+        self,
+        *,
+        force: bool = False,
+    ) -> None:
+        """
+        Upload the current prediction-validation queue status.
+
+        Status is uploaded periodically or immediately when
+        the queue state changes.
+        """
+
+        current_time = time.monotonic()
+
+        if (
+            not force
+            and (
+                current_time
+                - self._last_prediction_validation_status_update
+                < self._prediction_validation_status_interval_seconds
+            )
+        ):
+            return
+
+        try:
+            status = (
+                self._prediction_validation_queue.get_status()
+            )
+
+            self._firebase.update_prediction_validation_status(
+                status,
+            )
+
+            self._last_prediction_validation_status_update = (
+                current_time
+            )
+
+            self._logger.debug(
+                "Prediction validation status uploaded. "
+                "status=%s pending=%d remaining=%d",
+                status.validation_status,
+                status.pending_count,
+                status.remaining_seconds,
+            )
+
+        except Exception as exc:
+            self._logger.exception(
+                "Prediction validation status update failed: %s",
+                exc,
+            )
