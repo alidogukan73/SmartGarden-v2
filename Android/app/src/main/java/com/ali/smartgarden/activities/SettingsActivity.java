@@ -15,11 +15,13 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Command;
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.viewmodels.SettingsViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -30,6 +32,11 @@ public class SettingsActivity extends AppCompatActivity {
     private static final boolean DEFAULT_SYSTEM_ENABLED = true;
 
     private SettingsViewModel viewModel;
+    private final FirebaseRepository repository = new FirebaseRepository();
+    private TextInputEditText inputWeatherCity;
+    private TextInputEditText inputWeatherDistrict;
+    private MaterialButton btnSaveWeatherLocation;
+    private TextView txtWeatherLocationStatus;
 
     private MaterialButton btnBack;
     private MaterialButton btnSaveSettings;
@@ -156,6 +163,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         txtSettingsStatus =
                 findViewById(R.id.txtSettingsStatus);
+        inputWeatherCity = findViewById(R.id.inputWeatherCity);
+        inputWeatherDistrict = findViewById(R.id.inputWeatherDistrict);
+        btnSaveWeatherLocation = findViewById(R.id.btnSaveWeatherLocation);
+        txtWeatherLocationStatus = findViewById(R.id.txtWeatherLocationStatus);
     }
 
 
@@ -163,10 +174,20 @@ public class SettingsActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this)
                 .get(SettingsViewModel.class);
+
+        repository.observeWeatherLocation().observe(this, location -> {
+            if (location == null) {
+                return;
+            }
+            inputWeatherCity.setText(location.getCity());
+            inputWeatherDistrict.setText(location.getDistrict());
+        });
     }
 
 
     private void initializeListeners() {
+
+        btnSaveWeatherLocation.setOnClickListener(view -> saveWeatherLocation());
 
         sliderMoistureLimit.addOnChangeListener(
                 (slider, value, fromUser) -> {
@@ -465,15 +486,42 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
 
-        viewModel.saveSettings(
-                getMoistureLimit(),
-                getPumpDuration(),
-                getCooldownSeconds(),
-                getRestartDelta(),
-                switchSystemEnabled.isChecked()
-        );
+        new AlertDialog.Builder(this)
+                .setTitle("T\u00FCm b\u00F6lgeler e\u015Fitlenecek")
+                .setMessage(
+                        "Bu ayarlar t\u00FCm b\u00F6lgelerin nem s\u0131n\u0131r\u0131, "
+                                + "sulama s\u00FCresi, bekleme s\u00FCresi ve yeniden ba\u015Flatma "
+                                + "fark\u0131na uygulanacak. Daha sonra her b\u00F6lgeyi kendi "
+                                + "ayarlar\u0131ndan ayr\u0131ca de\u011Fi\u015Ftirebilirsiniz."
+                )
+                .setNegativeButton(R.string.settings_cancel, null)
+                .setPositiveButton("T\u00FCm b\u00F6lgelere uygula", (dialog, which) ->
+                        viewModel.saveSettings(
+                                getMoistureLimit(), getPumpDuration(), getCooldownSeconds(),
+                                getRestartDelta(), switchSystemEnabled.isChecked()
+                        )
+                )
+                .show();
     }
 
+
+    private void saveWeatherLocation() {
+        String city = inputWeatherCity.getText() == null ? "" : inputWeatherCity.getText().toString().trim();
+        String district = inputWeatherDistrict.getText() == null ? "" : inputWeatherDistrict.getText().toString().trim();
+        if (city.isEmpty() || district.isEmpty()) {
+            txtWeatherLocationStatus.setText("Hava tahmini için il ve ilçe girin.");
+            return;
+        }
+        btnSaveWeatherLocation.setEnabled(false);
+        repository.saveWeatherLocation(city, district)
+                .addOnSuccessListener(unused -> txtWeatherLocationStatus.setText(
+                        city + " / " + district + " konumu kaydedildi."
+                ))
+                .addOnFailureListener(error -> txtWeatherLocationStatus.setText(
+                        "Konum kaydedilemedi. Bağlantıyı kontrol edin."
+                ))
+                .addOnCompleteListener(task -> btnSaveWeatherLocation.setEnabled(true));
+    }
 
     private void showResetConfirmation() {
 

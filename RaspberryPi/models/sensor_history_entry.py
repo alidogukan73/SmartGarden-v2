@@ -15,6 +15,8 @@ class SensorHistoryEntry:
 
     moisture: int
 
+    sensor_id: str
+
     voltage: float
 
     raw: int

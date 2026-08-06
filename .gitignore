@@ -3,7 +3,16 @@ credentials/
 smartgarden.log
 
 firebase_key.json
+RaspberryPi/weather_api_key.txt
+RaspberryPi/vision_api_key.txt
+RaspberryPi/vision_client_token.txt
 Arduino/ESP32/**/secrets*.h
+
+# Local Android / Codex build caches and temporary UI captures
+.android-cache/
+.gradle-cache/
+.gradle-user-home/
+Android/*.xml
 
 # Python
 __pycache__/

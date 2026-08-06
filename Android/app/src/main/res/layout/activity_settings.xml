@@ -499,6 +499,73 @@
 
         <!-- İŞLEM BUTONLARI -->
 
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:visibility="gone">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bahçe konumu"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Hava tahmini için il ve ilçe bilgisi"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:hint="İl">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputWeatherCity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="İlçe">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputWeatherDistrict"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveWeatherLocation"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Konumu kaydet"
+                    android:textAllCaps="false"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/primary" />
+
+                <TextView
+                    android:id="@+id/txtWeatherLocationStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="Hava tahmini bu konuma göre hazırlanır."
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveSettings"
             style="@style/Widget.SmartGarden.Button.Primary"

@@ -2,7 +2,7 @@ package com.ali.smartgarden.config;
 
 public final class AppInfo {
 
-    public static final String APP_VERSION = "v2.6.0";
+    public static final String APP_VERSION = "v2.7.0";
 
     public static final String DEVICE_ID = "smartgarden-001";
 

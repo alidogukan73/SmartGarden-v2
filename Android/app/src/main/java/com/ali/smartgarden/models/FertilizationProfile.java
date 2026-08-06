@@ -15,6 +15,9 @@ public class FertilizationProfile {
     private double tank_liters;
     private boolean reminder_enabled = true;
     private long updated_at_epoch;
+    private double water_ph;
+    private double water_ec_ms;
+    private long water_analysis_updated_at_epoch;
     private Map<String, FertilizerApplicationSchedule>
             application_schedules;
 
@@ -97,6 +100,16 @@ public class FertilizationProfile {
 
     public void setUpdated_at_epoch(long updatedAtEpoch) {
         this.updated_at_epoch = updatedAtEpoch;
+    }
+    public double getWater_ph() { return water_ph; }
+    public void setWater_ph(double value) { this.water_ph = value; }
+    public double getWater_ec_ms() { return water_ec_ms; }
+    public void setWater_ec_ms(double value) { this.water_ec_ms = value; }
+    public long getWater_analysis_updated_at_epoch() {
+        return water_analysis_updated_at_epoch;
+    }
+    public void setWater_analysis_updated_at_epoch(long value) {
+        this.water_analysis_updated_at_epoch = value;
     }
     public Map<String, FertilizerApplicationSchedule>
     getApplication_schedules() {

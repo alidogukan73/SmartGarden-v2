@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.services)
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.isFile) file.inputStream().use { load(it) }
+}
+val plantVisionToken = localProperties.getProperty("plant.vision.token", "")
 
 android {
     namespace = "com.ali.smartgarden"
@@ -15,10 +23,15 @@ android {
         applicationId = "com.ali.smartgarden"
         minSdk = 26
         targetSdk = 36
-        versionCode = 26
-        versionName = "2.6.0"
+        versionCode = 27
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "PLANT_VISION_TOKEN", "\"$plantVisionToken\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

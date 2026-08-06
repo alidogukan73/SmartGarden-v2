@@ -1,5 +1,5 @@
 [Unit]
-Description=SmartGarden Raspberry Pi Backend
+Description=AVORA Raspberry Pi Backend
 Wants=network-online.target mosquitto.service
 After=network-online.target mosquitto.service
 

@@ -1,6 +1,7 @@
 package com.ali.smartgarden.activities;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,9 +19,14 @@ import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerApplicationSchedule;
 import com.ali.smartgarden.models.FertilizerProduct;
+import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
+import com.ali.smartgarden.fertilization.FertilizerAiProfile;
+import com.ali.smartgarden.fertilization.FertilizerAdvice;
+import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
 import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.WeatherForecast;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -73,10 +79,20 @@ public class FertilizationZoneDetailActivity
     private MaterialButton btnUseFertilizerRecommendation;
     private MaterialButton btnRecordFertilizerApplication;
     private MaterialButton btnAdvanceGrowthStage;
+    private MaterialButton btnWaterAnalysis;
+    private MaterialButton btnZonePhoto;
+    private MaterialButton btnZonePlantDoctor;
     private TextView txtNutritionSchedule;
     private TextView txtOrganicSchedule;
     private TextView txtConditionerSchedule;
     private TextView txtBiostimulantSchedule;
+    private MaterialCardView cardZoneAiAdvice;
+    private TextView txtZoneAiAdviceStatus;
+    private TextView txtZoneAiAdviceReason;
+    private TextView txtZoneAiAdviceContext;
+    private TextView txtZoneAiAdviceProducts;
+    private TextView txtZoneAiAdviceRisks;
+    private TextView txtWaterAnalysisSummary;
 
     private String zoneId;
     private boolean rendering;
@@ -96,6 +112,8 @@ public class FertilizationZoneDetailActivity
     private double originalTankLiters;
     private String zonePlantType = "";
     private String zoneName = "";
+    private GardenZone currentZone;
+    private WeatherForecast currentWeather;
     private Map<String, FertilizerApplicationSchedule>
             applicationSchedules;
     private final List<FertilizerProduct> products =
@@ -155,6 +173,10 @@ public class FertilizationZoneDetailActivity
                 this,
                 this::renderZone
         );
+        repository.observeWeatherForecast().observe(this, weather -> {
+            currentWeather = weather;
+            renderZoneAiAdvice();
+        });
     }
 
     private void bindViews() {
@@ -172,9 +194,8 @@ public class FertilizationZoneDetailActivity
         txtApplicationPreview = findViewById(
                 R.id.txtApplicationPreview
         );
-        txtFertilizationDoseCalculation = findViewById(
-                R.id.txtFertilizationDoseCalculation
-        );
+        // Dose information is now shown under each AI product recommendation.
+        txtFertilizationDoseCalculation = null;
         txtFertilizerRecommendation = findViewById(
                 R.id.txtFertilizerRecommendation
         );
@@ -194,12 +215,24 @@ public class FertilizationZoneDetailActivity
         btnAdvanceGrowthStage = findViewById(
                 R.id.btnAdvanceGrowthStage
         );
+        btnWaterAnalysis = findViewById(R.id.btnWaterAnalysis);
+        btnZonePhoto = findViewById(R.id.btnZonePhoto);
+        btnZonePlantDoctor = findViewById(R.id.btnZonePlantDoctor);
+        txtWaterAnalysisSummary = findViewById(
+                R.id.txtWaterAnalysisSummary
+        );
         txtNutritionSchedule = findViewById(R.id.txtNutritionSchedule);
         txtOrganicSchedule = findViewById(R.id.txtOrganicSchedule);
         txtConditionerSchedule = findViewById(R.id.txtConditionerSchedule);
         txtBiostimulantSchedule = findViewById(
                 R.id.txtBiostimulantSchedule
         );
+        cardZoneAiAdvice = findViewById(R.id.cardZoneAiAdvice);
+        txtZoneAiAdviceStatus = findViewById(R.id.txtZoneAiAdviceStatus);
+        txtZoneAiAdviceReason = findViewById(R.id.txtZoneAiAdviceReason);
+        txtZoneAiAdviceContext = findViewById(R.id.txtZoneAiAdviceContext);
+        txtZoneAiAdviceProducts = findViewById(R.id.txtZoneAiAdviceProducts);
+        txtZoneAiAdviceRisks = findViewById(R.id.txtZoneAiAdviceRisks);
 
         String[] stageLabels = {
                 getString(R.string.fertilization_not_set),
@@ -305,6 +338,9 @@ public class FertilizationZoneDetailActivity
         btnAdvanceGrowthStage.setOnClickListener(
                 view -> confirmAdvanceGrowthStage()
         );
+        btnWaterAnalysis.setOnClickListener(view -> showWaterAnalysisDialog());
+        btnZonePhoto.setOnClickListener(view -> openZonePhotoArchive());
+        btnZonePlantDoctor.setOnClickListener(view -> openZonePlantDoctor());
     }
 
     private void renderZone(GardenZone zone) {
@@ -323,6 +359,7 @@ public class FertilizationZoneDetailActivity
         );
         zonePlantType = safe(zone.getPlant_type());
         zoneName = safe(zone.getName());
+        currentZone = zone;
 
         FertilizationProfile profile = zone.getFertilization();
         if (profile == null) {
@@ -354,6 +391,7 @@ public class FertilizationZoneDetailActivity
         inputFertilizationTank.setText(
                 editableNumber(originalTankLiters)
         );
+        renderWaterAnalysis(profile);
         dropdownGrowthStage.setText(
                 stageLabel(originalStage),
                 false
@@ -365,6 +403,80 @@ public class FertilizationZoneDetailActivity
         updateUnsavedState();
         updateRecordButton();
         updateAdvanceStageButton();
+        renderZoneAiAdvice();
+    }
+
+    private void renderWaterAnalysis(FertilizationProfile profile) {
+        if (profile.getWater_ph() <= 0.0 && profile.getWater_ec_ms() <= 0.0) {
+            txtWaterAnalysisSummary.setText(
+                    "EC / pH bilgisi girilmedi. Sensör gelene kadar ölçümü elle ekleyebilirsiniz.");
+            return;
+        }
+        String ph = profile.getWater_ph() > 0.0 ? "pH "
+                + String.format(Locale.getDefault(), "%.1f", profile.getWater_ph()) : "pH yok";
+        String ec = profile.getWater_ec_ms() > 0.0 ? "EC "
+                + String.format(Locale.getDefault(), "%.2f", profile.getWater_ec_ms())
+                + " mS/cm" : "EC yok";
+        txtWaterAnalysisSummary.setText(ph + " · " + ec
+                + " · yalnızca danışman uyarısı için kullanılır.");
+    }
+
+    private void showWaterAnalysisDialog() {
+        FertilizationProfile profile = currentZone == null ? null
+                : currentZone.getFertilization();
+        TextInputEditText phInput = new TextInputEditText(this);
+        phInput.setHint("pH (örnek: 6,5)");
+        phInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        TextInputEditText ecInput = new TextInputEditText(this);
+        ecInput.setHint("EC mS/cm (örnek: 1,80)");
+        ecInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        if (profile != null) {
+            if (profile.getWater_ph() > 0) phInput.setText(String.valueOf(profile.getWater_ph()));
+            if (profile.getWater_ec_ms() > 0) ecInput.setText(String.valueOf(profile.getWater_ec_ms()));
+        }
+        android.widget.LinearLayout content = new android.widget.LinearLayout(this);
+        content.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        content.setPadding(padding, 0, padding, 0);
+        content.addView(phInput);
+        content.addView(ecInput);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("EC / pH su analizi")
+                .setMessage("Bu değerler öneri ve risk uyarıları içindir; otomatik gübreleme başlatmaz.")
+                .setView(content)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.settings_save, (dialog, which) -> {
+                    try {
+                        double ph = parseOptionalDecimal(phInput.getText().toString());
+                        double ec = parseOptionalDecimal(ecInput.getText().toString());
+                        if (ph < 0 || ph > 14 || ec < 0 || ec > 20) throw new IllegalArgumentException();
+                        repository.updateFertilizationWaterAnalysis(zoneId, ph, ec)
+                                .addOnFailureListener(error -> Toast.makeText(this,
+                                        "Su analizi kaydedilemedi.", Toast.LENGTH_LONG).show());
+                    } catch (Exception error) {
+                        Toast.makeText(this, "pH 0–14, EC 0–20 aralığında olmalıdır.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }).show();
+    }
+
+    private double parseOptionalDecimal(String value) {
+        String normalized = value == null ? "" : value.trim().replace(',', '.');
+        return normalized.isEmpty() ? 0.0 : Double.parseDouble(normalized);
+    }
+
+    private void openZonePhotoArchive() {
+        Intent intent = new Intent(this, GardenPhotoArchiveActivity.class);
+        intent.putExtra("zone_id", zoneId);
+        startActivity(intent);
+    }
+
+    private void openZonePlantDoctor() {
+        Intent intent = new Intent(this, PlantDoctorActivity.class);
+        intent.putExtra("zone_id", zoneId);
+        startActivity(intent);
     }
 
     private void renderProducts(List<FertilizerProduct> value) {
@@ -378,6 +490,41 @@ public class FertilizationZoneDetailActivity
         }
         rebuildProductOptions();
         updateRecordButton();
+        renderZoneAiAdvice();
+    }
+
+    private void renderZoneAiAdvice() {
+        if (cardZoneAiAdvice == null || currentZone == null) {
+            return;
+        }
+        FertilizerAdvice advice = FertilizerDecisionEngine.advise(
+                currentZone, allProducts, currentWeather,
+                Instant.now().getEpochSecond()
+        );
+        cardZoneAiAdvice.setVisibility(View.VISIBLE);
+        txtZoneAiAdviceStatus.setText(advice.getStatus());
+        txtZoneAiAdviceReason.setText(advice.getReason());
+
+        if (advice.getContext() == null || advice.getContext().isBlank()) {
+            txtZoneAiAdviceContext.setVisibility(View.GONE);
+        } else {
+            txtZoneAiAdviceContext.setVisibility(View.VISIBLE);
+            txtZoneAiAdviceContext.setText(advice.getContext());
+        }
+        if (advice.getCandidates().isEmpty()) {
+            txtZoneAiAdviceProducts.setVisibility(View.GONE);
+        } else {
+            txtZoneAiAdviceProducts.setVisibility(View.VISIBLE);
+            txtZoneAiAdviceProducts.setText("Onerilen urunler\n"
+                    + String.join("\n\n", advice.getCandidates()));
+        }
+        if (advice.getRisks().isEmpty()) {
+            txtZoneAiAdviceRisks.setVisibility(View.GONE);
+        } else {
+            txtZoneAiAdviceRisks.setVisibility(View.VISIBLE);
+            txtZoneAiAdviceRisks.setText("Dikkat edilmesi gerekenler\n• "
+                    + String.join("\n• ", advice.getRisks()));
+        }
     }
 
     private void renderRecommendations(
@@ -448,9 +595,11 @@ public class FertilizationZoneDetailActivity
         FertilizerProduct product = recommendation == null
                 ? null
                 : productById(recommendation.getProduct_id());
+        FertilizerProduct selected = selectedProduct();
         FertilizerStageGuide guide = currentStageGuide();
         if ((recommendation == null || product == null)
-                && guide == null) {
+                && guide == null
+                && selected == null) {
             cardFertilizerRecommendation.setVisibility(View.GONE);
             return;
         }
@@ -485,6 +634,46 @@ public class FertilizationZoneDetailActivity
             detail.append("\n").append(getString(
                     R.string.fertilization_analysis_warning
             ));
+        }
+        if (selected != null) {
+            FertilizerAiProfile aiProfile =
+                    FertilizerAiAdvisor.profileFor(selected);
+            if (detail.length() > 0) {
+                detail.append("\n\n");
+            }
+            detail.append("Ürün uygunluğu: ")
+                    .append(aiProfile.getSuitability())
+                    .append("\nNeden: ")
+                    .append(aiProfile.getReason())
+                    .append("\nMeyve döneminde: ")
+                    .append(aiProfile.getFruitStageAdvice())
+                    .append("\nGüvenlik: ")
+                    .append(aiProfile.getSafetyNote());
+
+            if (isRepeatBlocked()) {
+                detail.append("\n\nUygulama zamanı: Tekrar uygulama için ")
+                        .append(repeatDaysRemaining())
+                        .append(" gün bekleyin.");
+            } else if (originalLastApplicationAt > 0L) {
+                long elapsed = Math.max(0L,
+                        java.time.temporal.ChronoUnit.DAYS.between(
+                                Instant.ofEpochSecond(originalLastApplicationAt)
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDate(),
+                                LocalDate.now()
+                        ));
+                detail.append("\n\nSon uygulama: ")
+                        .append(elapsed)
+                        .append(" gün önce.");
+            }
+
+            if (selected.getStock_unit() != null
+                    && !selected.getStock_unit().isBlank()) {
+                detail.append("\nStok: ")
+                        .append(formatDose(selected.getStock_amount()))
+                        .append(" ")
+                        .append(selected.getStock_unit());
+            }
         }
         String soilSupport = soilSupportAdvice();
         if (!soilSupport.isBlank()) {

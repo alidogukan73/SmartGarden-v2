@@ -26,6 +26,9 @@ import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.FertilizerApplication;
+import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.models.WeatherDay;
+import com.ali.smartgarden.models.WeatherLocation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -267,6 +270,138 @@ public class FirebaseRepository {
         return zonesRef.child(zoneId).updateChildren(updates);
     }
 
+    public Task<Void> saveWeatherLocation(String city, String district) {
+        return saveWeatherLocation(city, district, null, null, "auto");
+    }
+
+    public Task<Void> saveWeatherLocation(String city, String district, Double latitude, Double longitude) {
+        return saveWeatherLocation(city, district, latitude, longitude, "auto");
+    }
+
+    public Task<Void> saveWeatherLocation(String city, String district, Double latitude, Double longitude, String forecastSource) {
+        Map<String, Object> values = new HashMap<>();
+        values.put("weather/location/city", city.trim());
+        values.put("weather/location/district", district.trim());
+        values.put("weather/location/latitude", latitude);
+        values.put("weather/location/longitude", longitude);
+        values.put("weather/location/forecast_source", forecastSource == null ? "auto" : forecastSource);
+        values.put("weather/location/updated_at_epoch", System.currentTimeMillis() / 1000L);
+        return deviceRef.updateChildren(values);
+    }
+
+    public LiveData<WeatherLocation> observeWeatherLocation() {
+        MutableLiveData<WeatherLocation> liveData = new MutableLiveData<>();
+        deviceRef.child("weather").child("location").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                liveData.setValue(new WeatherLocation(
+                        snapshot.child("city").getValue(String.class),
+                        snapshot.child("district").getValue(String.class),
+                        snapshot.child("latitude").getValue(Double.class),
+                        snapshot.child("longitude").getValue(Double.class),
+                        snapshot.child("forecast_source").getValue(String.class)
+                ));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Weather location could not be read", error.toException());
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<WeatherForecast> observeWeatherForecast() {
+        MutableLiveData<WeatherForecast> liveData = new MutableLiveData<>();
+        deviceRef.child("weather").child("forecast").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    liveData.setValue(null);
+                    return;
+                }
+                List<WeatherDay> days = new ArrayList<>();
+                for (DataSnapshot day : snapshot.child("days").getChildren()) {
+                    days.add(new WeatherDay(
+                            day.child("date").getValue(String.class),
+                            day.child("temperature_max").getValue(Double.class),
+                            day.child("temperature_min").getValue(Double.class),
+                            day.child("rain_probability").getValue(Double.class),
+                            day.child("rain_mm").getValue(Double.class),
+                            day.child("wind_max").getValue(Double.class)
+                    ));
+                }
+                WeatherForecast weatherForecast = new WeatherForecast(
+                        snapshot.child("city").getValue(String.class),
+                        snapshot.child("district").getValue(String.class),
+                        snapshot.child("today_temperature_max").getValue(Double.class),
+                        snapshot.child("today_rain_probability").getValue(Double.class),
+                        snapshot.child("today_rain_mm").getValue(Double.class),
+                        snapshot.child("today_wind_max").getValue(Double.class),
+                        snapshot.child("tomorrow_temperature_max").getValue(Double.class),
+                        snapshot.child("tomorrow_rain_probability").getValue(Double.class),
+                        snapshot.child("tomorrow_rain_mm").getValue(Double.class),
+                        snapshot.child("tomorrow_wind_max").getValue(Double.class),
+                        days,
+                        snapshot.child("today_weather_code").getValue(Long.class),
+                        snapshot.child("tomorrow_weather_code").getValue(Long.class),
+                        snapshot.child("current_temperature").getValue(Double.class),
+                        snapshot.child("current_humidity").getValue(Double.class),
+                        snapshot.child("current_wind").getValue(Double.class),
+                        snapshot.child("current_pressure").getValue(Double.class),
+                        snapshot.child("current_weather_code").getValue(Long.class)
+                );
+                weatherForecast.setSource(snapshot.child("source").getValue(String.class));
+                liveData.setValue(weatherForecast);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Weather forecast could not be read", error.toException());
+            }
+        });
+        return liveData;
+    }
+
+
+    public Task<Void> saveGlobalSettingsAndSyncZones(
+            long moistureLimit,
+            long pumpDuration,
+            long cooldownSeconds,
+            long restartDelta,
+            boolean enabled
+    ) {
+        return zonesRef.get().continueWithTask(task -> {
+            if (!task.isSuccessful() || task.getResult() == null) {
+                Exception error = task.getException();
+                return Tasks.forException(error == null
+                        ? new IllegalStateException("B\u00F6lgeler okunamad\u0131.")
+                        : error);
+            }
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("commands/moisture_limit", moistureLimit);
+            updates.put("commands/pump_duration", pumpDuration);
+            updates.put("commands/cooldown_seconds", cooldownSeconds);
+            updates.put("commands/restart_delta", restartDelta);
+            updates.put("commands/enabled", enabled);
+
+            for (DataSnapshot zoneSnapshot : task.getResult().getChildren()) {
+                String zoneId = zoneSnapshot.getKey();
+                if (zoneId == null || zoneId.isBlank()) {
+                    continue;
+                }
+                String path = "zones/" + zoneId + "/";
+                updates.put(path + "moisture_limit", moistureLimit);
+                updates.put(path + "pump_duration", pumpDuration);
+                updates.put(path + "cooldown_seconds", cooldownSeconds);
+                updates.put(path + "restart_delta", restartDelta);
+            }
+
+            return deviceRef.updateChildren(updates);
+        });
+    }
+
     public Task<Void> updateGardenZoneValveMode(
             String zoneId,
             boolean physical
@@ -305,6 +440,18 @@ public class FirebaseRepository {
                 zone.getRestart_delta());
         updates.put(path + "order", zone.getOrder());
         updates.put(path + "updated_at_epoch", now);
+        return deviceRef.updateChildren(updates);
+    }
+
+    public Task<Void> updateFertilizationWaterAnalysis(
+            String zoneId, double ph, double ecMs
+    ) {
+        String path = "zones/" + zoneId + "/fertilization/";
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(path + "water_ph", ph);
+        updates.put(path + "water_ec_ms", ecMs);
+        updates.put(path + "water_analysis_updated_at_epoch",
+                System.currentTimeMillis() / 1000L);
         return deviceRef.updateChildren(updates);
     }
 
@@ -653,9 +800,12 @@ public class FirebaseRepository {
         String schedulePath = "zones/" + zoneId
                 + "/fertilization/application_schedules/"
                 + applicationType + "/";
+        updates.put(schedulePath + "product_id", product.getProduct_id());
         updates.put(schedulePath + "product_name", product.getName());
         updates.put(schedulePath + "last_application_at_epoch", appliedAt);
         updates.put(schedulePath + "next_application_at_epoch", nextAt);
+        updates.put(schedulePath + "interval_days",
+                Math.max(1, product.getMinimum_interval_days()));
         updates.put(schedulePath + "updated_at_epoch", recordedAt);
         if (deductStock
                 && product.getStock_unit() != null
@@ -700,6 +850,29 @@ public class FirebaseRepository {
             updates.put(planPath + "next_application_at_epoch", nextAt);
             updates.put(planPath + "updated_at_epoch", recordedAt);
         }
+        return deviceRef.updateChildren(updates);
+    }
+
+    public Task<Void> deductBulkFertilizerStock(
+            FertilizerProduct product,
+            double totalAmount,
+            String unit
+    ) {
+        if (product.getStock_unit() == null
+                || !product.getStock_unit().equalsIgnoreCase(unit)) {
+            return Tasks.forResult(null);
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(
+                "fertilizer_products/" + product.getProduct_id()
+                        + "/stock_amount",
+                Math.max(0.0, product.getStock_amount() - totalAmount)
+        );
+        updates.put(
+                "fertilizer_products/" + product.getProduct_id()
+                        + "/updated_at_epoch",
+                System.currentTimeMillis() / 1000L
+        );
         return deviceRef.updateChildren(updates);
     }
 
@@ -823,6 +996,12 @@ public class FirebaseRepository {
         updates.put(path + "application_method",
                 value.getApplication_method());
         updates.put(path + "notes", value.getNotes());
+        updates.put(path + "outcome_observed_at_epoch",
+                value.getOutcome_observed_at_epoch());
+        updates.put(path + "outcome_status", value.getOutcome_status());
+        updates.put(path + "outcome_vigor_score",
+                value.getOutcome_vigor_score());
+        updates.put(path + "outcome_notes", value.getOutcome_notes());
         updates.put(path + "updated_at_epoch",
                 System.currentTimeMillis() / 1000L);
         String type = value.getApplication_type() == null
@@ -875,6 +1054,12 @@ public class FirebaseRepository {
             ValueEventListener listener
     ) {
         statusRef.addValueEventListener(listener);
+    }
+
+    public void removeStatusObserver(
+            ValueEventListener listener
+    ) {
+        statusRef.removeEventListener(listener);
     }
 
     public void observeCommands(

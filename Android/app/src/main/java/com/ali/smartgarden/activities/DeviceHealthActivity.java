@@ -57,11 +57,17 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private MaterialCardView cardWifiStatus;
     private MaterialCardView cardThrottling;
     private MaterialCardView cardThrottlingBadge;
+    private MaterialCardView cardEsp32SensorHealth;
+    private MaterialCardView cardEsp32SensorBadge;
 
     private TextView txtHealthSummaryIcon;
     private TextView txtOverallHealth;
     private TextView txtLastHealthUpdate;
     private TextView txtOverallHealthBadge;
+    private TextView txtEsp32SensorBadge;
+    private TextView txtEsp32SensorStatus;
+    private TextView txtEsp32SensorDetail;
+    private TextView txtEsp32SensorLastSeen;
 
     private TextView txtCpuTemperature;
     private TextView txtCpuUsage;
@@ -190,6 +196,10 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         cardThrottlingBadge =
                 findViewById(R.id.cardThrottlingBadge);
+        cardEsp32SensorHealth =
+                findViewById(R.id.cardEsp32SensorHealth);
+        cardEsp32SensorBadge =
+                findViewById(R.id.cardEsp32SensorBadge);
 
         txtHealthSummaryIcon =
                 findViewById(R.id.txtHealthSummaryIcon);
@@ -202,6 +212,14 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         txtOverallHealthBadge =
                 findViewById(R.id.txtOverallHealthBadge);
+        txtEsp32SensorBadge =
+                findViewById(R.id.txtEsp32SensorBadge);
+        txtEsp32SensorStatus =
+                findViewById(R.id.txtEsp32SensorStatus);
+        txtEsp32SensorDetail =
+                findViewById(R.id.txtEsp32SensorDetail);
+        txtEsp32SensorLastSeen =
+                findViewById(R.id.txtEsp32SensorLastSeen);
 
         txtCpuTemperature =
                 findViewById(R.id.txtCpuTemperature);
@@ -478,6 +496,124 @@ public class DeviceHealthActivity extends AppCompatActivity {
                                 : R.color.warning
                 )
         );
+
+        renderEsp32SensorHealth(nowEpoch);
+    }
+
+    /**
+     * ESP32 is independent from the Raspberry Pi. A missing wireless
+     * measurement therefore belongs to this card only; it must never turn
+     * the Pi diagnostic into a false connection error.
+     */
+    private void renderEsp32SensorHealth(long nowEpoch) {
+        if (cardEsp32SensorHealth == null) {
+            return;
+        }
+
+        int configured = 0;
+        int connected = 0;
+        GardenZone newest = null;
+        long newestEpoch = 0L;
+
+        for (GardenZone zone : latestZones) {
+            if (!zone.isSensor_enabled()
+                    || zone.getSensor_id() == null
+                    || zone.getSensor_id().trim().isEmpty()) {
+                continue;
+            }
+            configured++;
+            long updatedAt = zone.getUpdated_at_epoch();
+            if (updatedAt > newestEpoch) {
+                newestEpoch = updatedAt;
+                newest = zone;
+            }
+            if (updatedAt > 0L && nowEpoch - updatedAt <= 90L) {
+                connected++;
+            }
+        }
+
+        if (configured == 0) {
+            setEsp32SensorCard(
+                    "İZLEME KAPALI",
+                    "Sensör izleme kapalı",
+                    "Bu bölgeler için etkin kablosuz sensör yok.",
+                    "",
+                    R.color.textSecondary,
+                    R.color.surfaceSoft
+            );
+            return;
+        }
+
+        String lastSeen = newestEpoch <= 0L
+                ? "Henüz ESP32 verisi alınmadı"
+                : "Son ESP32 verisi: "
+                + formatSensorAge(Math.max(0L, nowEpoch - newestEpoch))
+                + (newest != null && newest.getRssi() != 0
+                ? " · Wi‑Fi " + newest.getRssi() + " dBm"
+                : "");
+
+        if (connected == 0) {
+            setEsp32SensorCard(
+                    "BAĞLANTI YOK",
+                    "0 / " + configured + " sensör canlı",
+                    "ESP32 kapalı olabilir veya Wi‑Fi / MQTT bağlantısı bekleniyor.",
+                    lastSeen,
+                    R.color.offline,
+                    R.color.offlineBackground
+            );
+        } else if (connected < configured) {
+            setEsp32SensorCard(
+                    "KISMİ BAĞLI",
+                    connected + " / " + configured + " sensör canlı",
+                    "Bazı ESP32 sensörlerinden güncel veri bekleniyor.",
+                    lastSeen,
+                    R.color.warning,
+                    R.color.warningBackground
+            );
+        } else {
+            setEsp32SensorCard(
+                    "BAĞLI",
+                    connected + " / " + configured + " sensör canlı",
+                    "ESP32 kablosuz sensör ağı düzenli veri gönderiyor.",
+                    lastSeen,
+                    R.color.online,
+                    R.color.onlineBackground
+            );
+        }
+    }
+
+    private void setEsp32SensorCard(
+            String badge,
+            String status,
+            String detail,
+            String lastSeen,
+            int colorResource,
+            int backgroundResource
+    ) {
+        int statusColor = color(colorResource);
+        txtEsp32SensorBadge.setText(badge);
+        txtEsp32SensorBadge.setTextColor(statusColor);
+        txtEsp32SensorStatus.setText(status);
+        txtEsp32SensorStatus.setTextColor(statusColor);
+        txtEsp32SensorDetail.setText(detail);
+        txtEsp32SensorLastSeen.setText(lastSeen);
+        cardEsp32SensorBadge.setCardBackgroundColor(color(backgroundResource));
+        cardEsp32SensorBadge.setStrokeColor(statusColor);
+        cardEsp32SensorHealth.setStrokeColor(
+                colorResource == R.color.online
+                        ? color(R.color.border)
+                        : statusColor
+        );
+    }
+
+    private String formatSensorAge(long ageSeconds) {
+        if (ageSeconds < 5L) {
+            return "az önce";
+        }
+        if (ageSeconds < 60L) {
+            return ageSeconds + " sn önce";
+        }
+        return (ageSeconds / 60L) + " dk önce";
     }
 
     private void addDiagnosticRow(

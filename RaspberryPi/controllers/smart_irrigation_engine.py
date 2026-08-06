@@ -7,10 +7,12 @@ from __future__ import annotations
 from controllers.moisture_trend_analyzer import (
     MoistureTrendAnalyzer,
 )
+from core.config import IrrigationConfig
 from core.logger import AppLogger
 from models.command_state import CommandState
 from models.irrigation_decision import IrrigationDecision
 from models.moisture_history import MoistureHistory
+from models.moisture_history import MoistureSample
 from models.moisture_trend import MoistureTrend
 from models.sensor_reading import SensorReading
 
@@ -23,6 +25,9 @@ class SmartIrrigationEngine:
     DEFAULT_SAMPLE_WINDOW = 5
     DEFAULT_MAX_SENSOR_SPREAD = 4
     DEFAULT_HISTORY_SIZE = 20
+    DEFAULT_MAX_AUTOMATIC_WATERING_CYCLES = (
+        IrrigationConfig.DEFAULT_MAX_AUTOMATIC_WATERING_CYCLES
+    )
 
     def __init__(
         self,
@@ -30,6 +35,9 @@ class SmartIrrigationEngine:
         sample_window: int = DEFAULT_SAMPLE_WINDOW,
         max_sensor_spread: int = DEFAULT_MAX_SENSOR_SPREAD,
         history_size: int = DEFAULT_HISTORY_SIZE,
+        max_automatic_watering_cycles: int = (
+            DEFAULT_MAX_AUTOMATIC_WATERING_CYCLES
+        ),
     ) -> None:
 
         if sample_window < 3:
@@ -45,6 +53,11 @@ class SmartIrrigationEngine:
         if history_size < sample_window:
             raise ValueError(
                 "history_size cannot be smaller than sample_window.",
+            )
+
+        if max_automatic_watering_cycles < 1:
+            raise ValueError(
+                "max_automatic_watering_cycles must be at least 1.",
             )
 
         self._logger = AppLogger().logger
@@ -63,6 +76,10 @@ class SmartIrrigationEngine:
         )
 
         self._waiting_for_moisture_recovery = False
+        self._max_automatic_watering_cycles = (
+            max_automatic_watering_cycles
+        )
+        self._completed_watering_cycles = 0
 
     def evaluate(
         self,
@@ -144,13 +161,27 @@ class SmartIrrigationEngine:
                 trend=trend,
             )
 
-        if self._waiting_for_moisture_recovery:
-            recovery_limit = min(
-                100,
-                moisture_limit
-                + int(commands.restart_delta),
-            )
+        recovery_limit = min(
+            100,
+            moisture_limit
+            + int(commands.restart_delta),
+        )
 
+        if moisture >= recovery_limit:
+            if (
+                self._waiting_for_moisture_recovery
+                or self._completed_watering_cycles > 0
+            ):
+                self._waiting_for_moisture_recovery = False
+                self._completed_watering_cycles = 0
+                self._logger.info(
+                    "Soil moisture recovery completed. "
+                    "moisture=%d%% recovery_limit=%d%%",
+                    moisture,
+                    recovery_limit,
+                )
+
+        if self._waiting_for_moisture_recovery:
             if moisture < recovery_limit:
                 return self._decision(
                     should_water=False,
@@ -161,15 +192,6 @@ class SmartIrrigationEngine:
                     cooldown_active=cooldown_active,
                     trend=trend,
                 )
-
-            self._waiting_for_moisture_recovery = False
-
-            self._logger.info(
-                "Soil moisture recovery completed. "
-                "moisture=%d%% recovery_limit=%d%%",
-                moisture,
-                recovery_limit,
-            )
 
         if cooldown_active:
 
@@ -207,10 +229,46 @@ class SmartIrrigationEngine:
 
     def mark_watering_completed(self) -> None:
         """
-        Require moisture recovery before another watering.
+        Track a completed pulse and require moisture recovery only
+        after the configured number of automatic watering cycles.
         """
 
-        self._waiting_for_moisture_recovery = True
+        self._completed_watering_cycles += 1
+        self._waiting_for_moisture_recovery = (
+            self._completed_watering_cycles
+            >= self._max_automatic_watering_cycles
+        )
+
+        self._logger.info(
+            "Automatic watering cycle completed. cycles=%d/%d "
+            "recovery_required=%s",
+            self._completed_watering_cycles,
+            self._max_automatic_watering_cycles,
+            self._waiting_for_moisture_recovery,
+        )
+
+    def restore_observation_history(
+        self,
+        samples: list[MoistureSample],
+    ) -> int:
+        """
+        Restore persisted samples for AI observation after a restart.
+
+        This method is intentionally used only by the observation engine.
+        The multi-zone irrigation engines still collect fresh samples after
+        every start before they can make an automatic watering decision.
+        """
+
+        valid_samples = [
+            sample
+            for sample in samples
+            if 0 <= sample.moisture <= 100
+        ][-self.DEFAULT_HISTORY_SIZE:]
+
+        self._history.clear()
+        self._history.extend(valid_samples)
+
+        return len(valid_samples)
 
     def get_current_trend(
         self,

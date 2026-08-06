@@ -1,8 +1,12 @@
 package com.ali.smartgarden.activities;
 
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.util.Log;
@@ -17,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.DecisionStepAdapter;
 import com.ali.smartgarden.models.AIDecision;
+import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.ui.DecisionFlowFactory;
 import com.ali.smartgarden.viewmodels.MainViewModel;
@@ -27,11 +32,15 @@ import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.models.WeatherForecast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -43,12 +52,19 @@ public class AIAssistantActivity extends AppCompatActivity {
     private DecisionStepAdapter decisionStepAdapter;
 
     private MaterialCardView cardAIDecision;
+    private MaterialCardView cardAIZoneSummary;
     private MaterialCardView cardAIReasons;
+    private MaterialCardView cardAIDecisionFlow;
     private MaterialCardView cardAIProgress;
     private MaterialCardView cardAINextStep;
+    private MaterialCardView cardAIAdaptiveRecommendation;
+    private MaterialCardView cardAIWeatherGuidance;
     private MaterialCardView cardAITechnicalSummary;
     private MaterialCardView cardAISeverityBadge;
     private MaterialButton btnBack;
+    private MaterialButton btnAIAdvancedDetails;
+    private MaterialCardView cardAIWateringControl;
+    private MaterialCardView cardAISensorPoints;
     private MaterialCardView cardPredictionValidationStatusBadge;
     private MaterialCardView cardPredictionValidation;
     private MaterialCardView cardMoisturePrediction;
@@ -69,6 +85,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
 
     private TextView txtAIDecisionTitle;
+    private TextView txtAIAnalysisScope;
     private TextView txtAIDecisionSummary;
     private TextView txtAISeverityBadge;
 
@@ -80,9 +97,16 @@ public class AIAssistantActivity extends AppCompatActivity {
     private TextView txtAILearningStage;
     private TextView txtAILearningDescription;
     private TextView txtAILearningSensorCount;
+    private TextView txtAILearningSensorStatus;
     private TextView txtAILearningWateringCount;
+    private TextView txtAILearningWateringStatus;
 
     private TextView txtAINextStep;
+    private TextView txtAIWeatherGuidanceTitle;
+    private TextView txtAIWeatherGuidanceSummary;
+    private TextView txtAIWeatherGuidanceSafety;
+    private TextView txtAIAdaptiveRecommendationTitle;
+    private TextView txtAIAdaptiveRecommendationDetail;
     private TextView txtAIConfidence;
     private TextView txtAISoilClassification;
     private TextView txtAITrendClassification;
@@ -95,6 +119,8 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     private TextView txtMoisturePredictionStatus;
     private TextView txtPredictionCurrentMoisture;
+    private TextView txtMoisturePredictionTitle;
+    private TextView txtMoisturePredictionZone;
     private TextView txtPredictionMoistureLimit;
 
     private TextView txtPredictionOneHour;
@@ -136,12 +162,22 @@ public class AIAssistantActivity extends AppCompatActivity {
     private LinearProgressIndicator progressUnifiedConfidence;
     private LinearProgressIndicator progressPredictionValidation;
 
-    private final View[] progressSegments = new View[10];
+    private final View[] progressSegments = new View[5];
 
     private MainViewModel viewModel;
 
     private ValueAnimator progressAnimator;
     private int currentLearningProgress = 0;
+    private boolean advancedDetailsVisible = false;
+    private boolean learningDataCollectionCompleted = false;
+    private int profileLearningStage = 0;
+    private final List<GardenZone> predictionZones = new ArrayList<>();
+    private int selectedPredictionZoneIndex = 0;
+    private MoisturePrediction latestMoisturePrediction;
+    private WeatherForecast latestWeatherForecast;
+    private float predictionSwipeStartX;
+    private float predictionSwipeStartY;
+    private boolean predictionHorizontalSwipe;
 
     @Override
     protected void onCreate(
@@ -173,14 +209,25 @@ public class AIAssistantActivity extends AppCompatActivity {
         cardAIDecision =
                 findViewById(R.id.cardAIDecision);
 
+        cardAIZoneSummary =
+                findViewById(R.id.cardAIZoneSummary);
+
         cardAIReasons =
                 findViewById(R.id.cardAIReasons);
+
+        cardAIDecisionFlow =
+                findViewById(R.id.cardAIDecisionFlow);
 
         cardAIProgress =
                 findViewById(R.id.cardAIProgress);
 
         cardAINextStep =
                 findViewById(R.id.cardAINextStep);
+        cardAIWeatherGuidance =
+                findViewById(R.id.cardAIWeatherGuidance);
+
+        cardAIAdaptiveRecommendation =
+                findViewById(R.id.cardAIAdaptiveRecommendation);
 
         cardAITechnicalSummary =
                 findViewById(R.id.cardAITechnicalSummary);
@@ -205,8 +252,18 @@ public class AIAssistantActivity extends AppCompatActivity {
         btnBack =
                 findViewById(R.id.btnBack);
 
+        btnAIAdvancedDetails =
+                findViewById(R.id.btnAIAdvancedDetails);
+        cardAIWateringControl =
+                findViewById(R.id.cardAIWateringControl);
+        cardAISensorPoints =
+                findViewById(R.id.cardAISensorPoints);
+
         txtAIDecisionTitle =
                 findViewById(R.id.txtAIDecisionTitle);
+
+        txtAIAnalysisScope =
+                findViewById(R.id.txtAIAnalysisScope);
 
         txtAIDecisionSummary =
                 findViewById(R.id.txtAIDecisionSummary);
@@ -235,8 +292,14 @@ public class AIAssistantActivity extends AppCompatActivity {
         txtAILearningSensorCount =
                 findViewById(R.id.txtAILearningSensorCount);
 
+        txtAILearningSensorStatus =
+                findViewById(R.id.txtAILearningSensorStatus);
+
         txtAILearningWateringCount =
                 findViewById(R.id.txtAILearningWateringCount);
+
+        txtAILearningWateringStatus =
+                findViewById(R.id.txtAILearningWateringStatus);
 
 
         progressAILearningSensor =
@@ -253,6 +316,18 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         txtAINextStep =
                 findViewById(R.id.txtAINextStep);
+        txtAIWeatherGuidanceTitle =
+                findViewById(R.id.txtAIWeatherGuidanceTitle);
+        txtAIWeatherGuidanceSummary =
+                findViewById(R.id.txtAIWeatherGuidanceSummary);
+        txtAIWeatherGuidanceSafety =
+                findViewById(R.id.txtAIWeatherGuidanceSafety);
+
+        txtAIAdaptiveRecommendationTitle =
+                findViewById(R.id.txtAIAdaptiveRecommendationTitle);
+
+        txtAIAdaptiveRecommendationDetail =
+                findViewById(R.id.txtAIAdaptiveRecommendationDetail);
 
         txtAIConfidence =
                 findViewById(R.id.txtAIConfidence);
@@ -357,6 +432,12 @@ public class AIAssistantActivity extends AppCompatActivity {
                 findViewById(
                         R.id.cardMoisturePredictionStatusBadge
                 );
+
+        txtMoisturePredictionTitle =
+                findViewById(R.id.txtMoisturePredictionTitle);
+
+        txtMoisturePredictionZone =
+                findViewById(R.id.txtMoisturePredictionZone);
 
         txtMoisturePredictionStatus =
                 findViewById(
@@ -497,6 +578,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 );
 
         initializeProgressSegments();
+        organizeScreenForDailyUse();
     }
 
     /**
@@ -522,20 +604,6 @@ public class AIAssistantActivity extends AppCompatActivity {
         progressSegments[4] =
                 findViewById(R.id.segmentAIProgress5);
 
-        progressSegments[5] =
-                findViewById(R.id.segmentAIProgress6);
-
-        progressSegments[6] =
-                findViewById(R.id.segmentAIProgress7);
-
-        progressSegments[7] =
-                findViewById(R.id.segmentAIProgress8);
-
-        progressSegments[8] =
-                findViewById(R.id.segmentAIProgress9);
-
-        progressSegments[9] =
-                findViewById(R.id.segmentAIProgress10);
     }
 
     /**
@@ -584,16 +652,154 @@ public class AIAssistantActivity extends AppCompatActivity {
                         getOnBackPressedDispatcher()
                                 .onBackPressed()
         );
+
+        btnAIAdvancedDetails.setOnClickListener(
+                view -> setAdvancedDetailsVisible(
+                        !advancedDetailsVisible
+                )
+        );
+
+        cardAIWateringControl.setOnClickListener(view ->
+                startActivity(new Intent(this,
+                        WateringControlActivity.class))
+        );
+        cardAISensorPoints.setOnClickListener(view ->
+                startActivity(new Intent(this, SensorPointsActivity.class)));
+
+        cardMoisturePrediction.setOnTouchListener(
+                (view, event) -> {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        predictionSwipeStartX = event.getX();
+                        predictionSwipeStartY = event.getY();
+                        predictionHorizontalSwipe = false;
+                        return true;
+                    }
+
+                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                        float distance = event.getX() - predictionSwipeStartX;
+                        float verticalDistance = event.getY() - predictionSwipeStartY;
+                        float touchSlop = ViewConfiguration.get(this)
+                                .getScaledTouchSlop();
+
+                        if (!predictionHorizontalSwipe
+                                && Math.abs(verticalDistance) > touchSlop
+                                && Math.abs(verticalDistance) > Math.abs(distance)) {
+                            view.getParent().requestDisallowInterceptTouchEvent(false);
+                            return false;
+                        }
+
+                        if (Math.abs(distance) > touchSlop
+                                && Math.abs(distance) > Math.abs(verticalDistance)) {
+                            predictionHorizontalSwipe = true;
+                            view.getParent().requestDisallowInterceptTouchEvent(true);
+                        }
+                        return true;
+                    }
+
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                        float distance = event.getX() - predictionSwipeStartX;
+                        if (predictionHorizontalSwipe && Math.abs(distance) >= 44f) {
+                            movePredictionZone(distance < 0 ? 1 : -1);
+                            view.performClick();
+                            return true;
+                        }
+                        view.getParent().requestDisallowInterceptTouchEvent(false);
+                        return false;
+                    }
+                    return true;
+                }
+        );
     }
 
     /**
      * Firebase verilerini taşıyan LiveData nesnelerini gözlemler.
      */
+    private void organizeScreenForDailyUse() {
+        ViewGroup parent = (ViewGroup) cardAIDecision.getParent();
+
+        View[] movableViews = {
+                cardAIZoneSummary,
+                cardAIReasons,
+                cardAIDecisionFlow,
+                cardAIProgress,
+                cardMoisturePrediction,
+                cardPredictionAccuracy,
+                cardUnifiedConfidence,
+                cardPredictionValidation,
+                cardAINextStep,
+                cardAIWeatherGuidance,
+                cardAIAdaptiveRecommendation,
+                cardAIWateringControl,
+                cardAISensorPoints,
+                cardAITechnicalSummary,
+                btnAIAdvancedDetails
+        };
+
+        for (View view : movableViews) {
+            parent.removeView(view);
+        }
+
+        int insertIndex = parent.indexOfChild(cardAIDecision) + 1;
+        parent.addView(cardAIZoneSummary, insertIndex++);
+        parent.addView(cardAINextStep, insertIndex++);
+        parent.addView(cardAIWeatherGuidance, insertIndex++);
+        parent.addView(cardAIAdaptiveRecommendation, insertIndex++);
+        parent.addView(cardAIProgress, insertIndex++);
+        parent.addView(btnAIAdvancedDetails, insertIndex++);
+
+        parent.addView(cardAIWateringControl, insertIndex++);
+        parent.addView(cardAISensorPoints, insertIndex++);
+        parent.addView(cardAIReasons, insertIndex++);
+        parent.addView(cardAIDecisionFlow, insertIndex++);
+        parent.addView(cardMoisturePrediction, insertIndex++);
+        parent.addView(cardPredictionAccuracy, insertIndex++);
+        parent.addView(cardUnifiedConfidence, insertIndex++);
+        parent.addView(cardPredictionValidation, insertIndex++);
+        parent.addView(cardAITechnicalSummary, insertIndex);
+
+        setAdvancedDetailsVisible(false);
+    }
+
+    private void setAdvancedDetailsVisible(
+            boolean visible
+    ) {
+        advancedDetailsVisible = visible;
+
+        View[] technicalCards = {
+                cardAIWateringControl,
+                cardAISensorPoints,
+                cardAIReasons,
+                cardAIDecisionFlow,
+                cardMoisturePrediction,
+                cardPredictionAccuracy,
+                cardUnifiedConfidence,
+                cardPredictionValidation,
+                cardAITechnicalSummary
+        };
+
+        for (View card : technicalCards) {
+            card.setVisibility(
+                    visible ? View.VISIBLE : View.GONE
+            );
+        }
+
+        btnAIAdvancedDetails.setText(
+                visible
+                        ? "Teknik detayları gizle"
+                        : "Asistan detaylarını gör"
+        );
+    }
+
     private void observeViewModel() {
 
         viewModel.getAIDecision().observe(
                 this,
                 this::renderAIDecision
+        );
+
+        viewModel.getAdaptiveRecommendation().observe(
+                this,
+                this::renderAdaptiveRecommendation
         );
 
         viewModel.getAIExplanation().observe(
@@ -630,11 +836,20 @@ public class AIAssistantActivity extends AppCompatActivity {
                 this,
                 this::renderZoneDecisionSummary
         );
+
+        viewModel.getWeatherForecast().observe(
+                this,
+                forecast -> {
+                    latestWeatherForecast = forecast;
+                    renderWeatherGuidance();
+                }
+        );
     }
 
     private void renderZoneDecisionSummary(
             List<GardenZone> zones
     ) {
+        updatePredictionZones(zones);
         layoutAIZoneSummary.removeAllViews();
 
         if (zones == null || zones.isEmpty()) {
@@ -707,6 +922,79 @@ public class AIAssistantActivity extends AppCompatActivity {
                     detailColor
             );
         }
+
+        renderWeatherGuidance();
+    }
+
+    /**
+     * Hava verisini sulama için anlaşılır bir öneriye dönüştürür.
+     * Bu bölüm yalnızca kullanıcıya bilgi verir; otomatik sulama
+     * kararını veya pompa komutlarını değiştirmez.
+     */
+    private void renderWeatherGuidance() {
+        if (latestWeatherForecast == null) {
+            cardAIWeatherGuidance.setVisibility(View.GONE);
+            return;
+        }
+
+        Double temperature = latestWeatherForecast.getTomorrowTemperatureMax();
+        Double rain = latestWeatherForecast.getTomorrowRainProbability();
+        Double wind = latestWeatherForecast.getTomorrowWindMax();
+        int dryZoneCount = 0;
+        for (GardenZone zone : predictionZones) {
+            if (zone.isIrrigation_enabled()
+                    && zone.hasSensorData()
+                    && zone.getMoisture() <= zone.getMoisture_limit()) {
+                dryZoneCount++;
+            }
+        }
+
+        String weatherLine = "Yarın"
+                + (temperature == null ? " sıcaklık verisi yok" : " " + Math.round(temperature) + "°C")
+                + (rain == null ? "" : " · yağış %" + Math.round(rain))
+                + (wind == null ? "" : " · rüzgâr " + Math.round(wind) + " km/sa");
+
+        if (rain != null && rain >= 60d) {
+            txtAIWeatherGuidanceTitle.setText("Yağış ihtimali yüksek");
+            txtAIWeatherGuidanceSummary.setText(
+                    weatherLine + ". Sulama gereksinimi oluşursa uygulamadan önce sabah yeniden kontrol edin."
+            );
+            txtAIWeatherGuidanceSafety.setText(
+                    "Güvenlik: Sistem sulamayı otomatik iptal etmez; nem, vana ve pompa korumaları çalışmaya devam eder."
+            );
+        } else if (temperature != null && temperature >= 35d) {
+            txtAIWeatherGuidanceTitle.setText("Sıcaklık stresi riski");
+            txtAIWeatherGuidanceSummary.setText(
+                    weatherLine + ". "
+                            + (dryZoneCount > 0
+                            ? dryZoneCount + " bölge nem sınırında; sabah erken kısa sulama daha uygun olabilir."
+                            : "Bölgelerin nemi şu anda yeterli; sensör değerlerini izleyin.")
+            );
+            txtAIWeatherGuidanceSafety.setText(
+                    "Güvenlik: Öneri niteliğindedir. Otomatik karar nem sensörü, bekleme süresi ve güvenlik kurallarına göre verilir."
+            );
+        } else if (wind != null && wind >= 25d) {
+            txtAIWeatherGuidanceTitle.setText("Rüzgâr etkisi izleniyor");
+            txtAIWeatherGuidanceSummary.setText(
+                    weatherLine + ". Yüksek rüzgâr yüzeyden su kaybını artırabilir; nem sınırındaki bölgeleri kontrol edin."
+            );
+            txtAIWeatherGuidanceSafety.setText(
+                    "Güvenlik: Pompa ve vana davranışı değişmez; bu bilgi yalnızca sulama zamanını planlamaya yardım eder."
+            );
+        } else {
+            txtAIWeatherGuidanceTitle.setText("Hava sulama için uygun görünüyor");
+            txtAIWeatherGuidanceSummary.setText(
+                    weatherLine + ". "
+                            + (dryZoneCount > 0
+                            ? dryZoneCount + " bölge nem sınırında; asistanın bölgesel önerisini takip edin."
+                            : "Belirgin yağış veya sıcaklık riski yok.")
+            );
+            txtAIWeatherGuidanceSafety.setText(
+                    "Güvenlik: Sulama yalnızca nem ihtiyacı ve mevcut pompa-vana korumaları uygunsa yapılır."
+            );
+        }
+
+        cardAIWeatherGuidance.setVisibility(View.VISIBLE);
     }
 
     private String formatZoneDecision(
@@ -729,6 +1017,15 @@ public class AIAssistantActivity extends AppCompatActivity {
                     R.string.ai_zone_moisture_low,
                     status.getMoisture_deficit()
             );
+        }
+        if ("WAITING_FOR_MOISTURE_RECOVERY".equals(reason)) {
+            return getString(R.string.ai_zone_recovery_waiting);
+        }
+        if ("WEATHER_RAIN_DELAY".equals(reason)) {
+            return "Yağış beklendiği için kısa süreli ertelendi";
+        }
+        if ("WEATHER_WIND_DELAY".equals(reason)) {
+            return "Yüksek rüzgâr nedeniyle kısa süreli ertelendi";
         }
         if ("SENSOR_UNSTABLE".equals(reason)) {
             return getString(R.string.ai_zone_unstable);
@@ -840,6 +1137,21 @@ public class AIAssistantActivity extends AppCompatActivity {
                                 profile.getRemaining_auto_waterings()
                 );
 
+        learningDataCollectionCompleted =
+                "TAMAMLANDI".equals(sensorStatus)
+                        && "TAMAMLANDI".equals(wateringStatus);
+        profileLearningStage = profile.getLearning_stage();
+        updateLearningStage(currentLearningProgress);
+
+        renderLearningItemStatus(
+                txtAILearningSensorStatus,
+                sensorStatus
+        );
+
+        renderLearningItemStatus(
+                txtAILearningWateringStatus,
+                wateringStatus
+        );
 
         Log.d(
                 TAG,
@@ -1054,6 +1366,18 @@ public class AIAssistantActivity extends AppCompatActivity {
 
 
         return "BAŞLAMADI";
+    }
+
+    private void renderLearningItemStatus(
+            TextView statusView,
+            String status
+    ) {
+        statusView.setText(status);
+
+        int color = "TAMAMLANDI".equals(status)
+                ? R.color.primary
+                : R.color.textSecondary;
+        statusView.setTextColor(ContextCompat.getColor(this, color));
     }
 
     private String formatEfficiency(
@@ -1511,6 +1835,14 @@ public class AIAssistantActivity extends AppCompatActivity {
                 )
         );
 
+        String sensorId = safeText(
+                decision.getAnalysisSensorId(),
+                "ana sensör"
+        );
+        txtAIAnalysisScope.setText(
+                "Bu analiz " + sensorId + " verisine dayanır"
+        );
+
         txtAIConfidence.setText(
                 formatConfidence(
                         decision.getConfidenceLevel(),
@@ -1540,6 +1872,45 @@ public class AIAssistantActivity extends AppCompatActivity {
                 decision.getDecisionCode(),
                 decision.getSeverity()
         );
+    }
+
+    private void renderAdaptiveRecommendation(
+            AdaptiveRecommendation recommendation
+    ) {
+        if (
+                recommendation == null
+                        || !recommendation.isShouldApply()
+        ) {
+            cardAIAdaptiveRecommendation.setVisibility(View.GONE);
+            return;
+        }
+
+        boolean increase = "INCREASE_PUMP_DURATION".equals(
+                recommendation.getRecommendationType()
+        );
+
+        txtAIAdaptiveRecommendationTitle.setText(
+                increase
+                        ? "Pompa süresi artırılabilir"
+                        : "Pompa süresi azaltılabilir"
+        );
+
+        txtAIAdaptiveRecommendationDetail.setText(
+                "Öneri: "
+                        + formatZoneDuration(
+                        (int) recommendation.getCurrentPumpDurationSeconds()
+                )
+                        + " → "
+                        + formatZoneDuration(
+                        (int) recommendation.getRecommendedPumpDurationSeconds()
+                )
+                        + " · "
+                        + recommendation.getWateringCountAnalyzed()
+                        + " sulama kaydı incelendi. "
+                        + "Ayarlar otomatik değiştirilmez."
+        );
+
+        cardAIAdaptiveRecommendation.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -1736,7 +2107,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
             activeSegmentCount =
                     (int) Math.ceil(
-                            progress / 10.0
+                            progress / 20.0
                     );
         }
 
@@ -1793,7 +2164,15 @@ public class AIAssistantActivity extends AppCompatActivity {
         int learningStage;
         String description;
 
-        if (progress <= 20) {
+        if (profileLearningStage > 0) {
+            learningStage = profileLearningStage;
+            description = getProfileLearningDescription(
+                    profileLearningStage,
+                    learningDataCollectionCompleted,
+                    progress
+            );
+
+        } else if (progress <= 20) {
 
             learningStage = 1;
             description = "Yeni sensör verileri toplanıyor";
@@ -1841,6 +2220,32 @@ public class AIAssistantActivity extends AppCompatActivity {
     /**
      * İlerleme değerini 0–100 sınırında tutar.
      */
+    private String getProfileLearningDescription(
+            int stage,
+            boolean basicRecordsCompleted,
+            int progress
+    ) {
+        switch (stage) {
+            case 1:
+                return "Yeni sens\u00F6r verileri toplan\u0131yor";
+            case 2:
+                return basicRecordsCompleted
+                        ? "\u00D6l\u00E7\u00FCm ve sulama kay\u0131tlar\u0131 tamamland\u0131 \u00B7 "
+                                + "Nem de\u011Fi\u015Fimi zaman i\u00E7inde do\u011Frulan\u0131yor"
+                        : "Topra\u011F\u0131n nem de\u011Fi\u015Fimi zaman i\u00E7inde g\u00F6zlemleniyor";
+            case 3:
+                return "Otomatik sulama sonu\u00E7lar\u0131 toplan\u0131yor";
+            case 4:
+                return "Toprak davran\u0131\u015F\u0131 analiz ediliyor";
+            case 5:
+                return progress >= 100
+                        ? "Toprak \u00F6\u011Frenme profili haz\u0131r"
+                        : "\u00D6\u011Frenme g\u00FCveni art\u0131r\u0131l\u0131yor";
+            default:
+                return "\u00D6\u011Frenme s\u00FCreci devam ediyor";
+        }
+    }
+
     private int clampProgress(
             double progress
     ) {
@@ -2132,14 +2537,10 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         View[] cards = {
                 cardAIDecision,
-                cardAIReasons,
-                cardAIProgress,
-                cardMoisturePrediction,
-                cardPredictionAccuracy,
-                cardUnifiedConfidence,
-                cardPredictionValidation,
+                cardAIZoneSummary,
                 cardAINextStep,
-                cardAITechnicalSummary
+                cardAIProgress,
+                btnAIAdvancedDetails
         };
 
         for (
@@ -2186,7 +2587,81 @@ public class AIAssistantActivity extends AppCompatActivity {
         return value.trim();
     }
 
+    private void updatePredictionZones(List<GardenZone> zones) {
+        String selectedZoneId = predictionZones.isEmpty()
+                ? ""
+                : predictionZones.get(selectedPredictionZoneIndex).getZone_id();
+        predictionZones.clear();
+
+        if (zones != null) {
+            predictionZones.addAll(zones);
+            Collections.sort(predictionZones, Comparator.comparingInt(GardenZone::getOrder));
+        }
+
+        selectedPredictionZoneIndex = 0;
+        for (int index = 0; index < predictionZones.size(); index++) {
+            if (selectedZoneId.equals(predictionZones.get(index).getZone_id())) {
+                selectedPredictionZoneIndex = index;
+                break;
+            }
+        }
+        renderSelectedMoisturePrediction();
+    }
+
+    private void movePredictionZone(int direction) {
+        if (predictionZones.isEmpty()) {
+            return;
+        }
+        selectedPredictionZoneIndex = (selectedPredictionZoneIndex + direction
+                + predictionZones.size()) % predictionZones.size();
+        renderSelectedMoisturePrediction();
+    }
+
+    private void renderSelectedMoisturePrediction() {
+        if (predictionZones.isEmpty()) {
+            txtMoisturePredictionTitle.setText("Nem Tahmini");
+            txtMoisturePredictionZone.setText("BÃ¶lge verisi bekleniyor");
+            renderMoisturePredictionData(latestMoisturePrediction);
+            return;
+        }
+
+        GardenZone zone = predictionZones.get(selectedPredictionZoneIndex);
+        String emoji = safeText(zone.getEmoji(), "ğŸŒ±");
+        String name = safeText(zone.getName(), zone.getZone_id());
+        txtMoisturePredictionTitle.setText("Nem Tahmini · " + emoji + " " + name);
+        txtMoisturePredictionZone.setText((selectedPredictionZoneIndex + 1)
+                + " / " + predictionZones.size() + " · Sağa/sola kaydırın");
+
+        if (selectedPredictionZoneIndex == 0) {
+            renderMoisturePredictionData(latestMoisturePrediction);
+            return;
+        }
+
+        renderZonePredictionWaiting(zone);
+    }
+
+    private void renderZonePredictionWaiting(GardenZone zone) {
+        txtMoisturePredictionStatus.setText("ÖĞRENİYOR");
+        txtPredictionCurrentMoisture.setText(formatMoistureValue(zone.getMoisture()));
+        txtPredictionMoistureLimit.setText(formatMoistureValue(zone.getMoisture_limit()));
+        txtPredictionOneHour.setText("—");
+        txtPredictionThreeHours.setText("—");
+        txtPredictionSixHours.setText("—");
+        txtPredictionTimeUntilLimit.setText("Bu bölge için veri hazırlanıyor");
+        txtMoisturePredictionConfidence.setText("DÜŞÜK · %0");
+        txtPredictionLimitReachedAt.setText("Tahmini sınır zamanı: —");
+        txtMoisturePredictionUpdatedAt.setText("Bu bölgenin tahmini henüz oluşmadı");
+        applyMoisturePredictionWaitingStyle();
+    }
+
     private void renderMoisturePrediction(
+            MoisturePrediction prediction
+    ) {
+        latestMoisturePrediction = prediction;
+        renderSelectedMoisturePrediction();
+    }
+
+    private void renderMoisturePredictionData(
             MoisturePrediction prediction
     ) {
 

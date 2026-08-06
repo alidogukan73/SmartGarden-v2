@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 import android.app.DatePickerDialog;
 
 import androidx.annotation.Nullable;
@@ -48,6 +50,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     private TextView products;
     private TextView last;
     private TextView usageSummary;
+    private TextView outcomeSummary;
     private List<FertilizerApplication> allValues =
             Collections.emptyList();
     private String selectedZoneId = "";
@@ -80,6 +83,9 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         last = findViewById(R.id.txtFertilizerHistoryLast);
         usageSummary = findViewById(
                 R.id.txtFertilizerUsageSummary
+        );
+        outcomeSummary = findViewById(
+                R.id.txtFertilizerOutcomeSummary
         );
         recycler = findViewById(
                 R.id.recyclerFertilizerHistory
@@ -132,14 +138,115 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .setTitle(R.string.fertilizer_history_action_title)
                 .setMessage(value.getProduct_name())
                 .setNegativeButton(android.R.string.cancel, null)
-                .setNeutralButton(
-                        R.string.fertilizer_history_edit,
-                        (dialog, which) -> showEditDialog(value)
-                )
-                .setPositiveButton(
-                        R.string.fertilizer_history_delete,
-                        (dialog, which) -> confirmDelete(value)
-                )
+                .setItems(new String[]{
+                                "Uygulama sonucunu kaydet",
+                                getString(R.string.fertilizer_history_edit),
+                                getString(R.string.fertilizer_history_delete)
+                        },
+                        (dialog, which) -> {
+                            if (which == 0) {
+                                showOutcomeDialog(value);
+                            } else if (which == 1) {
+                                showEditDialog(value);
+                            } else {
+                                confirmDelete(value);
+                            }
+                        })
+                .show();
+    }
+
+    private void showOutcomeDialog(FertilizerApplication value) {
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources()
+                .getDisplayMetrics().density);
+        content.setPadding(padding, 0, padding, 0);
+
+        EditText dateInput = new EditText(this);
+        dateInput.setHint("Gözlem tarihi");
+        dateInput.setFocusable(false);
+        LocalDate initialDate = value.getOutcome_observed_at_epoch() > 0
+                ? Instant.ofEpochSecond(value.getOutcome_observed_at_epoch())
+                .atZone(ZoneId.systemDefault()).toLocalDate()
+                : LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        dateInput.setText(initialDate.format(formatter));
+        dateInput.setOnClickListener(view -> new DatePickerDialog(
+                this,
+                (picker, year, month, day) -> dateInput.setText(
+                        LocalDate.of(year, month + 1, day).format(formatter)
+                ),
+                initialDate.getYear(), initialDate.getMonthValue() - 1,
+                initialDate.getDayOfMonth()
+        ).show());
+
+        Spinner status = new Spinner(this);
+        String[] statuses = {"İyileşme gözlendi", "Belirgin değişiklik yok", "Sorun gözlendi"};
+        status.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, statuses));
+        if ("UNCHANGED".equals(value.getOutcome_status())) {
+            status.setSelection(1);
+        } else if ("ISSUE".equals(value.getOutcome_status())) {
+            status.setSelection(2);
+        }
+
+        Spinner vigor = new Spinner(this);
+        String[] vigorValues = {"Canlılık puanı seçin", "1 / 5", "2 / 5", "3 / 5", "4 / 5", "5 / 5"};
+        vigor.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, vigorValues));
+        if (value.getOutcome_vigor_score() > 0
+                && value.getOutcome_vigor_score() <= 5) {
+            vigor.setSelection(value.getOutcome_vigor_score());
+        }
+        EditText notes = new EditText(this);
+        notes.setHint("Gözlem notu (isteğe bağlı)");
+        notes.setMinLines(2);
+        notes.setText(value.getOutcome_notes());
+        content.addView(dateInput);
+        content.addView(status);
+        content.addView(vigor);
+        content.addView(notes);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Uygulama sonucu")
+                .setMessage("Bu kayıt, AI Gübre Asistanı'nın sonraki önerilerini geliştirmek için kullanılır.")
+                .setView(content)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.settings_save, (dialog, which) -> {
+                    try {
+                        LocalDate observed = LocalDate.parse(
+                                dateInput.getText().toString(), formatter);
+                        String[] values = {"IMPROVED", "UNCHANGED", "ISSUE"};
+                        value.setOutcome_status(values[status.getSelectedItemPosition()]);
+                        value.setOutcome_vigor_score(
+                                Math.max(0, vigor.getSelectedItemPosition()));
+                        value.setOutcome_notes(notes.getText().toString().trim());
+                        value.setOutcome_observed_at_epoch(observed.atStartOfDay(
+                                ZoneId.systemDefault()).toEpochSecond());
+                        repository.updateFertilizerApplication(value)
+                                .addOnSuccessListener(result -> showPhotoPrompt(value));
+                    } catch (Exception ignored) {
+                        android.widget.Toast.makeText(this,
+                                "Geçerli bir gözlem tarihi seçin.",
+                                android.widget.Toast.LENGTH_LONG).show();
+                    }
+                })
+                .show();
+    }
+
+    private void showPhotoPrompt(FertilizerApplication value) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Uygulama sonucu kaydedildi")
+                .setMessage("İsterseniz bu gözleme ait bir bitki fotoğrafını da yerel arşive ekleyebilirsiniz.")
+                .setNegativeButton("Şimdi değil", null)
+                .setPositiveButton("Fotoğraf ekle", (dialog, which) -> {
+                    Intent intent = new Intent(this,
+                            GardenPhotoArchiveActivity.class);
+                    intent.putExtra("zone_id", value.getZone_id());
+                    intent.putExtra("related_application_id",
+                            value.getApplication_id());
+                    startActivity(intent);
+                })
                 .show();
     }
 
@@ -323,6 +430,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
             );
         }
         renderUsageSummary(values);
+        renderOutcomeSummary(values);
     }
 
     private void renderUsageSummary(
@@ -394,6 +502,69 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         return value == null ? "" : value;
     }
 
+    private void renderOutcomeSummary(
+            List<FertilizerApplication> values
+    ) {
+        int observed = 0;
+        int improved = 0;
+        int unchanged = 0;
+        int issue = 0;
+        double vigorTotal = 0.0;
+        int vigorCount = 0;
+        String latestProduct = "";
+        long latestObservedAt = 0L;
+        for (FertilizerApplication value : values) {
+            String status = safe(value.getOutcome_status());
+            if (status.isBlank()) {
+                continue;
+            }
+            observed++;
+            if ("IMPROVED".equals(status)) {
+                improved++;
+            } else if ("ISSUE".equals(status)) {
+                issue++;
+            } else {
+                unchanged++;
+            }
+            if (value.getOutcome_vigor_score() > 0) {
+                vigorTotal += value.getOutcome_vigor_score();
+                vigorCount++;
+            }
+            if (value.getOutcome_observed_at_epoch() >= latestObservedAt) {
+                latestObservedAt = value.getOutcome_observed_at_epoch();
+                latestProduct = safe(value.getProduct_name());
+            }
+        }
+        if (observed == 0) {
+            outcomeSummary.setText(
+                    "Henüz sonuç gözlemi yok. Bir uygulama kaydına dokunup “Uygulama sonucunu kaydet” seçin."
+            );
+            return;
+        }
+        String base = observed + " sonuç kaydı: " + improved
+                + " iyileşme · " + unchanged + " değişiklik yok · " + issue
+                + " sorun.";
+        if (vigorCount > 0) {
+            base += " Ortalama canlılık: "
+                    + String.format(Locale.getDefault(), "%.1f", vigorTotal / vigorCount)
+                    + "/5.";
+        }
+        if (observed < 3) {
+            outcomeSummary.setText(base
+                    + " Güvenilir eğilim için en az 3 gözlem gerekir.");
+        } else if (issue > improved) {
+            outcomeSummary.setText(base
+                    + " Bu kayıtlar beklenen faydayı göstermiyor; doz, karışım ve etiket talimatı gözden geçirilmeli.");
+        } else if (improved > issue) {
+            outcomeSummary.setText(base
+                    + (latestProduct.isBlank() ? " Olumlu eğilim gözleniyor."
+                    : " Son gözlem: " + latestProduct + ". Olumlu eğilim gözleniyor."));
+        } else {
+            outcomeSummary.setText(base
+                    + " Sonuçlar karışık; aynı uygulama koşullarında birkaç gözlem daha kaydedin.");
+        }
+    }
+
     private String formatAmount(double value) {
         return value == Math.rint(value)
                 ? String.format(Locale.getDefault(), "%.0f", value)
@@ -414,7 +585,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(
                 Intent.EXTRA_TITLE,
-                "smartgarden-gubre-gecmisi.csv"
+                "AVORA-gubre-gecmisi.csv"
         );
         exportLauncher.launch(intent);
     }
@@ -431,7 +602,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         )) {
             writer.write('\uFEFF');
             writer.write(
-                    "Uygulama tarihi,Bölge,Ürün,Miktar,Birim,Yöntem,Alan m2,Tank L,Not\n"
+                    "Uygulama tarihi,Bölge,Ürün,Miktar,Birim,Yöntem,Alan m2,Tank L,Not,Sonuç,Canlılık puanı,Sonuç notu\n"
             );
             for (FertilizerApplication value : visibleValues) {
                 String date = value.getApplied_at_epoch() <= 0L
@@ -452,7 +623,11 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         csv(methodLabel(value.getApplication_method())),
                         csv(formatAmount(value.getArea_m2())),
                         csv(formatAmount(value.getTank_liters())),
-                        csv(value.getNotes())
+                        csv(value.getNotes()),
+                        csv(outcomeLabel(value.getOutcome_status())),
+                        csv(value.getOutcome_vigor_score() > 0
+                                ? String.valueOf(value.getOutcome_vigor_score()) : ""),
+                        csv(value.getOutcome_notes())
                 ));
                 writer.newLine();
             }
@@ -480,6 +655,13 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         return "DRIP".equals(method)
                 ? getString(R.string.fertilization_method_drip)
                 : "";
+    }
+
+    private String outcomeLabel(String status) {
+        if ("IMPROVED".equals(status)) return "İyileşme gözlendi";
+        if ("UNCHANGED".equals(status)) return "Belirgin değişiklik yok";
+        if ("ISSUE".equals(status)) return "Sorun gözlendi";
+        return "";
     }
 
     private String csv(String value) {

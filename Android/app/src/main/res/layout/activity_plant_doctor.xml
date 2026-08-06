@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="22dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="28dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btnDoctorBack"
+                android:layout_width="36dp"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:text="←"
+                android:textColor="@color/textPrimary"
+                android:textSize="26sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI Bitki Doktoru"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="23sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Fotoğraf ve bahçe verilerini birlikte analiz ederiz"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="AI Bitki Doktoru"
+                android:src="@drawable/ic_plant_doctor_logo" />
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            app:cardBackgroundColor="@color/surfaceGreen"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="62dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="AI"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_plant_doctor_badge" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AI Bitki Doktoru"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Görsel, sensör ve hava verilerini birlikte değerlendiriyoruz."
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="76dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Güvenilirlik"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="10sp" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="68dp"
+                        android:layout_height="28dp"
+                        android:layout_marginTop="3dp"
+                        app:cardBackgroundColor="@color/warningBackground"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="Orta güvenilirlik"
+                                android:src="@drawable/ic_shield_check_24" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="3dp"
+                                android:text="Orta"
+                                android:textColor="@color/warning"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="5dp"
+                    android:contentDescription="Bilgi"
+                    android:src="@drawable/ic_info_outline_20" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📷  1. Fotoğraf Ekle"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="172dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_doctor_photo_placeholder">
+
+                    <ImageView
+                        android:id="@+id/imgDoctorPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutDoctorPhotoHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📷"
+                            android:textSize="34sp" />
+
+                        <TextView
+                            android:id="@+id/txtDoctorPhotoHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Henüz fotoğraf eklenmedi&#10;Yaprak veya bitkinin genel fotoğrafını ekleyin."
+                            android:textColor="@color/textSecondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDoctorTakePhoto"
+                        style="@style/Widget.SmartGarden.Button.Primary"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="📷  Fotoğraf Çek"
+                        android:textAllCaps="false" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDoctorPickPhoto"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="▣  Galeriden Seç"
+                        android:textAllCaps="false"
+                        android:textColor="@color/primary"
+                        app:strokeColor="@color/primary" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/card"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📍  2. Bölge"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Bölge"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        app:endIconMode="dropdown_menu">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/dropdownDoctorZone"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:focusable="false"
+                            android:inputType="none"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="144dp"
+                    android:layout_marginTop="12dp"
+                    android:hint="4. Açıklama (isteğe bağlı)"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="250">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputDoctorNote"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:maxLength="250"
+                        android:padding="12dp"
+                        android:textSize="13sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                app:cardBackgroundColor="@color/card"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🍃  3. Belirtiler"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:contentDescription="Belirti bilgisi"
+                            android:src="@drawable/ic_info_outline_20" />
+                    </LinearLayout>
+
+                    <CheckBox android:id="@+id/checkDoctorYellowing" android:layout_width="match_parent" android:layout_height="34dp" android:layout_marginTop="7dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🍂  Yaprak Sararması" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorDrying" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🟤  Yaprak Kuruması" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorSpot" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🟣  Leke / Benek" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorWilt" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🌱  Solma" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorPest" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🍅  Meyve Çatlaması" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorFlowerDrop" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="🌼  Çiçek Dökümü" android:textColor="@color/textPrimary" android:textSize="12sp" />
+                    <CheckBox android:id="@+id/checkDoctorOther" android:layout_width="match_parent" android:layout_height="34dp" android:buttonTint="@color/primary" android:gravity="center_vertical" android:text="•••  Diğer" android:textColor="@color/textPrimary" android:textSize="12sp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutDoctorOtherNote"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:hint="Belirtiyi kısaca yazın"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputDoctorOtherNote"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:gravity="top"
+                            android:inputType="textMultiLine"
+                            android:maxLength="120"
+                            android:padding="8dp"
+                            android:textSize="12sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            android:hint="4. Açıklama (isteğe bağlı)"
+            app:counterEnabled="true"
+            app:counterMaxLength="250">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputDoctorNoteLegacy"
+                android:layout_width="match_parent"
+                android:layout_height="94dp"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:maxLength="250"
+                android:padding="12dp"
+                android:textSize="13sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnalyzePlant"
+            style="@style/Widget.SmartGarden.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginTop="14dp"
+            android:text="✦  AI Analiz Başlat&#10;Tüm veriler birlikte analiz edilecek"
+            android:textAllCaps="false"
+            android:textSize="14sp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/surfaceGreen"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI Analize Dahil Edilecek Veriler"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView android:id="@+id/txtDoctorSoil" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:gravity="center" android:text="💧&#10;Toprak nemi" android:textColor="@color/textPrimary" android:textSize="10sp" />
+                    <TextView android:id="@+id/txtDoctorWeatherTemp" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:gravity="center" android:text="🌡&#10;Hava sıcaklığı" android:textColor="@color/textPrimary" android:textSize="10sp" />
+                    <TextView android:id="@+id/txtDoctorSun" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:gravity="center" android:text="☀&#10;Güneş ışığı" android:textColor="@color/textPrimary" android:textSize="10sp" />
+                    <TextView android:id="@+id/txtDoctorWind" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:gravity="center" android:text="≋&#10;Rüzgar" android:textColor="@color/textPrimary" android:textSize="10sp" />
+                    <TextView android:id="@+id/txtDoctorHumidity" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:gravity="center" android:text="💧&#10;Hava nemi" android:textColor="@color/textPrimary" android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="▧  Son Analiz"
+            android:textColor="@color/textPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDoctorResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView android:id="@+id/txtDoctorTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/textPrimary" android:textSize="16sp" android:textStyle="bold" />
+                <TextView android:id="@+id/txtDoctorMeta" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/warning" android:textStyle="bold" />
+                <TextView android:id="@+id/txtDoctorContext" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/textSecondary" android:textSize="13sp" />
+                <TextView android:id="@+id/txtDoctorAdvice" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/textPrimary" android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="ⓘ AI önerileri destek amaçlıdır; kesin teşhis için ziraat uzmanına danışınız."
+            android:textColor="@color/textSecondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

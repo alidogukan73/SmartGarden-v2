@@ -23,7 +23,7 @@ class AppLogger:
         if AppLogger._instance is None:
 
             logger = logging.getLogger(
-                "SmartGarden",
+                "AVORA",
             )
 
             logger.setLevel(

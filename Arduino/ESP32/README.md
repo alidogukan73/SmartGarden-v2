@@ -1,6 +1,6 @@
-# SmartGarden ESP32
+# AVORA ESP32
 
-Bu klasör, kablosuz toprak nem sensörlerini MQTT ile SmartGarden sistemine
+Bu klasör, kablosuz toprak nem sensörlerini MQTT ile AVORA sistemine
 gönderen ESP32/Arduino kaynak kodunu içerir.
 
 Ana Arduino projesini bu klasöre, kendi klasörüyle birlikte ekleyin:

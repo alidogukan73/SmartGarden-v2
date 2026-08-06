@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
@@ -240,6 +241,14 @@ public class GardenZoneAdapter
                             zone.getMoisture()
                     )
             );
+            moisture.setTextColor(
+                    ContextCompat.getColor(
+                            itemView.getContext(),
+                            moistureColorResource(
+                                    zone.getMoisture()
+                            )
+                    )
+            );
             rssi.setText(
                     itemView.getContext().getString(
                             R.string.sensor_rssi_format,
@@ -275,6 +284,20 @@ public class GardenZoneAdapter
                     age
             );
             bindIrrigationStatus(zone);
+        }
+
+        private int moistureColorResource(
+                int moistureValue
+        ) {
+            if (moistureValue < 35) {
+                return R.color.moistureLow;
+            }
+
+            if (moistureValue > 70) {
+                return R.color.info;
+            }
+
+            return R.color.moistureIdeal;
         }
 
         private void bindIrrigationStatus(
@@ -326,6 +349,31 @@ public class GardenZoneAdapter
                                 value.getQueue_position()
                         ),
                         R.color.accentOrange
+                );
+                return;
+            }
+
+            if (zone.getMoisture() >= zone.getMoisture_limit()) {
+                setIrrigationStatus(
+                        itemView.getContext().getString(
+                                R.string.zone_card_moisture_sufficient
+                        ),
+                        R.color.online
+                );
+                return;
+            }
+
+            if (
+                    value != null
+                            && "WAITING_FOR_MOISTURE_RECOVERY".equals(
+                            value.getDecision_reason()
+                    )
+            ) {
+                setIrrigationStatus(
+                        itemView.getContext().getString(
+                                R.string.zone_card_recovery_waiting
+                        ),
+                        R.color.warning
                 );
                 return;
             }

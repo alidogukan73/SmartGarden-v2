@@ -19,6 +19,10 @@ public class FertilizerApplication {
     private String application_type = "NUTRITION";
     private String application_method;
     private String notes;
+    private long outcome_observed_at_epoch;
+    private String outcome_status;
+    private int outcome_vigor_score;
+    private String outcome_notes;
 
     public FertilizerApplication() {
         // Firebase requires an empty constructor.
@@ -74,4 +78,18 @@ public class FertilizerApplication {
     }
     public String getNotes() { return notes; }
     public void setNotes(String value) { notes = value; }
+    public long getOutcome_observed_at_epoch() {
+        return outcome_observed_at_epoch;
+    }
+    public void setOutcome_observed_at_epoch(long value) {
+        outcome_observed_at_epoch = value;
+    }
+    public String getOutcome_status() { return outcome_status; }
+    public void setOutcome_status(String value) { outcome_status = value; }
+    public int getOutcome_vigor_score() { return outcome_vigor_score; }
+    public void setOutcome_vigor_score(int value) {
+        outcome_vigor_score = value;
+    }
+    public String getOutcome_notes() { return outcome_notes; }
+    public void setOutcome_notes(String value) { outcome_notes = value; }
 }

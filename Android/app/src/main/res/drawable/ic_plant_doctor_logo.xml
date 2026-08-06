@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+  <path
+      android:pathData="M127,112C84,126 54,167 54,214C54,232 59,249 69,263C41,278 24,307 24,340C24,389 64,428 113,428C137,428 159,418 175,402C197,422 225,433 256,433C290,433 319,420 341,398C359,413 382,422 407,422C454,422 488,386 488,340C488,309 471,282 446,268C455,252 459,233 459,214C459,161 416,118 363,118C340,118 319,126 302,141C274,115 240,101 202,101C176,101 150,105 127,112Z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="28"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A13A"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M304,155C314,80 367,37 453,34C456,119 418,174 343,197C322,184 309,170 304,155Z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="24"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A13A"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M331,179L421,78M361,145L360,108M369,137L411,136M395,107L394,84"
+      android:strokeLineJoin="round"
+      android:strokeWidth="16"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A13A"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M118,302C71,291 37,315 27,369C84,374 121,350 139,320Z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="22"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A13A"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M53,357L127,315"
+      android:strokeWidth="14"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A13A"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M147,323L201,173C205,163 213,158 223,158H239C249,158 257,163 261,173L314,323H276L263,284H197L184,323ZM208,251H252L230,186Z"
+      android:fillColor="#16A13A"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M351,158L353,158A18,18 0,0 1,371 176L371,305A18,18 0,0 1,353 323L351,323A18,18 0,0 1,333 305L333,176A18,18 0,0 1,351 158z"
+      android:fillColor="#16A13A"/>
+</vector>

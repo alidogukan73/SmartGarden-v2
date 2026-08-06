@@ -4,6 +4,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:id="@+id/scrollFertilizerAssistant"
     android:layout_height="match_parent"
     android:background="@color/background"
     android:clipToPadding="false"
@@ -135,96 +136,94 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnManageProducts"
-            style="@style/Widget.SmartGarden.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="14dp"
-            android:text="@string/fertilizer_manage_products"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFertilizerHistory"
-            style="@style/Widget.SmartGarden.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/fertilizer_history_open"/>
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Success"
+        <TextView
+            android:id="@+id/labelTodayFertilizerAdvice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="16dp"
+            android:text="Bugünkü AI önerileri"
+            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Öneriler kayıtlarınıza göre hazırlanır; uygulamayı siz onaylarsınız."
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+
+        <LinearLayout
+            android:id="@+id/layoutTodayFertilizerAdvice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
+                android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/fertilizer_preparation_title"
-                    android:textColor="@color/textPrimary"
-                    android:textStyle="bold"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnManageProducts"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
+                    android:text="@string/fertilizer_manage_products"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"/>
 
-                <TextView
-                    android:id="@+id/txtFertilizerPreparation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/fertilizer_preparation_empty"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFertilizerMixCheck"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_weight="1"
+                    android:text="Karışım kontrolü"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"/>
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:id="@+id/txtFertilizationSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/fertilization_summary_empty"
-            android:textColor="@color/textPrimary"
-            android:textSize="17sp"
-            android:textStyle="bold"/>
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
-
-            <TextView
-                android:id="@+id/txtFertilizationDueSummary"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="14dp"
-                android:text="@string/fertilization_due_summary_empty"
-                android:textColor="@color/textPrimary"
-                android:textSize="13sp"
-                android:textStyle="bold"/>
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
-        </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFertilizerHistory"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
+                    android:text="@string/fertilizer_history_open"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="@string/fertilization_zones_description"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBulkFertilizerApplication"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_weight="1"
+                    android:text="@string/fertilizer_bulk_save"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerFertilizationZones"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clipToPadding="false"
-            android:nestedScrollingEnabled="false"
-            android:overScrollMode="never"/>
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 

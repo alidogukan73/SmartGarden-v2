@@ -20,6 +20,7 @@ import androidx.work.WorkerParameters;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.activities.FertilizationCalendarActivity;
 import com.ali.smartgarden.models.FertilizationProfile;
+import com.ali.smartgarden.models.FertilizerApplicationSchedule;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerRecommendation;
@@ -30,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
@@ -106,7 +108,9 @@ public class FertilizerReminderWorker extends Worker {
                     new ArrayList<>();
             collectRecommendations(
                     recommendationSnapshot,
-                    recommendations
+                    recommendations,
+                    "",
+                    ""
             );
             for (DataSnapshot child : snapshot.getChildren()) {
                 GardenZone zone = child.getValue(GardenZone.class);
@@ -133,24 +137,54 @@ public class FertilizerReminderWorker extends Worker {
             return;
         }
         FertilizationProfile profile = zone.getFertilization();
-        if (profile == null
-                || !profile.isEnabled()
-                || !profile.isReminder_enabled()
-                || profile.getNext_application_at_epoch() <= 0L) {
+        if (profile == null || !profile.isEnabled() || !profile.isReminder_enabled()) {
             return;
         }
+
+        if (profile.getApplication_schedules() != null
+                && !profile.getApplication_schedules().isEmpty()) {
+            for (Map.Entry<String, FertilizerApplicationSchedule> entry
+                    : profile.getApplication_schedules().entrySet()) {
+                FertilizerApplicationSchedule schedule = entry.getValue();
+                if (schedule == null) continue;
+                String productId = safe(schedule.getProduct_id(), "");
+                if (productId.isBlank() && "NUTRITION".equals(entry.getKey())) {
+                    productId = safe(profile.getActive_product_id(), "");
+                }
+                if (productId.isBlank()) {
+                    productId = productIdByName(products, schedule.getProduct_name());
+                }
+                notifySchedule(context, zone, profile, products, recommendations,
+                        entry.getKey(), productId, schedule.getNext_application_at_epoch());
+            }
+            return;
+        }
+        notifySchedule(context, zone, profile, products, recommendations,
+                "NUTRITION", safe(profile.getActive_product_id(), ""),
+                profile.getNext_application_at_epoch());
+    }
+
+    private void notifySchedule(
+            Context context,
+            GardenZone zone,
+            FertilizationProfile profile,
+            Map<String, FertilizerProduct> products,
+            List<FertilizerRecommendation> recommendations,
+            String applicationType,
+            String productId,
+            long nextApplicationEpoch
+    ) {
+        if (nextApplicationEpoch <= 0L) return;
 
         LocalDate due = Instant.ofEpochSecond(
-                profile.getNext_application_at_epoch()
+                nextApplicationEpoch
         ).atZone(ZoneId.systemDefault()).toLocalDate();
         long days = ChronoUnit.DAYS.between(LocalDate.now(), due);
-        if (days > 0L) {
-            return;
-        }
+        String slot = reminderSlot(days, LocalTime.now());
+        if (slot == null) return;
 
         String zoneId = safe(zone.getZone_id(), "unknown");
-        String today = LocalDate.now().toString();
-        String preferenceKey = zoneId + ":" + today;
+        String preferenceKey = zoneId + ":" + applicationType + ":" + due + ":" + slot;
         SharedPreferences preferences = context.getSharedPreferences(
                 PREFS,
                 Context.MODE_PRIVATE
@@ -160,26 +194,12 @@ public class FertilizerReminderWorker extends Worker {
         }
 
         String zoneName = safe(zone.getName(), zoneId);
-        String title = days == 0L
-                ? context.getString(
-                        R.string.fertilizer_notification_today_title
-                )
-                : context.getString(
-                        R.string.fertilizer_notification_overdue_title
-                );
-        String message = days == 0L
-                ? context.getString(
-                        R.string.fertilizer_notification_today_message,
-                        zoneName
-                )
-                : context.getString(
-                        R.string.fertilizer_notification_overdue_message,
-                        zoneName,
-                        Math.abs(days)
-                );
-        FertilizerProduct product = products.get(
-                profile.getActive_product_id()
-        );
+        String title = days == 0L ? "Gübre uygulaması bugün"
+                : days == -1L ? "Nazik gübre hatırlatması"
+                : "Son gübre hatırlatması";
+        String message = zoneName + " için " + applicationTypeLabel(applicationType)
+                + " uygulaması kaydı bekleniyor.";
+        FertilizerProduct product = products.get(productId);
         if (product != null) {
             DoseInfo dose = calculateDose(
                     zone,
@@ -235,7 +255,7 @@ public class FertilizerReminderWorker extends Worker {
         );
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
-                zoneId.hashCode(),
+                preferenceKey.hashCode(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
                         | PendingIntent.FLAG_IMMUTABLE
@@ -253,10 +273,40 @@ public class FertilizerReminderWorker extends Worker {
                         .setAutoCancel(true)
                         .setContentIntent(pendingIntent);
         NotificationManagerCompat.from(context).notify(
-                41000 + Math.abs(zoneId.hashCode() % 10000),
+                41000 + Math.abs(preferenceKey.hashCode() % 10000),
                 notification.build()
         );
         preferences.edit().putBoolean(preferenceKey, true).apply();
+    }
+
+    private static String reminderSlot(long days, LocalTime time) {
+        if (days == 0L) {
+            if (time.isBefore(LocalTime.of(8, 0))) return null;
+            if (time.isBefore(LocalTime.of(12, 0))) return "morning";
+            if (time.isBefore(LocalTime.of(18, 0))) return "noon";
+            return "evening";
+        }
+        if (days == -1L) return "next_day";
+        return days == -7L ? "final" : null;
+    }
+
+    private static String applicationTypeLabel(String type) {
+        if ("ORGANIC".equals(type)) return "organik gübre";
+        if ("CONDITIONER".equals(type)) return "toprak düzenleyici";
+        if ("BIOSTIMULANT".equals(type)) return "biyostimülant desteği";
+        return "besleme gübresi";
+    }
+
+    private static String productIdByName(Map<String, FertilizerProduct> products,
+                                          String productName) {
+        if (productName == null || productName.isBlank()) return "";
+        for (Map.Entry<String, FertilizerProduct> entry : products.entrySet()) {
+            FertilizerProduct product = entry.getValue();
+            if (product != null && productName.equalsIgnoreCase(product.getName())) {
+                return entry.getKey();
+            }
+        }
+        return "";
     }
 
     private static DoseInfo calculateDose(
@@ -322,7 +372,9 @@ public class FertilizerReminderWorker extends Worker {
 
     private static void collectRecommendations(
             DataSnapshot snapshot,
-            List<FertilizerRecommendation> output
+            List<FertilizerRecommendation> output,
+            String plantType,
+            String growthStage
     ) {
         FertilizerRecommendation direct = snapshot.getValue(
                 FertilizerRecommendation.class
@@ -330,11 +382,20 @@ public class FertilizerReminderWorker extends Worker {
         if (direct != null
                 && direct.getProduct_id() != null
                 && !direct.getProduct_id().isBlank()) {
+            direct.setPlant_type(plantType);
+            direct.setGrowth_stage(growthStage);
             output.add(direct);
             return;
         }
         for (DataSnapshot child : snapshot.getChildren()) {
-            collectRecommendations(child, output);
+            String nextPlant = plantType;
+            String nextStage = growthStage;
+            if (plantType.isBlank()) {
+                nextPlant = child.getKey();
+            } else if (growthStage.isBlank()) {
+                nextStage = child.getKey();
+            }
+            collectRecommendations(child, output, nextPlant, nextStage);
         }
     }
 

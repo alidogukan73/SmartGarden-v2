@@ -12,7 +12,7 @@ class AppConfig:
 
     DEVICE_ID = "smartgarden-001"
 
-    VERSION = "2.6.0"
+    VERSION = "2.7.0"
 
     LOOP_DELAY_SECONDS = 2.0
 
@@ -179,6 +179,11 @@ class IrrigationConfig:
     COOLDOWN_SECONDS = 600
 
     DEFAULT_RESTART_DELTA = 10
+
+    # Damla sulamada nem sensÃ¶re hemen ulaÅŸmayabilir. AynÄ± bÃ¶lge,
+    # bekleme sÃ¼resi korunarak bu sayÄ± kadar kÄ±sa Ã§evrim yapabilir.
+    # Limit dolunca nem toparlanmasÄ± gÃ¶rÃ¼lmeden yeni Ã§evrim baÅŸlatÄ±lmaz.
+    DEFAULT_MAX_AUTOMATIC_WATERING_CYCLES = 3
 
     DEFAULT_COOLDOWN_SECONDS = 600
 

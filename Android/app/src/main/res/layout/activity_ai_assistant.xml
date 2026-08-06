@@ -178,6 +178,15 @@
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
+                        <TextView
+                            android:id="@+id/txtAIAnalysisScope"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Analiz sensörü hazırlanıyor"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="11sp" />
+
                     </LinearLayout>
 
                     <com.google.android.material.card.MaterialCardView
@@ -498,50 +507,6 @@
                         android:layout_weight="1"
                         android:background="@drawable/bg_ai_progress_segment_inactive" />
 
-                    <View
-                        android:id="@+id/segmentAIProgress6"
-                        android:layout_width="0dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="3dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_ai_progress_segment_inactive" />
-
-                    <View
-                        android:id="@+id/segmentAIProgress7"
-                        android:layout_width="0dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="3dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_ai_progress_segment_inactive" />
-
-                    <View
-                        android:id="@+id/segmentAIProgress8"
-                        android:layout_width="0dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="3dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_ai_progress_segment_inactive" />
-
-                    <View
-                        android:id="@+id/segmentAIProgress9"
-                        android:layout_width="0dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_marginEnd="3dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_ai_progress_segment_inactive" />
-
-                    <View
-                        android:id="@+id/segmentAIProgress10"
-                        android:layout_width="0dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="3dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_ai_progress_segment_inactive" />
-
                 </LinearLayout>
 
                 <!-- AI mevcut işlem açıklaması -->
@@ -793,6 +758,17 @@
         <!-- NEM TAHMİNİ                                  -->
         <!-- ================================================= -->
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAIAdvancedDetails"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="14dp"
+            android:text="Asistan detaylarını gör"
+            android:textColor="@color/primary"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardMoisturePrediction"
             style="@style/Widget.SmartGarden.Card.Main"
@@ -837,6 +813,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:id="@+id/txtMoisturePredictionTitle"
                             android:text="Nem Tahmini"
                             android:textColor="@color/textPrimary"
                             android:textSize="16sp"
@@ -845,6 +822,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:id="@+id/txtMoisturePredictionZone"
                             android:layout_marginTop="2dp"
                             android:text="Toprağın gelecek saatlerdeki tahmini nemi"
                             android:textColor="@color/textSecondary"
@@ -2162,14 +2140,14 @@
                 android:orientation="horizontal"
                 android:padding="18dp">
 
-                <TextView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
+                    android:contentDescription="@string/ai_learning_goal_title"
                     android:gravity="center"
-                    android:text="@string/symbol_next_arrow"
-                    android:textColor="@color/primary"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
+                    android:padding="6dp"
+                    android:src="@drawable/ic_ai_goal_24"
+                    app:tint="@color/primary" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -2181,7 +2159,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/ai_next_step_title"
+                        android:text="@string/ai_learning_goal_title"
                         android:textColor="@color/primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -2206,6 +2184,224 @@
         <!-- ================================================= -->
         <!-- TEKNİK ÖZET                                       -->
         <!-- ================================================= -->
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAIWeatherGuidance"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/infoBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HAVA ETKİSİ"
+                    android:textColor="@color/info"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtAIWeatherGuidanceTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtAIWeatherGuidanceSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:lineSpacingExtra="2dp"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+
+                <TextView
+                    android:id="@+id/txtAIWeatherGuidanceSafety"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAIAdaptiveRecommendation"
+            style="@style/Widget.SmartGarden.Card.Main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ayar önerisi"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtAIAdaptiveRecommendationTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtAIAdaptiveRecommendationDetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAIWateringControl"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:rippleColor="@color/accentLight">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="💧"
+                    android:textSize="22sp"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/title_watering_control"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/menu_watering_control_description"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/symbol_menu_arrow"
+                    android:textColor="@color/textTertiary"
+                    android:textSize="26sp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAISensorPoints"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:rippleColor="@color/accentLight">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    app:cardBackgroundColor="@color/onlineBackground"
+                    app:cardCornerRadius="13dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🌱"
+                        android:textSize="21sp"/>
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sensor_points_title"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Bahçedeki kablosuz sensörleri görüntüle"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/symbol_menu_arrow"
+                    android:textColor="@color/textTertiary"
+                    android:textSize="26sp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardAITechnicalSummary"

@@ -134,6 +134,13 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
             );
             holder.note.setVisibility(View.VISIBLE);
         }
+        String outcome = outcomeLabel(value);
+        if (outcome.isEmpty()) {
+            holder.outcome.setVisibility(View.GONE);
+        } else {
+            holder.outcome.setText(outcome);
+            holder.outcome.setVisibility(View.VISIBLE);
+        }
         holder.date.setText(
                 Instant.ofEpochSecond(value.getApplied_at_epoch())
                         .atZone(ZoneId.systemDefault())
@@ -193,6 +200,23 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
         return R.color.info;
     }
 
+    private static String outcomeLabel(FertilizerApplication value) {
+        String status = value.getOutcome_status();
+        if (status == null || status.isBlank()) {
+            return "";
+        }
+        String label = "IMPROVED".equals(status)
+                ? "Sonuç: İyileşme gözlendi"
+                : "UNCHANGED".equals(status)
+                ? "Sonuç: Belirgin değişiklik yok"
+                : "Sonuç: Sorun gözlendi";
+        if (value.getOutcome_vigor_score() > 0) {
+            label += " · Canlılık "
+                    + value.getOutcome_vigor_score() + "/5";
+        }
+        return label;
+    }
+
     static class Holder extends RecyclerView.ViewHolder {
         final TextView product;
         final TextView zone;
@@ -200,6 +224,7 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
         final TextView calculationBasis;
         final TextView method;
         final TextView note;
+        final TextView outcome;
         final TextView date;
 
         Holder(@NonNull View itemView) {
@@ -212,6 +237,7 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
             );
             method = itemView.findViewById(R.id.txtHistoryMethod);
             note = itemView.findViewById(R.id.txtHistoryNote);
+            outcome = itemView.findViewById(R.id.txtHistoryOutcome);
             date = itemView.findViewById(R.id.txtHistoryDate);
         }
     }

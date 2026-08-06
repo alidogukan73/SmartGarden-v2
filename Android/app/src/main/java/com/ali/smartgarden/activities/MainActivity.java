@@ -32,8 +32,13 @@ import com.ali.smartgarden.models.Command;
 import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.models.AIExplanation;
+import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.health.GardenHealthCalculator;
+import com.ali.smartgarden.health.GardenHealthSummary;
+import com.ali.smartgarden.plantdoctor.PlantDoctorRecommendationStore;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
 
@@ -41,6 +46,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
 
 import android.os.Handler;
@@ -87,6 +93,23 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtGardenSensors;
     private TextView txtGardenWateringSummary;
     private TextView txtGardenPumpSummary;
+    private MaterialCardView cardGardenSummary;
+    private MaterialCardView cardHomePlantDoctorSummary;
+    private TextView txtHomePlantDoctorSummary;
+    private MaterialCardView cardHomeWateringSummary;
+    private MaterialCardView cardHomeFertilizationSummary;
+    private TextView txtHomeWateringSummary;
+    private MaterialCardView cardHomeHealth;
+    private TextView txtHomeFertilizationSummary;
+    private TextView txtHomeHealthTitle;
+    private TextView txtHomeHealthDetail;
+    private TextView txtHomeHealthScore;
+    private CircularProgressIndicator progressHomeHealthScore;
+    private MaterialCardView cardHomeWeather;
+    private TextView txtHomeWeatherIcon;
+    private TextView txtHomeWeatherTitle;
+    private TextView txtHomeWeatherToday;
+    private TextView txtHomeWeatherTomorrow;
     private MaterialCardView cardSimulationWarning;
     private MaterialCardView cardHomeAlerts;
     private LinearLayout layoutHomeAlerts;
@@ -258,12 +281,41 @@ public class MainActivity extends AppCompatActivity {
         txtGardenSensors = findViewById(
                 R.id.txtGardenSensors
         );
+        cardGardenSummary = findViewById(
+                R.id.cardGardenSummary
+        );
         txtGardenWateringSummary = findViewById(
                 R.id.txtGardenWateringSummary
         );
         txtGardenPumpSummary = findViewById(
                 R.id.txtGardenPumpSummary
         );
+        cardHomePlantDoctorSummary = findViewById(
+                R.id.cardHomePlantDoctorSummary
+        );
+        txtHomePlantDoctorSummary = findViewById(
+                R.id.txtHomePlantDoctorSummary
+        );
+        renderHomePlantDoctorRecommendation();
+        cardHomeWateringSummary = findViewById(R.id.cardHomeWateringSummary);
+        txtHomeWateringSummary = findViewById(R.id.txtHomeWateringSummary);
+        cardHomeFertilizationSummary = findViewById(
+                R.id.cardHomeFertilizationSummary
+        );
+        txtHomeFertilizationSummary = findViewById(
+                R.id.txtHomeFertilizationSummary
+        );
+        cardHomeHealth = findViewById(R.id.cardHomeHealth);
+        txtHomeHealthTitle = findViewById(R.id.txtHomeHealthTitle);
+        txtHomeHealthDetail = findViewById(R.id.txtHomeHealthDetail);
+        txtHomeHealthScore = findViewById(R.id.txtHomeHealthScore);
+        progressHomeHealthScore = findViewById(R.id.progressHomeHealthScore);
+        cardHomeWeather = findViewById(R.id.cardHomeWeather);
+        txtHomeWeatherIcon = findViewById(R.id.txtHomeWeatherIcon);
+        txtHomeWeatherTitle = findViewById(R.id.txtHomeWeatherTitle);
+        txtHomeWeatherToday = findViewById(R.id.txtHomeWeatherToday);
+        txtHomeWeatherTomorrow = findViewById(R.id.txtHomeWeatherTomorrow);
+        moveWeatherBelowFertilization();
         cardSimulationWarning = findViewById(
                 R.id.cardSimulationWarning
         );
@@ -376,6 +428,8 @@ public class MainActivity extends AppCompatActivity {
                 this::renderHomeAi
         );
 
+        viewModel.getWeatherForecast().observe(this, this::renderHomeWeather);
+
         viewModel.getError().observe(
                 this,
                 message -> {
@@ -421,6 +475,65 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
         progressHomeAi.setProgress(progress);
+    }
+
+    private void moveWeatherBelowFertilization() {
+        if (cardHomeWeather == null || cardHomeFertilizationSummary == null) {
+            return;
+        }
+        ViewGroup parent = (ViewGroup) cardHomeWeather.getParent();
+        if (parent == null || parent != cardHomeFertilizationSummary.getParent()) {
+            return;
+        }
+        int targetIndex = parent.indexOfChild(cardHomeFertilizationSummary) + 1;
+        parent.removeView(cardHomeWeather);
+        parent.addView(cardHomeWeather, targetIndex);
+    }
+
+    private void renderHomeWeather(WeatherForecast forecast) {
+        if (forecast == null || forecast.getTomorrowTemperatureMax() == null) {
+            cardHomeWeather.setVisibility(View.GONE);
+            return;
+        }
+        cardHomeWeather.setVisibility(View.VISIBLE);
+        String location = forecast.getDistrict().isBlank()
+                ? forecast.getCity()
+                : forecast.getDistrict() + " / " + forecast.getCity();
+        txtHomeWeatherTitle.setText("Hava durumu · " + location);
+        txtHomeWeatherIcon.setText("☀");
+        bindWeatherDay(txtHomeWeatherToday, "Bugün", forecast.getTodayTemperatureMax(),
+                forecast.getTodayRainProbability(), forecast.getTodayWindMax(), forecast.getTodayWeatherCode());
+        bindWeatherDay(txtHomeWeatherTomorrow, "Yarın", forecast.getTomorrowTemperatureMax(),
+                forecast.getTomorrowRainProbability(), forecast.getTomorrowWindMax(), forecast.getTomorrowWeatherCode());
+    }
+
+    private String weatherCompact(String day, Double temperature, Double rain, Double wind) {
+        String tempText = temperature == null ? "—" : Math.round(temperature) + "°C";
+        String rainText = rain == null ? "" : " · %" + Math.round(rain) + " yağış";
+        String windText = wind == null ? "" : "\n↝ " + Math.round(wind) + " km/sa";
+        return day + "\n" + tempText + rainText + windText;
+    }
+
+    private void bindWeatherDay(TextView view, String day, Double temperature, Double rain,
+                                Double wind, Long code) {
+        view.setText(weatherCompact(day, temperature, rain, wind));
+        view.setCompoundDrawablesWithIntrinsicBounds(weatherIconResource(code), 0, 0, 0);
+        view.setCompoundDrawablePadding(6);
+    }
+
+    private int weatherIconResource(Long code) {
+        if (code != null && code >= 51) return R.drawable.ic_water_drop_24;
+        if (code != null && code >= 2) return R.drawable.ic_weather_cloud_24;
+        return R.drawable.ic_weather_sunny_24;
+    }
+
+    private String weatherIcon(Long code) {
+        if (code == null) return "☀";
+        if (code >= 95) return "⛈";
+        if (code >= 51) return "🌧";
+        if (code >= 45) return "🌫";
+        if (code >= 2) return "☁";
+        return "☀";
     }
 
     private void renderSensor(Sensor sensor) {
@@ -530,6 +643,9 @@ public class MainActivity extends AppCompatActivity {
             homeZonePagerPositioned = false;
             renderHomeZoneDots(0, 0);
             renderGardenSummary();
+            renderHomeWateringSummary(null);
+            renderHomeFertilizationSummary(null);
+            renderHomeHealthSummary(null);
             return;
         }
 
@@ -601,7 +717,104 @@ public class MainActivity extends AppCompatActivity {
 
         renderPrimaryZoneIdentity(zones);
         renderGardenSummary();
+        renderHomeWateringSummary(zones);
+        renderHomeFertilizationSummary(zones);
+        renderHomeHealthSummary(zones);
         renderHomeAlerts();
+    }
+
+    private void renderHomeHealthSummary(List<GardenZone> zones) {
+        GardenHealthSummary health = GardenHealthCalculator.calculate(
+                zones,
+                System.currentTimeMillis() / 1000L
+        );
+        txtHomeHealthTitle.setText(health.getTitle());
+        txtHomeHealthDetail.setText(health.getDetail());
+        txtHomeHealthScore.setText(String.valueOf(health.getScore()));
+        int healthColor = health.getScore() >= 85 ? R.color.primary
+                : health.getScore() >= 65 ? R.color.warning : R.color.moistureLow;
+        txtHomeHealthScore.setTextColor(color(healthColor));
+        progressHomeHealthScore.setProgressCompat(health.getScore(), true);
+        progressHomeHealthScore.setIndicatorColor(color(healthColor));
+        progressHomeHealthScore.setTrackColor(color(R.color.divider));
+        cardHomeHealth.setVisibility(
+                health.getScore() < 85 ? View.VISIBLE : View.GONE
+        );
+    }
+
+    private void renderHomeWateringSummary(List<GardenZone> zones) {
+        if (zones == null || zones.isEmpty()) {
+            cardHomeWateringSummary.setVisibility(View.GONE);
+            return;
+        }
+
+        GardenZone active = null;
+        GardenZone queued = null;
+        int cooldownCount = 0;
+        for (GardenZone zone : zones) {
+            ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
+            if (irrigation == null) {
+                continue;
+            }
+            if (irrigation.isWatering_active()) {
+                active = zone;
+                break;
+            }
+            if (irrigation.isCooldown_active()) {
+                cooldownCount++;
+            } else if (irrigation.getQueue_position() > 0 && queued == null) {
+                queued = zone;
+            }
+        }
+
+        cardHomeWateringSummary.setVisibility(View.VISIBLE);
+        if (active != null) {
+            txtHomeWateringSummary.setText(active.getName() + " şu anda sulanıyor");
+        } else if (queued != null) {
+            txtHomeWateringSummary.setText(queued.getName() + " sulama sırasında bekliyor");
+        } else if (cooldownCount > 0) {
+            txtHomeWateringSummary.setText(cooldownCount + " bölgede bekleme süresi sürüyor");
+        } else {
+            txtHomeWateringSummary.setText("Şu anda sulama gerekmiyor");
+        }
+    }
+
+    private void renderHomeFertilizationSummary(List<GardenZone> zones) {
+        if (zones == null || zones.isEmpty()) {
+            cardHomeFertilizationSummary.setVisibility(View.GONE);
+            return;
+        }
+
+        long now = System.currentTimeMillis() / 1000L;
+        int dueCount = 0;
+        int plannedCount = 0;
+
+        for (GardenZone zone : zones) {
+            FertilizationProfile profile = zone.getFertilization();
+            if (profile == null || !profile.isEnabled()
+                    || profile.getNext_application_at_epoch() <= 0L) {
+                continue;
+            }
+            if (profile.getNext_application_at_epoch() <= now) {
+                dueCount++;
+            } else {
+                plannedCount++;
+            }
+        }
+
+        if (dueCount > 0) {
+            cardHomeFertilizationSummary.setVisibility(View.VISIBLE);
+            txtHomeFertilizationSummary.setText(
+                    dueCount + " bölgede gübreleme kaydı bekleniyor"
+            );
+        } else if (plannedCount > 0) {
+            cardHomeFertilizationSummary.setVisibility(View.VISIBLE);
+            txtHomeFertilizationSummary.setText(
+                    plannedCount + " bölgede yaklaşan gübreleme planı var"
+            );
+        } else {
+            cardHomeFertilizationSummary.setVisibility(View.GONE);
+        }
     }
 
     private void initializeHomeZonePager() {
@@ -1247,11 +1460,51 @@ public class MainActivity extends AppCompatActivity {
                 view -> showMainMenu()
         );
 
+        cardGardenSummary.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                SensorPointsActivity.class
+                        )
+                )
+        );
+
         cardHomeAi.setOnClickListener(
                 view -> startActivity(
                         new Intent(
                                 this,
                                 AIAssistantActivity.class
+                        )
+                )
+        );
+
+        cardHomeHealth.setOnClickListener(
+                view -> startActivity(
+                        new Intent(this, GardenHealthDetailActivity.class)
+                )
+        );
+
+        cardHomeWateringSummary.setOnClickListener(
+                view -> startActivity(
+                        new Intent(this, AIAssistantActivity.class)
+                )
+        );
+
+        cardHomePlantDoctorSummary.setOnClickListener(
+                view -> startActivity(
+                        new Intent(this, PlantDoctorActivity.class)
+                )
+        );
+
+        cardHomeWeather.setOnClickListener(
+                view -> startActivity(new Intent(this, WeatherForecastActivity.class))
+        );
+
+        cardHomeFertilizationSummary.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                FertilizationCalendarActivity.class
                         )
                 )
         );
@@ -1397,6 +1650,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
 
         super.onStart();
+        renderHomePlantDoctorRecommendation();
 
         onlineStatusHandler.removeCallbacks(
                 onlineStatusChecker
@@ -1404,6 +1658,13 @@ public class MainActivity extends AppCompatActivity {
 
         onlineStatusHandler.post(
                 onlineStatusChecker
+        );
+    }
+
+    private void renderHomePlantDoctorRecommendation() {
+        if (txtHomePlantDoctorSummary == null) return;
+        txtHomePlantDoctorSummary.setText(
+                PlantDoctorRecommendationStore.summary(this)
         );
     }
 

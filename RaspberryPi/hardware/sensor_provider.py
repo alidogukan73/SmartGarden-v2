@@ -228,8 +228,11 @@ class SoilMoistureSensorProvider:
 
     def _initialize_mqtt_sensor(self) -> None:
         """
-        Start MQTT sensor listener and wait for
-        the first valid wireless measurement.
+        Start the MQTT sensor listener.
+
+        The Raspberry Pi backend must remain online even if the ESP32 is
+        temporarily unpowered.  The first measurement is therefore handled
+        by the normal update loop instead of blocking startup.
         """
 
         if self._mqtt_sensor is None:
@@ -243,33 +246,9 @@ class SoilMoistureSensorProvider:
         )
 
         self._mqtt_sensor.start()
-
-        reading = self._mqtt_sensor.wait_for_reading(
-            timeout_seconds=(
-                self._mqtt_startup_timeout_seconds
-            ),
-        )
-
-        if reading is None:
-            self._mqtt_sensor.stop()
-
-            raise TimeoutError(
-                "Wireless soil moisture sensor did "
-                "not provide a valid measurement "
-                f"within "
-                f"{self._mqtt_startup_timeout_seconds:.0f} "
-                "seconds."
-            )
-
         self._logger.info(
-            "First wireless sensor reading received. "
-            "sensor_id=%s raw=%s voltage=%.3f "
-            "moisture=%s rssi=%s",
-            reading.sensor_id,
-            reading.raw,
-            reading.voltage,
-            reading.moisture,
-            reading.rssi,
+            "Wireless MQTT listener started. "
+            "Waiting for the first sensor measurement."
         )
 
     def _read_wired_sensor(

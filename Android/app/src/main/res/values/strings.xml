@@ -4,8 +4,8 @@
 
     <!-- UYGULAMA -->
 
-    <string name="app_name">SmartGarden</string>
-    <string name="app_subtitle">Akıllı Sulama Sistemi</string>
+    <string name="app_name">AVORA</string>
+    <string name="app_subtitle">Akıllı Bahçe Asistanı</string>
 
 
     <!-- CİHAZ DURUMU -->
@@ -16,8 +16,8 @@
     <string name="status_connecting">● BAĞLANIYOR</string>
     <string name="status_offline">● OFFLINE</string>
 
-    <string name="fertilization_title">Gübre Takvimi</string>
-    <string name="fertilization_subtitle">Bölgesel besleme planı ve uygulama takibi</string>
+    <string name="fertilization_title">AI Gübre Asistanı</string>
+    <string name="fertilization_subtitle">Bölgesel besleme önerileri, planı ve uygulama takibi</string>
     <string name="fertilization_advisory_title">Güvenli öneri modu</string>
     <string name="fertilization_safe_badge">OTOMASYON KAPALI</string>
     <string name="fertilization_advisory_description">Sistem şimdilik yalnızca hatırlatma ve öneri verir. Gübre uygulamasını otomatik olarak başlatmaz.</string>
@@ -36,7 +36,7 @@
     <string name="growth_stage_flowering">Çiçeklenme</string>
     <string name="growth_stage_fruiting">Meyve oluşumu</string>
     <string name="growth_stage_harvest">Hasat dönemi</string>
-    <string name="menu_fertilization_description">Bölgesel gübre planları ve hatırlatmalar</string>
+    <string name="menu_fertilization_description">Akıllı besleme önerileri, planlar ve hatırlatmalar</string>
     <string name="fertilization_zone_settings">Gübre planı ayarları</string>
     <string name="fertilization_zone_settings_subtitle">Dikim bilgileri ve gelişim dönemi</string>
     <string name="fertilization_unsaved_message">Kaydedilmemiş değişiklikleriniz var</string>
@@ -50,7 +50,7 @@
     <string name="fertilization_missing_message">Planı etkinleştirmek için dikim tarihi ile gelişim dönemini seçin.</string>
     <string name="fertilization_saved">Gübre planı ayarları kaydedildi</string>
     <string name="fertilization_save_failed">Ayarlar kaydedilemedi. Bağlantıyı kontrol edin.</string>
-    <string name="fertilizer_manage_products">Gübre ürünlerini yönet</string>
+    <string name="fertilizer_manage_products">Gübrelerim</string>
     <string name="fertilizer_products_title">Gübre Ürünleri</string>
     <string name="fertilizer_products_subtitle">Etiket dozu ve güvenli tekrar aralığı</string>
     <string name="fertilizer_add_product">Yeni gübre ürünü ekle</string>
@@ -88,7 +88,8 @@
     <string name="fertilization_invalid_dose">Sıfırdan büyük geçerli bir miktar girin.</string>
     <string name="fertilization_application_saved">Gübre uygulaması kaydedildi ve sonraki tarih güncellendi.</string>
     <string name="fertilization_application_failed">Gübre uygulaması kaydedilemedi.</string>
-    <string name="fertilizer_history_open">Gübre uygulama geçmişi</string>
+    <string name="fertilizer_history_open">Uygulama geçmişi</string>
+    <string name="fertilizer_bulk_save">Toplu Uygulama Kaydet</string>
     <string name="fertilizer_history_title">Gübre Geçmişi</string>
     <string name="fertilizer_history_subtitle">Bölgelere kaydedilen gerçek uygulamalar</string>
     <string name="fertilizer_history_empty">Henüz kaydedilmiş bir gübre uygulaması yok.</string>
@@ -101,8 +102,8 @@
     <string name="fertilization_due_today">Bugün uygulanmalı</string>
     <string name="fertilization_due_overdue">%1$d gün gecikti</string>
     <string name="fertilization_due_in_days">%1$d gün kaldı</string>
-    <string name="fertilizer_notification_channel">Gübre hatırlatmaları</string>
-    <string name="fertilizer_notification_channel_description">Bugün yapılacak ve gecikmiş bölgesel gübre uygulamaları</string>
+    <string name="fertilizer_notification_channel">AVORA · Gübre hatırlatmaları</string>
+    <string name="fertilizer_notification_channel_description">AVORA için bugün yapılacak ve gecikmiş bölgesel gübre uygulamaları</string>
     <string name="fertilizer_notification_today_title">Bugünkü gübre uygulaması</string>
     <string name="fertilizer_notification_overdue_title">Gecikmiş gübre uygulaması</string>
     <string name="fertilizer_notification_today_message">%1$s bölgesinin gübre uygulaması bugün planlandı.</string>
@@ -211,7 +212,7 @@
     <string name="fertilization_soil_support_fruiting">Meyve döneminde organik/toprak düzenleyici uygulamasını ana NPK programından ayrı kaydedin; bu kayıt besleme takvimini değiştirmez.</string>
     <string name="fertilization_soil_support_harvest">Hasat sonrası organik madde ve toprak düzenleyiciyle gelecek dönem için toprak yapısını iyileştirmeyi planlayın.</string>
     <string name="fertilization_soil_support_safety">Kesin ürün ve doz kararı için etiket ile toprak/yaprak analizini esas alın.</string>
-    <string name="fertilization_application_schedule_title">Uygulama takvimi</string>
+    <string name="fertilization_application_schedule_title">Uygulama Takvimi</string>
     <string name="fertilization_schedule_empty">Henüz uygulama kaydı yok</string>
     <string name="fertilization_schedule_next">Sonraki: %1$s</string>
     <string name="fertilization_schedule_due">Tekrar zamanı geldi</string>
@@ -421,7 +422,7 @@
     <string name="title_device_health">Cihaz Sağlığı</string>
     <string name="subtitle_device_health">Raspberry Pi sistem durumu ve kaynak kullanımı</string>
 
-    <string name="health_overall_label">Genel sistem durumu</string>
+    <string name="health_overall_label">Raspberry Pi donanım durumu</string>
     <string name="health_status_waiting">Veri bekleniyor</string>
     <string name="diagnostics_title">Hızlı tanılama</string>
     <string name="diagnostics_waiting">Sistem kontrolleri hazırlanıyor</string>
@@ -487,13 +488,13 @@
     <string name="health_throttling_active_description">Donanım performansı sistem tarafından kısıtlanıyor</string>
     <string name="health_throttling_clear_description">Herhangi bir donanım kısıtlaması algılanmadı</string>
 
-    <string name="health_overall_good">Sistem sağlıklı çalışıyor</string>
-    <string name="health_overall_warning">Sistem dikkat gerektiriyor</string>
-    <string name="health_overall_critical">Kritik sistem durumu</string>
+    <string name="health_overall_good">Raspberry Pi sağlıklı çalışıyor</string>
+    <string name="health_overall_warning">Raspberry Pi dikkat gerektiriyor</string>
+    <string name="health_overall_critical">Raspberry Pi kritik durumda</string>
 
-    <string name="health_badge_good">SAĞLIKLI</string>
-    <string name="health_badge_warning">UYARI</string>
-    <string name="health_badge_critical">KRİTİK</string>
+    <string name="health_badge_good">PI SAĞLIKLI</string>
+    <string name="health_badge_warning">PI UYARI</string>
+    <string name="health_badge_critical">PI KRİTİK</string>
 
     <string name="health_uptime_days_format">%1$d gün %2$d saat</string>
     <string name="health_uptime_hours_format">%1$d saat %2$d dk</string>
@@ -508,7 +509,7 @@
     <!-- AYARLAR EKRANI -->
 
     <string name="title_settings">Ayarlar</string>
-    <string name="subtitle_settings">SmartGarden çalışma parametrelerini yapılandırın</string>
+    <string name="subtitle_settings">AVORA çalışma parametrelerini yapılandırın</string>
 
     <string name="settings_unsaved_changes">Kaydedilmemiş değişiklikler var</string>
 
@@ -621,11 +622,11 @@
     <string name="title_about">Hakkında</string>
     <string name="subtitle_about">Uygulama, sistem ve geliştirici bilgileri</string>
 
-    <string name="about_project_tagline">Akıllı ve uzaktan kontrollü sulama sistemi</string>
+    <string name="about_project_tagline">Akıllı bahçe ve sulama asistanı</string>
     <string name="about_app_version_waiting">Android sürümü yükleniyor</string>
 
-    <string name="about_project_title">Proje Hakkında</string>
-    <string name="about_project_description">SmartGarden; Raspberry Pi, Firebase Realtime Database ve Android uygulamasını bir araya getiren uzaktan kontrollü bir IoT sulama sistemidir. Toprak nemini izler, manuel ve otomatik sulama sağlar, cihaz sağlığını takip eder ve sulama geçmişi ile istatistikleri gerçek zamanlı olarak sunar.</string>
+    <string name="about_project_title">AVORA Hakkında</string>
+    <string name="about_project_description">AVORA; Raspberry Pi, Firebase Realtime Database ve Android uygulamasını bir araya getiren uzaktan kontrollü bir IoT sulama sistemidir. Toprak nemini izler, manuel ve otomatik sulama sağlar, cihaz sağlığını takip eder ve sulama geçmişi ile istatistikleri gerçek zamanlı olarak sunar.</string>
 
     <string name="about_system_title">Sistem Bilgileri</string>
     <string name="about_device_id">Cihaz kimliği</string>
@@ -637,7 +638,7 @@
     <string name="about_developer_role">Android ve Raspberry Pi geliştiricisi</string>
 
     <string name="about_open_github">GitHub</string>
-    <string name="about_copyright">© 2026 SmartGarden</string>
+    <string name="about_copyright">© 2026 AVORA</string>
 
     <string name="about_app_version_format">Android v%1$s</string>
 
@@ -645,7 +646,7 @@
 
     <!-- MATERIAL ALT MENÜ -->
 
-    <string name="main_menu_title">SmartGarden</string>
+    <string name="main_menu_title">AVORA</string>
     <string name="main_menu_subtitle">Detay ekranlarına ve sistem ayarlarına erişin</string>
 
     <string name="menu_statistics_description">Sulama performansı ve başarı oranları</string>
@@ -813,6 +814,7 @@
     <string name="ai_zone_moisture_sufficient">Nem yeterli · %1$d%%</string>
     <string name="ai_zone_moisture_low">Sulama gerekli · %1$d puan nem açığı</string>
     <string name="ai_zone_unstable">Sensör kararlılığı bekleniyor</string>
+    <string name="ai_zone_recovery_waiting">Nem toparlanması bekleniyor</string>
     <string name="ai_zone_learning">Karar için ölçüm birikiyor</string>
     <string name="ai_zone_disabled">Bölgesel sulama kapalı</string>
     <string name="ai_soil_label">TOPRAK</string>
@@ -913,7 +915,7 @@
     <string name="zone_default_minutes">10 dk</string>
     <string name="zone_default_restart_delta">%10</string>
     <string name="zone_minutes_format">%1$d dk</string>
-    <string name="zone_card_ready">Sulamaya hazır</string>
+    <string name="zone_card_ready">Otomatik sulama izleniyor</string>
     <string name="zone_card_queued">Sırada · %1$d. bölge</string>
     <string name="zone_card_watering">Sulanıyor</string>
     <string name="zone_card_cooldown">Bekleme süresinde · %1$s kaldı</string>
@@ -977,4 +979,7 @@
     <string name="zone_continue_editing">Düzenlemeye devam et</string>
     <string name="zone_discard_changes">Değişiklikleri sil</string>
 
+    <string name="zone_card_moisture_sufficient">Nem yeterli · Sulama gerekmiyor</string>
+    <string name="zone_card_recovery_waiting">Nem toparlanması bekleniyor</string>
+    <string name="ai_learning_goal_title">&#214;&#287;renme hedefi</string>
 </resources>

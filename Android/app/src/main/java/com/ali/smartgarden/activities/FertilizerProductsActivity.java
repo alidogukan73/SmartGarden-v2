@@ -2,10 +2,14 @@ package com.ali.smartgarden.activities;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -17,6 +21,8 @@ import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerProductAdapter;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizerProduct;
+import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
+import com.ali.smartgarden.fertilization.FertilizerAiProfile;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -122,11 +128,17 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 content.findViewById(R.id.dropdownStockUnit);
         MaterialAutoCompleteTextView dropdownApplicationType =
                 content.findViewById(R.id.dropdownApplicationType);
+        TextView txtAiProductProfile =
+                content.findViewById(R.id.txtAiProductProfile);
 
         String[] forms = {"Sıvı", "Toz", "Granül"};
         String[] units = {
                 "kg/dekar",
+                "kg/dekar · 1 ton su ile",
+                "kg/dekar · topraktan",
                 "L/dekar",
+                "L/dekar · 1 ton su ile",
+                "L/dekar · topraktan",
                 "ml / 100 L su",
                 "g / 100 L su",
                 "ml / litre su",
@@ -145,6 +157,8 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         };
         dropdownStockUnit.setSimpleItems(stockUnits);
         dropdownApplicationType.setSimpleItems(applicationTypes);
+
+        bindAiProductProfile(txtAiProductProfile, existing);
 
         if (existing == null) {
             dropdownForm.setText(forms[0], false);
@@ -188,7 +202,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                     existing.getStock_unit() == null
                             || existing.getStock_unit().isBlank()
                             ? ("LIQUID".equals(existing.getForm())
-                            ? stockUnits[1] : stockUnits[0])
+                            ? stockUnits[2] : stockUnits[0])
                             : existing.getStock_unit(),
                     false
             );
@@ -217,6 +231,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         AlertDialog dialog = dialogBuilder.create();
 
         dialog.setOnShowListener(unused -> {
+            sizeProductDialog(dialog);
             if (existing != null) {
                 arrangeEditDialogButtons(dialog);
             }
@@ -274,6 +289,22 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void bindAiProductProfile(
+            TextView target,
+            @Nullable FertilizerProduct product
+    ) {
+        FertilizerProduct source = product == null
+                ? new FertilizerProduct()
+                : product;
+        FertilizerAiProfile profile = FertilizerAiAdvisor.profileFor(source);
+        target.setText(
+                "Ürün uygunluğu: " + profile.getSuitability()
+                        + "\nNeden: " + profile.getReason()
+                        + "\nMeyve döneminde: " + profile.getFruitStageAdvice()
+                        + "\nGüvenlik: " + profile.getSafetyNote()
+        );
+    }
+
     private void arrangeEditDialogButtons(AlertDialog dialog) {
         View save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         View remove = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
@@ -288,6 +319,43 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         panel.addView(save);
         panel.addView(remove);
         panel.addView(cancel);
+        if (panel instanceof LinearLayout) {
+            ((LinearLayout) panel).setGravity(
+                    Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL
+            );
+        }
+        if (panel instanceof LinearLayout
+                && getResources().getConfiguration().screenWidthDp < 430) {
+            LinearLayout buttonPanel = (LinearLayout) panel;
+            buttonPanel.setOrientation(LinearLayout.HORIZONTAL);
+            setCompactDialogButton(save, "Kaydet");
+            setCompactDialogButton(remove, "Sil…");
+            setCompactDialogButton(cancel, "İptal");
+        }
+    }
+
+    private void setCompactDialogButton(View button, String label) {
+        button.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        ));
+        button.setMinimumWidth(0);
+        button.setPadding(2, button.getPaddingTop(), 2, button.getPaddingBottom());
+        if (button instanceof TextView) {
+            TextView text = (TextView) button;
+            text.setText(label);
+            text.setTextSize(12f);
+        }
+    }
+
+    private void sizeProductDialog(AlertDialog dialog) {
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        int width = getResources().getDisplayMetrics().widthPixels;
+        int height = getResources().getDisplayMetrics().heightPixels;
+        window.setLayout((int) (width * 0.94f), (int) (height * 0.90f));
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     private void checkAndRemoveProduct(

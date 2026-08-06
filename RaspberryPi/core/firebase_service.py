@@ -847,6 +847,9 @@ class FirebaseService:
                 "moisture":
                     entry.moisture,
 
+                "sensor_id":
+                    entry.sensor_id,
+
                 "voltage":
                     round(
                         entry.voltage,
@@ -884,6 +887,48 @@ class FirebaseService:
                     entry.recorded_at,
             },
         )
+
+    def load_recent_sensor_history(
+        self,
+        *,
+        limit: int = 20,
+        sensor_id: str = "",
+    ) -> list[tuple[int, str]]:
+        """
+        Load valid persisted observations for AI learning recovery.
+        """
+
+        if limit <= 0:
+            return []
+
+        data = (
+            self._device_ref()
+            .child("sensor_history")
+            .order_by_key()
+            .limit_to_last(max(limit * 5, 100))
+            .get()
+        ) or {}
+
+        history: list[tuple[int, str]] = []
+
+        for item in data.values():
+            if not isinstance(item, dict):
+                continue
+
+            item_sensor_id = str(item.get("sensor_id", ""))
+            if sensor_id and item_sensor_id and item_sensor_id != sensor_id:
+                continue
+
+            try:
+                moisture = int(item.get("moisture", -1))
+                recorded_at = str(item.get("recorded_at", ""))
+            except (TypeError, ValueError):
+                continue
+
+            if 0 <= moisture <= 100 and recorded_at:
+                history.append((moisture, recorded_at))
+
+        return history[-limit:]
 
     # -------------------------------------------------
     # Watering
@@ -1167,9 +1212,14 @@ class FirebaseService:
         self,
         *,
         limit: int = 20,
+        sensor_id: str = "",
     ) -> list[WateringRecord]:
         """
-        Read recent watering history records.
+        Read recent watering history records, optionally for one sensor.
+
+        AI learning must never combine watering results from different
+        garden zones. A wider source window is read first so an active zone
+        is not starved when other zones have more recent records.
         """
 
         if limit <= 0:
@@ -1179,7 +1229,7 @@ class FirebaseService:
             self._device_ref()
             .child("watering_history")
             .order_by_key()
-            .limit_to_last(limit)
+            .limit_to_last(max(limit * 5, 100))
             .get()
         ) or {}
 
@@ -1299,9 +1349,13 @@ class FirebaseService:
                     ),
                 )
 
-                records.append(
-                    record
-                )
+                if (
+                    sensor_id
+                    and record.sensor_id != sensor_id
+                ):
+                    continue
+
+                records.append(record)
 
             except (
                 TypeError,
@@ -1319,7 +1373,7 @@ class FirebaseService:
             key=lambda record: record.finished_at
         )
 
-        return records
+        return records[-limit:]
         
     # -------------------------------------------------
     # Commands
@@ -1596,6 +1650,17 @@ class FirebaseService:
         return db.reference(
             f"devices/{AppConfig.DEVICE_ID}",
         )
+
+    def get_weather_location(self) -> dict:
+        """Return the user-selected garden location, if one is configured."""
+        location = self._device_ref().child("weather/location").get()
+        return dict(location) if isinstance(location, dict) else {}
+
+    def update_weather_forecast(self, forecast: dict) -> None:
+        """Publish advisory-only forecast data for Android and the AI assistant."""
+        payload = dict(forecast)
+        payload["updated_at"] = datetime.now().isoformat()
+        self._device_ref().child("weather/forecast").set(payload)
 
     def check_restart_command(
             self,
@@ -1899,6 +1964,9 @@ class FirebaseService:
     def update_ai_decision(
         self,
         summary: AIDecisionSummary,
+        *,
+        analysis_sensor_id: str = "",
+        analysis_zone_id: str = "",
     ) -> None:
         """
         Upload the latest unified AI decision summary.
@@ -1949,6 +2017,10 @@ class FirebaseService:
 
                 "secondary_reason":
                     summary.secondary_reason,
+
+                "analysis_sensor_id": analysis_sensor_id,
+
+                "analysis_zone_id": analysis_zone_id,
 
                 "generated_at":
                     summary.generated_at,

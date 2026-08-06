@@ -22,6 +22,9 @@ public class AIDecision {
     private String primaryReason;
     private String secondaryReason;
 
+    private String analysisSensorId;
+    private String analysisZoneId;
+
     private String generatedAt;
     private String updatedAt;
 
@@ -171,6 +174,30 @@ public class AIDecision {
             String secondaryReason
     ) {
         this.secondaryReason = secondaryReason;
+    }
+
+    @PropertyName("analysis_sensor_id")
+    public String getAnalysisSensorId() {
+        return analysisSensorId;
+    }
+
+    @PropertyName("analysis_sensor_id")
+    public void setAnalysisSensorId(
+            String analysisSensorId
+    ) {
+        this.analysisSensorId = analysisSensorId;
+    }
+
+    @PropertyName("analysis_zone_id")
+    public String getAnalysisZoneId() {
+        return analysisZoneId;
+    }
+
+    @PropertyName("analysis_zone_id")
+    public void setAnalysisZoneId(
+            String analysisZoneId
+    ) {
+        this.analysisZoneId = analysisZoneId;
     }
 
     @PropertyName("generated_at")

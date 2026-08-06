@@ -30,8 +30,8 @@ public final class FertilizerReminderScheduler {
         PeriodicWorkRequest periodic =
                 new PeriodicWorkRequest.Builder(
                         FertilizerReminderWorker.class,
-                        24,
-                        TimeUnit.HOURS
+                        15,
+                        TimeUnit.MINUTES
                 ).setConstraints(constraints).build();
         WorkManager manager = WorkManager.getInstance(
                 context.getApplicationContext()

@@ -1,0 +1,4 @@
+# OpenWeather API key (used first in automatic source selection).
+# Copy this file as weather_api_key.txt on the Raspberry Pi and replace this line
+# with your own key. Never commit weather_api_key.txt.
+PASTE_OPENWEATHER_API_KEY_HERE

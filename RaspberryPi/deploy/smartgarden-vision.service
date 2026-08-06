@@ -1,0 +1,18 @@
+[Unit]
+Description=AVORA Plant Vision Gateway
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=ali
+Group=ali
+WorkingDirectory=/home/ali/SmartGarden-v2/RaspberryPi
+ExecStart=/home/ali/SmartGarden-v2/RaspberryPi/.venv/bin/python -m services.plant_vision_server
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

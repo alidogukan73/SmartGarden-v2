@@ -112,39 +112,14 @@ public class SettingsViewModel extends ViewModel {
         saving.setValue(true);
         saveSuccess.setValue(false);
 
-        Map<String, Object> updates =
-                new HashMap<>();
-
-        updates.put(
-                "moisture_limit",
-                moistureLimit
-        );
-
-        updates.put(
-                "pump_duration",
-                pumpDuration
-        );
-
-        updates.put(
-                "cooldown_seconds",
-                cooldownSeconds
-        );
-
-        updates.put(
-                "restart_delta",
-                restartDelta
-        );
-
-        updates.put(
-                "enabled",
-                enabled
-        );
-
         Task<Void> saveTask =
                 repository
-                        .getCommandsRef()
-                        .updateChildren(
-                                updates
+                        .saveGlobalSettingsAndSyncZones(
+                                moistureLimit,
+                                pumpDuration,
+                                cooldownSeconds,
+                                restartDelta,
+                                enabled
                         );
 
         saveTask

@@ -1,5 +1,5 @@
 //
-// SmartGarden Wireless Soil Sensors v2.1.0
+// AVORA Wireless Soil Sensors v2.1.0
 // Two ADS1115 modules, up to eight capacitive soil sensors.
 //
 #include <WiFi.h>
@@ -315,7 +315,7 @@ void initializeAds() {
 void setup() {
     Serial.begin(115200);
     delay(1000);
-    Serial.println("SmartGarden 8 kanalli sensor baslatiliyor...");
+    Serial.println("AVORA 8 kanalli sensor baslatiliyor...");
 
     Wire.begin(SDA_PIN, SCL_PIN);
     initializeAds();

@@ -1,11 +1,9 @@
 package com.ali.smartgarden.adapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -144,9 +144,13 @@ public class HomeZonePagerAdapter
         private final TextView badge;
         private final TextView moisture;
         private final TextView moistureState;
+        private final TextView idealState;
+        private final TextView idealRange;
+        private final TextView lastWaterValue;
+        private final TextView lastWaterDetail;
         private final TextView voltage;
         private final TextView raw;
-        private final ProgressBar progress;
+        private final CircularProgressIndicator progress;
 
         ZoneViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -157,6 +161,10 @@ public class HomeZonePagerAdapter
             moistureState = itemView.findViewById(
                     R.id.txtPageZoneMoistureState
             );
+            idealState = itemView.findViewById(R.id.txtPageZoneIdealState);
+            idealRange = itemView.findViewById(R.id.txtPageZoneIdealRange);
+            lastWaterValue = itemView.findViewById(R.id.txtPageZoneLastWaterValue);
+            lastWaterDetail = itemView.findViewById(R.id.txtPageZoneLastWaterDetail);
             voltage = itemView.findViewById(
                     R.id.txtPageZoneVoltage
             );
@@ -242,9 +250,10 @@ public class HomeZonePagerAdapter
             moisture.setTextColor(statusColor);
             moistureState.setText(statusText);
             moistureState.setTextColor(statusColor);
-            progress.setProgressTintList(
-                    ColorStateList.valueOf(statusColor)
-            );
+            progress.setIndicatorColor(statusColor);
+            progress.setTrackColor(color(context, R.color.divider));
+            bindIdealRange(context, zone, value, statusColor);
+            bindWateringState(context, zone);
         }
 
         private void bindWaiting(Context context) {
@@ -261,11 +270,12 @@ public class HomeZonePagerAdapter
                     color(context, R.color.textSecondary)
             );
             progress.setProgress(0);
-            progress.setProgressTintList(
-                    ColorStateList.valueOf(
-                            color(context, R.color.textSecondary)
-                    )
-            );
+            progress.setIndicatorColor(color(context, R.color.textSecondary));
+            progress.setTrackColor(color(context, R.color.divider));
+            idealState.setText("Veri bekleniyor");
+            idealRange.setText("—");
+            lastWaterValue.setText("Veri yok");
+            lastWaterDetail.setText("Sensör bekleniyor");
             voltage.setText("—");
             raw.setText("—");
         }
@@ -288,11 +298,12 @@ public class HomeZonePagerAdapter
                     color(context, R.color.textSecondary)
             );
             progress.setProgress(0);
-            progress.setProgressTintList(
-                    ColorStateList.valueOf(
-                            color(context, R.color.textSecondary)
-                    )
-            );
+            progress.setIndicatorColor(color(context, R.color.textSecondary));
+            progress.setTrackColor(color(context, R.color.divider));
+            idealState.setText("Sensör kapalı");
+            idealRange.setText("—");
+            lastWaterValue.setText("Veri yok");
+            lastWaterDetail.setText("Sensör kapalı");
             voltage.setText("-");
             raw.setText("-");
         }
@@ -307,6 +318,44 @@ public class HomeZonePagerAdapter
                             - zone.getUpdated_at_epoch()
             );
             return age <= 90L;
+        }
+
+        private void bindIdealRange(
+                Context context,
+                GardenZone zone,
+                int value,
+                int statusColor
+        ) {
+            int lower = Math.max(0, zone.getMoisture_limit());
+            int upper = Math.min(100, lower + 20);
+            String label = value < lower
+                    ? "Nem düşük"
+                    : value > upper ? "Nem yüksek" : "Nem ideal aralıkta";
+            idealState.setText(label);
+            idealState.setTextColor(statusColor);
+            idealRange.setText("%" + lower + " - %" + upper);
+            idealRange.setTextColor(color(context, R.color.textSecondary));
+        }
+
+        private void bindWateringState(Context context, GardenZone zone) {
+            ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
+            if (irrigation != null && irrigation.isWatering_active()) {
+                lastWaterValue.setText("Şimdi");
+                lastWaterDetail.setText("Sulama sürüyor");
+                return;
+            }
+            if (irrigation != null && irrigation.isCooldown_active()) {
+                int minutes = Math.max(1,
+                        (irrigation.getCooldown_remaining() + 59) / 60);
+                lastWaterValue.setText(minutes + " dk kaldı");
+                lastWaterDetail.setText("Bekleme süresi");
+                return;
+            }
+            lastWaterValue.setText("Hazır");
+            lastWaterDetail.setText(zone.isIrrigation_enabled()
+                    ? "Otomatik izleniyor" : "Otomatik kapalı");
+            lastWaterValue.setTextColor(color(context,
+                    zone.isIrrigation_enabled() ? R.color.primary : R.color.textSecondary));
         }
 
         private int color(Context context, int resource) {

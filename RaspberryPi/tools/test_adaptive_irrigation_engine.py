@@ -40,7 +40,7 @@ def create_record(
             else "INTERRUPTED"
         ),
         mode=mode,
-        firmware="3.0.0-test",
+        firmware="2.6.0",
     )
 
 
@@ -353,6 +353,36 @@ def run_filtering_scenario(
     )
 
 
+def run_short_pulse_scenario(
+    engine: AdaptiveIrrigationEngine,
+) -> None:
+    """
+    Verify a drip pulse recommendation changes gradually.
+    """
+
+    records = [
+        create_record(
+            duration=10,
+            moisture_before=30,
+            moisture_after=31,
+        )
+        for _ in range(5)
+    ]
+
+    recommendation = engine.analyze(
+        records=records,
+        current_pump_duration_seconds=10,
+        current_cooldown_seconds=600,
+    )
+
+    assert recommendation.recommended_pump_duration_seconds == 12
+
+    print_recommendation(
+        "Scenario 6 - Short drip pulse increases safely",
+        recommendation,
+    )
+
+
 def main() -> None:
     """
     Run all adaptive irrigation scenarios.
@@ -377,6 +407,10 @@ def main() -> None:
     )
 
     run_filtering_scenario(
+        engine
+    )
+
+    run_short_pulse_scenario(
         engine
     )
 
