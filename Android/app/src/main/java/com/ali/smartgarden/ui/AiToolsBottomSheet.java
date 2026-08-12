@@ -20,7 +20,7 @@ public final class AiToolsBottomSheet {
 
     private AiToolsBottomSheet() { }
 
-    public static void show(Activity activity, View anchor) {
+    public static void show(Activity activity, View anchor, Runnable onDismiss) {
         if (visiblePopup != null && visiblePopup.isShowing()) {
             visiblePopup.dismiss();
             return;
@@ -51,6 +51,7 @@ public final class AiToolsBottomSheet {
         popup.setElevation(dp(activity, 10));
         popup.setOnDismissListener(() -> {
             if (visiblePopup == popup) visiblePopup = null;
+            if (onDismiss != null && !activity.isFinishing()) onDismiss.run();
         });
 
         bind(activity, content, popup, R.id.cardAiToolsPlant, PlantAssistantActivity.class);

@@ -1420,7 +1420,7 @@
     <string
         name="home_simulation_warning">⚠ Vana simülasyon modu aktif · Bölgesel sulamada gerçek pompa korunuyor</string>
     <string
-        name="home_zones_title">Bölgeler - Bitkiler</string>
+        name="home_zones_title">Bölgeler ve Bitkiler</string>
     <string
         name="home_zones_subtitle">Bir bölgeye dokunarak günlüğünü görüntüleyin.</string>
     <string
@@ -1627,4 +1627,47 @@
     <string name="settings_about_title">Hakkında</string>
     <string name="settings_about_subtitle">Uygulama, sürüm ve geliştirici bilgileri</string>
     <string name="settings_feature_preparing">%1$s bölümü sonraki aşamada hazırlanacak.</string>
+    <string name="home_garden_plan_title">Bahçe planı</string>
+    <string name="symbol_warning_triangle">⚠</string>
+    <string name="home_device_alert_count">%1$d cihaz uyarısı</string>
+    <string name="home_device_alert_more"> · %1$d uyarı daha</string>
+    <string name="home_plan_waiting_for_zones">Bölge ve sensör verileri bekleniyor</string>
+    <string name="home_plan_watering_active">%1$s şu anda sulanıyor</string>
+    <string name="home_plan_watering_queued">%1$s sulama sırasında bekliyor</string>
+    <string name="home_plan_no_current_sensor_data">Güncel sensör verisi olan bölge yok</string>
+    <string name="home_plan_no_active_zone">Aktif bölge bulunmuyor</string>
+    <string name="home_plan_waiting_for_fertilization">Gübreleme planları hazırlanıyor</string>
+    <string name="home_plan_no_fertilization_due">Yaklaşan gübreleme işlemi yok</string>
+    <string name="home_plan_zone_fallback">Bölge</string>
+    <plurals name="home_plan_watering_needed">
+        <item quantity="one">%1$d bölgede sulama ihtiyacı var</item>
+        <item quantity="other">%1$d bölgede sulama ihtiyacı var</item>
+    </plurals>
+    <plurals name="home_plan_watering_cooldown">
+        <item quantity="one">%1$d bölgede bekleme süresi sürüyor</item>
+        <item quantity="other">%1$d bölgede bekleme süresi sürüyor</item>
+    </plurals>
+    <plurals name="home_plan_watering_not_needed">
+        <item quantity="one">Ölçüm alınan %1$d bölgede sulama gerekmiyor</item>
+        <item quantity="other">Ölçüm alınan %1$d bölgede sulama gerekmiyor</item>
+    </plurals>
+    <plurals name="home_plan_zone_unavailable">
+        <item quantity="one">%1$d bölge değerlendirilemedi</item>
+        <item quantity="other">%1$d bölge değerlendirilemedi</item>
+    </plurals>
+    <plurals name="home_plan_fertilization_due">
+        <item quantity="one">%1$d bölgede gübreleme kaydı bekleniyor</item>
+        <item quantity="other">%1$d bölgede gübreleme kaydı bekleniyor</item>
+    </plurals>
+    <plurals name="home_plan_fertilization_upcoming">
+        <item quantity="one">%1$d bölgede gübreleme yaklaşıyor</item>
+        <item quantity="other">%1$d bölgede gübreleme yaklaşıyor</item>
+    </plurals>
+    <plurals name="home_plan_fertilization_missing">
+        <item quantity="one">%1$d bölgenin planı yok</item>
+        <item quantity="other">%1$d bölgenin planı yok</item>
+    </plurals>
+    <string name="home_status_connected">&#9679; BA&#286;LI</string>
+    <string name="home_alert_zone_sensor_missing">%1$s sens&#246;r&#252;nden veri al&#305;nam&#305;yor</string>
+    <string name="zone_fallback_name">B&#246;lge</string>
 </resources>

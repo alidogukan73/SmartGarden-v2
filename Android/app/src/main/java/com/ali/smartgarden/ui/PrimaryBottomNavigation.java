@@ -26,6 +26,15 @@ public final class PrimaryBottomNavigation {
     private PrimaryBottomNavigation() { }
 
     public static void bind(Activity activity, int active) {
+        applySelection(activity, active);
+        activity.findViewById(R.id.navPrimaryHome).setOnClickListener(v -> open(activity, MainActivity.class));
+        activity.findViewById(R.id.navPrimaryPlants).setOnClickListener(v -> open(activity, PlantListActivity.class));
+        activity.findViewById(R.id.navPrimaryAssistant).setOnClickListener(v -> openAiTools(activity, active));
+        activity.findViewById(R.id.navPrimarySettings).setOnClickListener(v -> open(activity, SettingsHubActivity.class));
+        activity.findViewById(R.id.navPrimaryNotifications).setOnClickListener(v -> open(activity, DeviceHealthActivity.class));
+    }
+
+    private static void applySelection(Activity activity, int active) {
         for (int i = 0; i < CONTAINERS.length; i++) {
             boolean isActive = i == active;
             int color = activity.getColor(isActive ? R.color.primary : R.color.textSecondary);
@@ -36,11 +45,7 @@ public final class PrimaryBottomNavigation {
             else ((TextView) icon).setTextColor(color);
             TextView label = activity.findViewById(LABELS[i]); label.setTextColor(color); label.setTypeface(null, isActive ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         }
-        activity.findViewById(R.id.navPrimaryHome).setOnClickListener(v -> open(activity, MainActivity.class));
-        activity.findViewById(R.id.navPrimaryPlants).setOnClickListener(v -> open(activity, PlantListActivity.class));
-        activity.findViewById(R.id.navPrimaryAssistant).setOnClickListener(v -> openAiTools(activity));
-        activity.findViewById(R.id.navPrimarySettings).setOnClickListener(v -> open(activity, SettingsHubActivity.class));
-        activity.findViewById(R.id.navPrimaryNotifications).setOnClickListener(v -> open(activity, DeviceHealthActivity.class));
+
     }
     private static void open(Activity activity, Class<?> target) {
         if (activity.getClass() == target) return;
@@ -49,9 +54,13 @@ public final class PrimaryBottomNavigation {
         activity.startActivity(intent);
     }
 
-    private static void openAiTools(Activity activity) {
+    private static void openAiTools(Activity activity, int previousActive) {
         View anchor = activity.findViewById(R.id.navPrimaryAssistant);
-        if (anchor != null) AiToolsBottomSheet.show(activity, anchor);
+        if (anchor != null) {
+            applySelection(activity, ASSISTANT);
+            AiToolsBottomSheet.show(activity, anchor,
+                    () -> applySelection(activity, previousActive));
+        }
     }
 
     private static GradientDrawable activeBackground(Activity activity) {

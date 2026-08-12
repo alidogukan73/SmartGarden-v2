@@ -5,18 +5,17 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.content.Intent;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import android.view.View;
-import android.view.ViewGroup;
 import android.os.SystemClock;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -84,12 +83,14 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnMainMenu;
     private TextView txtMainNotificationBadge;
     private MaterialCardView cardHomePlantAssistantSummary;
+    private AppCompatImageView imgHomePlantAssistantSummary;
     private TextView txtHomePlantAssistantSummary;
     private MaterialCardView cardHomeWateringSummary;
     private MaterialCardView cardHomeFertilizationSummary;
     private TextView txtHomeWateringSummary;
     private MaterialCardView cardHomeHealth;
     private TextView txtHomeFertilizationSummary;
+    private TextView imgHomeHealthIcon;
     private TextView txtHomeHealthTitle;
     private TextView txtHomeHealthDetail;
     private TextView txtHomeHealthScore;
@@ -109,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtHomeWeatherImpact;
     private TextView txtHomeWeatherImpactIcon;
     private TextView txtHomeWeatherUpdated;
-    private MaterialCardView cardHomeAlerts;
-    private LinearLayout layoutHomeAlerts;
     private RecyclerView recyclerHomeZones;
     private LinearLayout layoutHomeZoneDots;
     private HomeZonePagerAdapter homeZonePagerAdapter;
@@ -267,6 +266,9 @@ public class MainActivity extends AppCompatActivity {
         cardHomePlantAssistantSummary = findViewById(
                 R.id.cardHomePlantAssistantSummary
         );
+        imgHomePlantAssistantSummary = findViewById(
+                R.id.imgHomePlantAssistantSummary
+        );
         txtHomePlantAssistantSummary = findViewById(
                 R.id.txtHomePlantAssistantSummary
         );
@@ -280,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.txtHomeFertilizationSummary
         );
         cardHomeHealth = findViewById(R.id.cardHomeHealth);
+        imgHomeHealthIcon = findViewById(R.id.imgHomeHealthIcon);
         txtHomeHealthTitle = findViewById(R.id.txtHomeHealthTitle);
         txtHomeHealthDetail = findViewById(R.id.txtHomeHealthDetail);
         txtHomeHealthScore = findViewById(R.id.txtHomeHealthScore);
@@ -299,13 +302,6 @@ public class MainActivity extends AppCompatActivity {
         txtHomeWeatherImpact = findViewById(R.id.txtHomeWeatherImpact);
         txtHomeWeatherImpactIcon = findViewById(R.id.txtHomeWeatherImpactIcon);
         txtHomeWeatherUpdated = findViewById(R.id.txtHomeWeatherUpdated);
-        moveWeatherBelowFertilization();
-        cardHomeAlerts = findViewById(
-                R.id.cardHomeAlerts
-        );
-        layoutHomeAlerts = findViewById(
-                R.id.layoutHomeAlerts
-        );
         recyclerHomeZones = findViewById(
                 R.id.recyclerHomeZones
         );
@@ -369,20 +365,6 @@ public class MainActivity extends AppCompatActivity {
                     ).show();
                 }
         );
-    }
-
-
-    private void moveWeatherBelowFertilization() {
-        if (cardHomeWeather == null || cardHomeFertilizationSummary == null) {
-            return;
-        }
-        ViewGroup parent = (ViewGroup) cardHomeWeather.getParent();
-        if (parent == null || parent != cardHomeFertilizationSummary.getParent()) {
-            return;
-        }
-        parent.removeView(cardHomeWeather);
-        int targetIndex = parent.indexOfChild(cardHomeFertilizationSummary) + 1;
-        parent.addView(cardHomeWeather, Math.min(targetIndex, parent.getChildCount()));
     }
 
     private void renderHomeWeather(WeatherForecast forecast) {
@@ -580,62 +562,137 @@ public class MainActivity extends AppCompatActivity {
         progressHomeHealthScore.setProgressCompat(health.getScore(), true);
         progressHomeHealthScore.setIndicatorColor(color(healthColor));
         progressHomeHealthScore.setTrackColor(color(R.color.divider));
-        cardHomeHealth.setVisibility(
-                health.getScore() < 85 ? View.VISIBLE : View.GONE
-        );
+        boolean healthNeedsAttention = health.getScore() < 85;
+        imgHomeHealthIcon.setText(healthNeedsAttention
+                ? R.string.symbol_warning_triangle
+                : R.string.symbol_heart);
+        imgHomeHealthIcon.setTextColor(color(healthNeedsAttention
+                ? R.color.warning
+                : healthColor));
+        imgHomeHealthIcon.setBackgroundResource(healthNeedsAttention
+                ? R.drawable.bg_ai_icon_warning
+                : R.drawable.bg_ai_icon);
+        cardHomeHealth.setCardBackgroundColor(color(R.color.card));
+        cardHomeHealth.setStrokeColor(color(healthNeedsAttention
+                ? R.color.warning
+                : R.color.border));
+        cardHomeHealth.setVisibility(View.VISIBLE);
     }
 
     private void renderHomeWateringSummary(List<GardenZone> zones) {
+        cardHomeWateringSummary.setVisibility(View.VISIBLE);
         if (zones == null || zones.isEmpty()) {
-            cardHomeWateringSummary.setVisibility(View.GONE);
+            txtHomeWateringSummary.setText(R.string.home_plan_waiting_for_zones);
             return;
         }
 
         GardenZone active = null;
         GardenZone queued = null;
+        int enabledCount = 0;
+        int evaluatedCount = 0;
+        int unavailableCount = 0;
+        int needsWaterCount = 0;
         int cooldownCount = 0;
+
         for (GardenZone zone : zones) {
-            ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
-            if (irrigation == null) {
+            if (zone == null || !zone.isEnabled()) {
                 continue;
             }
-            if (irrigation.isWatering_active()) {
-                active = zone;
-                break;
+            enabledCount++;
+            boolean hasCurrentReading = zone.isSensor_enabled()
+                    && zone.hasSensorData()
+                    && isZoneConnected(zone);
+            if (!hasCurrentReading) {
+                unavailableCount++;
+                continue;
             }
-            if (irrigation.isCooldown_active()) {
-                cooldownCount++;
-            } else if (irrigation.getQueue_position() > 0 && queued == null) {
-                queued = zone;
+            evaluatedCount++;
+
+            ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
+            if (irrigation != null) {
+                if (irrigation.isWatering_active()) {
+                    active = zone;
+                }
+                if (irrigation.isCooldown_active()) {
+                    cooldownCount++;
+                }
+                if (irrigation.getQueue_position() > 0 && queued == null) {
+                    queued = zone;
+                }
+            }
+            if (zone.isIrrigation_enabled()
+                    && zone.getMoisture() < zone.getMoisture_limit()) {
+                needsWaterCount++;
             }
         }
 
-        cardHomeWateringSummary.setVisibility(View.VISIBLE);
+        String summary;
         if (active != null) {
-            txtHomeWateringSummary.setText(active.getName() + " şu anda sulanıyor");
+            summary = getString(
+                    R.string.home_plan_watering_active,
+                    safeZoneName(active)
+            );
         } else if (queued != null) {
-            txtHomeWateringSummary.setText(queued.getName() + " sulama sırasında bekliyor");
+            summary = getString(
+                    R.string.home_plan_watering_queued,
+                    safeZoneName(queued)
+            );
+        } else if (needsWaterCount > 0) {
+            summary = getResources().getQuantityString(
+                    R.plurals.home_plan_watering_needed,
+                    needsWaterCount,
+                    needsWaterCount
+            );
         } else if (cooldownCount > 0) {
-            txtHomeWateringSummary.setText(cooldownCount + " bölgede bekleme süresi sürüyor");
+            summary = getResources().getQuantityString(
+                    R.plurals.home_plan_watering_cooldown,
+                    cooldownCount,
+                    cooldownCount
+            );
+        } else if (evaluatedCount > 0) {
+            summary = getResources().getQuantityString(
+                    R.plurals.home_plan_watering_not_needed,
+                    evaluatedCount,
+                    evaluatedCount
+            );
+        } else if (enabledCount > 0) {
+            summary = getString(R.string.home_plan_no_current_sensor_data);
         } else {
-            txtHomeWateringSummary.setText("Şu anda sulama gerekmiyor");
+            summary = getString(R.string.home_plan_no_active_zone);
         }
+
+        if (unavailableCount > 0) {
+            summary += " · " + getResources().getQuantityString(
+                    R.plurals.home_plan_zone_unavailable,
+                    unavailableCount,
+                    unavailableCount
+            );
+        }
+        txtHomeWateringSummary.setText(summary);
     }
 
     private void renderHomeFertilizationSummary(List<GardenZone> zones) {
+        cardHomeFertilizationSummary.setVisibility(View.VISIBLE);
         if (zones == null || zones.isEmpty()) {
-            cardHomeFertilizationSummary.setVisibility(View.GONE);
+            txtHomeFertilizationSummary.setText(R.string.home_plan_waiting_for_fertilization);
             return;
         }
 
         long now = System.currentTimeMillis() / 1000L;
+        int enabledZones = 0;
         int dueCount = 0;
         int plannedCount = 0;
+        int missingPlanCount = 0;
 
         for (GardenZone zone : zones) {
+            if (zone == null || !zone.isEnabled()) {
+                continue;
+            }
+            enabledZones++;
             FertilizationProfile profile = zone.getFertilization();
             if (profile == null || !profile.isEnabled()
                     || profile.getNext_application_at_epoch() <= 0L) {
+                missingPlanCount++;
                 continue;
             }
             if (profile.getNext_application_at_epoch() <= now) {
@@ -645,21 +702,41 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        String summary;
         if (dueCount > 0) {
-            cardHomeFertilizationSummary.setVisibility(View.VISIBLE);
-            txtHomeFertilizationSummary.setText(
-                    dueCount + " bölgede gübreleme kaydı bekleniyor"
+            summary = getResources().getQuantityString(
+                    R.plurals.home_plan_fertilization_due,
+                    dueCount,
+                    dueCount
             );
         } else if (plannedCount > 0) {
-            cardHomeFertilizationSummary.setVisibility(View.VISIBLE);
-            txtHomeFertilizationSummary.setText(
-                    plannedCount + " bölgede yaklaşan gübreleme planı var"
+            summary = getResources().getQuantityString(
+                    R.plurals.home_plan_fertilization_upcoming,
+                    plannedCount,
+                    plannedCount
             );
+        } else if (enabledZones == 0) {
+            summary = getString(R.string.home_plan_no_active_zone);
         } else {
-            cardHomeFertilizationSummary.setVisibility(View.GONE);
+            summary = getString(R.string.home_plan_no_fertilization_due);
         }
+
+        if (missingPlanCount > 0 && missingPlanCount < enabledZones) {
+            summary += " · " + getResources().getQuantityString(
+                    R.plurals.home_plan_fertilization_missing,
+                    missingPlanCount,
+                    missingPlanCount
+            );
+        }
+        txtHomeFertilizationSummary.setText(summary);
     }
 
+    private String safeZoneName(GardenZone zone) {
+        if (zone == null || zone.getName() == null || zone.getName().trim().isEmpty()) {
+            return getString(R.string.home_plan_zone_fallback);
+        }
+        return zone.getName().trim();
+    }
     private void initializeHomeZonePager() {
         homeZonePagerAdapter = new HomeZonePagerAdapter(
                 zone -> {
@@ -722,54 +799,28 @@ public class MainActivity extends AppCompatActivity {
             int selected
     ) {
         layoutHomeZoneDots.removeAllViews();
-        float density = getResources().getDisplayMetrics().density;
-        for (int index = 0; index < count; index++) {
-            boolean isSelected = index == selected;
-            android.widget.FrameLayout touchTarget =
-                    new android.widget.FrameLayout(this);
-            int touchSize = Math.round(18f * density);
-            touchTarget.setLayoutParams(
-                    new LinearLayout.LayoutParams(touchSize, touchSize)
-            );
-
-            View dot = new View(this);
-            int dotSize = Math.round(
-                    (isSelected ? 7f : 5f) * density
-            );
-            GradientDrawable dotBackground = new GradientDrawable();
-            dotBackground.setShape(GradientDrawable.OVAL);
-            dotBackground.setColor(
-                    color(
-                            isSelected
-                                    ? R.color.primary
-                                    : R.color.border
-                    )
-            );
-            dot.setBackground(dotBackground);
-            android.widget.FrameLayout.LayoutParams dotParams =
-                    new android.widget.FrameLayout.LayoutParams(
-                            dotSize,
-                            dotSize,
-                            android.view.Gravity.CENTER
-                    );
-            touchTarget.addView(dot, dotParams);
-
-            final int page = index;
-            touchTarget.setOnClickListener(
-                    view -> {
-                        int target =
-                                homeZonePagerAdapter
-                                        .nearestAdapterPosition(
-                                                currentHomeZonePage(),
-                                                page
-                                        );
-                        recyclerHomeZones.smoothScrollToPosition(
-                                target
-                        );
-                    }
-            );
-            layoutHomeZoneDots.addView(touchTarget);
+        if (count <= 0) {
+            return;
         }
+
+        TextView page = new TextView(this);
+        page.setText((Math.max(0, selected) + 1) + " / " + count);
+        page.setTextColor(color(R.color.textPrimary));
+        page.setTextSize(12f);
+        page.setGravity(android.view.Gravity.CENTER);
+        page.setBackgroundResource(R.drawable.bg_chip_outline);
+
+        int width = Math.round(74f * getResources().getDisplayMetrics().density);
+        int height = Math.round(24f * getResources().getDisplayMetrics().density);
+        page.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+        layoutHomeZoneDots.addView(page);
+    }
+
+    private String displayZoneName(GardenZone zone) {
+        if (zone == null || zone.getName() == null || zone.getName().trim().isEmpty()) {
+            return getString(R.string.zone_fallback_name);
+        }
+        return zone.getName().trim();
     }
 
     private boolean isZoneConnected(GardenZone zone) {
@@ -834,14 +885,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderHomeAlerts() {
-        if (cardHomeAlerts == null || layoutHomeAlerts == null) {
+        if (txtHomeHealthTitle == null || txtHomeHealthDetail == null) {
             return;
         }
 
-        layoutHomeAlerts.removeAllViews();
-
+        java.util.ArrayList<String> alerts = new java.util.ArrayList<>();
         if (getConnectionState() == ConnectionState.OFFLINE) {
-            addHomeAlert(R.string.home_alert_device_offline);
+            alerts.add(getString(R.string.home_alert_device_offline));
         }
 
         if (
@@ -849,7 +899,7 @@ public class MainActivity extends AppCompatActivity {
                         && latestStatus.getLastError() != null
                         && !latestStatus.getLastError().trim().isEmpty()
         ) {
-            addHomeAlert(
+            alerts.add(
                     getString(
                             R.string.home_alert_system_error,
                             latestStatus.getLastError().trim()
@@ -858,39 +908,52 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (latestZones != null && !latestZones.isEmpty()) {
-            boolean anySensorConnected = false;
+            int activeSensorCount = 0;
+            int unavailableSensorCount = 0;
             for (GardenZone zone : latestZones) {
-                if (isZoneConnected(zone)) {
-                    anySensorConnected = true;
-                    break;
+                if (zone == null || !zone.isEnabled() || !zone.isSensor_enabled()) {
+                    continue;
+                }
+                activeSensorCount++;
+                if (!isZoneConnected(zone)) {
+                    unavailableSensorCount++;
+                    alerts.add(getString(
+                            R.string.home_alert_zone_sensor_missing,
+                            displayZoneName(zone)
+                    ));
                 }
             }
-            if (!anySensorConnected) {
-                addHomeAlert(R.string.home_alert_no_sensors);
+            if (activeSensorCount > 0 && unavailableSensorCount == activeSensorCount) {
+                alerts.clear();
+                alerts.add(getString(R.string.home_alert_no_sensors));
             }
         }
 
-        cardHomeAlerts.setVisibility(
-                layoutHomeAlerts.getChildCount() > 0
-                        ? View.VISIBLE
-                        : View.GONE
+        if (alerts.isEmpty()) {
+            renderHomeHealthSummary(latestZones);
+            return;
+        }
+
+        txtHomeHealthTitle.setText(
+                getString(R.string.home_device_alert_count, alerts.size())
         );
+        String detail = alerts.get(0);
+        if (alerts.size() > 1) {
+            detail += getString(
+                    R.string.home_device_alert_more,
+                    alerts.size() - 1
+            );
+        }
+        txtHomeHealthDetail.setText(detail);
+        imgHomeHealthIcon.setText(R.string.symbol_warning_triangle);
+        imgHomeHealthIcon.setTextColor(color(R.color.warning));
+        imgHomeHealthIcon.setBackgroundResource(R.drawable.bg_ai_icon_warning);
+        txtHomeHealthScore.setTextColor(color(R.color.warning));
+        progressHomeHealthScore.setIndicatorColor(color(R.color.warning));
+        progressHomeHealthScore.setTrackColor(color(R.color.warningBackground));
+        cardHomeHealth.setStrokeColor(color(R.color.warning));
+        cardHomeHealth.setVisibility(View.VISIBLE);
     }
-
-    private void addHomeAlert(int textResource) {
-        addHomeAlert(getString(textResource));
-    }
-
-    private void addHomeAlert(String message) {
-        TextView alert = new TextView(this);
-        alert.setText("• " + message);
-        alert.setTextColor(color(R.color.textPrimary));
-        alert.setTextSize(13f);
-        alert.setPadding(0, 4, 0, 4);
-        layoutHomeAlerts.addView(alert);
-    }
-
-
 
     private void updateOnlineUi(ConnectionState state) {
         boolean online = state == ConnectionState.ONLINE;
@@ -899,7 +962,7 @@ public class MainActivity extends AppCompatActivity {
         int backgroundColor;
 
         if (online) {
-            textResource = R.string.status_online;
+            textResource = R.string.home_status_connected;
             textColor = color(R.color.online);
             backgroundColor = color(R.color.onlineBackground);
         } else if (state == ConnectionState.CONNECTING) {
@@ -1016,14 +1079,43 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderHomePlantAssistantRecommendation() {
         if (txtHomePlantAssistantSummary == null) return;
-        txtHomePlantAssistantSummary.setText(
-                PlantAssistantHomeRecommendation.create(
+        PlantAssistantHomeRecommendation.Recommendation recommendation =
+                PlantAssistantHomeRecommendation.evaluate(
                         latestZones,
                         latestWeather,
                         PlantAssistantRecommendationStore.healthSignal(this),
                         System.currentTimeMillis() / 1000L
-                )
-        );
+                );
+        txtHomePlantAssistantSummary.setText(recommendation.getMessage());
+
+        int strokeColor;
+        int textColor;
+        int iconBackground;
+        switch (recommendation.getLevel()) {
+            case WARNING:
+                strokeColor = R.color.warning;
+                textColor = R.color.warning;
+                iconBackground = R.drawable.bg_ai_icon_warning;
+                break;
+            case FOLLOW_UP:
+                strokeColor = R.color.info;
+                textColor = R.color.info;
+                iconBackground = R.drawable.bg_ai_icon_follow_up;
+                break;
+            case NORMAL:
+            default:
+                strokeColor = R.color.border;
+                textColor = R.color.textSecondary;
+                iconBackground = R.drawable.bg_ai_icon;
+                break;
+        }
+        txtHomePlantAssistantSummary.setTextColor(color(textColor));
+        if (cardHomePlantAssistantSummary != null) {
+            cardHomePlantAssistantSummary.setStrokeColor(color(strokeColor));
+        }
+        if (imgHomePlantAssistantSummary != null) {
+            imgHomePlantAssistantSummary.setBackgroundResource(iconBackground);
+        }
     }
 
 

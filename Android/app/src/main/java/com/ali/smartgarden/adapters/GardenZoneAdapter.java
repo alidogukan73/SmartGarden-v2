@@ -16,6 +16,7 @@ import com.ali.smartgarden.models.ZoneIrrigationStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class GardenZoneAdapter
         extends RecyclerView.Adapter<GardenZoneAdapter.ZoneViewHolder> {
@@ -150,6 +151,9 @@ public class GardenZoneAdapter
         private final TextView rssi;
         private final TextView wifiStatus;
         private final TextView irrigationStatus;
+        private final LinearLayout sensorMetrics;
+        private final TextView voltage;
+        private final TextView raw;
         private final TextView waiting;
         private final TextView lastUpdate;
 
@@ -171,6 +175,9 @@ public class GardenZoneAdapter
             irrigationStatus = itemView.findViewById(
                     R.id.txtZoneIrrigationStatus
             );
+            sensorMetrics = itemView.findViewById(R.id.layoutZoneSensorMetrics);
+            voltage = itemView.findViewById(R.id.txtZoneVoltage);
+            raw = itemView.findViewById(R.id.txtZoneRaw);
             waiting = itemView.findViewById(
                     R.id.txtZoneWaiting
             );
@@ -200,6 +207,7 @@ public class GardenZoneAdapter
 
             if (!zone.isSensor_enabled()) {
                 measurement.setVisibility(View.GONE);
+                sensorMetrics.setVisibility(View.GONE);
                 waiting.setVisibility(View.VISIBLE);
                 lastUpdate.setVisibility(View.GONE);
                 irrigationStatus.setVisibility(View.GONE);
@@ -217,6 +225,7 @@ public class GardenZoneAdapter
             measurement.setVisibility(
                     hasData ? View.VISIBLE : View.GONE
             );
+            sensorMetrics.setVisibility(hasData ? View.VISIBLE : View.GONE);
             waiting.setVisibility(
                     hasData ? View.GONE : View.VISIBLE
             );
@@ -255,6 +264,8 @@ public class GardenZoneAdapter
                             zone.getRssi()
                     )
             );
+            voltage.setText(String.format(Locale.getDefault(), "%.3f V", zone.getVoltage()));
+            raw.setText(String.valueOf(zone.getRaw()));
             lastUpdate.setText(
                     itemView.getContext().getString(
                             R.string.sensor_last_update_seconds,

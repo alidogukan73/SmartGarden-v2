@@ -89,6 +89,68 @@
                     android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/layoutZoneSensorMetrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.SmartGarden.Card.Metric"
+                android:layout_width="0dp"
+                android:layout_height="72dp"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_voltage"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                    <TextView
+                        android:id="@+id/txtZoneVoltage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.SmartGarden.Card.Metric"
+                android:layout_width="0dp"
+                android:layout_height="72dp"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_raw_value"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                    <TextView
+                        android:id="@+id/txtZoneRaw"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
         <TextView
             android:id="@+id/txtZoneIrrigationStatus"
             android:layout_width="wrap_content"
