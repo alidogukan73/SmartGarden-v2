@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp"
+    android:height="56dp"
+    android:viewportWidth="56"
+    android:viewportHeight="56">
+    <!-- Konuşma balonu -->
+    <path
+        android:fillColor="#20B84B"
+        android:strokeColor="#148C37"
+        android:strokeWidth="1.4"
+        android:strokeLineJoin="round"
+        android:pathData="             M14,18             C14,15.2 16.2,13 19,13             H37             C39.8,13 42,15.2 42,18             V32             C42,34.8 39.8,37 37,37             H29             L23,42             V37             H19             C16.2,37 14,34.8 14,32             Z" />
+    <!-- Balon iç parlaklığı -->
+    <path
+        android:fillColor="#39CF61"
+        android:fillAlpha="0.45"
+        android:pathData="             M17,18             C17,16.8 18,16 19.3,16             H36             C37.7,16 39,17.1 39,18.5             V20             C33,17.5 24,17.2 17,20             Z" />
+    <!-- A harfi -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="             M19.5,32             L24.4,20             C24.7,19.2 25.3,18.8 26.1,18.8             H27.6             C28.4,18.8 29,19.2 29.3,20             L34.2,32             H30.8             L29.7,29             H24             L22.9,32             Z              M25,26.2             H28.7             L26.85,21.7             Z" />
+    <!-- I harfi -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="             M35.5,19             H38.5             V32             H35.5             Z" />
+    <!-- Yaprak -->
+    <path
+        android:fillColor="#49C83E"
+        android:strokeColor="#218E2D"
+        android:strokeWidth="1.1"
+        android:strokeLineJoin="round"
+        android:pathData="             M30,14             C32,8.5 36.8,6.3 42,7.1             C41.4,12.4 38.6,16 33.3,17.3             C31.8,16.5 30.8,15.4 30,14             Z" />
+    <!-- Yaprak damarı -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E7FFD8"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="             M32.1,15.3             L39.6,9.2" />
+</vector>

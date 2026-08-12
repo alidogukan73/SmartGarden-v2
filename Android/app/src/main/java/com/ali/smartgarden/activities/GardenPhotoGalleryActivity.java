@@ -30,6 +30,10 @@ import java.util.Set;
 
 /** Full-screen local gallery with multi-select deletion. */
 public class GardenPhotoGalleryActivity extends AppCompatActivity {
+    public static final String EXTRA_PICK_MODE = "pick_mode";
+    public static final String EXTRA_SELECTED_PHOTO_PATH = "selected_photo_path";
+    public static final String EXTRA_SELECTED_PHOTO_ID = "selected_photo_id";
+
     private LocalGardenPhotoStore photoStore;
     private final List<GardenPhoto> photos = new ArrayList<>();
     private final Set<String> selectedIds = new HashSet<>();
@@ -39,11 +43,13 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     private TextView selection;
     private MaterialButton selectAll;
     private MaterialButton deleteSelected;
+    private boolean pickMode;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_garden_photo_gallery);
+        pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
         photoStore = new LocalGardenPhotoStore(this);
         bindViews();
         findViewById(R.id.btnGalleryBack).setOnClickListener(view -> closeGallery());
@@ -53,8 +59,14 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
                 closeGallery();
             }
         });
-        selectAll.setOnClickListener(view -> toggleSelectAll());
-        deleteSelected.setOnClickListener(view -> confirmDeleteSelected());
+        if (pickMode) {
+            selectAll.setVisibility(View.GONE);
+            deleteSelected.setVisibility(View.GONE);
+            selection.setText("Analize eklemek için bir fotoğrafa dokunun.");
+        } else {
+            selectAll.setOnClickListener(view -> toggleSelectAll());
+            deleteSelected.setOnClickListener(view -> confirmDeleteSelected());
+        }
     }
 
     @Override
@@ -114,7 +126,17 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         check.setVisibility(selected ? View.VISIBLE : View.GONE);
         card.setStrokeWidth(dp(selected ? 3 : 1));
         card.setStrokeColor(getColor(selected ? R.color.primary : R.color.textSecondary));
-        item.setOnClickListener(view -> toggle(photo));
+        item.setOnClickListener(view -> {
+            if (pickMode) {
+                android.content.Intent data = new android.content.Intent();
+                data.putExtra(EXTRA_SELECTED_PHOTO_PATH, photo.getLocal_path());
+                data.putExtra(EXTRA_SELECTED_PHOTO_ID, photo.getId());
+                setResult(RESULT_OK, data);
+                finish();
+            } else {
+                toggle(photo);
+            }
+        });
         grid.addView(item);
     }
 
@@ -131,6 +153,7 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     }
 
     private void updateSelectionUi() {
+        if (pickMode) return;
         int selected = selectedIds.size();
         selection.setText(selected == 0 ? "Silmek için fotoğrafları seçin"
                 : selected + " fotoğraf seçildi");

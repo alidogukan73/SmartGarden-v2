@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="help_intro_title">AVORA yanınızda</string>
+    <string name="help_intro_message">Bir konuyu arayın, cevabı açın veya ilgili ekrana doğrudan geçin.</string>
+    <string name="help_search_hint">Yardımda ara</string>
+    <string name="help_category_all">Tümü</string>
+    <string name="help_category_start">Başlangıç</string>
+    <string name="help_category_irrigation">Sulama</string>
+    <string name="help_category_ai">AI araçları</string>
+    <string name="help_category_records">Günlük ve gübre</string>
+    <string name="help_category_device">Cihaz</string>
+    <string name="help_quick_access_title">Hızlı erişim</string>
+    <string name="help_quick_irrigation">Sulama ayarları</string>
+    <string name="help_quick_journal">Bitki Günlüğü</string>
+    <string name="help_quick_assistant">AI araçları</string>
+    <string name="help_quick_device">Cihaz Sağlığı</string>
+    <string name="help_faq_title">Sık sorulan sorular</string>
+    <string name="help_no_results">Bu aramayla eşleşen bir yardım konusu bulunamadı.</string>
+    <string name="help_safety_note">AVORA önerileri karar desteği sağlar. Elektrik, pompa, vana veya bitki sağlığıyla ilgili riskli işlemlerde donanımı enerjisiz bırakın ve gerektiğinde uzmana danışın.</string>
+
+    <string name="help_q_first_setup">AVORA’yı ilk kez kullanırken ne yapmalıyım?</string>
+    <string name="help_a_first_setup">Önce Ayarlar’dan bahçe bilgilerini ve birimleri doğrulayın. Ardından Bitkilerim ekranından bölgelerin sensör ve sezon durumunu kontrol edin. Cihaz Sağlığı ekranında Raspberry Pi, ESP32 ve sensörlerin güncel görünmesi güvenli başlangıç için yeterlidir.</string>
+    <string name="help_q_status_meaning">Sağlıklı, dikkat ve veri yok durumları ne anlama gelir?</string>
+    <string name="help_a_status_meaning">Sağlıklı, sensör verisinin güncel ve nemin uygun aralıkta olduğunu gösterir. Dikkat, nem veya takip gerektiren başka bir durum bulunduğunu belirtir. Veri yok ise sensör kapalıdır, henüz ölçüm alınmamıştır veya veri güncelliğini kaybetmiştir.</string>
+    <string name="help_q_auto_irrigation">Otomatik sulama neden başlamıyor?</string>
+    <string name="help_a_auto_irrigation">Sistem etkin, otomatik sulama açık ve ilgili bölgede bölgesel sulama etkin olmalıdır. Sensör verisi güncel ve kararlı olmalı; bekleme süresi tamamlanmalı ve fiziksel vana hazır görünmelidir. AVORA güvenlik koşullarından biri eksikse pompayı çalıştırmaz.</string>
+    <string name="help_q_low_moisture_wait">Nem düşük olduğu hâlde neden bekliyor?</string>
+    <string name="help_a_low_moisture_wait">Sulama sonrasında suyun kök bölgesine yayılması için bekleme süresi uygulanır. Nem hâlâ düşükse yeniden başlatma farkı ve çevrim sınırı kontrol edilir. Bu koruma arka arkaya gereksiz sulamayı önler.</string>
+    <string name="help_q_manual_valve">Pompa veya vanayı elle nasıl test ederim?</string>
+    <string name="help_a_manual_valve">AI Sulama Asistanı içindeki teknik ayrıntılardan Sulama Kontrolü’nü açın. Önce fiziksel bir vanayı açın, ardından pompayı çalıştırın. Açık fiziksel vana yoksa güvenlik kilidi pompayı engeller.</string>
+    <string name="help_q_ai_tools">Üç AI aracı arasındaki fark nedir?</string>
+    <string name="help_a_ai_tools">AI Bitki Asistanı fotoğraf, belirti, sensör ve hava verilerini birlikte değerlendirir. AI Sulama Asistanı nem davranışını ve sulama geçmişini izler. AI Gübre Asistanı gelişim dönemi, uygulama geçmişi, stok ve ürün etiketlerine göre öneri ve plan hazırlar.</string>
+    <string name="help_q_ai_remote">AI Bitki Asistanı uzaktan çalışır mı?</string>
+    <string name="help_a_ai_remote">Evet. Telefon ve Raspberry Pi Tailscale ağına bağlıysa aynı Wi‑Fi ağında olmanız gerekmez. Analiz hizmeti Raspberry Pi üzerinde açık olmalı; Tailscale bağlantısı kesilirse görsel analiz geçici olarak kullanılamaz.</string>
+    <string name="help_q_ai_diagnosis">AI Bitki Asistanı kesin hastalık tanısı koyar mı?</string>
+    <string name="help_a_ai_diagnosis">Hayır. Sonuçlar olasılık ve gözlem desteğidir. Fotoğraf kalitesi, belirtiler ve bahçe verileri güveni artırır; ciddi veya ilerleyen durumda ziraat uzmanına danışılmalıdır.</string>
+    <string name="help_q_journal_auto">Bitki Günlüğüne hangi kayıtlar otomatik eklenir?</string>
+    <string name="help_a_journal_auto">Sulamalar, kaydedilen gübre uygulamaları, AI analizleri ve bazı sistem olayları ilgili bölgenin zaman çizelgesine otomatik bağlanır. Kullanıcı ayrıca gözlem, olay ve gelişim fotoğrafları ekleyebilir.</string>
+    <string name="help_q_season_history">Geçen sezonun bilgilerini nasıl görürüm?</string>
+    <string name="help_a_season_history">Bitkilerim ekranından bölgeyi açın ve günlük başlığındaki sezon seçiciyi kullanın. Sezon kapanışı tamamlandıysa sulama, gübre, fotoğraf, sorun ve sonuç özetleri önceki yıl altında korunur.</string>
+    <string name="help_q_fertilizer_record">Gübre önerisi uygulandı anlamına gelir mi?</string>
+    <string name="help_a_fertilizer_record">Hayır. AVORA gübreyi otomatik uygulamaz. Öneriyi kontrol ettikten ve uygulamayı gerçekten yaptıktan sonra Uygulandı olarak kaydet seçeneğini kullanın. Sonraki tarih ve stok bu gerçek kayıt üzerinden hesaplanır.</string>
+    <string name="help_q_device_offline">Raspberry Pi açık ama sensörler çevrimdışıysa ne olur?</string>
+    <string name="help_a_device_offline">Raspberry Pi bağlantısı ve ESP32/sensör bağlantısı ayrı izlenir. Raspberry Pi çalışırken ESP32 enerjisiz kalabilir. Bu durumda sistem çalışır görünür fakat sensör verisi beklenir ve otomatik sulama güvenlik amacıyla başlatılmaz.</string>
+    <string name="help_q_backup">Telefon değiştirirsem kayıtlarım kaybolur mu?</string>
+    <string name="help_a_backup">Firebase’e kaydedilen bahçe verileri hesabınızla yeniden yüklenebilir. Yerel tercihleri taşımak için Ayarlar’daki Yedekleme ekranından güncel yedek alın. Yeni telefonda geri yükleme sonrası tema, dil ve desteklenen ayarlar yeniden uygulanır.</string>
+</resources>

@@ -81,7 +81,7 @@ public class FertilizationZoneDetailActivity
     private MaterialButton btnAdvanceGrowthStage;
     private MaterialButton btnWaterAnalysis;
     private MaterialButton btnZonePhoto;
-    private MaterialButton btnZonePlantDoctor;
+    private MaterialButton btnZonePlantAssistant;
     private TextView txtNutritionSchedule;
     private TextView txtOrganicSchedule;
     private TextView txtConditionerSchedule;
@@ -217,7 +217,7 @@ public class FertilizationZoneDetailActivity
         );
         btnWaterAnalysis = findViewById(R.id.btnWaterAnalysis);
         btnZonePhoto = findViewById(R.id.btnZonePhoto);
-        btnZonePlantDoctor = findViewById(R.id.btnZonePlantDoctor);
+        btnZonePlantAssistant = findViewById(R.id.btnZonePlantAssistant);
         txtWaterAnalysisSummary = findViewById(
                 R.id.txtWaterAnalysisSummary
         );
@@ -340,7 +340,7 @@ public class FertilizationZoneDetailActivity
         );
         btnWaterAnalysis.setOnClickListener(view -> showWaterAnalysisDialog());
         btnZonePhoto.setOnClickListener(view -> openZonePhotoArchive());
-        btnZonePlantDoctor.setOnClickListener(view -> openZonePlantDoctor());
+        btnZonePlantAssistant.setOnClickListener(view -> openZonePlantAssistant());
     }
 
     private void renderZone(GardenZone zone) {
@@ -353,7 +353,7 @@ public class FertilizationZoneDetailActivity
         }
 
         ((TextView) findViewById(R.id.txtTitle)).setText(
-                (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
+                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
                         + " "
                         + zone.getName()
         );
@@ -473,8 +473,8 @@ public class FertilizationZoneDetailActivity
         startActivity(intent);
     }
 
-    private void openZonePlantDoctor() {
-        Intent intent = new Intent(this, PlantDoctorActivity.class);
+    private void openZonePlantAssistant() {
+        Intent intent = new Intent(this, PlantAssistantActivity.class);
         intent.putExtra("zone_id", zoneId);
         startActivity(intent);
     }

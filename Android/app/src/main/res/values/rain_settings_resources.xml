@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rain_settings_title">Yağış Ayarları</string>
+    <string name="rain_settings_safety_title">Sensör öncelikli güvenli karar</string>
+    <string name="rain_settings_safety_message">AVORA yağış tahminini tek başına kullanmaz. Önce canlı toprak nemini, sensör kararlılığını, bekleme süresini ve vana güvenliğini kontrol eder.</string>
+    <string name="rain_settings_live_section">Konum ve canlı tahmin</string>
+    <string name="rain_settings_location_loading">Bahçe konumu yükleniyor…</string>
+    <string name="rain_settings_location_missing">Bahçe konumu henüz ayarlanmadı</string>
+    <string name="rain_settings_location_format">%1$s / %2$s</string>
+    <string name="rain_settings_source_loading">Tahmin kaynağı yükleniyor…</string>
+    <string name="rain_settings_source_missing">Tahmin için önce bahçe konumunu ayarlayın</string>
+    <string name="rain_settings_source_format">Tercih edilen kaynak: %1$s</string>
+    <string name="rain_settings_live_source_format">Son tahmin kaynağı: %1$s</string>
+    <string name="rain_settings_source_auto">Otomatik yedeklemeli</string>
+    <string name="rain_settings_forecast_waiting">Bugünkü yağış tahmini bekleniyor</string>
+    <string name="rain_settings_forecast_format">Bugün: %%%1$d yağış olasılığı · %2$s mm beklenen yağış</string>
+    <string name="rain_settings_open_location">Konum ve kaynak</string>
+    <string name="rain_settings_open_forecast">Tahmini görüntüle</string>
+    <string name="rain_settings_policy_section">Otomatik sulamaya etkisi</string>
+    <string name="rain_settings_delay_title">Yağış bekleniyorsa sulamayı ertele</string>
+    <string name="rain_settings_delay_message">Aşağıdaki iki eşik birlikte sağlandığında ve toprak yalnız biraz kuruysa o çevrim ertelenir.</string>
+    <string name="rain_settings_probability_title">En az yağış olasılığı</string>
+    <string name="rain_settings_probability_message">Tahmin olasılığı bu değerin altında kalırsa sulama ertelenmez.</string>
+    <string name="rain_settings_probability_default">%80</string>
+    <string name="rain_settings_amount_title">En az beklenen yağış</string>
+    <string name="rain_settings_amount_message">Beklenen toplam yağış bu miktardan azsa sulama ertelenmez.</string>
+    <string name="rain_settings_amount_default">2 mm</string>
+    <string name="rain_settings_mm_format">%1$s mm</string>
+    <string name="rain_settings_hard_safety_message">Değiştirilemeyen güvenlik kuralı: Nem açığı ciddi olduğunda tahmin ne olursa olsun yağış sulamayı engellemez.</string>
+    <string name="rain_settings_notification_section">Hava bildirimleri</string>
+    <string name="rain_settings_notifications_title">Yağış ve hava uyarıları</string>
+    <string name="rain_settings_notifications_message">Önemli yağış, sıcaklık ve rüzgâr değişimlerini Bildirim Merkezi’ne ve izin verildiyse telefona gönderir.</string>
+    <string name="rain_settings_save">Yağış ayarlarını kaydet</string>
+    <string name="rain_settings_saved">Yağış ayarları kaydedildi ve sulama sistemine gönderildi.</string>
+    <string name="rain_settings_save_failed">Yağış ayarları kaydedilemedi. Bağlantıyı kontrol edip yeniden deneyin.</string>
+    <string name="rain_settings_defaults_ready">Güvenli varsayılan değerler hazır; kaydetmeyi unutmayın.</string>
+    <string name="rain_settings_unsaved_message">Kaydedilmeyen yağış ayarları var. Bu ayarlar tüm bölgelerin otomatik sulama kararını etkiler.</string>
+</resources>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_intro_title">AVORA dili</string>
+    <string name="language_intro_message">Uygulamanın görüntüleme dilini seç. Bahçe kayıtların ve cihaz ayarların değişmez.</string>
+    <string name="language_selection_section">Dil seçimi</string>
+    <string name="language_option_system">Sistem dilini kullan</string>
+    <string name="language_option_system_detail">Telefonun dilini izler ve AVORA’da hazır olan çeviriyi kullanır.</string>
+    <string name="language_code_turkish">TR</string>
+    <string name="language_option_turkish">Türkçe</string>
+    <string name="language_option_turkish_detail">AVORA’nın eksiksiz ve etkin uygulama dili.</string>
+    <string name="language_code_english">EN</string>
+    <string name="language_option_english">English</string>
+    <string name="language_option_english_detail">Tam çeviri kontrolü tamamlandığında kullanıma açılacak.</string>
+    <string name="language_coming_soon">HAZIRLANIYOR</string>
+    <string name="language_preview_section">Metin önizlemesi</string>
+    <string name="language_preview_title">Bahçenin genel durumu</string>
+    <string name="language_preview_message">Toprak nemi ideal aralıkta. Şu anda sulama gerekmiyor.</string>
+    <string name="language_preview_action">Ayrıntıları görüntüle</string>
+    <string name="language_active_format">Etkin dil: %1$s</string>
+    <string name="language_data_note">Dil değişikliği; notlarını, ürün adlarını, geçmiş analizleri, sensör kimliklerini veya Firebase verilerini değiştirmez.</string>
+    <string name="language_backup_note">Dil tercihi bu telefonda saklanır ve AVORA yedeğine eklenir.</string>
+</resources>

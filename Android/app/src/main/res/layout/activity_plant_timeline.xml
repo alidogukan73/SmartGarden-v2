@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingBottom="94dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/btnTimelineBack"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:gravity="center"
+                    android:contentDescription="Geri"
+                    android:text="@string/symbol_back_arrow"
+                    android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+                <TextView
+                    android:id="@+id/txtTimelineTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Bitki Günlüğü"
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                <TextView
+                    android:layout_width="30dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="▣"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="17sp" />
+                <TextView
+                    android:layout_width="22dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="⋮"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="21sp" />
+            </LinearLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@color/primary"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/primaryDark"
+                app:strokeWidth="1dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="14dp"
+                    android:paddingTop="13dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="11dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toStartOf="@id/txtTimelineEmoji"
+                        android:layout_marginEnd="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/txtTimelineSeason"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/card"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txtTimelinePlanting"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textColor="@color/accentLight"
+                            android:textSize="10sp" />
+                        <TextView
+                            android:id="@+id/txtTimelineStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/card"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/txtTimelineEmoji"
+                        android:layout_width="66dp"
+                        android:layout_height="66dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center"
+                        android:textSize="48sp" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tabTimeline"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Zaman Çizelgesi"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tabPhotos"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Fotoğraflar"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tabNotes"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Notlar"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tabCompare"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Karşılaştır"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="11sp" />
+            </LinearLayout>
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/filterTimelineAll"
+                        android:layout_width="58dp"
+                        android:layout_height="34dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/surfaceGreen"
+                        app:cardCornerRadius="17dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="▦  Tümü"
+                            android:textColor="@color/primary"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/filterTimelineWatering"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="7dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/card"
+                        app:cardCornerRadius="17dp"
+                        app:strokeColor="@color/border"
+                        app:strokeWidth="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/ui_timeline_irrigation"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="10sp" />
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/filterTimelineFertilizer"
+                        android:layout_width="66dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="7dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/card"
+                        app:cardCornerRadius="17dp"
+                        app:strokeColor="@color/border"
+                        app:strokeWidth="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/ui_timeline_fertilization"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="10sp" />
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/filterTimelineAnalysis"
+                        android:layout_width="76dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="7dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/card"
+                        app:cardCornerRadius="17dp"
+                        app:strokeColor="@color/border"
+                        app:strokeWidth="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="✦  AI Analiz"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="10sp" />
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/filterTimelineEvent"
+                        android:layout_width="58dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginEnd="4dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/card"
+                        app:cardCornerRadius="17dp"
+                        app:strokeColor="@color/border"
+                        app:strokeWidth="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="▲  Olay"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="10sp" />
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </HorizontalScrollView>
+            <TextView
+                android:id="@+id/txtTimelineMonth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+            <LinearLayout
+                android:id="@+id/layoutTimelineEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/txtTimelineEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:gravity="center"
+                android:text="Henüz bu bitki için günlük kaydı yok."
+                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTimelineAdd"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="88dp"
+        android:text="+"
+        android:textSize="28sp"
+        app:backgroundTint="@color/primary"
+        app:cornerRadius="29dp" />
+</FrameLayout>

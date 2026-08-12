@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="garden_info_intro_title">Bahçenizi tanımlayın</string>
+    <string name="garden_info_intro_message">Bu bilgiler sezon kayıtlarında ve AVORA önerilerinde bahçenizi doğru adlandırmak için kullanılır.</string>
+    <string name="garden_info_general_section">Genel Bilgiler</string>
+    <string name="garden_info_linked_section">Bağlantılı Bilgiler</string>
+    <string name="garden_info_name_hint">Bahçe adı</string>
+    <string name="garden_info_type_hint">Bahçe türü</string>
+    <string name="garden_info_area_hint">Toplam alan (%1$s)</string>
+    <string name="garden_info_notes_hint">Bahçe notu (isteğe bağlı)</string>
+    <string name="garden_info_device_label">Bağlı cihaz</string>
+    <string name="garden_info_location_label">Bahçe konumu</string>
+    <string name="garden_info_location_missing">Henüz bahçe konumu kaydedilmedi.</string>
+    <string name="garden_info_location_gps">%1$s · Hassas GPS konumu</string>
+    <string name="garden_info_location_district">%1$s · İlçe merkezi konumu</string>
+    <string name="garden_info_manage_location">Bahçe Konumunu Yönet</string>
+    <string name="garden_info_save">Bahçe Bilgilerini Kaydet</string>
+    <string name="garden_info_default_name">AVORA Bahçesi</string>
+    <string name="garden_info_name_required">Bahçe adını girin.</string>
+    <string name="garden_info_area_invalid">Geçerli bir alan değeri girin.</string>
+    <string name="garden_info_saved">Bahçe bilgileri kaydedildi.</string>
+    <string name="garden_info_local_only">Bilgiler telefona kaydedildi; Firebase bağlantısı kurulunca yeniden kaydedebilirsiniz.</string>
+    <string name="garden_info_cloud_loaded">Bahçe bilgileri Firebase yedeğinden yüklendi.</string>
+
+    <string-array name="garden_type_options">
+        <item>Açık alan</item>
+        <item>Sera</item>
+        <item>Saksı / teras</item>
+        <item>Karma bahçe</item>
+    </string-array>
+
+    <string name="units_intro_title">Görüntüleme birimleri</string>
+    <string name="units_intro_message">Yalnız ekranda gösterilen birimler değişir. Sensör, sulama ve Firebase hesapları güvenli metrik değerlerle çalışmaya devam eder.</string>
+    <string name="units_display_section">Birim Tercihleri</string>
+    <string name="units_temperature_hint">Sıcaklık</string>
+    <string name="units_area_hint">Alan</string>
+    <string name="units_length_hint">Uzunluk</string>
+    <string name="units_volume_hint">Hacim</string>
+    <string name="units_weight_hint">Ağırlık</string>
+    <string name="units_preview_title">Örnek görünüm</string>
+    <string name="units_preview_format">Sıcaklık: %1$s
+Alan: %2$s · Uzunluk: %3$s
+Hacim: %4$s · Ağırlık: %5$s</string>
+    <string name="units_save">Birim Tercihlerini Kaydet</string>
+    <string name="units_saved">Birim tercihleri kaydedildi.</string>
+    <string name="units_local_only">Tercihler telefona kaydedildi; Firebase yedeği şu an güncellenemedi.</string>
+    <string name="units_cloud_loaded">Birim tercihleri Firebase yedeğinden yüklendi.</string>
+    <string name="units_defaults_ready">Metrik varsayılanlar seçildi; kaydetmeniz gerekiyor.</string>
+
+    <string name="unit_temperature_celsius">Santigrat (°C)</string>
+    <string name="unit_temperature_fahrenheit">Fahrenhayt (°F)</string>
+    <string name="unit_area_square_meter">Metrekare (m²)</string>
+    <string name="unit_area_decare">Dekar (da)</string>
+    <string name="unit_length_centimeter">Santimetre (cm)</string>
+    <string name="unit_length_meter">Metre (m)</string>
+    <string name="unit_volume_liter">Litre (L)</string>
+    <string name="unit_volume_cubic_meter">Metreküp (m³)</string>
+    <string name="unit_weight_gram">Gram (g)</string>
+    <string name="unit_weight_kilogram">Kilogram (kg)</string>
+
+    <string-array name="temperature_unit_options">
+        <item>@string/unit_temperature_celsius</item>
+        <item>@string/unit_temperature_fahrenheit</item>
+    </string-array>
+    <string-array name="area_unit_options">
+        <item>@string/unit_area_square_meter</item>
+        <item>@string/unit_area_decare</item>
+    </string-array>
+    <string-array name="length_unit_options">
+        <item>@string/unit_length_centimeter</item>
+        <item>@string/unit_length_meter</item>
+    </string-array>
+    <string-array name="volume_unit_options">
+        <item>@string/unit_volume_liter</item>
+        <item>@string/unit_volume_cubic_meter</item>
+    </string-array>
+    <string-array name="weight_unit_options">
+        <item>@string/unit_weight_gram</item>
+        <item>@string/unit_weight_kilogram</item>
+    </string-array>
+</resources>

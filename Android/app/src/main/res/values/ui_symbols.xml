@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        AVORA ortak arayüz simgeleri.
+        Arayüzde kullanılan sembolleri doğrudan XML/Java içine yazmak yerine
+        bu dosyadan çağırın. Böylece bir simge buradan değiştirilince bağlı
+        bütün ekranlar birlikte güncellenir.
+    -->
+    <string
+        name="symbol_camera">📷</string>
+    <string
+        name="symbol_plant">🌱</string>
+    <string
+        name="symbol_water_drop">💧</string>
+    <string
+        name="symbol_warning">⚠</string>
+    <string
+        name="symbol_sun">☀</string>
+    <string
+        name="symbol_notification">🔔</string>
+    <string
+        name="symbol_flower">🌼</string>
+    <string
+        name="symbol_heart">❤</string>
+    <!-- Ortak simgeli arayüz metinleri -->
+    <string
+        name="ui_photo_add_step">📷  1. Fotoğraf Ekle</string>
+    <string
+        name="ui_take_photo">📷  Fotoğraf Çek</string>
+    <string
+        name="ui_photo_add_limit">📷\nFotoğraf ekle\nMaks. 5 fotoğraf</string>
+    <string
+        name="ui_setting_irrigation">💧 Sulama</string>
+    <string
+        name="ui_setting_fertilization">🌱 Gübreleme</string>
+    <string
+        name="ui_setting_weather">☀ Hava durumu</string>
+    <string
+        name="ui_setting_stock_warning">⚠ Stok uyarıları</string>
+    <string
+        name="ui_symptom_wilting">🌱  Solma</string>
+    <string
+        name="ui_symptom_flower_drop">🌼  Çiçek Dökümü</string>
+    <string
+        name="ui_assistant_soil_moisture">💧\nToprak nemi</string>
+    <string
+        name="ui_assistant_sunlight">☀\nGüneş ışığı</string>
+    <string
+        name="ui_assistant_air_humidity">💧\nHava nemi</string>
+    <string
+        name="ui_garden_plants_title">🌱  Bahçemdekiler</string>
+    <string
+        name="ui_timeline_irrigation">💧  Sulama</string>
+    <string
+        name="ui_timeline_fertilization">🌱  Gübre</string>
+    <string
+        name="ui_rain_probability_empty">💧  %— yağış</string>
+    <!-- Kod tarafından hazırlanan simgeli metin kalıpları -->
+    <string
+        name="format_rain_probability">💧  %1$s yağış</string>
+    <string
+        name="format_assistant_soil_data">💧\nToprak nemi\n%1$s</string>
+    <string
+        name="format_assistant_sun_data">☀\nGüneş ışığı\n%1$s</string>
+    <string
+        name="format_assistant_humidity_data">💧\nHava nemi\n%1$s</string>
+    <string
+        name="symbol_rain">☂</string>
+    <string
+        name="symbol_wind">≋</string>
+    <string
+        name="symbol_pressure">⌁</string>
+    <string
+        name="symbol_tomato">🍅</string>
+    <string
+        name="ui_symptom_fruit_cracking">🍅  Meyve Çatlaması</string>
+    <string
+        name="symbol_leaf">🌿</string>
+    <string
+        name="symbol_sparkle">✦</string>
+    <string
+        name="symbol_bullet">•</string>
+    <string
+        name="symbol_event">▲</string>
+    <string name="ui_wind_empty">≋  ~ — km/sa</string>
+    <string
+        name="ui_assistant_wind">≋\nRüzgar</string>
+    <string
+        name="symbol_weather_cloud">☁</string>
+    <string
+        name="symbol_chevron_right">›</string>
+</resources>

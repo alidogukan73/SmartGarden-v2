@@ -1,152 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
-
     <!-- ========================================================= -->
     <!-- ANA MARKA RENKLERİ                                       -->
     <!-- ========================================================= -->
-
-    <color name="primary">#2E7D32</color>
-    <color name="primaryDark">#1B5E20</color>
-    <color name="primaryLight">#E8F5E9</color>
-    <color name="primaryContainerStrong">#DDF1DF</color>
-
-    <color name="accent">#66BB6A</color>
-    <color name="accentLight">#C8E6C9</color>
-
-
+    <color
+        name="primary">#2E7D32</color>
+    <color
+        name="primaryLogo">#111D22</color>
+    <color
+        name="primaryDark">#1B5E20</color>
+    <color
+        name="primaryLight">#E8F5E9</color>
+    <color
+        name="primaryContainerStrong">#DDF1DF</color>
+    <color
+        name="accent">#66BB6A</color>
+    <color
+        name="accentLight">#C8E6C9</color>
     <!-- ========================================================= -->
     <!-- ARKA PLAN VE YÜZEYLER                                    -->
     <!-- ========================================================= -->
-
-    <color name="background">#F6F8F6</color>
-
-    <color name="card">#FFFFFF</color>
-    <color name="surfaceElevated">#FFFFFF</color>
-
-    <color name="surfaceSoft">#F2F7F3</color>
-    <color name="surfaceMuted">#F3F5F3</color>
-    <color name="surfaceGreen">#EEF7EF</color>
-
-
+    <color
+        name="background">#F6F8F6</color>
+    <color
+        name="card">#FFFFFF</color>
+    <color
+        name="surfaceElevated">#FFFFFF</color>
+    <color
+        name="surfaceSoft">#F2F7F3</color>
+    <color
+        name="surfaceMuted">#F3F5F3</color>
+    <color
+        name="surfaceGreen">#EEF7EF</color>
+    <color
+        name="surfacePurple">#F4EEFF</color>
+    <color
+        name="error">#D83B3B</color>
     <!-- ========================================================= -->
     <!-- DURUM RENKLERİ                                           -->
     <!-- ========================================================= -->
-
-    <color name="online">#43A047</color>
-    <color name="onlineBackground">#F1F8F2</color>
-
-    <color name="offline">#E53935</color>
-    <color name="offlineBackground">#FDECEC</color>
-
-    <color name="warning">#F59E0B</color>
-    <color name="warningBackground">#FFF4DB</color>
-
-    <color name="info">#1E88E5</color>
-    <color name="infoBackground">#EAF3FD</color>
-    <color name="organic">#8D6E63</color>
-    <color name="organicBackground">#F3E9E5</color>
-    <color name="conditioner">#7E57C2</color>
-    <color name="conditionerBackground">#EEE8FA</color>
-    <color name="microbial">#00897B</color>
-    <color name="microbialBackground">#E1F4F1</color>
-
-    <color name="success">#2E7D32</color>
-    <color name="successBackground">#EAF6EC</color>
-
-    <color name="neutral">#6F756F</color>
-    <color name="neutralBackground">#F1F3F1</color>
-
-    <color name="accentOrange">#FB8C00</color>
-
-
+    <color
+        name="online">#43A047</color>
+    <color
+        name="onlineBackground">#F1F8F2</color>
+    <color
+        name="offline">#E53935</color>
+    <color
+        name="offlineBackground">#FDECEC</color>
+    <color
+        name="warning">#F59E0B</color>
+    <color
+        name="warningBackground">#FFF4DB</color>
+    <color
+        name="info">#1E88E5</color>
+    <color
+        name="infoBackground">#EAF3FD</color>
+    <color
+        name="organic">#8D6E63</color>
+    <color
+        name="organicBackground">#F3E9E5</color>
+    <color
+        name="conditioner">#7E57C2</color>
+    <color
+        name="conditionerBackground">#EEE8FA</color>
+    <color
+        name="microbial">#00897B</color>
+    <color
+        name="microbialBackground">#E1F4F1</color>
+    <color
+        name="success">#2E7D32</color>
+    <color
+        name="successBackground">#EAF6EC</color>
+    <color
+        name="neutral">#6F756F</color>
+    <color
+        name="neutralBackground">#F1F3F1</color>
+    <color
+        name="accentOrange">#FB8C00</color>
     <!-- ========================================================= -->
     <!-- NEM DURUMLARI                                            -->
     <!-- ========================================================= -->
-
-    <color name="moistureLow">#E53935</color>
-    <color name="moistureLowBackground">#FDECEC</color>
-
-    <color name="moistureWarning">#F59E0B</color>
-    <color name="moistureWarningBackground">#FFF4DB</color>
-
-    <color name="moistureIdeal">#2E7D32</color>
-    <color name="moistureIdealBackground">#E8F5E9</color>
-
-    <color name="moistureHigh">#1976D2</color>
-    <color name="moistureHighBackground">#EAF3FD</color>
-
-
+    <color
+        name="moistureLow">#E53935</color>
+    <color
+        name="moistureLowBackground">#FDECEC</color>
+    <color
+        name="moistureWarning">#F59E0B</color>
+    <color
+        name="moistureWarningBackground">#FFF4DB</color>
+    <color
+        name="moistureIdeal">#2E7D32</color>
+    <color
+        name="moistureIdealBackground">#E8F5E9</color>
+    <color
+        name="moistureHigh">#1976D2</color>
+    <color
+        name="moistureHighBackground">#EAF3FD</color>
     <!-- ========================================================= -->
     <!-- POMPA VE BUTON DURUMLARI                                 -->
     <!-- ========================================================= -->
-
-    <color name="pumpRunning">#2E7D32</color>
-    <color name="pumpRunningBackground">#F1F8F2</color>
-
-    <color name="pumpStopped">#E53935</color>
-    <color name="pumpStoppedBackground">#FDECEC</color>
-
-    <color name="buttonStart">#2E7D32</color>
-    <color name="buttonStop">#D32F2F</color>
-    <color name="buttonDisabled">#BDBDBD</color>
-
-
+    <color
+        name="pumpRunning">#2E7D32</color>
+    <color
+        name="pumpRunningBackground">#F1F8F2</color>
+    <color
+        name="pumpStopped">#E53935</color>
+    <color
+        name="pumpStoppedBackground">#FDECEC</color>
+    <color
+        name="buttonStart">#2E7D32</color>
+    <color
+        name="buttonStop">#D32F2F</color>
+    <color
+        name="buttonDisabled">#BDBDBD</color>
     <!-- ========================================================= -->
     <!-- METİNLER                                                 -->
     <!-- ========================================================= -->
-
-    <color name="textPrimary">#1F241F</color>
-    <color name="textSecondary">#6F756F</color>
-    <color name="textTertiary">#989D98</color>
-
-    <color name="textOnPrimary">#FFFFFF</color>
-    <color name="textOnDark">#FFFFFF</color>
-
-
+    <color
+        name="textPrimary">#1F241F</color>
+    <color
+        name="textSecondary">#6F756F</color>
+    <color
+        name="textTertiary">#989D98</color>
+    <color
+        name="textOnPrimary">#FFFFFF</color>
+    <color
+        name="textOnDark">#FFFFFF</color>
     <!-- ========================================================= -->
     <!-- KENARLIK VE AYIRICILAR                                   -->
     <!-- ========================================================= -->
-
-    <color name="border">#D9E3DA</color>
-    <color name="borderStrong">#C8CEC8</color>
-    <color name="divider">#E8ECE8</color>
-
-    <color name="focusRing">#662E7D32</color>
-
-
+    <color
+        name="border">#D9E3DA</color>
+    <color
+        name="borderStrong">#C8CEC8</color>
+    <color
+        name="divider">#E8ECE8</color>
+    <color
+        name="focusRing">#662E7D32</color>
     <!-- ========================================================= -->
     <!-- İKON ARKA PLANLARI                                       -->
     <!-- ========================================================= -->
-
-    <color name="iconBackground">#EAF6EC</color>
-    <color name="iconBackgroundNeutral">#F0F2F0</color>
-
-
+    <color
+        name="iconBackground">#EAF6EC</color>
+    <color
+        name="iconBackgroundNeutral">#F0F2F0</color>
     <!-- ========================================================= -->
     <!-- SWITCH                                                   -->
     <!-- ========================================================= -->
-
-    <color name="switchTrackActive">#A5D6A7</color>
-    <color name="switchThumbActive">#2E7D32</color>
-
-    <color name="switchTrackInactive">#D7DBD7</color>
-    <color name="switchThumbInactive">#8B918B</color>
-
-
+    <color
+        name="switchTrackActive">#A5D6A7</color>
+    <color
+        name="switchThumbActive">#2E7D32</color>
+    <color
+        name="switchTrackInactive">#D7DBD7</color>
+    <color
+        name="switchThumbInactive">#8B918B</color>
     <!-- ========================================================= -->
     <!-- GÖLGE VE OVERLAY                                         -->
     <!-- ========================================================= -->
-
-    <color name="shadowSoft">#14000000</color>
-    <color name="overlayLight">#0D000000</color>
-    <color name="scrim">#66000000</color>
-
-
+    <color
+        name="shadowSoft">#14000000</color>
+    <color
+        name="overlayLight">#0D000000</color>
+    <color
+        name="scrim">#66000000</color>
     <!-- ========================================================= -->
     <!-- BOTTOM SHEET                                             -->
     <!-- ========================================================= -->
-
-    <color name="bottomSheetBackground">#F7FBF5</color>
-
+    <color
+        name="bottomSheetBackground">#F7FBF5</color>
 </resources>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardSettingsRow"
+    style="@style/Widget.AVORA.Settings.NavigationCard"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/settings_row_height"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/settings_row_horizontal_padding"
+        android:paddingEnd="@dimen/settings_row_horizontal_padding">
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.AVORA.Settings.IconBox"
+            android:layout_width="@dimen/settings_icon_box_size"
+            android:layout_height="@dimen/settings_icon_box_size">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgSettingsRowIcon"
+                android:layout_width="@dimen/settings_icon_size"
+                android:layout_height="@dimen/settings_icon_size"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_settings_24"
+                app:tint="@color/primary" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtSettingsRowTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.AVORA.Settings.RowTitle"
+                tools:text="Sulama Ayarları" />
+
+            <TextView
+                android:id="@+id/txtSettingsRowSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle"
+                tools:text="Otomatik sulama, süreler ve nem limitleri" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgSettingsRowArrow"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@null"
+            android:rotation="-90"
+            android:src="@drawable/ic_expand_more_14"
+            app:tint="@color/textSecondary" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

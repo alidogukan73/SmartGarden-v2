@@ -25,6 +25,7 @@ import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.models.WateringHistory;
 
 import java.util.List;
 
@@ -71,6 +72,7 @@ public class MainViewModel extends ViewModel {
     private final LiveData<SoilLearningProfile> soilLearningProfile;
     private final LiveData<List<GardenZone>> gardenZones;
     private final LiveData<WeatherForecast> weatherForecast;
+    private final LiveData<List<WateringHistory>> wateringHistory;
 
     public MainViewModel() {
 
@@ -100,6 +102,7 @@ public class MainViewModel extends ViewModel {
 
         gardenZones = repository.observeGardenZones();
         weatherForecast = repository.observeWeatherForecast();
+        wateringHistory = repository.observeWateringHistory();
     }
 
     /*
@@ -167,6 +170,8 @@ public class MainViewModel extends ViewModel {
     public LiveData<WeatherForecast> getWeatherForecast() {
         return weatherForecast;
     }
+
+    public LiveData<List<WateringHistory>> getWateringHistory() { return wateringHistory; }
 
 
     /*

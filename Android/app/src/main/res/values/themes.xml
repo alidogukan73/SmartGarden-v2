@@ -1,416 +1,487 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<resources xmlns:tools="http://schemas.android.com/tools">
-
+<resources>
     <!-- ========================================================= -->
     <!-- ANA UYGULAMA TEMASI                                       -->
     <!-- ========================================================= -->
-
-    <style name="Base.Theme.SmartGarden"
+    <style
+        name="Base.Theme.SmartGarden"
         parent="Theme.Material3.DayNight.NoActionBar">
-
         <!-- MARKA RENKLERİ -->
-
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorOnPrimary">@color/textOnPrimary</item>
-
-        <item name="colorPrimaryContainer">@color/primaryLight</item>
-        <item name="colorOnPrimaryContainer">@color/primaryDark</item>
-
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorOnSecondary">@color/textOnPrimary</item>
-
-        <item name="colorSecondaryContainer">@color/accentLight</item>
-        <item name="colorOnSecondaryContainer">@color/primaryDark</item>
-
+        <item
+            name="colorPrimary">@color/primary</item>
+        <item
+            name="colorOnPrimary">@color/textOnPrimary</item>
+        <item
+            name="colorPrimaryContainer">@color/primaryLight</item>
+        <item
+            name="colorOnPrimaryContainer">@color/primaryDark</item>
+        <item
+            name="colorSecondary">@color/accent</item>
+        <item
+            name="colorOnSecondary">@color/textOnPrimary</item>
+        <item
+            name="colorSecondaryContainer">@color/accentLight</item>
+        <item
+            name="colorOnSecondaryContainer">@color/primaryDark</item>
         <!-- ARKA PLAN VE YÜZEYLER -->
-
-        <item name="android:colorBackground">@color/background</item>
-
-        <item name="colorOnBackground">@color/textPrimary</item>
-
-        <item name="colorSurface">@color/card</item>
-        <item name="colorOnSurface">@color/textPrimary</item>
-
-        <item name="colorSurfaceVariant">@color/surfaceSoft</item>
-        <item name="colorOnSurfaceVariant">@color/textSecondary</item>
-
-        <item name="colorOutline">@color/border</item>
-        <item name="colorOutlineVariant">@color/divider</item>
-
+        <item
+            name="android:colorBackground">@color/background</item>
+        <item
+            name="colorOnBackground">@color/textPrimary</item>
+        <item
+            name="colorSurface">@color/card</item>
+        <item
+            name="colorOnSurface">@color/textPrimary</item>
+        <item
+            name="colorSurfaceVariant">@color/surfaceSoft</item>
+        <item
+            name="colorOnSurfaceVariant">@color/textSecondary</item>
+        <item
+            name="colorOutline">@color/border</item>
+        <item
+            name="colorOutlineVariant">@color/divider</item>
         <!-- DURUM ÇUBUKLARI -->
-
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:navigationBarColor">@color/background</item>
-
-        <item name="android:windowLightStatusBar">true</item>
-
-
+        <item
+            name="android:statusBarColor">@color/background</item>
+        <item
+            name="android:navigationBarColor">@color/background</item>
+        <item
+            name="android:windowLightStatusBar">true</item>
         <!-- PENCERE DAVRANIŞI -->
-
-        <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowNoTitle">true</item>
-
-        <item name="android:fontFamily">sans</item>
-        <item name="fontFamily">sans</item>
-
+        <item
+            name="android:windowActionModeOverlay">true</item>
+        <item
+            name="android:windowNoTitle">true</item>
+        <item
+            name="android:fontFamily">sans</item>
+        <item
+            name="fontFamily">sans</item>
         <!-- VARSAYILAN BİLEŞEN STİLLERİ -->
-
-        <item name="materialCardViewStyle"> @style/Widget.SmartGarden.Card.Main </item>
-
-        <item name="materialButtonStyle"> @style/Widget.SmartGarden.Button.Primary </item>
-
-        <item name="switchStyle"> @style/Widget.SmartGarden.Switch </item>
-
+        <item
+            name="materialCardViewStyle"> @style/Widget.SmartGarden.Card.Main </item>
+        <item
+            name="materialButtonStyle"> @style/Widget.SmartGarden.Button.Primary </item>
+        <item
+            name="switchStyle"> @style/Widget.SmartGarden.Switch </item>
     </style>
 
+
     <!-- UYGULAMANIN KULLANDIĞI TEMA -->
-
-    <style name="Theme.SmartGarden"
+    <style
+        name="Theme.SmartGarden"
         parent="Base.Theme.SmartGarden" />
-
     <!-- ========================================================= -->
     <!-- KART STİLLERİ                                             -->
     <!-- ========================================================= -->
-
-    <style name="Widget.SmartGarden.Card.Main"
+    <style
+        name="Widget.SmartGarden.Card.Main"
         parent="Widget.Material3.CardView.Elevated">
-
-        <item name="cardBackgroundColor">@color/card</item>
-        <item name="cardCornerRadius">22dp</item>
-        <item name="cardElevation">1dp</item>
-
-        <item name="strokeColor">@color/border</item>
-        <item name="strokeWidth">1dp</item>
-
-
-
+        <item
+            name="cardBackgroundColor">@color/card</item>
+        <item
+            name="cardCornerRadius">22dp</item>
+        <item
+            name="cardElevation">1dp</item>
+        <item
+            name="strokeColor">@color/border</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
-    <style name="Widget.SmartGarden.Card.Featured"
+    <style
+        name="Widget.SmartGarden.Card.Featured"
         parent="Widget.Material3.CardView.Elevated">
-
-        <item name="cardBackgroundColor">@color/card</item>
-        <item name="cardCornerRadius">22dp</item>
-        <item name="cardElevation">1dp</item>
-
-        <item name="strokeColor">@color/primary</item>
-        <item name="strokeWidth">1dp</item>
-
-
-
+        <item
+            name="cardBackgroundColor">@color/card</item>
+        <item
+            name="cardCornerRadius">22dp</item>
+        <item
+            name="cardElevation">1dp</item>
+        <item
+            name="strokeColor">@color/primary</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
-    <style name="Widget.SmartGarden.Card.Inner"
+    <style
+        name="Widget.SmartGarden.Card.Inner"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/surfaceSoft</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/border</item>
-        <item name="strokeWidth">1dp</item>
-
-
-
+        <item
+            name="cardBackgroundColor">@color/surfaceSoft</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/border</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
-    <style name="Widget.SmartGarden.Card.Success"
+    <style
+        name="Widget.SmartGarden.Card.Success"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/onlineBackground</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/online</item>
-        <item name="strokeWidth">1dp</item>
-
+        <item
+            name="cardBackgroundColor">@color/onlineBackground</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/online</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
-    <style name="Widget.SmartGarden.Card.Error"
+    <style
+        name="Widget.SmartGarden.Card.Error"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/offlineBackground</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/offline</item>
-        <item name="strokeWidth">1dp</item>
-
+        <item
+            name="cardBackgroundColor">@color/offlineBackground</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/offline</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
     <!-- ========================================================= -->
     <!-- BUTON STİLLERİ                                            -->
     <!-- ========================================================= -->
-
-    <style name="Widget.SmartGarden.Button.Primary"
+    <style
+        name="Widget.SmartGarden.Button.Primary"
         parent="Widget.Material3.Button">
-
-        <item name="android:layout_height">58dp</item>
-
-        <item name="backgroundTint">@color/buttonStart</item>
-        <item name="android:textColor">@color/textOnPrimary</item>
-
-        <item name="android:textSize">15sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textAllCaps">false</item>
-
-        <item name="cornerRadius">18dp</item>
-
-        <item name="android:insetTop">0dp</item>
-        <item name="android:insetBottom">0dp</item>
-
-        <item name="android:minHeight">0dp</item>
-        <item name="elevation">0dp</item>
-
-        <item name="rippleColor">#40FFFFFF</item>
-
+        <item
+            name="android:layout_height">58dp</item>
+        <item
+            name="backgroundTint">@color/buttonStart</item>
+        <item
+            name="android:textColor">@color/textOnPrimary</item>
+        <item
+            name="android:textSize">15sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:textAllCaps">false</item>
+        <item
+            name="cornerRadius">18dp</item>
+        <item
+            name="android:insetTop">0dp</item>
+        <item
+            name="android:insetBottom">0dp</item>
+        <item
+            name="android:minHeight">0dp</item>
+        <item
+            name="elevation">0dp</item>
+        <item
+            name="rippleColor">#40FFFFFF</item>
     </style>
-
-    <style name="Widget.SmartGarden.Button.Stop"
+    <style
+        name="Widget.SmartGarden.Button.Stop"
         parent="Widget.SmartGarden.Button.Primary">
-
-        <item name="backgroundTint">@color/buttonStop</item>
-
+        <item
+            name="backgroundTint">@color/buttonStop</item>
     </style>
-
-
-    <style name="Widget.SmartGarden.Button.Disabled"
+    <style
+        name="Widget.SmartGarden.Button.Outlined"
+        parent="Widget.Material3.Button">
+        <item
+            name="android:layout_height">52dp</item>
+        <item
+            name="backgroundTint">@android:color/transparent</item>
+        <item
+            name="android:textColor">@color/primary</item>
+        <item
+            name="android:textSize">14sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:textAllCaps">false</item>
+        <item
+            name="cornerRadius">18dp</item>
+        <item
+            name="strokeColor">@color/primary</item>
+        <item
+            name="strokeWidth">1dp</item>
+        <item
+            name="android:insetTop">0dp</item>
+        <item
+            name="android:insetBottom">0dp</item>
+        <item
+            name="android:minHeight">0dp</item>
+        <item
+            name="elevation">0dp</item>
+    </style>
+    <style
+        name="Widget.SmartGarden.Button.Disabled"
         parent="Widget.SmartGarden.Button.Primary">
-
-        <item name="backgroundTint">@color/buttonDisabled</item>
-
+        <item
+            name="backgroundTint">@color/buttonDisabled</item>
     </style>
     <!-- ========================================================= -->
     <!-- SWITCH STİLİ                                              -->
     <!-- ========================================================= -->
-
-    <style name="Widget.SmartGarden.Switch"
+    <style
+        name="Widget.SmartGarden.Switch"
         parent="Widget.Material3.CompoundButton.MaterialSwitch">
-
-        <item name="thumbTint">@color/switch_thumb_selector</item>
-        <item name="trackTint">@color/switch_track_selector</item>
-
-        <item name="android:minWidth">52dp</item>
-        <item name="android:minHeight">32dp</item>
-
+        <item
+            name="thumbTint">@color/switch_thumb_selector</item>
+        <item
+            name="trackTint">@color/switch_track_selector</item>
+        <item
+            name="android:minWidth">52dp</item>
+        <item
+            name="android:minHeight">32dp</item>
     </style>
-
     <!-- ========================================================= -->
     <!-- METİN STİLLERİ                                            -->
     <!-- ========================================================= -->
-
-    <style name="TextAppearance.SmartGarden.ScreenTitle"
+    <style
+        name="TextAppearance.SmartGarden.ScreenTitle"
         parent="TextAppearance.Material3.HeadlineSmall">
-
-        <item name="android:textColor">@color/textPrimary</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:textStyle">bold</item>
-
+        <item
+            name="android:textColor">@color/textPrimary</item>
+        <item
+            name="android:textSize">24sp</item>
+        <item
+            name="android:textStyle">bold</item>
     </style>
-
-    <style name="TextAppearance.SmartGarden.CardTitle"
+    <style
+        name="TextAppearance.SmartGarden.CardTitle"
         parent="TextAppearance.Material3.TitleMedium">
-
-        <item name="android:textColor">@color/textPrimary</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:textStyle">bold</item>
-
+        <item
+            name="android:textColor">@color/textPrimary</item>
+        <item
+            name="android:textSize">18sp</item>
+        <item
+            name="android:textStyle">bold</item>
     </style>
-
-    <style name="TextAppearance.SmartGarden.Body"
+    <style
+        name="TextAppearance.SmartGarden.Body"
         parent="TextAppearance.Material3.BodyMedium">
-
-        <item name="android:textColor">@color/textSecondary</item>
-        <item name="android:textSize">13sp</item>
-
+        <item
+            name="android:textColor">@color/textSecondary</item>
+        <item
+            name="android:textSize">13sp</item>
     </style>
-
-    <style name="TextAppearance.SmartGarden.Label"
+    <style
+        name="TextAppearance.SmartGarden.Label"
         parent="TextAppearance.Material3.LabelMedium">
-
-        <item name="android:textColor">@color/textSecondary</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
-
+        <item
+            name="android:textColor">@color/textSecondary</item>
+        <item
+            name="android:textSize">11sp</item>
+        <item
+            name="android:textStyle">bold</item>
     </style>
-
-    <style name="TextAppearance.SmartGarden.Value"
+    <style
+        name="TextAppearance.SmartGarden.Value"
         parent="TextAppearance.Material3.TitleLarge">
-
-        <item name="android:textColor">@color/textPrimary</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:textStyle">bold</item>
-
+        <item
+            name="android:textColor">@color/textPrimary</item>
+        <item
+            name="android:textSize">18sp</item>
+        <item
+            name="android:textStyle">bold</item>
     </style>
-
-    <style name="TextAppearance.SmartGarden.MoistureValue"
+    <style
+        name="TextAppearance.SmartGarden.MoistureValue"
         parent="TextAppearance.Material3.DisplaySmall">
-
-        <item name="android:textColor">@color/primary</item>
-        <item name="android:textSize">52sp</item>
-        <item name="android:textStyle">bold</item>
-
+        <item
+            name="android:textColor">@color/primary</item>
+        <item
+            name="android:textSize">52sp</item>
+        <item
+            name="android:textStyle">bold</item>
     </style>
-
     <!-- ========================================================= -->
     <!-- SMARTGARDEN DESIGN SYSTEM EK STİLLERİ                    -->
     <!-- ========================================================= -->
-
     <!-- Küçük bölüm başlığı -->
-    <style name="TextAppearance.SmartGarden.SectionLabel"
+    <style
+        name="TextAppearance.SmartGarden.SectionLabel"
         parent="TextAppearance.Material3.LabelMedium">
-
-        <item name="android:textColor">@color/primary</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">0.04</item>
-
+        <item
+            name="android:textColor">@color/primary</item>
+        <item
+            name="android:textSize">11sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:letterSpacing">0.04</item>
     </style>
-
     <!-- Büyük gösterge değeri -->
-    <style name="TextAppearance.SmartGarden.HeroValue"
+    <style
+        name="TextAppearance.SmartGarden.HeroValue"
         parent="TextAppearance.Material3.DisplaySmall">
-
-        <item name="android:textColor">@color/textPrimary</item>
-        <item name="android:textSize">36sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:includeFontPadding">false</item>
-
+        <item
+            name="android:textColor">@color/textPrimary</item>
+        <item
+            name="android:textSize">36sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:includeFontPadding">false</item>
     </style>
-
     <!-- Kart içi yardımcı açıklama -->
-    <style name="TextAppearance.SmartGarden.Supporting"
+    <style
+        name="TextAppearance.SmartGarden.Supporting"
         parent="TextAppearance.Material3.BodySmall">
-
-        <item name="android:textColor">@color/textSecondary</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:lineSpacingExtra">2dp</item>
-
+        <item
+            name="android:textColor">@color/textSecondary</item>
+        <item
+            name="android:textSize">11sp</item>
+        <item
+            name="android:lineSpacingExtra">2dp</item>
     </style>
-
     <!-- Durum rozeti metni -->
-    <style name="TextAppearance.SmartGarden.Badge"
+    <style
+        name="TextAppearance.SmartGarden.Badge"
         parent="TextAppearance.Material3.LabelSmall">
-
-        <item name="android:textSize">10sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:includeFontPadding">false</item>
-
+        <item
+            name="android:textSize">10sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:includeFontPadding">false</item>
     </style>
-
     <!-- İkincil buton -->
-    <style name="Widget.SmartGarden.Button.Secondary"
+    <style
+        name="Widget.SmartGarden.Button.Secondary"
         parent="Widget.Material3.Button.OutlinedButton">
-
-        <item name="android:layout_height">52dp</item>
-        <item name="android:textColor">@color/primary</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textAllCaps">false</item>
-
-        <item name="strokeColor">@color/primary</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="cornerRadius">16dp</item>
-
-        <item name="android:insetTop">0dp</item>
-        <item name="android:insetBottom">0dp</item>
-        <item name="android:minHeight">0dp</item>
-
-        <item name="rippleColor">@color/primaryLight</item>
-
+        <item
+            name="android:layout_height">52dp</item>
+        <item
+            name="android:textColor">@color/primary</item>
+        <item
+            name="android:textSize">14sp</item>
+        <item
+            name="android:textStyle">bold</item>
+        <item
+            name="android:textAllCaps">false</item>
+        <item
+            name="strokeColor">@color/primary</item>
+        <item
+            name="strokeWidth">1dp</item>
+        <item
+            name="cornerRadius">16dp</item>
+        <item
+            name="android:insetTop">0dp</item>
+        <item
+            name="android:insetBottom">0dp</item>
+        <item
+            name="android:minHeight">0dp</item>
+        <item
+            name="rippleColor">@color/primaryLight</item>
     </style>
-
     <!-- Tehlikeli işlem butonu -->
-    <style name="Widget.SmartGarden.Button.Danger"
+    <style
+        name="Widget.SmartGarden.Button.Danger"
         parent="Widget.SmartGarden.Button.Primary">
-
-        <item name="backgroundTint">@color/offline</item>
-        <item name="android:textColor">@color/textOnPrimary</item>
-
+        <item
+            name="backgroundTint">@color/offline</item>
+        <item
+            name="android:textColor">@color/textOnPrimary</item>
     </style>
-
     <!-- Küçük ikon butonu -->
-    <style name="Widget.SmartGarden.Button.Icon"
+    <style
+        name="Widget.SmartGarden.Button.Icon"
         parent="Widget.Material3.Button.IconButton">
-
-        <item name="android:layout_width">44dp</item>
-        <item name="android:layout_height">44dp</item>
-
-        <item name="android:minWidth">0dp</item>
-        <item name="android:minHeight">0dp</item>
-
-        <item name="android:insetTop">0dp</item>
-        <item name="android:insetBottom">0dp</item>
-
-        <item name="backgroundTint">@android:color/transparent</item>
-        <item name="rippleColor">@color/accentLight</item>
-        <item name="cornerRadius">22dp</item>
-
+        <item
+            name="android:layout_width">44dp</item>
+        <item
+            name="android:layout_height">44dp</item>
+        <item
+            name="android:minWidth">0dp</item>
+        <item
+            name="android:minHeight">0dp</item>
+        <item
+            name="android:insetTop">0dp</item>
+        <item
+            name="android:insetBottom">0dp</item>
+        <item
+            name="backgroundTint">@android:color/transparent</item>
+        <item
+            name="rippleColor">@color/accentLight</item>
+        <item
+            name="cornerRadius">22dp</item>
     </style>
-
     <!-- Dashboard küçük iç kartı -->
-    <style name="Widget.SmartGarden.Card.Metric"
+    <style
+        name="Widget.SmartGarden.Card.Metric"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/surfaceSoft</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/border</item>
-        <item name="strokeWidth">1dp</item>
-
-
-
+        <item
+            name="cardBackgroundColor">@color/surfaceSoft</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/border</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
     <!-- Düz liste kartı -->
-    <style name="Widget.SmartGarden.Card.ListItem"
+    <style
+        name="Widget.SmartGarden.Card.ListItem"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/card</item>
-        <item name="cardCornerRadius">18dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/border</item>
-        <item name="strokeWidth">1dp</item>
-
-
-
+        <item
+            name="cardBackgroundColor">@color/card</item>
+        <item
+            name="cardCornerRadius">18dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/border</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
     <!-- Bilgi kartı -->
-    <style name="Widget.SmartGarden.Card.Info"
+    <style
+        name="Widget.SmartGarden.Card.Info"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/infoBackground</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/info</item>
-        <item name="strokeWidth">1dp</item>
-
+        <item
+            name="cardBackgroundColor">@color/infoBackground</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/info</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
     <!-- Uyarı kartı -->
-    <style name="Widget.SmartGarden.Card.Warning"
+    <style
+        name="Widget.SmartGarden.Card.Warning"
         parent="Widget.Material3.CardView.Filled">
-
-        <item name="cardBackgroundColor">@color/warningBackground</item>
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">0dp</item>
-
-        <item name="strokeColor">@color/warning</item>
-        <item name="strokeWidth">1dp</item>
-
+        <item
+            name="cardBackgroundColor">@color/warningBackground</item>
+        <item
+            name="cardCornerRadius">16dp</item>
+        <item
+            name="cardElevation">0dp</item>
+        <item
+            name="strokeColor">@color/warning</item>
+        <item
+            name="strokeWidth">1dp</item>
     </style>
-
     <!-- Yuvarlak ikon görünümü -->
-    <style name="ShapeAppearanceOverlay.SmartGarden.IconCircle"
+    <style
+        name="ShapeAppearanceOverlay.SmartGarden.IconCircle"
         parent="">
-
-        <item name="cornerSize">50%</item>
-
+        <item
+            name="cornerSize">50%</item>
     </style>
-
+    <!-- Uygulamadaki bütün geri düğmelerinin tek ortak görünümü -->
+    <style
+        name="TextAppearance.AVORA.BackButton"
+        parent="TextAppearance.Material3.TitleMedium">
+        <item
+            name="android:textColor">@color/textPrimary</item>
+        <item
+            name="android:textSize">24sp</item>
+        <item
+            name="android:textStyle">normal</item>
+        <item
+            name="android:fontFamily">sans</item>
+    </style>
 </resources>

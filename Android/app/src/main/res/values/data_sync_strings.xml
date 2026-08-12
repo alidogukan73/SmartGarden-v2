@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_sync_title">Veri Senkronizasyonu</string>
+    <string name="data_sync_intro_title">AVORA veri bağlantısı</string>
+    <string name="data_sync_intro_waiting">Bağlantı denetleniyor</string>
+    <string name="data_sync_intro_connected">Firebase bağlantısı hazır</string>
+    <string name="data_sync_intro_offline">İnternet veya Firebase bağlantısı yok</string>
+    <string name="data_sync_intro_message">Bahçe verilerinin Firebase ile güncel kalmasını ve son doğrulama sonucunu buradan izleyin.</string>
+    <string name="data_sync_status_section">Senkronizasyon durumu</string>
+    <string name="data_sync_connection_label">Firebase bağlantısı</string>
+    <string name="data_sync_last_success_label">Son başarılı eşitleme</string>
+    <string name="data_sync_device_data_label">Son Raspberry Pi verisi</string>
+    <string name="data_sync_scope_label">Doğrulanan veriler</string>
+    <string name="data_sync_connected">Bağlı</string>
+    <string name="data_sync_disconnected">Bağlantı yok</string>
+    <string name="data_sync_never">Henüz eşitlenmedi</string>
+    <string name="data_sync_no_device_data">Cihaz verisi bulunamadı</string>
+    <string name="data_sync_scope_waiting">Henüz doğrulanmadı</string>
+    <string name="data_sync_scope_value">%1$d bölge · %2$s</string>
+    <string name="data_sync_scope_status_health_weather">durum, sağlık ve hava</string>
+    <string name="data_sync_scope_status_health">durum ve sağlık</string>
+    <string name="data_sync_scope_partial">temel cihaz verileri</string>
+    <string name="data_sync_automatic_section">Otomatik yenileme</string>
+    <string name="data_sync_automatic_title">Cihaz özetini güncel tut</string>
+    <string name="data_sync_automatic_message">Açık olduğunda AVORA; durum, sağlık, bölge ve hava özetlerini Firebase üzerinden güncel tutar.</string>
+    <string name="data_sync_transfer_section">Veri gönderimi</string>
+    <string name="data_sync_transfer_title">Kayıtlar doğrudan Firebase’e gönderilir</string>
+    <string name="data_sync_transfer_message">Sulama, gübreleme, günlük ve ayar kayıtları ilgili ekranda kaydedilir. Firebase işlemi başarısız olursa AVORA o ekranda hata gösterir; bu sayfada sahte bir bekleyen kayıt sayısı gösterilmez.</string>
+    <string name="data_sync_now">Şimdi Senkronize Et</string>
+    <string name="data_sync_syncing">Veriler doğrulanıyor…</string>
+    <string name="data_sync_success">Senkronizasyon tamamlandı. %1$d bölge ve cihaz özetleri doğrulandı.</string>
+    <string name="data_sync_offline_error">Bağlantı kurulamadı. İnterneti kontrol edip yeniden deneyin.</string>
+    <string name="data_sync_read_error">Firebase verileri okunamadı: %1$s</string>
+    <string name="data_sync_empty_error">Firebase’de bu cihaza ait veri bulunamadı.</string>
+    <string name="data_sync_auto_enabled">Otomatik yenileme açıldı.</string>
+    <string name="data_sync_auto_disabled">Otomatik yenileme kapatıldı. Ekranlar açıldığında normal canlı veri okumaları devam eder.</string>
+</resources>

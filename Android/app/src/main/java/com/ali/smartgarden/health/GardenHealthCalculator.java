@@ -3,6 +3,7 @@ package com.ali.smartgarden.health;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.plantassistant.PlantAssistantHealthSignal;
 
 import java.util.List;
 
@@ -11,6 +12,14 @@ public final class GardenHealthCalculator {
     private GardenHealthCalculator() { }
 
     public static GardenHealthSummary calculate(List<GardenZone> zones, long now) {
+        return calculate(zones, now, null);
+    }
+
+    public static GardenHealthSummary calculate(
+            List<GardenZone> zones,
+            long now,
+            PlantAssistantHealthSignal assistantSignal
+    ) {
         if (zones == null || zones.isEmpty()) {
             return new GardenHealthSummary(0, "Bahçe verisi bekleniyor",
                     "Bölgeler bağlandığında sağlık özeti hazırlanır.");
@@ -20,7 +29,7 @@ public final class GardenHealthCalculator {
         String priority = "";
         for (GardenZone zone : zones) {
             if (zone == null || !zone.isEnabled()) continue;
-            GardenHealthZoneResult result = evaluateZone(zone, now);
+            GardenHealthZoneResult result = evaluateZone(zone, now, assistantSignal);
             total += result.getScore();
             count++;
             if (priority.isEmpty() && result.getScore() < 100) {
@@ -33,7 +42,7 @@ public final class GardenHealthCalculator {
         }
         int average = Math.round((float) total / count);
         String title = average >= 85 ? "Bahçe genel olarak iyi durumda"
-                : average >= 65 ? "Bahçede dikkat gerektiren noktalar var"
+                : average >= 65 ? "Bahçede uyarı var"
                 : "Bahçe kontrolü öneriliyor";
         String detail = priority.isEmpty()
                 ? count + " aktif bölgenin nem, sensör ve gübreleme planı uygun görünüyor"
@@ -42,6 +51,14 @@ public final class GardenHealthCalculator {
     }
 
     public static GardenHealthZoneResult evaluateZone(GardenZone zone, long now) {
+        return evaluateZone(zone, now, null);
+    }
+
+    public static GardenHealthZoneResult evaluateZone(
+            GardenZone zone,
+            long now,
+            PlantAssistantHealthSignal assistantSignal
+    ) {
         if (zone == null) return new GardenHealthZoneResult(0, "Bölge verisi yok");
         if (!zone.isSensor_enabled()) return new GardenHealthZoneResult(55, "Sensör devre dışı");
         if (!zone.hasSensorData()) return new GardenHealthZoneResult(55, "Sensör verisi bekleniyor");
@@ -69,6 +86,21 @@ public final class GardenHealthCalculator {
                 && profile.getNext_application_at_epoch() <= now) {
             score -= 10;
             add(reason, "Gübreleme kaydı bekleniyor");
+        }
+        if (assistantSignal != null && assistantSignal.isRecent(now)
+                && zone.getZone_id() != null
+                && zone.getZone_id().equals(assistantSignal.getZoneId())) {
+            String urgency = assistantSignal.getUrgency();
+            if ("Yüksek".equalsIgnoreCase(urgency)) {
+                score -= 25;
+                add(reason, "Bitki Asistanı: yüksek aciliyet");
+            } else if ("Orta".equalsIgnoreCase(urgency)) {
+                score -= 12;
+                add(reason, "Bitki Asistanı: orta aciliyet");
+            } else if (!urgency.isEmpty()) {
+                score -= 3;
+                add(reason, "Bitki Asistanı gözlem önerisi var");
+            }
         }
         if (reason.length() == 0) reason.append("Nem, sensör ve gübreleme planı uygun görünüyor");
         return new GardenHealthZoneResult(score, reason.toString());

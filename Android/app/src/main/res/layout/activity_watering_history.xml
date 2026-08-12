@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,9 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
-
     <!-- HEADER -->
-
     <LinearLayout
         android:id="@+id/historyHeader"
         android:layout_width="0dp"
@@ -23,7 +20,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBack"
             style="@style/Widget.Material3.Button.IconButton"
@@ -35,37 +31,30 @@
             android:insetBottom="0dp"
             android:minWidth="0dp"
             android:minHeight="0dp"
-            android:text="@string/symbol_back_arrow"
-            android:textColor="@color/textPrimary"
-            android:textSize="24sp"
             app:backgroundTint="@android:color/transparent"
             app:cornerRadius="22dp"
-            app:rippleColor="@color/accentLight"/>
-
+            app:rippleColor="@color/accentLight"
+            android:text="@string/symbol_back_arrow"
+            android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
                 android:text="@string/title_watering_history"
-                android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"/>
-
+                android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
                 android:text="@string/subtitle_watering_history"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
-
     </LinearLayout>
-
     <HorizontalScrollView
         android:id="@+id/historyZoneFilters"
         android:layout_width="0dp"
@@ -80,61 +69,51 @@
         app:layout_constraintTop_toBottomOf="@id/historyHeader"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupZones"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:selectionRequired="true"
             app:singleSelection="true">
-
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZoneAll"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="@string/history_zone_all"/>
-
+                android:text="@string/history_zone_all" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZone001"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_tomato"/>
-
+                android:text="@string/history_zone_tomato" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZone002"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_pepper"/>
-
+                android:text="@string/history_zone_pepper" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZone003"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_cucumber"/>
-
+                android:text="@string/history_zone_cucumber" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZone004"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_eggplant"/>
-
+                android:text="@string/history_zone_eggplant" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipZone005"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_bean"/>
-
+                android:text="@string/history_zone_bean" />
         </com.google.android.material.chip.ChipGroup>
-
     </HorizontalScrollView>
-
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardHistoryStatistics"
         style="@style/Widget.SmartGarden.Card.Main"
@@ -147,28 +126,24 @@
         app:layout_constraintTop_toBottomOf="@id/historyZoneFilters"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="14dp">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/history_statistics_title"
                 android:textColor="@color/textPrimary"
                 android:textSize="14sp"
-                android:textStyle="bold"/>
-
+                android:textStyle="bold" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
-
                 <TextView
                     android:id="@+id/txtHistoryStatCount"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -176,8 +151,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/history_stat_count_empty"/>
-
+                    android:text="@string/history_stat_count_empty" />
                 <TextView
                     android:id="@+id/txtHistoryStatDuration"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -185,8 +159,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/history_stat_duration_empty"/>
-
+                    android:text="@string/history_stat_duration_empty" />
                 <TextView
                     android:id="@+id/txtHistoryStatSuccess"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -194,8 +167,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/history_stat_success_empty"/>
-
+                    android:text="@string/history_stat_success_empty" />
                 <TextView
                     android:id="@+id/txtHistoryStatDelta"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -203,17 +175,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/history_stat_delta_empty"/>
-
+                    android:text="@string/history_stat_delta_empty" />
             </LinearLayout>
-
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
-
-
     <!-- AYIRICI -->
-
     <View
         android:id="@+id/headerDivider"
         android:layout_width="0dp"
@@ -221,11 +187,8 @@
         android:background="@color/divider"
         app:layout_constraintTop_toBottomOf="@id/cardHistoryStatistics"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-
+        app:layout_constraintEnd_toEndOf="parent" />
     <!-- RECYCLER VIEW -->
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerHistory"
         android:layout_width="0dp"
@@ -237,11 +200,8 @@
         app:layout_constraintTop_toBottomOf="@id/headerDivider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-
+        app:layout_constraintEnd_toEndOf="parent" />
     <!-- YÜKLENİYOR -->
-
     <LinearLayout
         android:id="@+id/layoutLoading"
         android:layout_width="wrap_content"
@@ -253,24 +213,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <ProgressBar
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:indeterminateTint="@color/primary"/>
-
+            android:indeterminateTint="@color/primary" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/history_loading"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
     </LinearLayout>
-
-
     <!-- BOŞ DURUM -->
-
     <LinearLayout
         android:id="@+id/layoutEmpty"
         android:layout_width="0dp"
@@ -284,7 +238,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <com.google.android.material.card.MaterialCardView
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -292,17 +245,14 @@
             app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
-
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_water_drop_24"
-                app:tint="@color/primary"/>
-
+                app:tint="@color/primary" />
         </com.google.android.material.card.MaterialCardView>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -310,8 +260,7 @@
             android:text="@string/history_empty_title"
             android:textColor="@color/textPrimary"
             android:textSize="18sp"
-            android:textStyle="bold"/>
-
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/txtHistoryEmptyDescription"
             android:layout_width="wrap_content"
@@ -319,8 +268,6 @@
             android:layout_marginTop="6dp"
             android:gravity="center"
             android:text="@string/history_empty_description"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

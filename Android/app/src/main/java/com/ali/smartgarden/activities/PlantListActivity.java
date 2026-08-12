@@ -1,0 +1,339 @@
+package com.ali.smartgarden.activities;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.ali.smartgarden.R;
+import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.FertilizationProfile;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+/** Plant-focused entry point for each zone's journal and season history. */
+public class PlantListActivity extends AppCompatActivity {
+    private static final long CURRENT_SENSOR_SECONDS = 90L;
+    private static final String PREFS = "plant_list_preferences";
+    private static final String PREF_SORT_MODE = "sort_mode";
+    private static final int SORT_SMART = 0;
+    private static final int SORT_ATTENTION = 1;
+    private static final int SORT_MOISTURE = 2;
+    private static final int SORT_UPDATED = 3;
+    private static final int SORT_NAME = 4;
+    private final FirebaseRepository repository = new FirebaseRepository();
+    private final List<GardenZone> latestZones = new ArrayList<>();
+    private final Handler freshnessHandler = new Handler(Looper.getMainLooper());
+    private final Runnable freshnessRefresh = new Runnable() {
+        @Override
+        public void run() {
+            if (!latestZones.isEmpty()) {
+                // Connection freshness changes with time even when Firebase has no new event.
+                render(new ArrayList<>(latestZones));
+            }
+            freshnessHandler.postDelayed(this, 15_000L);
+        }
+    };
+    private LinearLayout list;
+    private TextView empty;
+    private TextView total;
+    private TextView healthy;
+    private TextView attention;
+    private TextView waiting;
+    private int sortMode;
+
+    @Override
+    protected void onCreate(@Nullable Bundle state) {
+        super.onCreate(state);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_plant_list);
+        applyWindowInsets();
+        findViewById(R.id.btnPlantsBack).setOnClickListener(view -> finish());
+        PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.PLANTS);
+        list = findViewById(R.id.layoutPlantList);
+        empty = findViewById(R.id.txtPlantsEmpty);
+        total = findViewById(R.id.txtPlantCount);
+        healthy = findViewById(R.id.txtPlantHealthy);
+        attention = findViewById(R.id.txtPlantAttention);
+        waiting = findViewById(R.id.txtPlantWaiting);
+        sortMode = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(PREF_SORT_MODE, SORT_SMART);
+        findViewById(R.id.btnPlantSort).setOnClickListener(view -> showSortMenu());
+        repository.observeGardenZones().observe(this, this::render);
+    }
+
+    /** Keeps all journal content below the status bar / camera cutout on every phone. */
+    private void applyWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.plantListRoot), (view, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
+    }
+
+    private void render(List<GardenZone> zones) {
+        // The refresh task can pass the same cached list back here; copy before clearing it.
+        List<GardenZone> incoming = zones == null ? new ArrayList<>() : new ArrayList<>(zones);
+        latestZones.clear();
+        latestZones.addAll(incoming);
+        List<GardenZone> visibleZones = new ArrayList<>(latestZones);
+        sortZones(visibleZones);
+        list.removeAllViews();
+        boolean hasZones = !visibleZones.isEmpty();
+        empty.setVisibility(hasZones ? View.GONE : View.VISIBLE);
+        if (!hasZones) {
+            updateOverview(0, 0, 0, 0);
+            return;
+        }
+        int healthyCount = 0;
+        int attentionCount = 0;
+        int waitingCount = 0;
+        for (GardenZone zone : visibleZones) {
+            if (!hasCurrentSensorData(zone)) waitingCount++;
+            else if (zone.getMoisture() < zone.getMoisture_limit()) attentionCount++;
+            else healthyCount++;
+            addZoneCard(zone);
+        }
+        updateOverview(visibleZones.size(), healthyCount, attentionCount, waitingCount);
+    }
+
+    private void updateOverview(int count, int healthyCount, int attentionCount, int waitingCount) {
+        total.setText(String.valueOf(count));
+        healthy.setText(String.valueOf(healthyCount));
+        attention.setText(String.valueOf(attentionCount));
+        waiting.setText(String.valueOf(waitingCount));
+    }
+
+    private void showSortMenu() {
+        String[] choices = {
+                "⭐  Akıllı sıralama",
+                getString(R.string.symbol_warning) + "  Dikkat gerektirenler",
+                getString(R.string.symbol_water_drop) + "  Nem: düşükten yükseğe",
+                "🕐  Son güncellenen",
+                getString(R.string.symbol_plant) + "  Bitki adına göre"
+        };
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Bitkileri sırala")
+                .setSingleChoiceItems(choices, sortMode, (dialog, which) -> {
+                    sortMode = which;
+                    getSharedPreferences(PREFS, MODE_PRIVATE)
+                            .edit()
+                            .putInt(PREF_SORT_MODE, sortMode)
+                            .apply();
+                    render(new ArrayList<>(latestZones));
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void sortZones(List<GardenZone> zones) {
+        Comparator<GardenZone> comparator;
+        switch (sortMode) {
+            case SORT_ATTENTION:
+                comparator = Comparator.<GardenZone>comparingInt(this::attentionRank)
+                        .thenComparingInt(zone -> hasCurrentSensorData(zone) ? zone.getMoisture() : Integer.MAX_VALUE)
+                        .thenComparing(this::safeName, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case SORT_MOISTURE:
+                comparator = Comparator.<GardenZone>comparingInt(zone -> hasCurrentSensorData(zone) ? zone.getMoisture() : Integer.MAX_VALUE)
+                        .thenComparing(this::safeName, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case SORT_UPDATED:
+                comparator = Comparator.<GardenZone>comparingLong(GardenZone::getUpdated_at_epoch).reversed()
+                        .thenComparing(this::safeName, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case SORT_NAME:
+                comparator = Comparator.comparing((GardenZone zone) -> safeName(zone), String.CASE_INSENSITIVE_ORDER);
+                break;
+            case SORT_SMART:
+            default:
+                comparator = Comparator.<GardenZone>comparingInt(this::smartPriority)
+                        .thenComparingInt(zone -> hasCurrentSensorData(zone) ? zone.getMoisture() : Integer.MAX_VALUE)
+                        .thenComparing(this::safeName, String.CASE_INSENSITIVE_ORDER);
+                break;
+        }
+        zones.sort(comparator);
+    }
+
+    /** AVORA order: critical, attention, due action, healthy, no current data. */
+    private int smartPriority(GardenZone zone) {
+        if (!hasCurrentSensorData(zone)) return 4;
+        if (isCritical(zone)) return 0;
+        if (zone.getMoisture() < zone.getMoisture_limit()) return 1;
+        if (hasDueAction(zone)) return 2;
+        return 3;
+    }
+
+    private int attentionRank(GardenZone zone) {
+        int smart = smartPriority(zone);
+        return smart == 0 ? 0 : smart == 1 ? 1 : smart == 2 ? 2 : smart == 4 ? 4 : 3;
+    }
+
+    private boolean isCritical(GardenZone zone) {
+        int criticalLimit = Math.max(5, zone.getMoisture_limit() - 20);
+        ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
+        return zone.getMoisture() <= criticalLimit
+                || (irrigation != null && !irrigation.isSensor_stable() && irrigation.getMoisture_deficit() > 15);
+    }
+
+    private boolean hasDueAction(GardenZone zone) {
+        FertilizationProfile profile = zone.getFertilization();
+        if (profile != null && profile.isEnabled() && profile.isReminder_enabled()
+                && profile.getNext_application_at_epoch() > 0L
+                && profile.getNext_application_at_epoch() <= System.currentTimeMillis() / 1000L) {
+            return true;
+        }
+        ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
+        return irrigation != null && (irrigation.isWatering_active() || irrigation.isSelected_for_watering());
+    }
+
+    private void addZoneCard(GardenZone zone) {
+        MaterialCardView card = new MaterialCardView(this);
+        card.setCardBackgroundColor(getColor(R.color.card));
+        card.setRadius(dp(16));
+        card.setCardElevation(dp(1));
+        card.setStrokeColor(getColor(R.color.border));
+        card.setStrokeWidth(dp(1));
+        LinearLayout.LayoutParams outer = new LinearLayout.LayoutParams(-1, -2);
+        outer.bottomMargin = dp(10);
+        card.setLayoutParams(outer);
+
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(12), dp(12), dp(10), dp(12));
+
+        TextView emoji = text(zone.getEmoji() == null || zone.getEmoji().isBlank() ? getString(R.string.symbol_plant) : zone.getEmoji(), 29, R.color.textPrimary);
+        emoji.setGravity(Gravity.CENTER);
+        emoji.setBackground(roundDrawable(getColor(R.color.surfaceSoft), getColor(R.color.border), dp(12)));
+        row.addView(emoji, new LinearLayout.LayoutParams(dp(54), dp(54)));
+
+        LinearLayout details = new LinearLayout(this);
+        details.setOrientation(LinearLayout.VERTICAL);
+        details.setPadding(dp(10), 0, 0, 0);
+        TextView title = text(safeName(zone), 16, R.color.textPrimary);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        TextView status = text("●  " + status(zone), 12, statusColor(zone));
+        TextView meta = text(getString(R.string.symbol_water_drop) + " Nem: %" + zone.getMoisture() + "  ·  " + lastRecord(zone), 11, R.color.textSecondary);
+        details.addView(title);
+        details.addView(status);
+        details.addView(meta);
+        row.addView(details, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView badge = text(badge(zone), 11, statusColor(zone));
+        badge.setGravity(Gravity.CENTER);
+        badge.setTypeface(null, android.graphics.Typeface.BOLD);
+        badge.setBackground(roundDrawable(badgeBackground(zone), badgeBackground(zone), dp(12)));
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(dp(76), dp(28));
+        badgeParams.setMargins(dp(4), 0, dp(4), 0);
+        row.addView(badge, badgeParams);
+
+        TextView arrow = text("›", 28, R.color.textSecondary);
+        arrow.setGravity(Gravity.CENTER);
+        row.addView(arrow, new LinearLayout.LayoutParams(dp(22), dp(48)));
+        card.addView(row);
+        card.setOnClickListener(view -> {
+            Intent intent = new Intent(this, PlantTimelineActivity.class);
+            intent.putExtra("zone_id", zone.getZone_id());
+            startActivity(intent);
+        });
+        list.addView(card);
+    }
+
+    private String safeName(GardenZone zone) {
+        return zone.getName() == null || zone.getName().isBlank() ? "Bahçe bölgesi" : zone.getName();
+    }
+
+    private String status(GardenZone zone) {
+        if (!zone.hasSensorData()) return "Sensör verisi bekleniyor";
+        if (!hasCurrentSensorData(zone)) return "Sensör verisi güncel değil";
+        if (zone.getMoisture() < zone.getMoisture_limit()) return "Nem takibi gerekli";
+        return "Sezon takibi aktif";
+    }
+
+    private String badge(GardenZone zone) {
+        if (!zone.hasSensorData()) return "Veri yok";
+        if (!hasCurrentSensorData(zone)) return "Güncel değil";
+        return zone.getMoisture() < zone.getMoisture_limit() ? "Dikkat" : "Sağlıklı";
+    }
+
+    private int statusColor(GardenZone zone) {
+        if (!zone.hasSensorData()) return R.color.textSecondary;
+        if (!hasCurrentSensorData(zone)) return R.color.warning;
+        return zone.getMoisture() < zone.getMoisture_limit() ? R.color.warning : R.color.online;
+    }
+
+    private int badgeBackground(GardenZone zone) {
+        if (!zone.hasSensorData()) return getColor(R.color.neutralBackground);
+        if (!hasCurrentSensorData(zone)) return getColor(R.color.warningBackground);
+        return zone.getMoisture() < zone.getMoisture_limit()
+                ? getColor(R.color.warningBackground) : getColor(R.color.onlineBackground);
+    }
+
+    /** Mirrors the dashboard connection threshold; old cached moisture must not look live. */
+    private boolean hasCurrentSensorData(GardenZone zone) {
+        if (zone == null || zone.getUpdated_at_epoch() <= 0L) return false;
+        long age = Math.max(0L, System.currentTimeMillis() / 1000L - zone.getUpdated_at_epoch());
+        return age <= CURRENT_SENSOR_SECONDS;
+    }
+
+    private String lastRecord(GardenZone zone) {
+        if (!zone.hasSensorData()) return "Son veri yok";
+        return "Son veri: " + new SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("tr-TR"))
+                .format(new Date(zone.getUpdated_at_epoch() * 1000L));
+    }
+
+    private TextView text(String value, int size, int color) {
+        TextView view = new TextView(this);
+        view.setText(value);
+        view.setTextSize(size);
+        view.setTextColor(getColor(color));
+        return view;
+    }
+
+    private GradientDrawable roundDrawable(int fill, int stroke, int radius) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fill);
+        drawable.setCornerRadius(radius);
+        drawable.setStroke(dp(1), stroke);
+        return drawable;
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        freshnessHandler.removeCallbacks(freshnessRefresh);
+        freshnessHandler.post(freshnessRefresh);
+    }
+
+    @Override
+    protected void onPause() {
+        freshnessHandler.removeCallbacks(freshnessRefresh);
+        super.onPause();
+    }
+}

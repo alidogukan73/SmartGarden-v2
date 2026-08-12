@@ -102,7 +102,8 @@ public class SettingsViewModel extends ViewModel {
             long pumpDuration,
             long cooldownSeconds,
             long restartDelta,
-            boolean enabled
+            boolean enabled,
+            boolean autoMode
     ) {
 
         if (Boolean.TRUE.equals(saving.getValue())) {
@@ -119,7 +120,8 @@ public class SettingsViewModel extends ViewModel {
                                 pumpDuration,
                                 cooldownSeconds,
                                 restartDelta,
-                                enabled
+                                enabled,
+                                autoMode
                         );
 
         saveTask
@@ -160,6 +162,7 @@ public class SettingsViewModel extends ViewModel {
                 120,
                 600,
                 10,
+                true,
                 true
         );
     }

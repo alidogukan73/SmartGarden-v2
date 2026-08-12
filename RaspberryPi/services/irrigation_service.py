@@ -82,6 +82,9 @@ class IrrigationService:
         self._latest_weather_forecast = None
         self._weather_location_signature = ""
         self._weather_policy = WeatherIrrigationPolicy()
+        self._last_weather_policy_settings_update = 0.0
+        self._weather_policy_settings_interval_seconds = 30
+        self._weather_policy_settings_signature = None
         self._weather_adjustments_by_zone = {}
 
         self._zone_executor = SharedPumpZoneExecutor(
@@ -754,6 +757,36 @@ class IrrigationService:
         except Exception as error:
             self._logger.warning("Weather forecast update skipped: %s", error)
 
+    def _update_weather_policy_settings_if_needed(self) -> None:
+        """Refresh rain thresholds without restarting the backend."""
+        now = time.monotonic()
+        if (
+            now - self._last_weather_policy_settings_update
+            < self._weather_policy_settings_interval_seconds
+        ):
+            return
+        self._last_weather_policy_settings_update = now
+        try:
+            settings = self._firebase.get_weather_irrigation_settings()
+            signature = (
+                settings.get("rain_delay_enabled", True),
+                settings.get("rain_probability_threshold", 80),
+                settings.get("rain_mm_threshold", 2),
+            )
+            self._weather_policy.configure(settings)
+            if signature != self._weather_policy_settings_signature:
+                self._weather_policy_settings_signature = signature
+                self._logger.info(
+                    "Weather irrigation settings refreshed. "
+                    "rain_delay=%s probability=%s rain_mm=%s",
+                    self._weather_policy.rain_delay_enabled,
+                    self._weather_policy.rain_delay_probability,
+                    self._weather_policy.rain_delay_mm,
+                )
+        except Exception as error:
+            self._logger.warning(
+                "Weather irrigation settings refresh skipped: %s", error
+            )
     def _apply_weather_advice(self, explanation):
         """Add a clear forecast note to the AI advice; never changes watering commands."""
         forecast = self._latest_weather_forecast
@@ -795,6 +828,7 @@ class IrrigationService:
             commands = self._firebase.command_state
 
             self._update_weather_forecast_if_needed()
+            self._update_weather_policy_settings_if_needed()
             # The Pi itself can be healthy while an ESP32 is offline.
             # Publish backend health before attempting a sensor read so the
             # Android diagnostics never mislabel a sensor outage as a Pi

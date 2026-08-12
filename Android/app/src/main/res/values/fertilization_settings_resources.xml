@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilization_settings_title">Gübreleme Ayarları</string>
+    <string name="fertilization_settings_safety_title">Güvenli danışmanlık</string>
+    <string name="fertilization_settings_safety_message">AVORA gübreyi otomatik uygulamaz. Bitki dönemi, geçmiş, hava, stok ve üretici dozunu değerlendirerek gerekçeli öneri ve plan sunar.</string>
+    <string name="fertilization_settings_live_section">Canlı durum</string>
+    <string name="fertilization_settings_plan_title">Bölge planları</string>
+    <string name="fertilization_settings_plan_loading">Plan bilgileri yükleniyor…</string>
+    <string name="fertilization_settings_plan_summary">%1$d / %2$d etkin plan · %3$d bölgesel hatırlatma açık</string>
+    <string name="fertilization_settings_product_title">Gübre envanteri</string>
+    <string name="fertilization_settings_product_loading">Ürün bilgileri yükleniyor…</string>
+    <string name="fertilization_settings_product_summary">%1$d etkin ürün · %2$d üründe stok bilgisi var</string>
+    <string name="fertilization_settings_stock_title">Stok durumu</string>
+    <string name="fertilization_settings_stock_loading">Stok durumu yükleniyor…</string>
+    <string name="fertilization_settings_stock_normal">Tanımlı uyarı sınırlarında düşük stok yok</string>
+    <plurals name="fertilization_settings_low_stock_count">
+        <item quantity="one">%d üründe düşük stok uyarısı var</item>
+        <item quantity="other">%d üründe düşük stok uyarısı var</item>
+    </plurals>
+    <string name="fertilization_settings_reminder_section">Hatırlatma ve uyarılar</string>
+    <string name="fertilization_settings_reminder_title">Gübre uygulama hatırlatmaları</string>
+    <string name="fertilization_settings_reminder_message">Planlanan uygulama günü ve takip günlerinde bildirim oluşturur.</string>
+    <string name="fertilization_settings_stock_warning_title">Düşük stok uyarıları</string>
+    <string name="fertilization_settings_stock_warning_message">Tanımladığınız stok sınırına ulaşan ürünler için uyarır.</string>
+    <string name="fertilization_settings_zone_note">Bölgeye özel ürün, dönem, alan, tank ve uygulama aralığı AI Gübre Asistanı içindeki bölge planından yönetilir.</string>
+    <string name="fertilization_settings_management_section">Plan ve envanter yönetimi</string>
+    <string name="fertilization_settings_open_assistant">AI Gübre Asistanını aç</string>
+    <string name="fertilization_settings_manage_products">Gübre ürünlerini yönet</string>
+    <string name="fertilization_settings_open_history">Uygulama geçmişini aç</string>
+    <string name="fertilization_settings_notification_details">Bildirim ayrıntılarını aç</string>
+    <string name="fertilization_settings_save">Gübreleme ayarlarını kaydet</string>
+    <string name="fertilization_settings_saved">Gübreleme ayarları kaydedildi.</string>
+    <string name="fertilization_settings_local_only">Ayarlar telefona kaydedildi; bulut yedeği şu an güncellenemedi.</string>
+    <string name="fertilization_settings_cloud_loaded">Güncel gübreleme ayarları buluttan yüklendi.</string>
+    <string name="fertilization_settings_defaults_ready">Varsayılan hatırlatma ayarları hazır; kaydetmeyi unutmayın.</string>
+</resources>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/mainMenuSheetRoot"
     android:layout_width="match_parent"
@@ -7,13 +8,11 @@
     android:background="@drawable/bg_main_menu_bottom_sheet"
     android:clipToOutline="true"
     android:fillViewport="true">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
         <View
             android:layout_width="56dp"
             android:layout_height="5dp"
@@ -21,13 +20,11 @@
             android:layout_marginBottom="14dp"
             android:alpha="0.35"
             android:background="@color/textTertiary" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="44dp"
                 android:layout_height="44dp"
@@ -37,7 +34,6 @@
                 app:cardElevation="0dp"
                 app:strokeColor="@color/primary"
                 app:strokeWidth="1dp">
-
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="44dp"
                     android:layout_height="44dp"
@@ -49,7 +45,6 @@
                     android:translationY="3dp"
                     android:src="@mipmap/ic_launcher" />
             </com.google.android.material.card.MaterialCardView>
-
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -58,11 +53,10 @@
                 android:includeFontPadding="false"
                 android:maxLines="1"
                 android:text="@string/main_menu_title"
-                android:textColor="@color/primary"
-                android:textSize="21sp"
+                android:textColor="@color/primaryLogo"
+                android:textSize="27sp"
                 android:textStyle="bold" />
         </LinearLayout>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -70,14 +64,12 @@
             android:layout_marginBottom="16dp"
             android:text="@string/main_menu_subtitle"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="gone">
-
             <TextView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -85,20 +77,17 @@
                 android:text="☰"
                 android:textColor="@color/textPrimary"
                 android:textSize="26sp" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="AVORA Bahçesi"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
-
                 <TextView
                     android:id="@+id/txtMenuConnection"
                     android:layout_width="wrap_content"
@@ -107,7 +96,6 @@
                     android:text="● Bağlanıyor · smartgarden-001"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
             </LinearLayout>
-
             <TextView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -116,7 +104,6 @@
                 android:textColor="@color/textPrimary"
                 android:textSize="24sp" />
         </LinearLayout>
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
@@ -124,20 +111,17 @@
             android:layout_marginTop="16dp"
             android:visibility="gone"
             app:cardBackgroundColor="@color/surfaceGreen">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bugünkü Öneri"
                     android:textColor="@color/primary"
                     android:textStyle="bold" />
-
                 <TextView
                     android:id="@+id/txtMenuTodayTitle"
                     android:layout_width="match_parent"
@@ -147,7 +131,6 @@
                     android:textColor="@color/textPrimary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
                 <TextView
                     android:id="@+id/txtMenuTodayDetail"
                     android:layout_width="match_parent"
@@ -157,133 +140,442 @@
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✦  AI Araçları"
+                android:textColor="@color/textPrimary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@color/divider" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="•••"
+                android:textColor="@color/textTertiary"
+                android:textSize="14sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:baselineAligned="false"
             android:orientation="horizontal">
-
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/menuCardPlantDoctor"
+                android:id="@+id/menuCardPlantAssistant"
                 style="@style/Widget.SmartGarden.Card.Inner"
                 android:layout_width="0dp"
-                android:layout_height="150dp"
-                android:layout_marginEnd="4dp"
+                android:layout_height="140dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#F2ECFF"
+                app:cardBackgroundColor="@color/surfacePurple"
                 app:rippleColor="@color/accentLight">
-
-                <LinearLayout
+                <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="10dp">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:contentDescription="AI Bitki Doktoru"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_plant_doctor_menu" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:text="AI Bitki\nDoktoru"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_weight="1"
-                        android:text="Fotoğraf ve bahçe verisiyle ön değerlendirme"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Görüntüle  ›"
-                        android:textColor="@color/primary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:contentDescription="AI Bahçe Asistanı"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_plant_assistant_card" />
             </com.google.android.material.card.MaterialCardView>
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/menuCardAIAssistant"
                 style="@style/Widget.SmartGarden.Card.Inner"
                 android:layout_width="0dp"
-                android:layout_height="150dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
+                android:layout_height="140dp"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 app:cardBackgroundColor="@color/surfaceGreen"
                 app:rippleColor="@color/accentLight">
-
-                <LinearLayout
+                <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="10dp">
-                    <androidx.appcompat.widget.AppCompatImageView android:layout_width="32dp" android:layout_height="32dp" android:contentDescription="AI Sulama Asistanı" android:scaleType="centerCrop" android:src="@drawable/img_watering_assistant_menu" />
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="AI Sulama\nAsistanı" android:textColor="@color/textPrimary" android:textSize="14sp" android:textStyle="bold" />
-                    <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" android:text="Akıllı sulama kararları ve açıklamaları" android:textAppearance="@style/TextAppearance.SmartGarden.Body" android:textSize="10sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Görüntüle  ›" android:textColor="@color/primary" android:textSize="12sp" android:textStyle="bold" />
-                </LinearLayout>
+                    android:contentDescription="AI Sulama Asistanı"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_watering_assistant_card" />
             </com.google.android.material.card.MaterialCardView>
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/menuCardFertilization"
                 style="@style/Widget.SmartGarden.Card.Inner"
                 android:layout_width="0dp"
-                android:layout_height="150dp"
-                android:layout_marginStart="4dp"
+                android:layout_height="140dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 app:cardBackgroundColor="@color/warningBackground"
                 app:rippleColor="@color/accentLight">
-
-                <LinearLayout
+                <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="10dp">
-                    <androidx.appcompat.widget.AppCompatImageView android:layout_width="32dp" android:layout_height="32dp" android:contentDescription="AI Gübre Asistanı" android:scaleType="centerCrop" android:src="@drawable/img_fertilization_assistant_menu" />
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="AI Gübre\nAsistanı" android:textColor="@color/textPrimary" android:textSize="14sp" android:textStyle="bold" />
-                    <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" android:text="Beslenme önerileri, plan ve uygulama takibi" android:textAppearance="@style/TextAppearance.SmartGarden.Body" android:textSize="10sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Görüntüle  ›" android:textColor="@color/warning" android:textSize="12sp" android:textStyle="bold" />
-                </LinearLayout>
+                    android:contentDescription="AI Gübre Asistanı"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_fertilization_assistant_card" />
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
-
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙  Yönetim"
+                android:textColor="@color/textPrimary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@color/divider" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="•••"
+                android:textColor="@color/textTertiary"
+                android:textSize="14sp" />
+        </LinearLayout>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardStatistics"
             style="@style/Widget.SmartGarden.Card.Inner"
-            android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="14dp" android:clickable="true" android:focusable="true">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp">
-                <TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="📊" android:textSize="22sp" />
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="İstatistikler" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bugünkü ve genel performans" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp" />
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="📊"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="İstatistikler"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bugünkü ve genel performans"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardHistory" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="📋" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sulama Geçmişi" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tüm sulama kayıtları" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardPlantJournal" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="📷" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bitki Günlüğü" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gelişim fotoğrafları ve gözlemler" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardSeasonReport" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="🌿" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sezon Özeti" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sezon raporları ve analizler" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardHealth" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="❤" android:textColor="@color/offline" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cihaz Sağlığı" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sistem durumu ve kaynak kullanımı" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardSettings" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="⚙" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ayarlar" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sistem ayarları ve sınırlar" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView android:id="@+id/menuCardAbout" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:clickable="true" android:focusable="true"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"><TextView android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="ⓘ" android:textSize="22sp"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hakkında" android:textColor="@color/textPrimary" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Uygulama ve geliştirici bilgileri" android:textAppearance="@style/TextAppearance.SmartGarden.Body"/></LinearLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="›" android:textSize="26sp"/></LinearLayout></com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardHistory"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="📋"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sulama Geçmişi"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tüm sulama kayıtları"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardPlantJournal"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="📔"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bitki Günlüğü"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bahçenin günlük görünümü ve öneriler"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardSeasonReport"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="🌿"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sezon Özeti"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sezon raporları ve analizler"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardHealth"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="@string/symbol_heart"
+                    android:textColor="@color/offline"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cihaz Sağlığı"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sistem durumu ve kaynak kullanımı"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardSettings"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="⚙"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ayarlar"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sistem ayarları ve sınırlar"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menuCardAbout"
+            style="@style/Widget.SmartGarden.Card.Inner"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="ⓘ"
+                    android:textSize="22sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hakkında"
+                        android:textColor="@color/textPrimary"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uygulama ve geliştirici bilgileri"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

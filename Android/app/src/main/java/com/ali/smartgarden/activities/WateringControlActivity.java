@@ -403,7 +403,7 @@ public class WateringControlActivity extends AppCompatActivity {
             );
 
             String emoji = zone.getEmoji() == null
-                    ? "🌱"
+                    ? getString(R.string.symbol_plant)
                     : zone.getEmoji();
             boolean zonePhysical = "PHYSICAL".equalsIgnoreCase(
                     zone.getValve_mode()

@@ -7,6 +7,10 @@ public class GardenPhoto {
     private String local_path;
     private String note;
     private String related_application_id;
+    private String analysis_title;
+    private String analysis_meta;
+    private String analysis_context;
+    private String analysis_advice;
     private long captured_at_epoch;
 
     public GardenPhoto() { }
@@ -27,6 +31,14 @@ public class GardenPhoto {
     public void setRelated_application_id(String value) {
         related_application_id = value;
     }
+    public String getAnalysis_title() { return analysis_title; }
+    public void setAnalysis_title(String value) { analysis_title = value; }
+    public String getAnalysis_meta() { return analysis_meta; }
+    public void setAnalysis_meta(String value) { analysis_meta = value; }
+    public String getAnalysis_context() { return analysis_context; }
+    public void setAnalysis_context(String value) { analysis_context = value; }
+    public String getAnalysis_advice() { return analysis_advice; }
+    public void setAnalysis_advice(String value) { analysis_advice = value; }
     public long getCaptured_at_epoch() { return captured_at_epoch; }
     public void setCaptured_at_epoch(long value) { captured_at_epoch = value; }
 }

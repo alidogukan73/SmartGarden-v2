@@ -118,6 +118,10 @@ public class LocalGardenPhotoStore {
                 photo.setNote(item.optString("note"));
                 photo.setRelated_application_id(
                         item.optString("related_application_id"));
+                photo.setAnalysis_title(item.optString("analysis_title"));
+                photo.setAnalysis_meta(item.optString("analysis_meta"));
+                photo.setAnalysis_context(item.optString("analysis_context"));
+                photo.setAnalysis_advice(item.optString("analysis_advice"));
                 photo.setCaptured_at_epoch(item.optLong("captured_at_epoch"));
                 photos.add(photo);
                 validIndex.put(item);
@@ -130,6 +134,46 @@ public class LocalGardenPhotoStore {
         return photos;
     }
 
+    /** Attaches the final AI assessment to its already archived photo. */
+    public GardenPhoto updateAnalysis(String photoId, String title, String meta,
+                               String contextText, String advice) {
+        if (photoId == null || photoId.isBlank()) return null;
+        JSONArray index = readIndex();
+        for (int i = 0; i < index.length(); i++) {
+            try {
+                JSONObject item = index.getJSONObject(i);
+                if (!photoId.equals(item.optString("id"))) continue;
+                item.put("analysis_title", safe(title));
+                item.put("analysis_meta", safe(meta));
+                item.put("analysis_context", safe(contextText));
+                item.put("analysis_advice", safe(advice));
+                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                        .putString(KEY_INDEX, index.toString()).apply();
+                for (GardenPhoto photo : load()) {
+                    if (photoId.equals(photo.getId())) return photo;
+                }
+                return null;
+            } catch (Exception ignored) { }
+        }
+        return null;
+    }
+
+    /** Groups existing photos so a journal entry can hold several images. */
+    public boolean updateRelatedApplicationId(String photoId, String relatedApplicationId) {
+        if (photoId == null || photoId.isBlank()) return false;
+        JSONArray index = readIndex();
+        for (int i = 0; i < index.length(); i++) {
+            try {
+                JSONObject item = index.getJSONObject(i);
+                if (!photoId.equals(item.optString("id"))) continue;
+                item.put("related_application_id", safe(relatedApplicationId));
+                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                        .putString(KEY_INDEX, index.toString()).apply();
+                return true;
+            } catch (Exception ignored) { }
+        }
+        return false;
+    }
     /** Removes both the private archive record and its private phone copy. */
     public boolean delete(GardenPhoto photo) {
         if (photo == null || photo.getId() == null || photo.getId().isBlank()) {
@@ -160,6 +204,10 @@ public class LocalGardenPhotoStore {
         String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getString(KEY_INDEX, "[]");
         try { return new JSONArray(raw); } catch (Exception ignored) { return new JSONArray(); }
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 
     /** Keeps a useful plant photo while preventing full camera originals filling storage. */

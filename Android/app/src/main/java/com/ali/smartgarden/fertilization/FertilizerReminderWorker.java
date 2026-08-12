@@ -13,6 +13,8 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import com.ali.smartgarden.notifications.GardenNotificationManager;
+import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -66,7 +68,11 @@ public class FertilizerReminderWorker extends Worker {
     public Result doWork() {
         Context context = getApplicationContext();
         createChannel(context);
-        if (!canNotify(context)) {
+        NotificationSettingsStore notificationSettings =
+                new NotificationSettingsStore(context);
+        if (!(notificationSettings.isCategoryEnabled("fertilization")
+                && notificationSettings.isReminderEnabled("fertilization"))
+                && !notificationSettings.isCategoryEnabled("stock")) {
             return Result.success();
         }
         try {
@@ -245,38 +251,27 @@ public class FertilizerReminderWorker extends Worker {
             }
         }
 
-        Intent intent = new Intent(
-                context,
-                FertilizationCalendarActivity.class
-        );
-        intent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_ACTIVITY_CLEAR_TOP
-        );
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                preferenceKey.hashCode(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
-        NotificationCompat.Builder notification =
-                new NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setSmallIcon(android.R.drawable.ic_dialog_info)
-                        .setContentTitle(title)
-                        .setContentText(message)
-                        .setStyle(
-                                new NotificationCompat.BigTextStyle()
-                                        .bigText(message)
-                        )
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setAutoCancel(true)
-                        .setContentIntent(pendingIntent);
-        NotificationManagerCompat.from(context).notify(
-                41000 + Math.abs(preferenceKey.hashCode() % 10000),
-                notification.build()
-        );
-        preferences.edit().putBoolean(preferenceKey, true).apply();
+        NotificationSettingsStore notificationSettings =
+                new NotificationSettingsStore(context);
+        if (notificationSettings.isCategoryEnabled("stock")
+                && product != null && product.getLow_stock_threshold() > 0.0
+                && product.getStock_amount() <= product.getLow_stock_threshold()) {
+            new GardenNotificationManager(context).publishOnce(
+                    "STOCK", "HIGH", zoneId, "Düşük gübre stoğu: " + product.getName(),
+                    "Mevcut stok " + format(product.getStock_amount()) + " " + safe(product.getStock_unit(), "")
+                            + ". Uyarı sınırı " + format(product.getLow_stock_threshold()) + ".",
+                    "low_stock:" + product.getProduct_id() + ":" + LocalDate.now()
+            );
+        }
+
+        if (notificationSettings.isCategoryEnabled("fertilization")
+                && notificationSettings.isReminderEnabled("fertilization")) {
+            new GardenNotificationManager(context).publishOnce(
+                    "FERTILIZATION", days <= 0 ? "HIGH" : "NORMAL", zoneId, title, message,
+                    "fertilizer_reminder:" + preferenceKey
+            );
+            preferences.edit().putBoolean(preferenceKey, true).apply();
+        }
     }
 
     private static String reminderSlot(long days, LocalTime time) {
@@ -403,14 +398,6 @@ public class FertilizerReminderWorker extends Worker {
         return value == Math.rint(value)
                 ? String.format(Locale.getDefault(), "%.0f", value)
                 : String.format(Locale.getDefault(), "%.1f", value);
-    }
-
-    private static boolean canNotify(Context context) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-                || ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED;
     }
 
     private static void createChannel(Context context) {

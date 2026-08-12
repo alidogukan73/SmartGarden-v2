@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theme_intro_title">AVORA görünümü</string>
+    <string name="theme_intro_message">Gözünü yormayan görünümü seç. Değişiklik bütün ekranlara anında uygulanır.</string>
+    <string name="theme_selection_section">Tema seçimi</string>
+    <string name="theme_option_system">Sistem ayarını kullan</string>
+    <string name="theme_option_system_detail">Telefon aydınlık veya karanlık moda geçtiğinde AVORA da otomatik değişir.</string>
+    <string name="theme_option_light">Aydınlık</string>
+    <string name="theme_option_light_detail">Gündüz kullanımı için açık arka plan ve güçlü okunabilirlik.</string>
+    <string name="theme_option_dark">Karanlık</string>
+    <string name="theme_option_dark_detail">Gece kullanımı için koyu yüzeyler ve yumuşatılmış parlaklık.</string>
+    <string name="theme_preview_section">Canlı önizleme</string>
+    <string name="theme_preview_title">Bahçenin genel durumu</string>
+    <string name="theme_preview_message">Kartlar, metinler, sınırlar ve düğmeler seçtiğin temaya uyum sağlar.</string>
+    <string name="theme_preview_button">Örnek işlemi görüntüle</string>
+    <string name="theme_active_format">Etkin görünüm: %1$s</string>
+    <string name="theme_backup_note">Tema bu telefona özeldir. AVORA yedeği oluşturduğunda tercihin yedek dosyasına da eklenir.</string>
+</resources>

@@ -10,32 +10,28 @@
     android:paddingTop="8dp"
     android:paddingEnd="8dp"
     android:paddingBottom="8dp">
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
-
         <TextView
             android:id="@+id/txtManualValveName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/textPrimary"
             android:textSize="15sp"
-            android:textStyle="bold"/>
-
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/txtManualValveDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Supporting"/>
+            android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
     </LinearLayout>
-
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/switchManualValve"
         style="@style/Widget.SmartGarden.Switch"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 </LinearLayout>

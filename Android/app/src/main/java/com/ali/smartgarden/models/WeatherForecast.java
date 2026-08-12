@@ -50,6 +50,7 @@ public class WeatherForecast {
     public Double getTomorrowWindMax() { return tomorrowWindMax; }
     public Double getTodayTemperatureMax() { return todayTemperatureMax; }
     public Double getTodayRainProbability() { return todayRainProbability; }
+    public Double getTodayRainMm() { return todayRainMm; }
     public Double getTodayWindMax() { return todayWindMax; }
     public List<WeatherDay> getDays() { return days; }
     public Long getTodayWeatherCode() { return todayWeatherCode; }

@@ -1,21 +1,22 @@
 package com.ali.smartgarden.activities;
 
-import android.content.res.ColorStateList;
+import android.graphics.Typeface;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.SystemClock;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,26 +27,28 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
+import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
+import com.ali.smartgarden.notifications.NotificationSignalScheduler;
+import com.ali.smartgarden.notifications.GardenNotificationManager;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
-import com.ali.smartgarden.models.Command;
-import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
-import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.health.GardenHealthCalculator;
 import com.ali.smartgarden.health.GardenHealthSummary;
-import com.ali.smartgarden.plantdoctor.PlantDoctorRecommendationStore;
+import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
+import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
+import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -53,6 +56,9 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,35 +73,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtDevice;
 
     // Sensor
-    private TextView txtMoisture;
-    private TextView txtMoistureStatus;
-    private TextView txtVoltage;
-    private TextView txtRaw;
-    private ProgressBar progressMoisture;
 
     // Pump
-    private MaterialCardView cardPumpStatus;
-    private TextView txtRelay;
-    private TextView txtPumpDescription;
 
     // Automatic mode
-    private MaterialCardView cardAutoMode;
-    private MaterialSwitch switchAuto;
-    private TextView txtAutoDescription;
 
     // Manual control
-    private MaterialButton btnWater;
-    private TextView txtManualHint;
 
-    private AppCompatImageView imgPumpStatus;
 
     private MaterialButton btnMainMenu;
-    private TextView txtGardenSensors;
-    private TextView txtGardenWateringSummary;
-    private TextView txtGardenPumpSummary;
-    private MaterialCardView cardGardenSummary;
-    private MaterialCardView cardHomePlantDoctorSummary;
-    private TextView txtHomePlantDoctorSummary;
+    private TextView txtMainNotificationBadge;
+    private MaterialCardView cardHomePlantAssistantSummary;
+    private TextView txtHomePlantAssistantSummary;
     private MaterialCardView cardHomeWateringSummary;
     private MaterialCardView cardHomeFertilizationSummary;
     private TextView txtHomeWateringSummary;
@@ -108,35 +97,27 @@ public class MainActivity extends AppCompatActivity {
     private MaterialCardView cardHomeWeather;
     private TextView txtHomeWeatherIcon;
     private TextView txtHomeWeatherTitle;
-    private TextView txtHomeWeatherToday;
-    private TextView txtHomeWeatherTomorrow;
-    private MaterialCardView cardSimulationWarning;
+    private TextView txtHomeWeatherLocation;
+    private TextView txtHomeWeatherTodayIcon;
+    private TextView txtHomeWeatherTodayTemperature;
+    private TextView txtHomeWeatherTodayRain;
+    private TextView txtHomeWeatherTodayWind;
+    private TextView txtHomeWeatherTomorrowIcon;
+    private TextView txtHomeWeatherTomorrowTemperature;
+    private TextView txtHomeWeatherTomorrowRain;
+    private TextView txtHomeWeatherTomorrowWind;
+    private TextView txtHomeWeatherImpact;
+    private TextView txtHomeWeatherImpactIcon;
+    private TextView txtHomeWeatherUpdated;
     private MaterialCardView cardHomeAlerts;
     private LinearLayout layoutHomeAlerts;
     private RecyclerView recyclerHomeZones;
     private LinearLayout layoutHomeZoneDots;
     private HomeZonePagerAdapter homeZonePagerAdapter;
-    private LinearLayout layoutHomeZones;
     private boolean homeZonePagerPositioned = false;
     private List<GardenZone> latestZones;
-    private MaterialCardView cardHomeAi;
-    private TextView txtHomeAiDecision;
-    private TextView txtHomeAiSummary;
-    private TextView txtHomeAiProgress;
-    private ProgressBar progressHomeAi;
-    private boolean valveSimulationMode = true;
-    private TextView txtPrimaryZoneTitle;
-    private TextView txtPrimaryZoneSubtitle;
-    private MaterialButton btnHomeZones;
-    private MaterialButton btnHomeAi;
-    private MaterialButton btnHomeSettings;
-    private MaterialButton btnToggleAdvanced;
-    private MaterialCardView cardPrimaryZoneDetails;
-    private MaterialCardView cardWateringControl;
-    private boolean advancedControlsVisible = false;
+    private WeatherForecast latestWeather;
 
-    private boolean updatingAutoSwitch = false;
-    private boolean relayOn = false;
 
     private static final long ONLINE_TIMEOUT_MILLIS = 30_000L;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
@@ -215,19 +196,24 @@ public class MainActivity extends AppCompatActivity {
     private void initializeAuthenticatedApp() {
 
         connectionStartedElapsedMillis = SystemClock.elapsedRealtime();
-        moveZoneCarouselAboveGardenSummary();
         applyWindowInsets();
+        PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.HOME);
         initializeViews();
         initializeViewModel();
         observeViewModel();
         initializeButtons();
         FertilizerReminderScheduler.schedule(this);
+        NotificationSignalScheduler.schedule(this);
+        new GardenNotificationManager(this).restoreCloudBackup(imported -> { });
+        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
+                token -> new FirebaseRepository().savePushToken(token)
+        );
     }
 
     private void applyWindowInsets() {
 
         ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.main),
+                findViewById(R.id.mainRoot),
                 (view, insets) -> {
 
                     Insets systemBars =
@@ -247,56 +233,44 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void moveZoneCarouselAboveGardenSummary() {
-        View zoneSection = findViewById(
-                R.id.layoutHomeZoneCarouselSection
-        );
-        View gardenSummary = findViewById(
-                R.id.cardGardenSummary
-        );
-        if (
-                zoneSection == null
-                        || gardenSummary == null
-                        || zoneSection.getParent()
-                        != gardenSummary.getParent()
-        ) {
-            return;
-        }
 
-        ViewGroup parent =
-                (ViewGroup) zoneSection.getParent();
-        int targetIndex =
-                parent.indexOfChild(gardenSummary);
-        parent.removeView(zoneSection);
-        parent.addView(zoneSection, targetIndex);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateNotificationBadge();
     }
 
+    private void updateNotificationBadge() {
+        if (txtMainNotificationBadge == null) return;
+        int unread = 0;
+        for (com.ali.smartgarden.models.GardenNotification item : new GardenNotificationManager(this).localNotifications()) {
+            if (!item.isRead()) unread++;
+        }
+        if (unread <= 0) {
+            txtMainNotificationBadge.setVisibility(View.GONE);
+        } else {
+            txtMainNotificationBadge.setText(unread > 99 ? "99+" : String.valueOf(unread));
+            txtMainNotificationBadge.setVisibility(View.VISIBLE);
+        }
+    }
     private void initializeViews() {
 
-        imgPumpStatus = findViewById(R.id.imgPumpStatus);
 
+        txtMainNotificationBadge = findViewById(R.id.txtMainNotificationBadge);
+        updateNotificationBadge();
         btnMainMenu = findViewById(
                 R.id.btnMainMenu
         );
-        txtGardenSensors = findViewById(
-                R.id.txtGardenSensors
+        findViewById(R.id.btnMainNotifications).setOnClickListener(
+                view -> startActivity(new Intent(this, NotificationCenterActivity.class))
         );
-        cardGardenSummary = findViewById(
-                R.id.cardGardenSummary
+        cardHomePlantAssistantSummary = findViewById(
+                R.id.cardHomePlantAssistantSummary
         );
-        txtGardenWateringSummary = findViewById(
-                R.id.txtGardenWateringSummary
+        txtHomePlantAssistantSummary = findViewById(
+                R.id.txtHomePlantAssistantSummary
         );
-        txtGardenPumpSummary = findViewById(
-                R.id.txtGardenPumpSummary
-        );
-        cardHomePlantDoctorSummary = findViewById(
-                R.id.cardHomePlantDoctorSummary
-        );
-        txtHomePlantDoctorSummary = findViewById(
-                R.id.txtHomePlantDoctorSummary
-        );
-        renderHomePlantDoctorRecommendation();
+        renderHomePlantAssistantRecommendation();
         cardHomeWateringSummary = findViewById(R.id.cardHomeWateringSummary);
         txtHomeWateringSummary = findViewById(R.id.txtHomeWateringSummary);
         cardHomeFertilizationSummary = findViewById(
@@ -313,12 +287,19 @@ public class MainActivity extends AppCompatActivity {
         cardHomeWeather = findViewById(R.id.cardHomeWeather);
         txtHomeWeatherIcon = findViewById(R.id.txtHomeWeatherIcon);
         txtHomeWeatherTitle = findViewById(R.id.txtHomeWeatherTitle);
-        txtHomeWeatherToday = findViewById(R.id.txtHomeWeatherToday);
-        txtHomeWeatherTomorrow = findViewById(R.id.txtHomeWeatherTomorrow);
+        txtHomeWeatherLocation = findViewById(R.id.txtHomeWeatherLocation);
+        txtHomeWeatherTodayIcon = findViewById(R.id.txtHomeWeatherTodayIcon);
+        txtHomeWeatherTodayTemperature = findViewById(R.id.txtHomeWeatherTodayTemperature);
+        txtHomeWeatherTodayRain = findViewById(R.id.txtHomeWeatherTodayRain);
+        txtHomeWeatherTodayWind = findViewById(R.id.txtHomeWeatherTodayWind);
+        txtHomeWeatherTomorrowIcon = findViewById(R.id.txtHomeWeatherTomorrowIcon);
+        txtHomeWeatherTomorrowTemperature = findViewById(R.id.txtHomeWeatherTomorrowTemperature);
+        txtHomeWeatherTomorrowRain = findViewById(R.id.txtHomeWeatherTomorrowRain);
+        txtHomeWeatherTomorrowWind = findViewById(R.id.txtHomeWeatherTomorrowWind);
+        txtHomeWeatherImpact = findViewById(R.id.txtHomeWeatherImpact);
+        txtHomeWeatherImpactIcon = findViewById(R.id.txtHomeWeatherImpactIcon);
+        txtHomeWeatherUpdated = findViewById(R.id.txtHomeWeatherUpdated);
         moveWeatherBelowFertilization();
-        cardSimulationWarning = findViewById(
-                R.id.cardSimulationWarning
-        );
         cardHomeAlerts = findViewById(
                 R.id.cardHomeAlerts
         );
@@ -331,64 +312,15 @@ public class MainActivity extends AppCompatActivity {
         layoutHomeZoneDots = findViewById(
                 R.id.layoutHomeZoneDots
         );
-        layoutHomeZones = findViewById(
-                R.id.layoutHomeZones
-        );
         initializeHomeZonePager();
-        cardHomeAi = findViewById(R.id.cardHomeAi);
-        txtHomeAiDecision = findViewById(
-                R.id.txtHomeAiDecision
-        );
-        txtHomeAiSummary = findViewById(
-                R.id.txtHomeAiSummary
-        );
-        txtHomeAiProgress = findViewById(
-                R.id.txtHomeAiProgress
-        );
-        progressHomeAi = findViewById(
-                R.id.progressHomeAi
-        );
-        txtPrimaryZoneTitle = findViewById(
-                R.id.txtPrimaryZoneTitle
-        );
-        txtPrimaryZoneSubtitle = findViewById(
-                R.id.txtPrimaryZoneSubtitle
-        );
-        btnHomeZones = findViewById(R.id.btnHomeZones);
-        btnHomeAi = findViewById(R.id.btnHomeAi);
-        btnHomeSettings = findViewById(
-                R.id.btnHomeSettings
-        );
-        btnToggleAdvanced = findViewById(
-                R.id.btnToggleAdvanced
-        );
-        cardPrimaryZoneDetails = findViewById(
-                R.id.cardPrimaryZoneDetails
-        );
-        cardWateringControl = findViewById(
-                R.id.cardWateringControl
-        );
 
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
         txtOnline = findViewById(R.id.txtOnline);
         txtDevice = findViewById(R.id.txtDevice);
 
-        txtMoisture = findViewById(R.id.txtMoisture);
-        txtMoistureStatus = findViewById(R.id.txtMoistureStatus);
-        txtVoltage = findViewById(R.id.txtVoltage);
-        txtRaw = findViewById(R.id.txtRaw);
-        progressMoisture = findViewById(R.id.progressMoisture);
 
-        cardPumpStatus = findViewById(R.id.cardPumpStatus);
-        txtRelay = findViewById(R.id.txtRelay);
-        txtPumpDescription = findViewById(R.id.txtPumpDescription);
 
-        cardAutoMode = findViewById(R.id.cardAutoMode);
-        switchAuto = findViewById(R.id.switchAuto);
-        txtAutoDescription = findViewById(R.id.txtAutoDescription);
 
-        btnWater = findViewById(R.id.btnWater);
-        txtManualHint = findViewById(R.id.txtManualHint);
 
         txtDevice.setText(
                 R.string.default_device_name
@@ -403,32 +335,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void observeViewModel() {
 
-        viewModel.getSensor().observe(
-                this,
-                this::renderSensor
-        );
 
         viewModel.getStatus().observe(
                 this,
                 this::renderStatus
         );
 
-        viewModel.getCommand().observe(
-                this,
-                this::renderCommand
-        );
 
         viewModel.getGardenZones().observe(
                 this,
                 this::renderGardenZones
         );
 
-        viewModel.getAIExplanation().observe(
-                this,
-                this::renderHomeAi
-        );
 
         viewModel.getWeatherForecast().observe(this, this::renderHomeWeather);
+        viewModel.getWateringHistory().observe(this, values -> NotificationSignalCoordinator.evaluateWatering(this, values));
 
         viewModel.getError().observe(
                 this,
@@ -450,32 +371,6 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void renderHomeAi(AIExplanation explanation) {
-        if (explanation == null) {
-            return;
-        }
-
-        String title = explanation.getTitle();
-        String summary = explanation.getSummary();
-        int progress = (int) Math.max(
-                0L,
-                Math.min(100L, explanation.getProgressPercent())
-        );
-
-        if (title != null && !title.isBlank()) {
-            txtHomeAiDecision.setText(title);
-        }
-        if (summary != null && !summary.isBlank()) {
-            txtHomeAiSummary.setText(summary);
-        }
-        txtHomeAiProgress.setText(
-                getString(
-                        R.string.home_ai_progress_format,
-                        progress
-                )
-        );
-        progressHomeAi.setProgress(progress);
-    }
 
     private void moveWeatherBelowFertilization() {
         if (cardHomeWeather == null || cardHomeFertilizationSummary == null) {
@@ -485,12 +380,19 @@ public class MainActivity extends AppCompatActivity {
         if (parent == null || parent != cardHomeFertilizationSummary.getParent()) {
             return;
         }
-        int targetIndex = parent.indexOfChild(cardHomeFertilizationSummary) + 1;
         parent.removeView(cardHomeWeather);
-        parent.addView(cardHomeWeather, targetIndex);
+        int targetIndex = parent.indexOfChild(cardHomeFertilizationSummary) + 1;
+        parent.addView(cardHomeWeather, Math.min(targetIndex, parent.getChildCount()));
     }
 
     private void renderHomeWeather(WeatherForecast forecast) {
+        latestWeather = forecast;
+        if (forecast != null) {
+            NotificationSignalCoordinator.evaluateWeather(this, forecast.getTomorrowTemperatureMax(),
+                    forecast.getTomorrowRainProbability(), forecast.getTomorrowWindMax(),
+                    java.time.LocalDate.now().plusDays(1).toString());
+        }
+        renderHomePlantAssistantRecommendation();
         if (forecast == null || forecast.getTomorrowTemperatureMax() == null) {
             cardHomeWeather.setVisibility(View.GONE);
             return;
@@ -499,26 +401,95 @@ public class MainActivity extends AppCompatActivity {
         String location = forecast.getDistrict().isBlank()
                 ? forecast.getCity()
                 : forecast.getDistrict() + " / " + forecast.getCity();
-        txtHomeWeatherTitle.setText("Hava durumu · " + location);
-        txtHomeWeatherIcon.setText("☀");
-        bindWeatherDay(txtHomeWeatherToday, "Bugün", forecast.getTodayTemperatureMax(),
-                forecast.getTodayRainProbability(), forecast.getTodayWindMax(), forecast.getTodayWeatherCode());
-        bindWeatherDay(txtHomeWeatherTomorrow, "Yarın", forecast.getTomorrowTemperatureMax(),
-                forecast.getTomorrowRainProbability(), forecast.getTomorrowWindMax(), forecast.getTomorrowWeatherCode());
+        txtHomeWeatherTitle.setText("Hava durumu");
+        txtHomeWeatherLocation.setText(getString(R.string.symbol_middle_dot) + " " + location);
+        txtHomeWeatherIcon.setText(getString(R.string.symbol_sun));
+        txtHomeWeatherUpdated.setText(
+                "↻ Güncellendi: " + new SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR"))
+                        .format(new Date())
+        );
+        bindWeatherDay(txtHomeWeatherTodayIcon, txtHomeWeatherTodayTemperature,
+                txtHomeWeatherTodayRain, txtHomeWeatherTodayWind,
+                forecast.getTodayTemperatureMax(), forecast.getTodayRainProbability(),
+                forecast.getTodayWindMax(), forecast.getTodayWeatherCode());
+        bindWeatherDay(txtHomeWeatherTomorrowIcon, txtHomeWeatherTomorrowTemperature,
+                txtHomeWeatherTomorrowRain, txtHomeWeatherTomorrowWind,
+                forecast.getTomorrowTemperatureMax(), forecast.getTomorrowRainProbability(),
+                forecast.getTomorrowWindMax(), forecast.getTomorrowWeatherCode());
+        WeatherImpact impact = weatherGardenImpact(forecast);
+        txtHomeWeatherImpactIcon.setText(impact.icon);
+        setWeatherImpact(impact.message);
     }
 
-    private String weatherCompact(String day, Double temperature, Double rain, Double wind) {
-        String tempText = temperature == null ? "—" : Math.round(temperature) + "°C";
-        String rainText = rain == null ? "" : " · %" + Math.round(rain) + " yağış";
-        String windText = wind == null ? "" : "\n↝ " + Math.round(wind) + " km/sa";
-        return day + "\n" + tempText + rainText + windText;
+    /** A short advisory-only reading of weather conditions for the garden. */
+    private WeatherImpact weatherGardenImpact(WeatherForecast forecast) {
+        double todayMax = valueOrZero(forecast.getTodayTemperatureMax());
+        double tomorrowMax = valueOrZero(forecast.getTomorrowTemperatureMax());
+        double hottest = Math.max(todayMax, tomorrowMax);
+        double rain = Math.max(valueOrZero(forecast.getTodayRainProbability()),
+                valueOrZero(forecast.getTomorrowRainProbability()));
+        double wind = Math.max(valueOrZero(forecast.getTodayWindMax()),
+                valueOrZero(forecast.getTomorrowWindMax()));
+
+        // Current weather code is an observation from the provider; it is more
+        // meaningful than the daily probability when rain is already falling.
+        if (isRainNow(forecast.getCurrentWeatherCode())) {
+            return new WeatherImpact(getString(R.string.symbol_rain), "Şu an yağış görünüyor — sulama öncesi toprak nemini yeniden kontrol edin.");
+        }
+        if (rain >= 60D) {
+            return new WeatherImpact(getString(R.string.symbol_rain), "Yağış olasılığı yüksek — sulama öncesi toprak nemini yeniden kontrol edin.");
+        }
+        if (rain >= 30D) {
+            return new WeatherImpact(getString(R.string.symbol_rain), "Yağış ihtimali var — sulama öncesi toprak nemini yeniden kontrol edin.");
+        }
+        if (hottest >= 35D) {
+            return new WeatherImpact(getString(R.string.symbol_sun), "Yüksek sıcaklık — toprak nemini ve yapraklarda solmayı takip edin.");
+        }
+        if (wind >= 30D) {
+            return new WeatherImpact(getString(R.string.symbol_wind), "Rüzgâr kuvvetli — toprak nemi daha hızlı düşebilir.");
+        }
+        if (hottest >= 30D && rain <= 20D) {
+            return new WeatherImpact(getString(R.string.symbol_water_drop), "Sulama açısından sıcak ve kurak bir dönem. Toprak nemini takip etmeyi unutmayın.");
+        }
+        return new WeatherImpact(getString(R.string.symbol_plant), "Bahçe için hava koşulları dengeli görünüyor.");
     }
 
-    private void bindWeatherDay(TextView view, String day, Double temperature, Double rain,
+    private boolean isRainNow(Long weatherCode) {
+        if (weatherCode == null) return false;
+        long code = weatherCode;
+        // Open-Meteo rain/drizzle/showers/thunderstorm ranges; OpenWeather is
+        // normalized by the backend into the same representative codes.
+        return (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95;
+    }
+
+    private void setWeatherImpact(String impact) {
+        String prefix = "AVORA yorumu: ";
+        SpannableString text = new SpannableString(prefix + impact);
+        text.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        txtHomeWeatherImpact.setText(text);
+    }
+
+    private static final class WeatherImpact {
+        private final String icon;
+        private final String message;
+
+        private WeatherImpact(String icon, String message) {
+            this.icon = icon;
+            this.message = message;
+        }
+    }
+
+    private double valueOrZero(Double value) {
+        return value == null ? 0D : value;
+    }
+
+    private void bindWeatherDay(TextView icon, TextView temperatureView, TextView rainView,
+                                TextView windView, Double temperature, Double rain,
                                 Double wind, Long code) {
-        view.setText(weatherCompact(day, temperature, rain, wind));
-        view.setCompoundDrawablesWithIntrinsicBounds(weatherIconResource(code), 0, 0, 0);
-        view.setCompoundDrawablePadding(6);
+        icon.setText(weatherIcon(code));
+        temperatureView.setText(temperature == null ? "—" : Math.round(temperature) + "°C");
+        rainView.setText(getString(R.string.format_rain_probability, rain == null ? "%—" : "%" + Math.round(rain)));
+        windView.setText(getString(R.string.symbol_wind) + "  " + (wind == null ? "~ —" : "~ " + Math.round(wind)) + " km/sa");
     }
 
     private int weatherIconResource(Long code) {
@@ -528,54 +499,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String weatherIcon(Long code) {
-        if (code == null) return "☀";
-        if (code >= 95) return "⛈";
-        if (code >= 51) return "🌧";
-        if (code >= 45) return "🌫";
-        if (code >= 2) return "☁";
-        return "☀";
+        if (code == null) return getString(R.string.symbol_sun);
+        if (code >= 95) return getString(R.string.symbol_warning);
+        if (code >= 51) return getString(R.string.symbol_rain);
+        if (code >= 45) return getString(R.string.symbol_weather_cloud);
+        if (code >= 2) return getString(R.string.symbol_weather_cloud);
+        return getString(R.string.symbol_sun);
     }
 
-    private void renderSensor(Sensor sensor) {
-
-        if (sensor == null) {
-            return;
-        }
-
-        long moisture = Math.max(
-                0,
-                Math.min(
-                        100,
-                        sensor.getMoisture()
-                )
-        );
-
-        txtMoisture.setText(
-                getString(
-                        R.string.moisture_format,
-                        moisture
-                )
-        );
-
-        progressMoisture.setProgress(
-                (int) moisture
-        );
-
-        txtVoltage.setText(
-                getString(
-                        R.string.voltage_format,
-                        sensor.getVoltage()
-                )
-        );
-
-        txtRaw.setText(
-                String.valueOf(
-                        sensor.getRaw()
-                )
-        );
-
-        updateMoistureUi(moisture);
-    }
 
     private void renderStatus(
             Status status
@@ -586,63 +517,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         latestStatus = status;
+        NotificationSignalCoordinator.evaluateDevice(this, status, null);
 
         lastStatusReceivedElapsedMillis =
                 SystemClock.elapsedRealtime();
 
         renderEffectiveOnlineStatus();
 
-        relayOn = status.isRelay();
-
-        updatePumpUi(
-                relayOn
-        );
-        renderGardenSummary();
     }
 
-    private void renderPrimaryZoneIdentity(
-            List<GardenZone> zones
-    ) {
-        if (zones == null || zones.isEmpty()) {
-            return;
-        }
-
-        GardenZone primary = zones.get(0);
-        for (GardenZone zone : zones) {
-            if ("zone-001".equals(zone.getZone_id())) {
-                primary = zone;
-                break;
-            }
-        }
-
-        String emoji = primary.getEmoji() == null
-                ? "🌱"
-                : primary.getEmoji();
-        String name = primary.getName() == null
-                ? getString(R.string.title_soil_moisture)
-                : primary.getName();
-        String sensorId = primary.getSensor_id() == null
-                ? "—"
-                : primary.getSensor_id();
-
-        txtPrimaryZoneTitle.setText(emoji + " " + name);
-        txtPrimaryZoneSubtitle.setText(
-                getString(
-                        R.string.home_primary_zone_subtitle,
-                        sensorId
-                )
-        );
-    }
 
     private void renderGardenZones(List<GardenZone> zones) {
         latestZones = zones;
-        layoutHomeZones.removeAllViews();
 
         if (zones == null) {
             homeZonePagerAdapter.submitList(null);
             homeZonePagerPositioned = false;
             renderHomeZoneDots(0, 0);
-            renderGardenSummary();
             renderHomeWateringSummary(null);
             renderHomeFertilizationSummary(null);
             renderHomeHealthSummary(null);
@@ -666,67 +557,19 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
 
-        LayoutInflater inflater = LayoutInflater.from(this);
-        for (GardenZone zone : zones) {
-            View row = inflater.inflate(
-                    R.layout.item_home_zone_summary,
-                    layoutHomeZones,
-                    false
-            );
-            TextView name = row.findViewById(
-                    R.id.txtHomeZoneName
-            );
-            TextView moisture = row.findViewById(
-                    R.id.txtHomeZoneMoisture
-            );
-            TextView state = row.findViewById(
-                    R.id.txtHomeZoneState
-            );
 
-            String emoji = zone.getEmoji() == null
-                    ? "🌱"
-                    : zone.getEmoji();
-            name.setText(emoji + " " + zone.getName());
-
-            boolean connected = isZoneConnected(zone);
-            moisture.setText(
-                    connected
-                            ? getString(
-                                    R.string.sensor_moisture_format,
-                                    zone.getMoisture()
-                            )
-                            : "—"
-            );
-
-            bindHomeZoneState(zone, connected, state);
-            row.setOnClickListener(
-                    view -> {
-                        Intent intent = new Intent(
-                                this,
-                                FertilizationZoneDetailActivity.class
-                        );
-                        intent.putExtra(
-                                FertilizationZoneDetailActivity.EXTRA_ZONE_ID,
-                                zone.getZone_id()
-                        );
-                        startActivity(intent);
-                    }
-            );
-            layoutHomeZones.addView(row);
-        }
-
-        renderPrimaryZoneIdentity(zones);
-        renderGardenSummary();
         renderHomeWateringSummary(zones);
         renderHomeFertilizationSummary(zones);
         renderHomeHealthSummary(zones);
+        renderHomePlantAssistantRecommendation();
         renderHomeAlerts();
     }
 
     private void renderHomeHealthSummary(List<GardenZone> zones) {
         GardenHealthSummary health = GardenHealthCalculator.calculate(
                 zones,
-                System.currentTimeMillis() / 1000L
+                System.currentTimeMillis() / 1000L,
+                PlantAssistantRecommendationStore.healthSignal(this)
         );
         txtHomeHealthTitle.setText(health.getTitle());
         txtHomeHealthDetail.setText(health.getDetail());
@@ -820,14 +663,8 @@ public class MainActivity extends AppCompatActivity {
     private void initializeHomeZonePager() {
         homeZonePagerAdapter = new HomeZonePagerAdapter(
                 zone -> {
-                    Intent intent = new Intent(
-                            this,
-                            FertilizationZoneDetailActivity.class
-                    );
-                    intent.putExtra(
-                            FertilizationZoneDetailActivity.EXTRA_ZONE_ID,
-                            zone.getZone_id()
-                    );
+                    Intent intent = new Intent(this, PlantTimelineActivity.class);
+                    intent.putExtra("zone_id", zone.getZone_id());
                     startActivity(intent);
                 }
         );
@@ -885,27 +722,40 @@ public class MainActivity extends AppCompatActivity {
             int selected
     ) {
         layoutHomeZoneDots.removeAllViews();
+        float density = getResources().getDisplayMetrics().density;
         for (int index = 0; index < count; index++) {
-            TextView dot = new TextView(this);
-            dot.setText("●");
-            dot.setTextSize(index == selected ? 11f : 8f);
-            dot.setTextColor(
+            boolean isSelected = index == selected;
+            android.widget.FrameLayout touchTarget =
+                    new android.widget.FrameLayout(this);
+            int touchSize = Math.round(18f * density);
+            touchTarget.setLayoutParams(
+                    new LinearLayout.LayoutParams(touchSize, touchSize)
+            );
+
+            View dot = new View(this);
+            int dotSize = Math.round(
+                    (isSelected ? 7f : 5f) * density
+            );
+            GradientDrawable dotBackground = new GradientDrawable();
+            dotBackground.setShape(GradientDrawable.OVAL);
+            dotBackground.setColor(
                     color(
-                            index == selected
+                            isSelected
                                     ? R.color.primary
                                     : R.color.border
                     )
             );
-            dot.setGravity(android.view.Gravity.CENTER);
-            int size = Math.round(
-                    18f * getResources()
-                            .getDisplayMetrics().density
-            );
-            dot.setLayoutParams(
-                    new LinearLayout.LayoutParams(size, size)
-            );
+            dot.setBackground(dotBackground);
+            android.widget.FrameLayout.LayoutParams dotParams =
+                    new android.widget.FrameLayout.LayoutParams(
+                            dotSize,
+                            dotSize,
+                            android.view.Gravity.CENTER
+                    );
+            touchTarget.addView(dot, dotParams);
+
             final int page = index;
-            dot.setOnClickListener(
+            touchTarget.setOnClickListener(
                     view -> {
                         int target =
                                 homeZonePagerAdapter
@@ -918,76 +768,8 @@ public class MainActivity extends AppCompatActivity {
                         );
                     }
             );
-            layoutHomeZoneDots.addView(dot);
+            layoutHomeZoneDots.addView(touchTarget);
         }
-    }
-
-    private void bindHomeZoneState(
-            GardenZone zone,
-            boolean connected,
-            TextView state
-    ) {
-        if (!connected) {
-            setHomeZoneState(
-                    state,
-                    R.string.home_zone_sensor_waiting,
-                    R.color.textSecondary
-            );
-            return;
-        }
-        if (!zone.isIrrigation_enabled()) {
-            setHomeZoneState(
-                    state,
-                    R.string.home_zone_disabled,
-                    R.color.textSecondary
-            );
-            return;
-        }
-
-        ZoneIrrigationStatus status =
-                zone.getIrrigation_status();
-        if (status != null && status.isWatering_active()) {
-            setHomeZoneState(
-                    state,
-                    R.string.home_zone_watering,
-                    R.color.info
-            );
-        } else if (
-                status != null
-                        && status.isCooldown_active()
-        ) {
-            setHomeZoneState(
-                    state,
-                    R.string.home_zone_cooldown,
-                    R.color.warning
-            );
-        } else if (
-                status != null
-                        && status.getQueue_position() > 1
-        ) {
-            state.setText(
-                    getString(
-                            R.string.home_zone_queued,
-                            status.getQueue_position()
-                    )
-            );
-            state.setTextColor(color(R.color.accentOrange));
-        } else {
-            setHomeZoneState(
-                    state,
-                    R.string.home_zone_ready,
-                    R.color.online
-            );
-        }
-    }
-
-    private void setHomeZoneState(
-            TextView view,
-            int textResource,
-            int colorResource
-    ) {
-        view.setText(textResource);
-        view.setTextColor(color(colorResource));
     }
 
     private boolean isZoneConnected(GardenZone zone) {
@@ -1002,89 +784,6 @@ public class MainActivity extends AppCompatActivity {
         return age <= 90L;
     }
 
-    private void renderGardenSummary() {
-        if (latestZones == null) {
-            return;
-        }
-
-        int connected = 0;
-        int cooldownCount = 0;
-        GardenZone active = null;
-        GardenZone queued = null;
-        boolean hasPhysicalValve = false;
-
-        for (GardenZone zone : latestZones) {
-            if (isZoneConnected(zone)) {
-                connected++;
-            }
-            if ("PHYSICAL".equalsIgnoreCase(
-                    zone.getValve_mode()
-            )) {
-                hasPhysicalValve = true;
-            }
-
-            ZoneIrrigationStatus irrigation =
-                    zone.getIrrigation_status();
-            if (irrigation == null) {
-                continue;
-            }
-            if (irrigation.isWatering_active()) {
-                active = zone;
-            } else if (irrigation.isCooldown_active()) {
-                cooldownCount++;
-            } else if (
-                    irrigation.getQueue_position() > 0
-                            && queued == null
-            ) {
-                queued = zone;
-            }
-        }
-
-        txtGardenSensors.setText(
-                getString(
-                        R.string.home_sensor_count,
-                        connected,
-                        latestZones.size()
-                )
-        );
-        cardSimulationWarning.setVisibility(
-                hasPhysicalValve ? View.GONE : View.VISIBLE
-        );
-        valveSimulationMode = !hasPhysicalValve;
-        updatePumpUi(relayOn);
-        txtGardenPumpSummary.setText(
-                relayOn
-                        ? R.string.home_pump_running
-                        : R.string.home_pump_closed
-        );
-
-        if (active != null) {
-            txtGardenWateringSummary.setText(
-                    getString(
-                            R.string.home_watering_active,
-                            active.getName()
-                    )
-            );
-        } else if (queued != null) {
-            txtGardenWateringSummary.setText(
-                    getString(
-                            R.string.home_watering_queued,
-                            queued.getName()
-                    )
-            );
-        } else if (cooldownCount > 0) {
-            txtGardenWateringSummary.setText(
-                    getString(
-                            R.string.home_watering_cooldown,
-                            cooldownCount
-                    )
-            );
-        } else {
-            txtGardenWateringSummary.setText(
-                    R.string.home_watering_idle
-            );
-        }
-    }
 
     private void renderEffectiveOnlineStatus() {
 
@@ -1192,33 +891,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void renderCommand(Command command) {
-
-        if (command == null) {
-            return;
-        }
-
-        boolean autoMode =
-                command.isAutoMode();
-
-        if (
-                switchAuto.isChecked()
-                        != autoMode
-        ) {
-
-            updatingAutoSwitch = true;
-
-            switchAuto.setChecked(
-                    autoMode
-            );
-
-            updatingAutoSwitch = false;
-        }
-
-        updateAutoModeUi(
-                autoMode
-        );
-    }
 
     private void updateOnlineUi(ConnectionState state) {
         boolean online = state == ConnectionState.ONLINE;
@@ -1254,205 +926,10 @@ public class MainActivity extends AppCompatActivity {
                 textColor
         );
 
-        switchAuto.setEnabled(online);
-        btnWater.setEnabled(online || relayOn);
     }
 
-    private void updateMoistureUi(long moisture) {
 
-        int statusColor;
-        int statusTextResource;
 
-        if (moisture < 30) {
-
-            statusColor =
-                    color(R.color.moistureLow);
-
-            statusTextResource =
-                    R.string.moisture_very_low;
-
-        } else if (moisture < 50) {
-
-            statusColor =
-                    color(R.color.moistureWarning);
-
-            statusTextResource =
-                    R.string.moisture_drying;
-
-        } else if (moisture <= 70) {
-
-            statusColor =
-                    color(R.color.moistureIdeal);
-
-            statusTextResource =
-                    R.string.moisture_ideal;
-
-        } else {
-
-            statusColor =
-                    color(R.color.moistureHigh);
-
-            statusTextResource =
-                    R.string.moisture_high;
-        }
-
-        txtMoisture.setTextColor(
-                statusColor
-        );
-
-        txtMoistureStatus.setText(
-                statusTextResource
-        );
-
-        txtMoistureStatus.setTextColor(
-                statusColor
-        );
-
-        progressMoisture.setProgressTintList(
-                ColorStateList.valueOf(
-                        statusColor
-                )
-        );
-    }
-
-    private void updatePumpUi(boolean running) {
-
-        if (running) {
-            imgPumpStatus.setImageTintList(
-                    ColorStateList.valueOf(
-                            color(R.color.pumpRunning)
-                    )
-            );
-
-            txtRelay.setText(
-                    R.string.pump_running
-            );
-
-            txtRelay.setTextColor(
-                    color(R.color.pumpRunning)
-            );
-
-            txtPumpDescription.setText(
-                    R.string.pump_description_running
-            );
-
-            txtPumpDescription.setTextColor(
-                    color(R.color.pumpRunning)
-            );
-
-            cardPumpStatus.setCardBackgroundColor(
-                    color(R.color.pumpRunningBackground)
-            );
-
-            cardPumpStatus.setStrokeColor(
-                    color(R.color.pumpRunning)
-            );
-
-            btnWater.setText(
-                    R.string.button_stop_watering
-            );
-
-            btnWater.setBackgroundTintList(
-                    ColorStateList.valueOf(
-                            color(R.color.buttonStop)
-                    )
-            );
-
-            txtManualHint.setText(
-                    R.string.manual_hint_running
-            );
-
-            return;
-        }
-
-        imgPumpStatus.setImageTintList(
-                ColorStateList.valueOf(
-                        color(R.color.pumpStopped)
-                )
-        );
-
-        txtRelay.setText(
-                R.string.pump_stopped
-        );
-
-        txtRelay.setTextColor(
-                color(R.color.pumpStopped)
-        );
-
-        txtPumpDescription.setText(
-                R.string.pump_description_idle
-        );
-
-        txtPumpDescription.setTextColor(
-                color(R.color.textSecondary)
-        );
-
-        cardPumpStatus.setCardBackgroundColor(
-                color(R.color.surfaceSoft)
-        );
-
-        cardPumpStatus.setStrokeColor(
-                color(R.color.border)
-        );
-
-        btnWater.setText(
-                valveSimulationMode
-                        ? R.string.manual_relay_test_button
-                        : R.string.button_start_manual_watering
-        );
-
-        btnWater.setBackgroundTintList(
-                ColorStateList.valueOf(
-                        color(R.color.buttonStart)
-                )
-        );
-
-        txtManualHint.setText(
-                valveSimulationMode
-                        ? R.string.manual_relay_test_hint
-                        : R.string.manual_hint_idle
-        );
-    }
-
-    private void updateAutoModeUi(boolean enabled) {
-
-        if (enabled) {
-
-            cardAutoMode.setCardBackgroundColor(
-                    color(R.color.onlineBackground)
-            );
-
-            cardAutoMode.setStrokeColor(
-                    color(R.color.online)
-            );
-
-            txtAutoDescription.setText(
-                    R.string.auto_mode_active_description
-            );
-
-            txtAutoDescription.setTextColor(
-                    color(R.color.online)
-            );
-
-            return;
-        }
-
-        cardAutoMode.setCardBackgroundColor(
-                color(R.color.surfaceSoft)
-        );
-
-        cardAutoMode.setStrokeColor(
-                color(R.color.border)
-        );
-
-        txtAutoDescription.setText(
-                R.string.auto_mode_inactive_description
-        );
-
-        txtAutoDescription.setTextColor(
-                color(R.color.textSecondary)
-        );
-    }
 
     private void initializeButtons() {
 
@@ -1460,23 +937,7 @@ public class MainActivity extends AppCompatActivity {
                 view -> showMainMenu()
         );
 
-        cardGardenSummary.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                SensorPointsActivity.class
-                        )
-                )
-        );
 
-        cardHomeAi.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                AIAssistantActivity.class
-                        )
-                )
-        );
 
         cardHomeHealth.setOnClickListener(
                 view -> startActivity(
@@ -1490,9 +951,9 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
 
-        cardHomePlantDoctorSummary.setOnClickListener(
+        cardHomePlantAssistantSummary.setOnClickListener(
                 view -> startActivity(
-                        new Intent(this, PlantDoctorActivity.class)
+                        new Intent(this, PlantAssistantActivity.class)
                 )
         );
 
@@ -1509,122 +970,14 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
 
-        btnHomeZones.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                SensorPointsActivity.class
-                        )
-                )
-        );
 
-        btnHomeAi.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                AIAssistantActivity.class
-                        )
-                )
-        );
 
-        btnHomeSettings.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                SettingsActivity.class
-                        )
-                )
-        );
 
-        btnToggleAdvanced.setOnClickListener(
-                view -> toggleAdvancedControls()
-        );
 
-        btnWater.setOnClickListener(
-                view -> {
 
-                    if (relayOn) {
-
-                        viewModel.setRelay(
-                                false
-                        );
-
-                        return;
-                    }
-
-                    if (valveSimulationMode) {
-                        showRelayTestConfirmation();
-                    } else {
-                        startActivity(
-                                new Intent(
-                                        this,
-                                        SensorPointsActivity.class
-                                )
-                        );
-                    }
-                }
-        );
-
-        switchAuto.setOnCheckedChangeListener(
-                (
-                        buttonView,
-                        checked
-                ) -> {
-
-                    if (updatingAutoSwitch) {
-                        return;
-                    }
-
-                    updateAutoModeUi(
-                            checked
-                    );
-
-                    viewModel.setAutoMode(
-                            checked
-                    );
-
-                    if (checked) {
-
-                        viewModel.setRelay(
-                                false
-                        );
-                    }
-                }
-        );
     }
 
-    private void toggleAdvancedControls() {
-        advancedControlsVisible = !advancedControlsVisible;
-        int visibility = advancedControlsVisible
-                ? View.VISIBLE
-                : View.GONE;
 
-        cardPrimaryZoneDetails.setVisibility(visibility);
-        cardWateringControl.setVisibility(visibility);
-        btnToggleAdvanced.setText(
-                advancedControlsVisible
-                        ? R.string.home_hide_advanced
-                        : R.string.home_show_advanced
-        );
-    }
-
-    private void showRelayTestConfirmation() {
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.manual_relay_test_title)
-                .setMessage(R.string.manual_relay_test_message)
-                .setNegativeButton(
-                        R.string.manual_relay_test_cancel,
-                        null
-                )
-                .setPositiveButton(
-                        R.string.manual_relay_test_confirm,
-                        (dialog, which) -> {
-                            viewModel.setAutoMode(false);
-                            viewModel.setRelay(true);
-                        }
-                )
-                .show();
-    }
     private void showMainMenu() {
 
         String tag =
@@ -1650,7 +1003,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
 
         super.onStart();
-        renderHomePlantDoctorRecommendation();
+        renderHomePlantAssistantRecommendation();
 
         onlineStatusHandler.removeCallbacks(
                 onlineStatusChecker
@@ -1661,10 +1014,15 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void renderHomePlantDoctorRecommendation() {
-        if (txtHomePlantDoctorSummary == null) return;
-        txtHomePlantDoctorSummary.setText(
-                PlantDoctorRecommendationStore.summary(this)
+    private void renderHomePlantAssistantRecommendation() {
+        if (txtHomePlantAssistantSummary == null) return;
+        txtHomePlantAssistantSummary.setText(
+                PlantAssistantHomeRecommendation.create(
+                        latestZones,
+                        latestWeather,
+                        PlantAssistantRecommendationStore.healthSignal(this),
+                        System.currentTimeMillis() / 1000L
+                )
         );
     }
 

@@ -28,6 +28,7 @@ import com.ali.smartgarden.fertilization.FertilizerAdvice;
 import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
 import com.ali.smartgarden.fertilization.FertilizerMixAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerMixResult;
+import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.viewmodels.FertilizationCalendarViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -64,6 +65,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fertilization_calendar);
+        PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
 
         MaterialButton btnBack = findViewById(R.id.btnBack);
         layoutTodayAdvice = findViewById(R.id.layoutTodayFertilizerAdvice);

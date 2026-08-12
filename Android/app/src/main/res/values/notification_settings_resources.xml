@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_settings_title">Bildirim Tercihleri</string>
+    <string name="notification_settings_intro_title">Hangi gelişmelerden haberdar olmak istersiniz?</string>
+    <string name="notification_settings_intro_message">Sulama, gübreleme, Bitki Asistanı, hava, cihaz ve stok bildirimlerini ayrı ayrı yönetin.</string>
+    <string name="notification_settings_save_failed">Bildirim tercihleri yedeklenemedi. Yerel ayarlar korunuyor.</string>
+    <string name="notification_phone_section">Telefon bildirimleri</string>
+    <string name="notification_phone_title">Telefon bildirimi izni</string>
+    <string name="notification_phone_open_message">İzin verildi. Uygun uyarılar telefonda gösterilir.</string>
+    <string name="notification_phone_closed_message">İzin verilmedi. Kayıtlar Bildirim Merkezi’nde tutulmaya devam eder.</string>
+    <string name="notification_system_settings">Sistem ayarları</string>
+    <string name="notification_allow">İzin ver</string>
+    <string name="notification_categories_section">Bildirim kategorileri</string>
+    <string name="notification_category_irrigation">Sulama</string>
+    <string name="notification_category_fertilization">Gübreleme</string>
+    <string name="notification_category_plant">Bitki Asistanı ve takip</string>
+    <string name="notification_category_weather">Hava durumu</string>
+    <string name="notification_category_device">Cihaz ve sistem</string>
+    <string name="notification_category_stock">Gübre stoğu</string>
+    <string name="notification_open_center">Bildirim Merkezi’ni aç</string>
+
+    <string name="reminder_settings_title">Hatırlatmalar</string>
+    <string name="reminder_settings_intro_title">Planlı işleri zamanında takip edin</string>
+    <string name="reminder_settings_intro_message">Hatırlatma zamanlarını burada, hangi kategorilerin açık olacağını Bildirim Tercihleri’nde yönetin.</string>
+    <string name="reminder_planned_section">Planlı hatırlatmalar</string>
+    <string name="reminder_irrigation_title">Sulama kayıtları</string>
+    <string name="reminder_irrigation_subtitle">Yeni tamamlanan sulama çevrimlerini bildirin.</string>
+    <string name="reminder_fertilization_title">Gübreleme zamanı</string>
+    <string name="reminder_fertilization_subtitle">Uygulama günü ve geciken gübre kayıtlarını hatırlatın.</string>
+    <string name="reminder_plant_title">Bitki Asistanı takibi</string>
+    <string name="reminder_plant_subtitle">Analizden 3 gün sonra karşılaştırma fotoğrafını hatırlatın.</string>
+    <string name="reminder_quiet_section">Rahatsız etmeyin</string>
+    <string name="reminder_quiet_title">Sessiz saatler</string>
+    <string name="reminder_quiet_subtitle">Telefon uyarıları bu aralıkta durur; Bildirim Merkezi kayıtları korunur.</string>
+    <string name="reminder_quiet_separator">ile</string>
+    <string name="reminder_save">Ayarları kaydet</string>
+    <string name="reminder_settings_saved">Hatırlatma ayarları kaydedildi.</string>
+    <string name="reminder_settings_save_failed">Hatırlatma ayarları yedeklenemedi. Yerel ayarlar korunuyor.</string>
+</resources>

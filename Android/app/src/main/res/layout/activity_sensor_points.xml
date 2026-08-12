@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -10,7 +9,6 @@
     android:clipToPadding="false"
     android:fillViewport="true"
     android:overScrollMode="never">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,13 +17,11 @@
         android:paddingTop="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="40dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBack"
                 style="@style/Widget.Material3.Button.IconButton"
@@ -37,35 +33,29 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:text="@string/symbol_back_arrow"
-                android:textColor="@color/textPrimary"
-                android:textSize="24sp"
                 app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="22dp"
-                app:rippleColor="@color/accentLight"/>
-
+                app:rippleColor="@color/accentLight"
+                android:text="@string/symbol_back_arrow"
+                android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
                     android:text="@string/sensor_points_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/sensor_points_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="44dp"
                 android:layout_height="44dp"
@@ -74,43 +64,35 @@
                 app:cardElevation="0dp"
                 app:strokeColor="@color/online"
                 app:strokeWidth="1dp">
-
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="🌱"
-                    android:textSize="21sp"/>
-
+                    android:text="@string/symbol_plant"
+                    android:textSize="21sp" />
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Featured"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="18dp">
-
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/sensor_status_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     <TextView
                         android:id="@+id/txtSensorSummary"
                         android:layout_width="wrap_content"
@@ -119,17 +101,14 @@
                         android:text="@string/sensor_summary_empty"
                         android:textColor="@color/textPrimary"
                         android:textSize="21sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/sensor_status_description"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 </LinearLayout>
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
@@ -138,7 +117,6 @@
                     app:cardElevation="0dp"
                     app:strokeColor="@color/online"
                     app:strokeWidth="1dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
@@ -148,59 +126,46 @@
                         android:text="@string/sensor_active"
                         android:textColor="@color/online"
                         android:textSize="10sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/queue_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:id="@+id/txtQueuePumpState"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/queue_pump_idle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <LinearLayout
                     android:id="@+id/layoutIrrigationQueue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:orientation="vertical"/>
-
+                    android:orientation="vertical" />
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerGardenZones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:clipToPadding="false"
-            android:overScrollMode="never"/>
-
+            android:overScrollMode="never" />
     </LinearLayout>
-
 </androidx.core.widget.NestedScrollView>

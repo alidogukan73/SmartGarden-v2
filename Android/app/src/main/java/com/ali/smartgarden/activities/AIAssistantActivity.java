@@ -24,6 +24,7 @@ import com.ali.smartgarden.models.AIDecision;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.ui.DecisionFlowFactory;
+import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.models.PredictionValidationStatus;
 import com.ali.smartgarden.models.MoisturePrediction;
@@ -186,6 +187,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_ai_assistant);
+        PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
 
         initializeViews();
         initializeRecyclerView();
@@ -854,7 +856,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         if (zones == null || zones.isEmpty()) {
             addZoneDecisionRow(
-                    "🌱",
+                    getString(R.string.symbol_plant),
                     getString(R.string.ai_zone_waiting),
                     R.color.textSecondary
             );
@@ -863,7 +865,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         for (GardenZone zone : zones) {
             String emoji = zone.getEmoji() == null
-                    ? "🌱"
+                    ? getString(R.string.symbol_plant)
                     : zone.getEmoji();
             String name = zone.getName() == null
                     ? zone.getZone_id()

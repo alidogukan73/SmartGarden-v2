@@ -1,985 +1,1630 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
-
     <!-- UYGULAMA -->
-
-    <string name="app_name">AVORA</string>
-    <string name="app_subtitle">Akıllı Bahçe Asistanı</string>
-
-
+    <string
+        name="app_name">AVORA</string>
+    <string
+        name="app_subtitle">Akıllı Bitki Asistanı</string>
     <!-- CİHAZ DURUMU -->
-
-    <string name="label_connected_device">Bağlı cihaz</string>
-
-    <string name="status_online">● ONLINE</string>
-    <string name="status_connecting">● BAĞLANIYOR</string>
-    <string name="status_offline">● OFFLINE</string>
-
-    <string name="fertilization_title">AI Gübre Asistanı</string>
-    <string name="fertilization_subtitle">Bölgesel besleme önerileri, planı ve uygulama takibi</string>
-    <string name="fertilization_advisory_title">Güvenli öneri modu</string>
-    <string name="fertilization_safe_badge">OTOMASYON KAPALI</string>
-    <string name="fertilization_advisory_description">Sistem şimdilik yalnızca hatırlatma ve öneri verir. Gübre uygulamasını otomatik olarak başlatmaz.</string>
-    <string name="fertilization_summary_empty">Gübre planları yükleniyor</string>
-    <string name="fertilization_summary">%1$d / %2$d bölgenin planı aktif</string>
-    <string name="fertilization_zones_description">Planı hazırlamak için bir sonraki adımda bölge ayarlarını açacağız.</string>
-    <string name="fertilization_plan_active">PLAN AKTİF</string>
-    <string name="fertilization_plan_waiting">KURULUM BEKLİYOR</string>
-    <string name="fertilization_growth_stage">Gelişim dönemi: %1$s</string>
-    <string name="fertilization_next_application">Sonraki uygulama: %1$s</string>
-    <string name="fertilization_next_not_planned">Sonraki uygulama: Henüz planlanmadı</string>
-    <string name="fertilization_setup_hint">Plan oluşturmak için bölge bilgileri gerekli</string>
-    <string name="fertilization_not_set">Belirlenmedi</string>
-    <string name="growth_stage_rooting">Fide ve köklenme</string>
-    <string name="growth_stage_vegetative">Vejetatif gelişim</string>
-    <string name="growth_stage_flowering">Çiçeklenme</string>
-    <string name="growth_stage_fruiting">Meyve oluşumu</string>
-    <string name="growth_stage_harvest">Hasat dönemi</string>
-    <string name="menu_fertilization_description">Akıllı besleme önerileri, planlar ve hatırlatmalar</string>
-    <string name="fertilization_zone_settings">Gübre planı ayarları</string>
-    <string name="fertilization_zone_settings_subtitle">Dikim bilgileri ve gelişim dönemi</string>
-    <string name="fertilization_unsaved_message">Kaydedilmemiş değişiklikleriniz var</string>
-    <string name="fertilization_enable_plan">Bu bölge için gübre planını etkinleştir</string>
-    <string name="fertilization_enable_description">Etkinleştirmek için dikim tarihi ve gelişim dönemi gereklidir.</string>
-    <string name="fertilization_planting_date">Dikim veya fide şaşırtma tarihi</string>
-    <string name="fertilization_growth_stage_label">Gelişim dönemi</string>
-    <string name="fertilization_reminders">Hatırlatmaları aç</string>
-    <string name="fertilization_reminders_description">Planlanan uygulama zamanı yaklaştığında bildirim hazırlanır.</string>
-    <string name="fertilization_missing_title">Eksik bölge bilgisi</string>
-    <string name="fertilization_missing_message">Planı etkinleştirmek için dikim tarihi ile gelişim dönemini seçin.</string>
-    <string name="fertilization_saved">Gübre planı ayarları kaydedildi</string>
-    <string name="fertilization_save_failed">Ayarlar kaydedilemedi. Bağlantıyı kontrol edin.</string>
-    <string name="fertilizer_manage_products">Gübrelerim</string>
-    <string name="fertilizer_products_title">Gübre Ürünleri</string>
-    <string name="fertilizer_products_subtitle">Etiket dozu ve güvenli tekrar aralığı</string>
-    <string name="fertilizer_add_product">Yeni gübre ürünü ekle</string>
-    <string name="fertilizer_edit_product">Gübre ürününü düzenle</string>
-    <string name="fertilizer_products_empty">Henüz gübre ürünü eklenmedi. İlk ürünü eklerken ambalaj etiketindeki dozu kullanın.</string>
-    <string name="fertilizer_product_name">Ürün adı</string>
-    <string name="fertilizer_form">Ürün biçimi</string>
-    <string name="fertilizer_npk">NPK / içerik (isteğe bağlı)</string>
-    <string name="fertilizer_label_dose">Etikette önerilen doz</string>
-    <string name="fertilizer_dose_unit">Doz birimi</string>
-    <string name="fertilizer_minimum_interval">Minimum tekrar aralığı (gün)</string>
-    <string name="fertilizer_required_fields">Ürün adı, pozitif etiket dozu, doz birimi ve 1–365 gün aralığı gereklidir.</string>
-    <string name="fertilizer_product_saved">Gübre ürünü kaydedildi</string>
-    <string name="fertilizer_product_info">%1$s · %2$s</string>
-    <string name="fertilizer_product_dose">Etiket dozu: %1$s %2$s · En az %3$d gün</string>
-    <string name="fertilizer_product_dose_range">Üretici aralığı: %1$s–%2$s %3$s · En az %4$d gün</string>
-    <string name="fertilization_product_label">Kullanılacak gübre ürünü</string>
-    <string name="fertilization_product_required">Önce Gübre Ürünleri ekranından bir ürün ekleyip seçin.</string>
-    <string name="fertilization_first_application">İlk uygulama: %1$s · Ürün aralığı: %2$d gün</string>
-    <string name="fertilization_first_application_overdue">İlk uygulama: %1$s · Gecikmiş görünüyor</string>
-    <string name="fertilization_missing_product">Planı etkinleştirmek için kayıtlı bir gübre ürünü seçin.</string>
-    <string name="fertilization_no_stage_product">Seçilen gelişim dönemine uygun bir ürün seçin.</string>
-    <string name="fertilization_smart_recommendation">Akıllı dönem önerisi</string>
-    <string name="fertilization_use_recommendation">Önerilen ürünü seç</string>
-    <string name="fertilization_recommendation_detail">%1$s · Damlama: %2$s–%3$s %4$s · %5$d günde bir</string>
-    <string name="fertilization_analysis_warning">Toprak veya yaprak analizine göre kesinleştirin; sistem gübreyi otomatik uygulamaz.</string>
-    <string name="fertilization_stage_focus">Amaç: %1$s</string>
-    <string name="fertilization_stage_support">Destek: %1$s</string>
-    <string name="fertilization_stage_caution">Dikkat: %1$s</string>
-    <string name="fertilization_record_application">Gübre uygulandı olarak kaydet</string>
-    <string name="fertilization_record_title">Gübre uygulamasını kaydet</string>
-    <string name="fertilization_applied_dose">Uygulanan miktar</string>
-    <string name="fertilization_manual_record_warning">Yalnızca uygulamayı gerçekten yaptıysanız kaydedin. Sonraki tarih bu kayıt üzerinden hesaplanacaktır.</string>
-    <string name="fertilization_record_confirm">Uygulamayı kaydet</string>
-    <string name="fertilization_invalid_dose">Sıfırdan büyük geçerli bir miktar girin.</string>
-    <string name="fertilization_application_saved">Gübre uygulaması kaydedildi ve sonraki tarih güncellendi.</string>
-    <string name="fertilization_application_failed">Gübre uygulaması kaydedilemedi.</string>
-    <string name="fertilizer_history_open">Uygulama geçmişi</string>
-    <string name="fertilizer_bulk_save">Toplu Uygulama Kaydet</string>
-    <string name="fertilizer_history_title">Gübre Geçmişi</string>
-    <string name="fertilizer_history_subtitle">Bölgelere kaydedilen gerçek uygulamalar</string>
-    <string name="fertilizer_history_empty">Henüz kaydedilmiş bir gübre uygulaması yok.</string>
-    <string name="fertilizer_history_dose">Uygulanan miktar: %1$s %2$s</string>
-    <string name="fertilization_due_summary_empty">Planlanan uygulama durumu hazırlanıyor.</string>
-    <string name="fertilization_due_summary">%1$d gecikmiş · %2$d bugün · %3$d yaklaşıyor</string>
-    <string name="fertilization_status_overdue">GECİKMİŞ</string>
-    <string name="fertilization_status_today">BUGÜN</string>
-    <string name="fertilization_status_upcoming">YAKLAŞIYOR</string>
-    <string name="fertilization_due_today">Bugün uygulanmalı</string>
-    <string name="fertilization_due_overdue">%1$d gün gecikti</string>
-    <string name="fertilization_due_in_days">%1$d gün kaldı</string>
-    <string name="fertilizer_notification_channel">AVORA · Gübre hatırlatmaları</string>
-    <string name="fertilizer_notification_channel_description">AVORA için bugün yapılacak ve gecikmiş bölgesel gübre uygulamaları</string>
-    <string name="fertilizer_notification_today_title">Bugünkü gübre uygulaması</string>
-    <string name="fertilizer_notification_overdue_title">Gecikmiş gübre uygulaması</string>
-    <string name="fertilizer_notification_today_message">%1$s bölgesinin gübre uygulaması bugün planlandı.</string>
-    <string name="fertilizer_notification_overdue_message">%1$s bölgesinin gübre uygulaması %2$d gün gecikti.</string>
-    <string name="fertilizer_notification_dose"> Ürün: %1$s · Hazırlanacak: %2$s–%3$s %4$s.</string>
-    <string name="fertilizer_notification_stock_ok"> Stok yeterli.</string>
-    <string name="fertilizer_notification_stock_short"> Stok yetersiz; %1$s %2$s eksik.</string>
-    <string name="fertilizer_notification_stock_unknown"> Stok bilgisi girilmedi.</string>
-    <string name="fertilizer_notification_measurement_missing"> Alan veya tank hacmi eksik olduğu için miktar hesaplanamadı.</string>
-    <string name="fertilization_advance_stage">Sonraki gelişim dönemine geç</string>
-    <string name="fertilization_advance_stage_to">Sonraki dönem: %1$s</string>
-    <string name="fertilization_advance_title">Gelişim dönemi değiştirilsin mi?</string>
-    <string name="fertilization_advance_message">%1$s döneminden %2$s dönemine geçilecek. Mevcut gübre seçimi temizlenecek ve yeni döneme uygun ürünler önerilecek.</string>
-    <string name="fertilization_advance_confirm">Yeni dönemi hazırla</string>
-    <string name="fertilization_advance_notice">Yeni dönem hazırlandı. Önerilen ürünü kontrol edip ayarları kaydedin.</string>
-    <string name="fertilization_repeat_wait">Tekrar uygulama için %1$d gün bekleyin</string>
-    <string name="fertilization_repeat_blocked_title">Erken uygulama engellendi</string>
-    <string name="fertilization_repeat_blocked_message">Bu ürünün minimum tekrar süresi henüz dolmadı. En erken %1$s tarihinde yeniden kaydedilebilir.</string>
-    <string name="fertilization_high_dose_title">Üretici aralığının üzerinde</string>
-    <string name="fertilization_high_dose_message">Girdiğiniz %1$s miktarı, üreticinin %2$s üst sınırını aşıyor. Bu miktar yalnız analiz veya uzman önerisine dayanıyorsa devam edin.</string>
-    <string name="fertilization_high_dose_confirm">Yine de kaydet</string>
-    <string name="fertilizer_history_statistics">Seçili bölge özeti</string>
-    <string name="fertilizer_history_count_empty">0\nUygulama</string>
-    <string name="fertilizer_history_products_empty">0\nÜrün çeşidi</string>
-    <string name="fertilizer_history_last_empty">—\nSon uygulama</string>
-    <string name="fertilizer_history_count">%1$d\nUygulama</string>
-    <string name="fertilizer_history_products">%1$d\nÜrün çeşidi</string>
-    <string name="fertilizer_history_last">%1$s\nSon uygulama</string>
-    <string name="fertilizer_history_usage_title">Kullanım analizi</string>
-    <string name="fertilizer_history_usage_empty">Ölçülmüş gübre kullanım kaydı henüz yok.</string>
-    <string name="fertilizer_history_usage_total">Toplam: %1$s g · %2$s ml</string>
-    <string name="fertilizer_history_usage_30d">Son 30 gün: %1$s g · %2$s ml</string>
-    <string name="fertilizer_history_usage_methods">Yöntemler: Damlama %1$d · Topraktan %2$d · Yapraktan %3$d</string>
-    <string name="fertilizer_history_export">CSV olarak dışa aktar</string>
-    <string name="fertilizer_history_export_title">Gübre geçmişini kaydet</string>
-    <string name="fertilizer_history_export_empty">Dışa aktarılacak gübre kaydı bulunmuyor.</string>
-    <string name="fertilizer_history_export_success">Gübre geçmişi CSV olarak kaydedildi.</string>
-    <string name="fertilizer_history_export_failed">Gübre geçmişi dışa aktarılamadı.</string>
-    <string name="fertilization_area_m2">Bölge alanı (m²)</string>
-    <string name="fertilization_tank_liters">Tank hacmi (L)</string>
-    <string name="fertilization_dose_calculator">Bu bölge için hesaplanan miktar</string>
-    <string name="fertilization_dose_missing_product">Hesaplama için önce bir gübre ürünü seçin.</string>
-    <string name="fertilization_dose_missing_area">Dekar bazlı hesaplama için bölge alanını girin.</string>
-    <string name="fertilization_dose_missing_tank">Bu ürünün yaprak uygulaması için tank hacmini girin.</string>
-    <string name="fertilization_dose_result">%1$s–%2$s %3$s · %4$s</string>
-    <string name="fertilization_dose_single">%1$s %2$s · %3$s</string>
-    <string name="fertilization_dose_area_note">%1$s m² bölge için</string>
-    <string name="fertilization_dose_tank_note">%1$s L tank için</string>
-    <string name="fertilization_dose_unsupported">Bu ürün için otomatik dönüşüm desteklenmiyor; üretici etiketini kullanın.</string>
-    <string name="fertilization_application_suggestion">Önerilen gerçek miktar: %1$s–%2$s %3$s · %4$s</string>
-    <string name="fertilization_application_suggestion_single">Önerilen gerçek miktar: %1$s %2$s · %3$s</string>
-    <string name="fertilizer_history_area">Hesaplama: %1$s m² bölge</string>
-    <string name="fertilizer_history_tank">Hesaplama: %1$s L tank</string>
-    <string name="fertilizer_stock_amount">Mevcut stok</string>
-    <string name="fertilizer_stock_unit">Stok birimi</string>
-    <string name="fertilizer_low_stock_threshold">Düşük stok uyarı sınırı</string>
-    <string name="fertilizer_stock_unknown">Stok bilgisi girilmedi</string>
-    <string name="fertilizer_stock_available">Stok: %1$s %2$s</string>
-    <string name="fertilizer_stock_low">DÜŞÜK STOK · %1$s %2$s kaldı</string>
-    <string name="fertilization_deduct_stock">Kaydederken %1$s %2$s stoktan düş</string>
-    <string name="fertilization_insufficient_stock">Girilen miktar mevcut stoktan fazla. Stoktan düşmeyi kapatın veya miktarı kontrol edin.</string>
-    <string name="fertilizer_remove">Sil / Pasifleştir</string>
-    <string name="fertilizer_delete_title">Gübre ürününü sil</string>
-    <string name="fertilizer_deactivate_title">Hazır ürünü pasifleştir</string>
-    <string name="fertilizer_delete_message">%1$s kalıcı olarak silinecek. Geçmiş uygulama kayıtları korunacaktır.</string>
-    <string name="fertilizer_deactivate_message">%1$s hazır sistem ürünüdür. Silinmek yerine yeni planlarda görünmeyecek şekilde pasifleştirilecektir.</string>
-    <string name="fertilizer_remove_confirm">İşlemi onayla</string>
-    <string name="fertilizer_in_use_title">Ürün aktif planda kullanılıyor</string>
-    <string name="fertilizer_in_use_message">Önce şu bölgelerin gübre planından bu ürünü kaldırın: %1$s</string>
-    <string name="fertilizer_deleted">Gübre ürünü silindi</string>
-    <string name="fertilizer_deactivated">Hazır gübre ürünü pasifleştirildi</string>
-    <string name="fertilizer_inactive">PASİF</string>
-    <string name="fertilization_stock_sufficient">Stok: %1$s %2$s · yaklaşık %3$d uygulama yeter</string>
-    <string name="fertilization_stock_low_for_zone">Düşük stok: %1$s %2$s · yaklaşık %3$d uygulama kaldı</string>
-    <string name="fertilization_stock_insufficient">Stok yetersiz: %1$s %2$s mevcut, önerilen minimum %3$s %2$s</string>
-    <string name="fertilization_stock_unit_mismatch">Stok birimi (%1$s) hesaplanan miktarla (%2$s) uyuşmuyor.</string>
-    <string name="fertilizer_stock_summary_empty">Henüz stok bilgisi girilmedi.</string>
-    <string name="fertilizer_stock_summary">Stok takibi: %1$d ürün · %2$d düşük · %3$d tükenmiş</string>
-    <string name="fertilizer_stock_item">%1$s · %2$s %3$s · %4$s</string>
-    <string name="fertilizer_stock_ok">Yeterli</string>
-    <string name="fertilizer_stock_status_low">Azalıyor</string>
-    <string name="fertilizer_stock_empty_status">Tükendi</string>
-    <string name="fertilizer_preparation_title">Sonraki uygulama hazırlığı</string>
-    <string name="fertilizer_preparation_empty">Hesaplanabilir aktif bir gübre planı bulunmuyor.</string>
-    <string name="fertilizer_preparation_item">• %1$s: %2$s–%3$s %4$s gerekli%5$s</string>
-    <string name="fertilizer_preparation_stock_ok"> · stok yeterli</string>
-    <string name="fertilizer_preparation_stock_short"> · %1$s %2$s eksik</string>
-    <string name="fertilizer_preparation_stock_unknown"> · stok girilmedi</string>
-    <string name="fertilizer_preparation_missing">%1$d bölgede alan/tank bilgisi eksik.</string>
-    <string name="fertilization_application_method">Uygulama yöntemi</string>
-    <string name="fertilization_application_notes">Uygulama notu (isteğe bağlı)</string>
-    <string name="fertilization_application_date">Uygulama tarihi</string>
-    <string name="fertilization_application_date_future">Uygulama tarihi gelecekte olamaz.</string>
-    <string name="fertilization_application_date_invalid">Geçerli bir uygulama tarihi seçin.</string>
-    <string name="fertilizer_application_type">Uygulama türü</string>
-    <string name="fertilizer_application_product">Uygulanan ürün</string>
-    <string name="fertilizer_type_nutrition">Besleme gübresi</string>
-    <string name="fertilizer_type_organic">Organik gübre</string>
-    <string name="fertilizer_type_conditioner">Toprak düzenleyici</string>
-    <string name="fertilizer_type_biostimulant">Mikrobiyal destek</string>
-    <string name="fertilizer_history_type">Tür: %1$s</string>
-    <string name="fertilization_soil_support_title">Toprak desteği (isteğe bağlı)</string>
-    <string name="fertilization_soil_support_rooting">Dikim ve köklenmede hümik–fülvik asit veya kök dostu mikrobiyal ürün, etikete göre değerlendirilebilir.</string>
-    <string name="fertilization_soil_support_vegetative">Vejetatif gelişimde organik madde ve toprak biyolojisini destekleyen uygulamalar, ana besleme programına ek olarak planlanabilir.</string>
-    <string name="fertilization_soil_support_flowering">Çiçeklenmede deniz yosunu veya biyostimülant desteği değerlendirilebilir; ürün etiketi karışım uyarılarına uyun.</string>
-    <string name="fertilization_soil_support_fruiting">Meyve döneminde organik/toprak düzenleyici uygulamasını ana NPK programından ayrı kaydedin; bu kayıt besleme takvimini değiştirmez.</string>
-    <string name="fertilization_soil_support_harvest">Hasat sonrası organik madde ve toprak düzenleyiciyle gelecek dönem için toprak yapısını iyileştirmeyi planlayın.</string>
-    <string name="fertilization_soil_support_safety">Kesin ürün ve doz kararı için etiket ile toprak/yaprak analizini esas alın.</string>
-    <string name="fertilization_application_schedule_title">Uygulama Takvimi</string>
-    <string name="fertilization_schedule_empty">Henüz uygulama kaydı yok</string>
-    <string name="fertilization_schedule_next">Sonraki: %1$s</string>
-    <string name="fertilization_schedule_due">Tekrar zamanı geldi</string>
-    <string name="fertilization_schedule_item">%1$s · %2$s</string>
-    <string name="fertilizer_history_action_title">Uygulama kaydı</string>
-    <string name="fertilizer_history_delete">Kaydı sil</string>
-    <string name="fertilizer_history_delete_confirm">Bu kayıt silinecek ve ilgili uygulama takvimi yeniden hesaplanacak.</string>
-    <string name="fertilizer_history_deleted">Uygulama kaydı silindi.</string>
-    <string name="fertilizer_history_edit">Kaydı düzenle</string>
-    <string name="fertilizer_history_updated">Uygulama kaydı güncellendi.</string>
-    <string name="fertilization_method_drip">Damlama</string>
-    <string name="fertilization_method_soil">Topraktan</string>
-    <string name="fertilization_method_foliar">Yapraktan</string>
-    <string name="fertilization_safety_confirmation">Ürün etiketini, dozu ve ölçü birimini kontrol ettim</string>
-    <string name="fertilization_safety_required">Kaydetmeden önce ürün, doz ve ölçü birimi kontrolünü onaylayın.</string>
-    <string name="fertilizer_history_method">Yöntem: %1$s</string>
-    <string name="fertilizer_history_note">Not: %1$s</string>
-
-    <string name="default_device_name">smartgarden-001</string>
-
-
+    <string
+        name="label_connected_device">Bağlı cihaz</string>
+    <string
+        name="status_online">● ONLINE</string>
+    <string
+        name="status_connecting">● BAĞLANIYOR</string>
+    <string
+        name="status_offline">● OFFLINE</string>
+    <string
+        name="fertilization_title">AI Gübre Asistanı</string>
+    <string
+        name="fertilization_subtitle">Bölgesel besleme önerileri, planı ve uygulama takibi</string>
+    <string
+        name="fertilization_advisory_title">Güvenli öneri modu</string>
+    <string
+        name="fertilization_safe_badge">OTOMASYON KAPALI</string>
+    <string
+        name="fertilization_advisory_description">Sistem şimdilik yalnızca hatırlatma ve öneri verir. Gübre uygulamasını otomatik olarak başlatmaz.</string>
+    <string
+        name="fertilization_summary_empty">Gübre planları yükleniyor</string>
+    <string
+        name="fertilization_summary">%1$d / %2$d bölgenin planı aktif</string>
+    <string
+        name="fertilization_zones_description">Planı hazırlamak için bir sonraki adımda bölge ayarlarını açacağız.</string>
+    <string
+        name="fertilization_plan_active">PLAN AKTİF</string>
+    <string
+        name="fertilization_plan_waiting">KURULUM BEKLİYOR</string>
+    <string
+        name="fertilization_growth_stage">Gelişim dönemi: %1$s</string>
+    <string
+        name="fertilization_next_application">Sonraki uygulama: %1$s</string>
+    <string
+        name="fertilization_next_not_planned">Sonraki uygulama: Henüz planlanmadı</string>
+    <string
+        name="fertilization_setup_hint">Plan oluşturmak için bölge bilgileri gerekli</string>
+    <string
+        name="fertilization_not_set">Belirlenmedi</string>
+    <string
+        name="growth_stage_rooting">Fide ve köklenme</string>
+    <string
+        name="growth_stage_vegetative">Vejetatif gelişim</string>
+    <string
+        name="growth_stage_flowering">Çiçeklenme</string>
+    <string
+        name="growth_stage_fruiting">Meyve oluşumu</string>
+    <string
+        name="growth_stage_harvest">Hasat dönemi</string>
+    <string
+        name="menu_fertilization_description">Akıllı besleme önerileri, planlar ve hatırlatmalar</string>
+    <string
+        name="fertilization_zone_settings">Gübre planı ayarları</string>
+    <string
+        name="fertilization_zone_settings_subtitle">Dikim bilgileri ve gelişim dönemi</string>
+    <string
+        name="fertilization_unsaved_message">Kaydedilmemiş değişiklikleriniz var</string>
+    <string
+        name="fertilization_enable_plan">Bu bölge için gübre planını etkinleştir</string>
+    <string
+        name="fertilization_enable_description">Etkinleştirmek için dikim tarihi ve gelişim dönemi gereklidir.</string>
+    <string
+        name="fertilization_planting_date">Dikim veya fide şaşırtma tarihi</string>
+    <string
+        name="fertilization_growth_stage_label">Gelişim dönemi</string>
+    <string
+        name="fertilization_reminders">Hatırlatmaları aç</string>
+    <string
+        name="fertilization_reminders_description">Planlanan uygulama zamanı yaklaştığında bildirim hazırlanır.</string>
+    <string
+        name="fertilization_missing_title">Eksik bölge bilgisi</string>
+    <string
+        name="fertilization_missing_message">Planı etkinleştirmek için dikim tarihi ile gelişim dönemini seçin.</string>
+    <string
+        name="fertilization_saved">Gübre planı ayarları kaydedildi</string>
+    <string
+        name="fertilization_save_failed">Ayarlar kaydedilemedi. Bağlantıyı kontrol edin.</string>
+    <string
+        name="fertilizer_manage_products">Gübrelerim</string>
+    <string
+        name="fertilizer_products_title">Gübre Ürünleri</string>
+    <string
+        name="fertilizer_products_subtitle">Etiket dozu ve güvenli tekrar aralığı</string>
+    <string
+        name="fertilizer_add_product">Yeni gübre ürünü ekle</string>
+    <string
+        name="fertilizer_edit_product">Gübre ürününü düzenle</string>
+    <string
+        name="fertilizer_products_empty">Henüz gübre ürünü eklenmedi. İlk ürünü eklerken ambalaj etiketindeki dozu kullanın.</string>
+    <string
+        name="fertilizer_product_name">Ürün adı</string>
+    <string
+        name="fertilizer_form">Ürün biçimi</string>
+    <string
+        name="fertilizer_npk">NPK / içerik (isteğe bağlı)</string>
+    <string
+        name="fertilizer_label_dose">Etikette önerilen doz</string>
+    <string
+        name="fertilizer_dose_unit">Doz birimi</string>
+    <string
+        name="fertilizer_minimum_interval">Minimum tekrar aralığı (gün)</string>
+    <string
+        name="fertilizer_required_fields">Ürün adı, pozitif etiket dozu, doz birimi ve 1–365 gün aralığı gereklidir.</string>
+    <string
+        name="fertilizer_product_saved">Gübre ürünü kaydedildi</string>
+    <string
+        name="fertilizer_product_info">%1$s · %2$s</string>
+    <string
+        name="fertilizer_product_dose">Etiket dozu: %1$s %2$s · En az %3$d gün</string>
+    <string
+        name="fertilizer_product_dose_range">Üretici aralığı: %1$s–%2$s %3$s · En az %4$d gün</string>
+    <string
+        name="fertilization_product_label">Kullanılacak gübre ürünü</string>
+    <string
+        name="fertilization_product_required">Önce Gübre Ürünleri ekranından bir ürün ekleyip seçin.</string>
+    <string
+        name="fertilization_first_application">İlk uygulama: %1$s · Ürün aralığı: %2$d gün</string>
+    <string
+        name="fertilization_first_application_overdue">İlk uygulama: %1$s · Gecikmiş görünüyor</string>
+    <string
+        name="fertilization_missing_product">Planı etkinleştirmek için kayıtlı bir gübre ürünü seçin.</string>
+    <string
+        name="fertilization_no_stage_product">Seçilen gelişim dönemine uygun bir ürün seçin.</string>
+    <string
+        name="fertilization_smart_recommendation">Akıllı dönem önerisi</string>
+    <string
+        name="fertilization_use_recommendation">Önerilen ürünü seç</string>
+    <string
+        name="fertilization_recommendation_detail">%1$s · Damlama: %2$s–%3$s %4$s · %5$d günde bir</string>
+    <string
+        name="fertilization_analysis_warning">Toprak veya yaprak analizine göre kesinleştirin; sistem gübreyi otomatik uygulamaz.</string>
+    <string
+        name="fertilization_stage_focus">Amaç: %1$s</string>
+    <string
+        name="fertilization_stage_support">Destek: %1$s</string>
+    <string
+        name="fertilization_stage_caution">Dikkat: %1$s</string>
+    <string
+        name="fertilization_record_application">Gübre uygulandı olarak kaydet</string>
+    <string
+        name="fertilization_record_title">Gübre uygulamasını kaydet</string>
+    <string
+        name="fertilization_applied_dose">Uygulanan miktar</string>
+    <string
+        name="fertilization_manual_record_warning">Yalnızca uygulamayı gerçekten yaptıysanız kaydedin. Sonraki tarih bu kayıt üzerinden hesaplanacaktır.</string>
+    <string
+        name="fertilization_record_confirm">Uygulamayı kaydet</string>
+    <string
+        name="fertilization_invalid_dose">Sıfırdan büyük geçerli bir miktar girin.</string>
+    <string
+        name="fertilization_application_saved">Gübre uygulaması kaydedildi ve sonraki tarih güncellendi.</string>
+    <string
+        name="fertilization_application_failed">Gübre uygulaması kaydedilemedi.</string>
+    <string
+        name="fertilizer_history_open">Uygulama geçmişi</string>
+    <string
+        name="fertilizer_bulk_save">Toplu Uygulama Kaydet</string>
+    <string
+        name="fertilizer_history_title">Gübre Geçmişi</string>
+    <string
+        name="fertilizer_history_subtitle">Bölgelere kaydedilen gerçek uygulamalar</string>
+    <string
+        name="fertilizer_history_empty">Henüz kaydedilmiş bir gübre uygulaması yok.</string>
+    <string
+        name="fertilizer_history_dose">Uygulanan miktar: %1$s %2$s</string>
+    <string
+        name="fertilization_due_summary_empty">Planlanan uygulama durumu hazırlanıyor.</string>
+    <string
+        name="fertilization_due_summary">%1$d gecikmiş · %2$d bugün · %3$d yaklaşıyor</string>
+    <string
+        name="fertilization_status_overdue">GECİKMİŞ</string>
+    <string
+        name="fertilization_status_today">BUGÜN</string>
+    <string
+        name="fertilization_status_upcoming">YAKLAŞIYOR</string>
+    <string
+        name="fertilization_due_today">Bugün uygulanmalı</string>
+    <string
+        name="fertilization_due_overdue">%1$d gün gecikti</string>
+    <string
+        name="fertilization_due_in_days">%1$d gün kaldı</string>
+    <string
+        name="fertilizer_notification_channel">AVORA · Gübre hatırlatmaları</string>
+    <string
+        name="fertilizer_notification_channel_description">AVORA için bugün yapılacak ve gecikmiş bölgesel gübre uygulamaları</string>
+    <string
+        name="fertilizer_notification_today_title">Bugünkü gübre uygulaması</string>
+    <string
+        name="fertilizer_notification_overdue_title">Gecikmiş gübre uygulaması</string>
+    <string
+        name="fertilizer_notification_today_message">%1$s bölgesinin gübre uygulaması bugün planlandı.</string>
+    <string
+        name="fertilizer_notification_overdue_message">%1$s bölgesinin gübre uygulaması %2$d gün gecikti.</string>
+    <string
+        name="fertilizer_notification_dose"> Ürün: %1$s · Hazırlanacak: %2$s–%3$s %4$s.</string>
+    <string
+        name="fertilizer_notification_stock_ok"> Stok yeterli.</string>
+    <string
+        name="fertilizer_notification_stock_short"> Stok yetersiz; %1$s %2$s eksik.</string>
+    <string
+        name="fertilizer_notification_stock_unknown"> Stok bilgisi girilmedi.</string>
+    <string
+        name="fertilizer_notification_measurement_missing"> Alan veya tank hacmi eksik olduğu için miktar hesaplanamadı.</string>
+    <string
+        name="fertilization_advance_stage">Sonraki gelişim dönemine geç</string>
+    <string
+        name="fertilization_advance_stage_to">Sonraki dönem: %1$s</string>
+    <string
+        name="fertilization_advance_title">Gelişim dönemi değiştirilsin mi?</string>
+    <string
+        name="fertilization_advance_message">%1$s döneminden %2$s dönemine geçilecek. Mevcut gübre seçimi temizlenecek ve yeni döneme uygun ürünler önerilecek.</string>
+    <string
+        name="fertilization_advance_confirm">Yeni dönemi hazırla</string>
+    <string
+        name="fertilization_advance_notice">Yeni dönem hazırlandı. Önerilen ürünü kontrol edip ayarları kaydedin.</string>
+    <string
+        name="fertilization_repeat_wait">Tekrar uygulama için %1$d gün bekleyin</string>
+    <string
+        name="fertilization_repeat_blocked_title">Erken uygulama engellendi</string>
+    <string
+        name="fertilization_repeat_blocked_message">Bu ürünün minimum tekrar süresi henüz dolmadı. En erken %1$s tarihinde yeniden kaydedilebilir.</string>
+    <string
+        name="fertilization_high_dose_title">Üretici aralığının üzerinde</string>
+    <string
+        name="fertilization_high_dose_message">Girdiğiniz %1$s miktarı, üreticinin %2$s üst sınırını aşıyor. Bu miktar yalnız analiz veya uzman önerisine dayanıyorsa devam edin.</string>
+    <string
+        name="fertilization_high_dose_confirm">Yine de kaydet</string>
+    <string
+        name="fertilizer_history_statistics">Seçili bölge özeti</string>
+    <string
+        name="fertilizer_history_count_empty">0\nUygulama</string>
+    <string
+        name="fertilizer_history_products_empty">0\nÜrün çeşidi</string>
+    <string
+        name="fertilizer_history_last_empty">—\nSon uygulama</string>
+    <string
+        name="fertilizer_history_count">%1$d\nUygulama</string>
+    <string
+        name="fertilizer_history_products">%1$d\nÜrün çeşidi</string>
+    <string
+        name="fertilizer_history_last">%1$s\nSon uygulama</string>
+    <string
+        name="fertilizer_history_usage_title">Kullanım analizi</string>
+    <string
+        name="fertilizer_history_usage_empty">Ölçülmüş gübre kullanım kaydı henüz yok.</string>
+    <string
+        name="fertilizer_history_usage_total">Toplam: %1$s g · %2$s ml</string>
+    <string
+        name="fertilizer_history_usage_30d">Son 30 gün: %1$s g · %2$s ml</string>
+    <string
+        name="fertilizer_history_usage_methods">Yöntemler: Damlama %1$d · Topraktan %2$d · Yapraktan %3$d</string>
+    <string
+        name="fertilizer_history_export">CSV olarak dışa aktar</string>
+    <string
+        name="fertilizer_history_export_title">Gübre geçmişini kaydet</string>
+    <string
+        name="fertilizer_history_export_empty">Dışa aktarılacak gübre kaydı bulunmuyor.</string>
+    <string
+        name="fertilizer_history_export_success">Gübre geçmişi CSV olarak kaydedildi.</string>
+    <string
+        name="fertilizer_history_export_failed">Gübre geçmişi dışa aktarılamadı.</string>
+    <string
+        name="fertilization_area_m2">Bölge alanı (m²)</string>
+    <string
+        name="fertilization_tank_liters">Tank hacmi (L)</string>
+    <string
+        name="fertilization_dose_calculator">Bu bölge için hesaplanan miktar</string>
+    <string
+        name="fertilization_dose_missing_product">Hesaplama için önce bir gübre ürünü seçin.</string>
+    <string
+        name="fertilization_dose_missing_area">Dekar bazlı hesaplama için bölge alanını girin.</string>
+    <string
+        name="fertilization_dose_missing_tank">Bu ürünün yaprak uygulaması için tank hacmini girin.</string>
+    <string
+        name="fertilization_dose_result">%1$s–%2$s %3$s · %4$s</string>
+    <string
+        name="fertilization_dose_single">%1$s %2$s · %3$s</string>
+    <string
+        name="fertilization_dose_area_note">%1$s m² bölge için</string>
+    <string
+        name="fertilization_dose_tank_note">%1$s L tank için</string>
+    <string
+        name="fertilization_dose_unsupported">Bu ürün için otomatik dönüşüm desteklenmiyor; üretici etiketini kullanın.</string>
+    <string
+        name="fertilization_application_suggestion">Önerilen gerçek miktar: %1$s–%2$s %3$s · %4$s</string>
+    <string
+        name="fertilization_application_suggestion_single">Önerilen gerçek miktar: %1$s %2$s · %3$s</string>
+    <string
+        name="fertilizer_history_area">Hesaplama: %1$s m² bölge</string>
+    <string
+        name="fertilizer_history_tank">Hesaplama: %1$s L tank</string>
+    <string
+        name="fertilizer_stock_amount">Mevcut stok</string>
+    <string
+        name="fertilizer_stock_unit">Stok birimi</string>
+    <string
+        name="fertilizer_low_stock_threshold">Düşük stok uyarı sınırı</string>
+    <string
+        name="fertilizer_stock_unknown">Stok bilgisi girilmedi</string>
+    <string
+        name="fertilizer_stock_available">Stok: %1$s %2$s</string>
+    <string
+        name="fertilizer_stock_low">DÜŞÜK STOK · %1$s %2$s kaldı</string>
+    <string
+        name="fertilization_deduct_stock">Kaydederken %1$s %2$s stoktan düş</string>
+    <string
+        name="fertilization_insufficient_stock">Girilen miktar mevcut stoktan fazla. Stoktan düşmeyi kapatın veya miktarı kontrol edin.</string>
+    <string
+        name="fertilizer_remove">Sil / Pasifleştir</string>
+    <string
+        name="fertilizer_delete_title">Gübre ürününü sil</string>
+    <string
+        name="fertilizer_deactivate_title">Hazır ürünü pasifleştir</string>
+    <string
+        name="fertilizer_delete_message">%1$s kalıcı olarak silinecek. Geçmiş uygulama kayıtları korunacaktır.</string>
+    <string
+        name="fertilizer_deactivate_message">%1$s hazır sistem ürünüdür. Silinmek yerine yeni planlarda görünmeyecek şekilde pasifleştirilecektir.</string>
+    <string
+        name="fertilizer_remove_confirm">İşlemi onayla</string>
+    <string
+        name="fertilizer_in_use_title">Ürün aktif planda kullanılıyor</string>
+    <string
+        name="fertilizer_in_use_message">Önce şu bölgelerin gübre planından bu ürünü kaldırın: %1$s</string>
+    <string
+        name="fertilizer_deleted">Gübre ürünü silindi</string>
+    <string
+        name="fertilizer_deactivated">Hazır gübre ürünü pasifleştirildi</string>
+    <string
+        name="fertilizer_inactive">PASİF</string>
+    <string
+        name="fertilization_stock_sufficient">Stok: %1$s %2$s · yaklaşık %3$d uygulama yeter</string>
+    <string
+        name="fertilization_stock_low_for_zone">Düşük stok: %1$s %2$s · yaklaşık %3$d uygulama kaldı</string>
+    <string
+        name="fertilization_stock_insufficient">Stok yetersiz: %1$s %2$s mevcut, önerilen minimum %3$s %2$s</string>
+    <string
+        name="fertilization_stock_unit_mismatch">Stok birimi (%1$s) hesaplanan miktarla (%2$s) uyuşmuyor.</string>
+    <string
+        name="fertilizer_stock_summary_empty">Henüz stok bilgisi girilmedi.</string>
+    <string
+        name="fertilizer_stock_summary">Stok takibi: %1$d ürün · %2$d düşük · %3$d tükenmiş</string>
+    <string
+        name="fertilizer_stock_item">%1$s · %2$s %3$s · %4$s</string>
+    <string
+        name="fertilizer_stock_ok">Yeterli</string>
+    <string
+        name="fertilizer_stock_status_low">Azalıyor</string>
+    <string
+        name="fertilizer_stock_empty_status">Tükendi</string>
+    <string
+        name="fertilizer_preparation_title">Sonraki uygulama hazırlığı</string>
+    <string
+        name="fertilizer_preparation_empty">Hesaplanabilir aktif bir gübre planı bulunmuyor.</string>
+    <string
+        name="fertilizer_preparation_item">• %1$s: %2$s–%3$s %4$s gerekli%5$s</string>
+    <string
+        name="fertilizer_preparation_stock_ok"> · stok yeterli</string>
+    <string
+        name="fertilizer_preparation_stock_short"> · %1$s %2$s eksik</string>
+    <string
+        name="fertilizer_preparation_stock_unknown"> · stok girilmedi</string>
+    <string
+        name="fertilizer_preparation_missing">%1$d bölgede alan/tank bilgisi eksik.</string>
+    <string
+        name="fertilization_application_method">Uygulama yöntemi</string>
+    <string
+        name="fertilization_application_notes">Uygulama notu (isteğe bağlı)</string>
+    <string
+        name="fertilization_application_date">Uygulama tarihi</string>
+    <string
+        name="fertilization_application_date_future">Uygulama tarihi gelecekte olamaz.</string>
+    <string
+        name="fertilization_application_date_invalid">Geçerli bir uygulama tarihi seçin.</string>
+    <string
+        name="fertilizer_application_type">Uygulama türü</string>
+    <string
+        name="fertilizer_application_product">Uygulanan ürün</string>
+    <string
+        name="fertilizer_type_nutrition">Besleme gübresi</string>
+    <string
+        name="fertilizer_type_organic">Organik gübre</string>
+    <string
+        name="fertilizer_type_conditioner">Toprak düzenleyici</string>
+    <string
+        name="fertilizer_type_biostimulant">Mikrobiyal destek</string>
+    <string
+        name="fertilizer_history_type">Tür: %1$s</string>
+    <string
+        name="fertilization_soil_support_title">Toprak desteği (isteğe bağlı)</string>
+    <string
+        name="fertilization_soil_support_rooting">Dikim ve köklenmede hümik–fülvik asit veya kök dostu mikrobiyal ürün, etikete göre değerlendirilebilir.</string>
+    <string
+        name="fertilization_soil_support_vegetative">Vejetatif gelişimde organik madde ve toprak biyolojisini destekleyen uygulamalar, ana besleme programına ek olarak planlanabilir.</string>
+    <string
+        name="fertilization_soil_support_flowering">Çiçeklenmede deniz yosunu veya biyostimülant desteği değerlendirilebilir; ürün etiketi karışım uyarılarına uyun.</string>
+    <string
+        name="fertilization_soil_support_fruiting">Meyve döneminde organik/toprak düzenleyici uygulamasını ana NPK programından ayrı kaydedin; bu kayıt besleme takvimini değiştirmez.</string>
+    <string
+        name="fertilization_soil_support_harvest">Hasat sonrası organik madde ve toprak düzenleyiciyle gelecek dönem için toprak yapısını iyileştirmeyi planlayın.</string>
+    <string
+        name="fertilization_soil_support_safety">Kesin ürün ve doz kararı için etiket ile toprak/yaprak analizini esas alın.</string>
+    <string
+        name="fertilization_application_schedule_title">Uygulama Takvimi</string>
+    <string
+        name="fertilization_schedule_empty">Henüz uygulama kaydı yok</string>
+    <string
+        name="fertilization_schedule_next">Sonraki: %1$s</string>
+    <string
+        name="fertilization_schedule_due">Tekrar zamanı geldi</string>
+    <string
+        name="fertilization_schedule_item">%1$s · %2$s</string>
+    <string
+        name="fertilizer_history_action_title">Uygulama kaydı</string>
+    <string
+        name="fertilizer_history_delete">Kaydı sil</string>
+    <string
+        name="fertilizer_history_delete_confirm">Bu kayıt silinecek ve ilgili uygulama takvimi yeniden hesaplanacak.</string>
+    <string
+        name="fertilizer_history_deleted">Uygulama kaydı silindi.</string>
+    <string
+        name="fertilizer_history_edit">Kaydı düzenle</string>
+    <string
+        name="fertilizer_history_updated">Uygulama kaydı güncellendi.</string>
+    <string
+        name="fertilization_method_drip">Damlama</string>
+    <string
+        name="fertilization_method_soil">Topraktan</string>
+    <string
+        name="fertilization_method_foliar">Yapraktan</string>
+    <string
+        name="fertilization_safety_confirmation">Ürün etiketini, dozu ve ölçü birimini kontrol ettim</string>
+    <string
+        name="fertilization_safety_required">Kaydetmeden önce ürün, doz ve ölçü birimi kontrolünü onaylayın.</string>
+    <string
+        name="fertilizer_history_method">Yöntem: %1$s</string>
+    <string
+        name="fertilizer_history_note">Not: %1$s</string>
+    <string
+        name="default_device_name">smartgarden-001</string>
     <!-- NEM KARTI -->
-
-    <string name="title_soil_moisture">Toprak Nemi</string>
-    <string name="subtitle_live_sensor">Anlık sensör ölçümü</string>
-    <string name="label_live">CANLI</string>
-
-    <string name="moisture_format">%1$d%%</string>
-
-    <string name="moisture_waiting">Nem verisi bekleniyor</string>
-    <string name="moisture_very_low">Çok düşük nem seviyesi</string>
-    <string name="moisture_drying">Toprak kurumaya başlıyor</string>
-    <string name="moisture_ideal">İdeal nem seviyesi</string>
-    <string name="moisture_high">Yüksek nem seviyesi</string>
-
-    <string name="label_voltage">Voltaj</string>
-    <string name="label_raw_value">Ham Değer</string>
-
-    <string name="voltage_format">%1$.2f V</string>
-
-
+    <string
+        name="title_soil_moisture">Toprak Nemi</string>
+    <string
+        name="subtitle_live_sensor">Anlık sensör ölçümü</string>
+    <string
+        name="label_live">CANLI</string>
+    <string
+        name="moisture_format">%1$d%%</string>
+    <string
+        name="moisture_waiting">Nem verisi bekleniyor</string>
+    <string
+        name="moisture_very_low">Çok düşük nem seviyesi</string>
+    <string
+        name="moisture_drying">Toprak kurumaya başlıyor</string>
+    <string
+        name="moisture_ideal">İdeal nem seviyesi</string>
+    <string
+        name="moisture_high">Yüksek nem seviyesi</string>
+    <string
+        name="label_voltage">Voltaj</string>
+    <string
+        name="label_raw_value">Ham Değer</string>
+    <string
+        name="voltage_format">%1$.2f V</string>
     <!-- SULAMA KONTROLÜ -->
-
-    <string name="title_watering_control">Sulama Kontrolü</string>
-    <string name="menu_watering_control_description">Pompa ve otomatik sulama yönetimi</string>
-    <string name="manual_valves_title">Manuel Vana Kontrolü</string>
-    <string name="manual_valves_simulation">Simülasyon modu — gerçek pompa koruma altında</string>
-    <string name="manual_valves_physical">Pompa için en az bir vana açık olmalıdır.</string>
-    <string name="subtitle_pump_and_mode">Pompa durumu ve çalışma modu</string>
-
-    <string name="label_pump_status">Pompa Durumu</string>
-    <string name="label_pump">POMPA</string>
-
-    <string name="pump_running">● Pompa Çalışıyor</string>
-    <string name="pump_stopped">● Pompa Kapalı</string>
-
-    <string name="pump_description_running">Sulama işlemi devam ediyor</string>
-    <string name="pump_description_idle">Pompa bekleme durumunda</string>
-
-
+    <string
+        name="title_watering_control">Sulama Kontrolü</string>
+    <string
+        name="menu_watering_control_description">Pompa ve otomatik sulama yönetimi</string>
+    <string
+        name="manual_valves_title">Manuel Vana Kontrolü</string>
+    <string
+        name="manual_valves_simulation">Simülasyon modu — gerçek pompa koruma altında</string>
+    <string
+        name="manual_valves_physical">Pompa için en az bir vana açık olmalıdır.</string>
+    <string
+        name="subtitle_pump_and_mode">Pompa durumu ve çalışma modu</string>
+    <string
+        name="label_pump_status">Pompa Durumu</string>
+    <string
+        name="label_pump">POMPA</string>
+    <string
+        name="pump_running">● Pompa Çalışıyor</string>
+    <string
+        name="pump_stopped">● Pompa Kapalı</string>
+    <string
+        name="pump_description_running">Sulama işlemi devam ediyor</string>
+    <string
+        name="pump_description_idle">Pompa bekleme durumunda</string>
     <!-- OTOMATİK MOD -->
-
-    <string name="title_auto_watering">Otomatik Sulama</string>
-    <string name="auto_mode_content_description">Otomatik sulama modu</string>
-
-    <string name="auto_mode_default_description">Nem seviyesine göre otomatik sulama</string>
-    <string name="auto_mode_active_description">Aktif — Nem seviyesine göre otomatik çalışıyor</string>
-    <string name="auto_mode_inactive_description">Kapalı — Manuel kontrol kullanılabilir</string>
-
-
+    <string
+        name="title_auto_watering">Otomatik Sulama</string>
+    <string
+        name="auto_mode_content_description">Otomatik sulama modu</string>
+    <string
+        name="auto_mode_default_description">Nem seviyesine göre otomatik sulama</string>
+    <string
+        name="auto_mode_active_description">Aktif — Nem seviyesine göre otomatik çalışıyor</string>
+    <string
+        name="auto_mode_inactive_description">Kapalı — Manuel kontrol kullanılabilir</string>
     <!-- MANUEL SULAMA -->
-
-    <string name="button_start_manual_watering">Manuel Sulamayı Başlat</string>
-    <string name="button_stop_watering">Sulamayı Durdur</string>
-
-    <string name="manual_hint_idle">Sulamayı istediğiniz zaman durdurabilirsiniz</string>
-    <string name="manual_hint_running">Pompayı güvenli şekilde durdurmak için dokunun</string>
-
-
+    <string
+        name="button_start_manual_watering">Manuel Sulamayı Başlat</string>
+    <string
+        name="button_stop_watering">Sulamayı Durdur</string>
+    <string
+        name="manual_hint_idle">Sulamayı istediğiniz zaman durdurabilirsiniz</string>
+    <string
+        name="manual_hint_running">Pompayı güvenli şekilde durdurmak için dokunun</string>
     <!-- HATA / BİLDİRİM -->
-
-    <string name="error_unknown">Beklenmeyen bir hata oluştu</string>
-
+    <string
+        name="error_unknown">Beklenmeyen bir hata oluştu</string>
     <!-- İSTATİSTİK EKRANI -->
-
-    <string name="title_statistics">İstatistikler</string>
-    <string name="subtitle_statistics">Sulama performansı ve nem değişimleri</string>
-
-    <string name="label_today_waterings">Bugünkü sulama</string>
-    <string name="label_total_waterings">Toplam sulama</string>
-    <string name="label_success_rate">Başarı oranı</string>
-    <string name="label_average_duration">Ortalama sulama süresi</string>
-    <string name="label_last_watering_duration">Son sulama süresi</string>
-    <string name="label_moisture_change">Son nem değişimi</string>
-
-    <string name="duration_seconds_format">%1$d sn</string>
-    <string name="duration_minutes_seconds_format">%1$d dk %2$d sn</string>
-
+    <string
+        name="title_statistics">İstatistikler</string>
+    <string
+        name="subtitle_statistics">Sulama performansı ve nem değişimleri</string>
+    <string
+        name="label_today_waterings">Bugünkü sulama</string>
+    <string
+        name="label_total_waterings">Toplam sulama</string>
+    <string
+        name="label_success_rate">Başarı oranı</string>
+    <string
+        name="label_average_duration">Ortalama sulama süresi</string>
+    <string
+        name="label_last_watering_duration">Son sulama süresi</string>
+    <string
+        name="label_moisture_change">Son nem değişimi</string>
+    <string
+        name="duration_seconds_format">%1$d sn</string>
+    <string
+        name="duration_minutes_seconds_format">%1$d dk %2$d sn</string>
     <!-- İSTATİSTİK EKRANI DETAYLARI -->
-
-    <string name="title_watering_summary">Sulama Özeti</string>
-    <string name="subtitle_watering_summary">Günlük ve toplam çalışma bilgileri</string>
-
-    <string name="title_watering_results">Sulama Sonuçları</string>
-    <string name="subtitle_watering_results">Tamamlanan ve kesintiye uğrayan işlemler</string>
-
-    <string name="label_completed_waterings">Tamamlanan</string>
-    <string name="label_interrupted_waterings">Kesintiye uğrayan</string>
-
-    <string name="title_duration_statistics">Süre İstatistikleri</string>
-    <string name="subtitle_duration_statistics">Sulama işlemlerinin çalışma süreleri</string>
-
-    <string name="label_average_duration_short">Ortalama</string>
-    <string name="label_last_duration_short">Son sulama</string>
-    <string name="label_total_duration_short">Toplam</string>
-
-    <string name="title_moisture_change">Nem Değişimi</string>
-    <string name="subtitle_moisture_change">Son sulama öncesi ve sonrası ölçüm</string>
-
-    <string name="label_before_moisture">Önce</string>
-    <string name="label_after_moisture">Sonra</string>
-    <string name="label_delta">Değişim</string>
-
-    <string name="title_last_status">Son Durum</string>
-    <string name="label_last_stop_reason">Durdurma nedeni</string>
-    <string name="label_statistics_date">İstatistik tarihi</string>
-
-    <string name="statistics_waiting">Veri bekleniyor</string>
-    <string name="statistics_success_excellent">Sulama performansı çok iyi</string>
-    <string name="statistics_success_good">Sulama performansı iyi</string>
-    <string name="statistics_success_warning">Performans iyileştirilebilir</string>
-
-    <string name="percentage_format">%1$d%%</string>
-    <string name="signed_percentage_format">%1$+d%%</string>
-
-    <string name="back_to_main">Ana ekrana dön</string>
-    <string name="open_statistics">İstatistikleri aç</string>
-
+    <string
+        name="title_watering_summary">Sulama Özeti</string>
+    <string
+        name="subtitle_watering_summary">Günlük ve toplam çalışma bilgileri</string>
+    <string
+        name="title_watering_results">Sulama Sonuçları</string>
+    <string
+        name="subtitle_watering_results">Tamamlanan ve kesintiye uğrayan işlemler</string>
+    <string
+        name="label_completed_waterings">Tamamlanan</string>
+    <string
+        name="label_interrupted_waterings">Kesintiye uğrayan</string>
+    <string
+        name="title_duration_statistics">Süre İstatistikleri</string>
+    <string
+        name="subtitle_duration_statistics">Sulama işlemlerinin çalışma süreleri</string>
+    <string
+        name="label_average_duration_short">Ortalama</string>
+    <string
+        name="label_last_duration_short">Son sulama</string>
+    <string
+        name="label_total_duration_short">Toplam</string>
+    <string
+        name="title_moisture_change">Nem Değişimi</string>
+    <string
+        name="subtitle_moisture_change">Son sulama öncesi ve sonrası ölçüm</string>
+    <string
+        name="label_before_moisture">Önce</string>
+    <string
+        name="label_after_moisture">Sonra</string>
+    <string
+        name="label_delta">Değişim</string>
+    <string
+        name="title_last_status">Son Durum</string>
+    <string
+        name="label_last_stop_reason">Durdurma nedeni</string>
+    <string
+        name="label_statistics_date">İstatistik tarihi</string>
+    <string
+        name="statistics_waiting">Veri bekleniyor</string>
+    <string
+        name="statistics_success_excellent">Sulama performansı çok iyi</string>
+    <string
+        name="statistics_success_good">Sulama performansı iyi</string>
+    <string
+        name="statistics_success_warning">Performans iyileştirilebilir</string>
+    <string
+        name="percentage_format">%1$d%%</string>
+    <string
+        name="signed_percentage_format">%1$+d%%</string>
+    <string
+        name="back_to_main">Ana ekrana dön</string>
+    <string
+        name="open_statistics">İstatistikleri aç</string>
     <!-- SULAMA GEÇMİŞİ KARTI -->
-
-    <string name="history_default_date">-- --- ----</string>
-    <string name="history_default_time">--:--</string>
-
-    <string name="history_status_completed">TAMAMLANDI</string>
-    <string name="history_status_interrupted">KESİLDİ</string>
-    <string name="history_status_warning">UYARI</string>
-
-    <string name="history_label_mode">Mod</string>
-    <string name="history_label_duration">Süre</string>
-
-    <string name="history_mode_auto">Otomatik</string>
-    <string name="history_mode_manual">Manuel</string>
-    <string name="history_mode_unknown">Bilinmiyor</string>
-
-    <string name="history_default_duration">0 sn</string>
-
-    <string name="history_label_before">Önce</string>
-    <string name="history_label_after">Sonra</string>
-    <string name="history_label_delta">Değişim</string>
-
-    <string name="history_default_percentage">0%</string>
-    <string name="history_default_signed_percentage">+0%</string>
-
-    <string name="history_label_stop_reason">Durdurma nedeni</string>
-    <string name="history_default_stop_reason">Veri bekleniyor</string>
-
+    <string
+        name="history_default_date">-- --- ----</string>
+    <string
+        name="history_default_time">--:--</string>
+    <string
+        name="history_status_completed">TAMAMLANDI</string>
+    <string
+        name="history_status_interrupted">KESİLDİ</string>
+    <string
+        name="history_status_warning">UYARI</string>
+    <string
+        name="history_label_mode">Mod</string>
+    <string
+        name="history_label_duration">Süre</string>
+    <string
+        name="history_mode_auto">Otomatik</string>
+    <string
+        name="history_mode_manual">Manuel</string>
+    <string
+        name="history_mode_unknown">Bilinmiyor</string>
+    <string
+        name="history_default_duration">0 sn</string>
+    <string
+        name="history_label_before">Önce</string>
+    <string
+        name="history_label_after">Sonra</string>
+    <string
+        name="history_label_delta">Değişim</string>
+    <string
+        name="history_default_percentage">0%</string>
+    <string
+        name="history_default_signed_percentage">+0%</string>
+    <string
+        name="history_label_stop_reason">Durdurma nedeni</string>
+    <string
+        name="history_default_stop_reason">Veri bekleniyor</string>
     <!-- SULAMA GEÇMİŞİ DURDURMA NEDENLERİ -->
-
-    <string name="history_reason_completed">Başarıyla tamamlandı</string>
-    <string name="history_reason_manual_stop">Kullanıcı tarafından durduruldu</string>
-    <string name="history_reason_target_reached">Hedef nem seviyesine ulaşıldı</string>
-    <string name="history_reason_system_disabled">Sistem devre dışı bırakıldı</string>
-    <string name="history_reason_device_offline">Cihaz bağlantısı kesildi</string>
-    <string name="history_reason_timeout">Güvenlik süresi doldu</string>
-
+    <string
+        name="history_reason_completed">Başarıyla tamamlandı</string>
+    <string
+        name="history_reason_manual_stop">Kullanıcı tarafından durduruldu</string>
+    <string
+        name="history_reason_target_reached">Hedef nem seviyesine ulaşıldı</string>
+    <string
+        name="history_reason_system_disabled">Sistem devre dışı bırakıldı</string>
+    <string
+        name="history_reason_device_offline">Cihaz bağlantısı kesildi</string>
+    <string
+        name="history_reason_timeout">Güvenlik süresi doldu</string>
     <!-- SULAMA GEÇMİŞİ EKRANI -->
-
-    <string name="title_watering_history">Sulama Geçmişi</string>
-    <string name="subtitle_watering_history">Son sulama işlemleri ve nem değişimleri</string>
-
-    <string name="history_loading">Sulama kayıtları yükleniyor</string>
-
-    <string name="history_empty_title">Henüz sulama kaydı yok</string>
-    <string name="history_empty_description">Tamamlanan sulama işlemleri burada görüntülenecek.</string>
-    <string name="history_zone_all">Tümü</string>
-    <string name="history_zone_tomato">🍅 Domates</string>
-    <string name="history_zone_pepper">🌶️ Biber</string>
-    <string name="history_zone_cucumber">🥒 Salatalık</string>
-    <string name="history_zone_eggplant">🍆 Patlıcan</string>
-    <string name="history_zone_bean">🫘 Fasulye</string>
-    <string name="history_zone_legacy">Eski kayıt</string>
-    <string name="history_empty_zone_description">Bu bölge için henüz sulama kaydı yok.</string>
-    <string name="history_statistics_title">Seçili bölge özeti</string>
-    <string name="history_stat_count_empty">0\nSulama</string>
-    <string name="history_stat_duration_empty">0 sn\nToplam süre</string>
-    <string name="history_stat_success_empty">%%0\nBaşarı</string>
-    <string name="history_stat_delta_empty">%%0\nOrt. değişim</string>
-    <string name="history_stat_count">%1$d\nSulama</string>
-    <string name="history_stat_duration">%1$s\nToplam süre</string>
-    <string name="history_stat_success">%%%1$d\nBaşarı</string>
-    <string name="history_stat_delta">%1$+.1f%%\nOrt. değişim</string>
-
-    <string name="open_watering_history">Sulama geçmişini aç</string>
-
+    <string
+        name="title_watering_history">Sulama Geçmişi</string>
+    <string
+        name="subtitle_watering_history">Son sulama işlemleri ve nem değişimleri</string>
+    <string
+        name="history_loading">Sulama kayıtları yükleniyor</string>
+    <string
+        name="history_empty_title">Henüz sulama kaydı yok</string>
+    <string
+        name="history_empty_description">Tamamlanan sulama işlemleri burada görüntülenecek.</string>
+    <string
+        name="history_zone_all">Tümü</string>
+    <string
+        name="history_zone_tomato">🍅 Domates</string>
+    <string
+        name="history_zone_pepper">🌶️ Biber</string>
+    <string
+        name="history_zone_cucumber">🥒 Salatalık</string>
+    <string
+        name="history_zone_eggplant">🍆 Patlıcan</string>
+    <string
+        name="history_zone_bean">🫘 Fasulye</string>
+    <string
+        name="history_zone_legacy">Eski kayıt</string>
+    <string
+        name="history_empty_zone_description">Bu bölge için henüz sulama kaydı yok.</string>
+    <string
+        name="history_statistics_title">Seçili bölge özeti</string>
+    <string
+        name="history_stat_count_empty">0\nSulama</string>
+    <string
+        name="history_stat_duration_empty">0 sn\nToplam süre</string>
+    <string
+        name="history_stat_success_empty">%%0\nBaşarı</string>
+    <string
+        name="history_stat_delta_empty">%%0\nOrt. değişim</string>
+    <string
+        name="history_stat_count">%1$d\nSulama</string>
+    <string
+        name="history_stat_duration">%1$s\nToplam süre</string>
+    <string
+        name="history_stat_success">%%%1$d\nBaşarı</string>
+    <string
+        name="history_stat_delta">%1$+.1f%%\nOrt. değişim</string>
+    <string
+        name="open_watering_history">Sulama geçmişini aç</string>
     <!-- CİHAZ SAĞLIĞI -->
-
-    <string name="title_device_health">Cihaz Sağlığı</string>
-    <string name="subtitle_device_health">Raspberry Pi sistem durumu ve kaynak kullanımı</string>
-
-    <string name="health_overall_label">Raspberry Pi donanım durumu</string>
-    <string name="health_status_waiting">Veri bekleniyor</string>
-    <string name="diagnostics_title">Hızlı tanılama</string>
-    <string name="diagnostics_waiting">Sistem kontrolleri hazırlanıyor</string>
-    <string name="diagnostics_summary">%1$d / %2$d kontrol normal</string>
-    <string name="diagnostics_pi_ok">Raspberry Pi bağlantısı güncel</string>
-    <string name="diagnostics_pi_error">Raspberry Pi bağlantısı yok</string>
-    <string name="diagnostics_sensor_ok">En az bir sensörden güncel veri geliyor</string>
-    <string name="diagnostics_sensor_error">Güncel sensör verisi bulunamadı</string>
-    <string name="diagnostics_relay_ok">Pompa rölesi güvenli şekilde kapalı</string>
-    <string name="diagnostics_relay_active">Pompa rölesi şu anda çalışıyor</string>
-    <string name="diagnostics_valve_simulation">Vana simülasyon koruması aktif</string>
-    <string name="diagnostics_valve_physical">Fiziksel vana modu aktif</string>
-    <string name="diagnostics_valve_physical_ready">Fiziksel vana kontrolü hazır</string>
-    <string name="diagnostics_error_clear">Aktif backend hatası yok</string>
-    <string name="diagnostics_error_active">Backend hatası: %1$s</string>
-    <string name="health_update_waiting">Son güncelleme bekleniyor</string>
-    <string name="health_badge_checking">KONTROL EDİLİYOR</string>
-
-    <string name="health_cpu_title">CPU</string>
-    <string name="health_cpu_subtitle">İşlemci sıcaklığı ve anlık kullanım</string>
-    <string name="health_cpu_temperature">Sıcaklık</string>
-    <string name="health_cpu_usage">Kullanım</string>
-
-    <string name="health_ram_title">RAM</string>
-    <string name="health_disk_title">Disk</string>
-
-    <string name="health_network_title">Ağ Bağlantısı</string>
-    <string name="health_network_subtitle">Kablosuz bağlantı ve yerel ağ bilgileri</string>
-    <string name="health_wifi_signal">Wi-Fi sinyali</string>
-    <string name="health_ip_address">IP adresi</string>
-
-    <string name="health_throttling_title">CPU Throttling</string>
-    <string name="health_throttling_waiting">Donanım kısıtlama durumu kontrol ediliyor</string>
-
-    <string name="health_system_title">Sistem Bilgileri</string>
-    <string name="health_firmware">Backend sürümü</string>
-    <string name="health_uptime">Çalışma süresi</string>
-
-    <string name="health_default_temperature">-- °C</string>
-    <string name="health_default_percentage">--%</string>
-    <string name="health_default_signal">-- dBm</string>
-    <string name="health_default_ip">--</string>
-    <string name="health_default_firmware">--</string>
-    <string name="health_detail_waiting">Veri bekleniyor</string>
-
+    <string
+        name="title_device_health">Cihaz Sağlığı</string>
+    <string
+        name="subtitle_device_health">Raspberry Pi sistem durumu ve kaynak kullanımı</string>
+    <string
+        name="health_overall_label">Raspberry Pi donanım durumu</string>
+    <string
+        name="health_status_waiting">Veri bekleniyor</string>
+    <string
+        name="diagnostics_title">Hızlı tanılama</string>
+    <string
+        name="diagnostics_waiting">Sistem kontrolleri hazırlanıyor</string>
+    <string
+        name="diagnostics_summary">%1$d / %2$d kontrol normal</string>
+    <string
+        name="diagnostics_pi_ok">Raspberry Pi bağlantısı güncel</string>
+    <string
+        name="diagnostics_pi_error">Raspberry Pi bağlantısı yok</string>
+    <string
+        name="diagnostics_sensor_ok">En az bir sensörden güncel veri geliyor</string>
+    <string
+        name="diagnostics_sensor_error">Güncel sensör verisi bulunamadı</string>
+    <string
+        name="diagnostics_relay_ok">Pompa rölesi güvenli şekilde kapalı</string>
+    <string
+        name="diagnostics_relay_active">Pompa rölesi şu anda çalışıyor</string>
+    <string
+        name="diagnostics_valve_simulation">Vana simülasyon koruması aktif</string>
+    <string
+        name="diagnostics_valve_physical">Fiziksel vana modu aktif</string>
+    <string
+        name="diagnostics_valve_physical_ready">Fiziksel vana kontrolü hazır</string>
+    <string
+        name="diagnostics_error_clear">Aktif backend hatası yok</string>
+    <string
+        name="diagnostics_error_active">Backend hatası: %1$s</string>
+    <string
+        name="health_update_waiting">Son güncelleme bekleniyor</string>
+    <string
+        name="health_badge_checking">KONTROL EDİLİYOR</string>
+    <string
+        name="health_cpu_title">CPU</string>
+    <string
+        name="health_cpu_subtitle">İşlemci sıcaklığı ve anlık kullanım</string>
+    <string
+        name="health_cpu_temperature">Sıcaklık</string>
+    <string
+        name="health_cpu_usage">Kullanım</string>
+    <string
+        name="health_ram_title">RAM</string>
+    <string
+        name="health_disk_title">Disk</string>
+    <string
+        name="health_network_title">Ağ Bağlantısı</string>
+    <string
+        name="health_network_subtitle">Kablosuz bağlantı ve yerel ağ bilgileri</string>
+    <string
+        name="health_wifi_signal">Wi-Fi sinyali</string>
+    <string
+        name="health_ip_address">IP adresi</string>
+    <string
+        name="health_throttling_title">CPU Throttling</string>
+    <string
+        name="health_throttling_waiting">Donanım kısıtlama durumu kontrol ediliyor</string>
+    <string
+        name="health_system_title">Sistem Bilgileri</string>
+    <string
+        name="health_firmware">Backend sürümü</string>
+    <string
+        name="health_uptime">Çalışma süresi</string>
+    <string
+        name="health_default_temperature">-- °C</string>
+    <string
+        name="health_default_percentage">--%</string>
+    <string
+        name="health_default_signal">-- dBm</string>
+    <string
+        name="health_default_ip">--</string>
+    <string
+        name="health_default_firmware">--</string>
+    <string
+        name="health_detail_waiting">Veri bekleniyor</string>
     <!-- CİHAZ SAĞLIĞI DİNAMİK METİNLERİ -->
-
-    <string name="health_temperature_format">%1$.1f °C</string>
-    <string name="health_percentage_format">%1$.1f%%</string>
-    <string name="health_signal_format">%1$d dBm</string>
-
-    <string name="health_memory_summary_format">Kullanım: %1$.1f%%</string>
-    <string name="health_disk_summary_format">Kullanım: %1$.1f%%</string>
-
-    <string name="health_wifi_excellent">Mükemmel bağlantı</string>
-    <string name="health_wifi_good">İyi bağlantı</string>
-    <string name="health_wifi_weak">Zayıf bağlantı</string>
-    <string name="health_wifi_poor">Çok zayıf bağlantı</string>
-
-    <string name="health_throttling_active">AKTİF</string>
-    <string name="health_throttling_clear">NORMAL</string>
-
-    <string name="health_throttling_active_description">Donanım performansı sistem tarafından kısıtlanıyor</string>
-    <string name="health_throttling_clear_description">Herhangi bir donanım kısıtlaması algılanmadı</string>
-
-    <string name="health_overall_good">Raspberry Pi sağlıklı çalışıyor</string>
-    <string name="health_overall_warning">Raspberry Pi dikkat gerektiriyor</string>
-    <string name="health_overall_critical">Raspberry Pi kritik durumda</string>
-
-    <string name="health_badge_good">PI SAĞLIKLI</string>
-    <string name="health_badge_warning">PI UYARI</string>
-    <string name="health_badge_critical">PI KRİTİK</string>
-
-    <string name="health_uptime_days_format">%1$d gün %2$d saat</string>
-    <string name="health_uptime_hours_format">%1$d saat %2$d dk</string>
-    <string name="health_uptime_minutes_format">%1$d dk</string>
-
-    <string name="health_last_update_format">Son güncelleme: %1$s</string>
-
-    <string name="health_firmware_unavailable">Backend verisinde yok</string>
-
-    <string name="open_device_health">Cihaz sağlığını aç</string>
-
+    <string
+        name="health_temperature_format">%1$.1f °C</string>
+    <string
+        name="health_percentage_format">%1$.1f%%</string>
+    <string
+        name="health_signal_format">%1$d dBm</string>
+    <string
+        name="health_memory_summary_format">Kullanım: %1$.1f%%</string>
+    <string
+        name="health_disk_summary_format">Kullanım: %1$.1f%%</string>
+    <string
+        name="health_wifi_excellent">Mükemmel bağlantı</string>
+    <string
+        name="health_wifi_good">İyi bağlantı</string>
+    <string
+        name="health_wifi_weak">Zayıf bağlantı</string>
+    <string
+        name="health_wifi_poor">Çok zayıf bağlantı</string>
+    <string
+        name="health_throttling_active">AKTİF</string>
+    <string
+        name="health_throttling_clear">NORMAL</string>
+    <string
+        name="health_throttling_active_description">Donanım performansı sistem tarafından kısıtlanıyor</string>
+    <string
+        name="health_throttling_clear_description">Herhangi bir donanım kısıtlaması algılanmadı</string>
+    <string
+        name="health_overall_good">Raspberry Pi sağlıklı çalışıyor</string>
+    <string
+        name="health_overall_warning">Raspberry Pi dikkat gerektiriyor</string>
+    <string
+        name="health_overall_critical">Raspberry Pi kritik durumda</string>
+    <string
+        name="health_badge_good">PI SAĞLIKLI</string>
+    <string
+        name="health_badge_warning">PI UYARI</string>
+    <string
+        name="health_badge_critical">PI KRİTİK</string>
+    <string
+        name="health_uptime_days_format">%1$d gün %2$d saat</string>
+    <string
+        name="health_uptime_hours_format">%1$d saat %2$d dk</string>
+    <string
+        name="health_uptime_minutes_format">%1$d dk</string>
+    <string
+        name="health_last_update_format">Son güncelleme: %1$s</string>
+    <string
+        name="health_firmware_unavailable">Backend verisinde yok</string>
+    <string
+        name="open_device_health">Cihaz sağlığını aç</string>
     <!-- AYARLAR EKRANI -->
-
-    <string name="title_settings">Ayarlar</string>
-    <string name="subtitle_settings">AVORA çalışma parametrelerini yapılandırın</string>
-
-    <string name="settings_unsaved_changes">Kaydedilmemiş değişiklikler var</string>
-
-    <string name="settings_irrigation_title">Sulama Ayarları</string>
-    <string name="settings_irrigation_subtitle">Otomatik sulama davranışını belirleyen sınırlar</string>
-
-    <string name="settings_moisture_limit">Nem limiti</string>
-    <string name="settings_moisture_limit_description">Nem bu değerin altına düştüğünde otomatik sulama başlar</string>
-
-    <string name="settings_pump_duration">Pompa süresi</string>
-    <string name="settings_pump_duration_description">Bir sulama işleminde pompanın çalışacağı süre</string>
-
-    <string name="settings_cooldown">Bekleme süresi</string>
-    <string name="settings_cooldown_description">İki sulama işlemi arasındaki minimum bekleme süresi</string>
-
-    <string name="settings_restart_delta">Yeniden başlatma farkı</string>
-    <string name="settings_restart_delta_description">Tekrar sulama için nem limitinin altına inilmesi gereken fark</string>
-
-    <string name="settings_system_enabled">Sistem etkin</string>
-    <string name="settings_system_enabled_description">Kapalı olduğunda otomatik ve manuel sulama devre dışı kalır</string>
-
-    <string name="settings_save">Kaydet</string>
-    <string name="settings_reset_defaults">Varsayılan Değerlere Dön</string>
-
-    <string name="settings_status_ready">Değişiklik yapmaya hazır</string>
-
-    <string name="settings_default_percentage">40%</string>
-    <string name="settings_default_seconds">10 sn</string>
-
+    <string
+        name="title_settings">Ayarlar</string>
+    <string
+        name="subtitle_settings">AVORA çalışma parametrelerini yapılandırın</string>
+    <string
+        name="settings_unsaved_changes">Kaydedilmemiş değişiklikler var</string>
+    <string
+        name="settings_irrigation_title">Sulama Ayarları</string>
+    <string
+        name="settings_irrigation_subtitle">Otomatik sulama davranışını belirleyen sınırlar</string>
+    <string
+        name="settings_moisture_limit">Nem limiti</string>
+    <string
+        name="settings_moisture_limit_description">Nem bu değerin altına düştüğünde otomatik sulama başlar</string>
+    <string
+        name="settings_pump_duration">Pompa süresi</string>
+    <string
+        name="settings_pump_duration_description">Bir sulama işleminde pompanın çalışacağı süre</string>
+    <string
+        name="settings_cooldown">Bekleme süresi</string>
+    <string
+        name="settings_cooldown_description">İki sulama işlemi arasındaki minimum bekleme süresi</string>
+    <string
+        name="settings_restart_delta">Yeniden başlatma farkı</string>
+    <string
+        name="settings_restart_delta_description">Tekrar sulama için nem limitinin altına inilmesi gereken fark</string>
+    <string
+        name="settings_system_enabled">Sistem etkin</string>
+    <string
+        name="settings_system_enabled_description">Kapalı olduğunda otomatik ve manuel sulama devre dışı kalır</string>
+    <string
+        name="settings_save">Kaydet</string>
+    <string
+        name="settings_reset_defaults">Varsayılan Değerlere Dön</string>
+    <string
+        name="settings_status_ready">Değişiklik yapmaya hazır</string>
+    <string
+        name="settings_default_percentage">40%</string>
+    <string
+        name="settings_default_seconds">10 sn</string>
     <!-- AYARLAR EKRANI DİNAMİK METİNLERİ -->
-
-    <string name="settings_status_loading">Ayarlar yükleniyor</string>
-    <string name="settings_status_saving">Ayarlar kaydediliyor</string>
-    <string name="settings_status_saved">Ayarlar başarıyla kaydedildi</string>
-    <string name="settings_status_error">Ayarlar işlenirken hata oluştu</string>
-    <string name="settings_status_unsaved">Kaydedilmemiş değişiklikler var</string>
-
-    <string name="settings_saving">Kaydediliyor…</string>
-    <string name="settings_saved_message">Ayarlar kaydedildi</string>
-    <string name="settings_no_changes">Kaydedilecek değişiklik yok</string>
-
-    <string name="settings_percentage_format">%1$d%%</string>
-    <string name="settings_seconds_format">%1$d sn</string>
-    <string name="settings_minutes_format">%1$d dk</string>
-    <string name="settings_minutes_seconds_format">%1$d dk %2$d sn</string>
-
-    <string name="settings_system_enabled_active">Aktif — Otomatik ve manuel sulama kullanılabilir</string>
-    <string name="settings_system_enabled_inactive">Devre dışı — Sulama komutları çalıştırılmaz</string>
-
-    <string name="settings_reset_dialog_title">Varsayılan değerlere dön</string>
-    <string name="settings_reset_dialog_message">Varsayılan değerler ekrana uygulanacak. Firebase’e göndermek için ardından Ayarları Kaydet butonuna basmalısınız.</string>
-    <string name="settings_reset_confirm">Uygula</string>
-    <string name="settings_cancel">İptal</string>
-    <string name="settings_defaults_applied">Varsayılan değerler uygulandı, kaydetmeniz gerekiyor</string>
-    <string name="sensor_wifi_status_excellent">Bağlantı: Mükemmel</string>
-    <string name="sensor_wifi_status_good">Bağlantı: İyi</string>
-    <string name="sensor_wifi_status_fair">Bağlantı: Orta</string>
-    <string name="sensor_wifi_status_weak">Bağlantı: Zayıf</string>
-    <string name="sensor_wifi_status_disconnected">Bağlantı yok</string>
-    <string name="sensor_wifi_status_unknown">Sinyal bilinmiyor</string>
-    <string name="sensor_points_title">Sensör Noktaları</string>
-    <string name="sensor_points_subtitle">Bahçedeki kablosuz nem sensörleri</string>
-    <string name="queue_title">Ortak pompa sulama sırası</string>
-    <string name="queue_pump_idle">Pompa beklemede · Açık vana yok</string>
-    <string name="queue_pump_active">%1$s sulanıyor</string>
-    <string name="queue_empty">Sıra boş · Sulama bekleyen bölge yok</string>
-    <string name="queue_position">%1$d. sıra</string>
-    <string name="queue_zone_detail">%1$d%% nem · %2$d puan açık</string>
-    <string name="sensor_status_title">Sensör durumu</string>
-    <string name="sensor_status_description">Noktalar düzenli olarak kontrol ediliyor.</string>
-    <string name="sensor_active">AKTİF</string>
-    <string name="sensor_summary_empty">0 / 0 sensör bağlı</string>
-    <string name="sensor_summary_format">%1$d / %2$d sensör bağlı</string>
-    <string name="sensor_soil_moisture">Toprak nemi</string>
-    <string name="sensor_wifi">Wi-Fi</string>
-    <string name="sensor_waiting_description">Bu bölge için sensör bağlantısı bekleniyor.</string>
-    <string name="sensor_status_waiting">Sensör bekleniyor</string>
-    <string name="sensor_status_paused">Beklemede</string>
-    <string name="sensor_disabled_description">Sensör uygulamadan kapatıldı.</string>
-    <string name="sensor_status_connected">Bağlı</string>
-    <string name="sensor_status_delayed">Bağlantı zayıf</string>
-    <string name="sensor_status_disconnected">Bağlantı yok</string>
-    <string name="sensor_moisture_format">%%%1$d</string>
-    <string name="sensor_rssi_format">%1$d dBm</string>
-    <string name="sensor_last_update_seconds">Son veri: %1$d sn önce</string>
-
-    <string name="settings_unsaved_dialog_title">Kaydedilmemiş değişiklikler</string>
-    <string name="settings_unsaved_dialog_message">Bu ekrandan ayrılmadan önce değişikliklerinizi kaydetmek ister misiniz?</string>
-    <string name="settings_continue_editing">Düzenlemeye devam et</string>
-    <string name="settings_discard_changes">Değişiklikleri sil</string>
-    <string name="settings_save_and_exit">Kaydet</string>
-
-    <string name="open_settings">Ayarları aç</string>
-
+    <string
+        name="settings_status_loading">Ayarlar yükleniyor</string>
+    <string
+        name="settings_status_saving">Ayarlar kaydediliyor</string>
+    <string
+        name="settings_status_saved">Ayarlar başarıyla kaydedildi</string>
+    <string
+        name="settings_status_error">Ayarlar işlenirken hata oluştu</string>
+    <string
+        name="settings_status_unsaved">Kaydedilmemiş değişiklikler var</string>
+    <string
+        name="settings_saving">Kaydediliyor…</string>
+    <string
+        name="settings_saved_message">Ayarlar kaydedildi</string>
+    <string
+        name="settings_no_changes">Kaydedilecek değişiklik yok</string>
+    <string
+        name="settings_percentage_format">%1$d%%</string>
+    <string
+        name="settings_seconds_format">%1$d sn</string>
+    <string
+        name="settings_minutes_format">%1$d dk</string>
+    <string
+        name="settings_minutes_seconds_format">%1$d dk %2$d sn</string>
+    <string
+        name="settings_system_enabled_active">Aktif — Otomatik ve manuel sulama kullanılabilir</string>
+    <string
+        name="settings_system_enabled_inactive">Devre dışı — Sulama komutları çalıştırılmaz</string>
+    <string
+        name="settings_reset_dialog_title">Varsayılan değerlere dön</string>
+    <string
+        name="settings_reset_dialog_message">Varsayılan değerler ekrana uygulanacak. Firebase’e göndermek için ardından Ayarları Kaydet butonuna basmalısınız.</string>
+    <string
+        name="settings_reset_confirm">Uygula</string>
+    <string
+        name="settings_cancel">İptal</string>
+    <string
+        name="settings_defaults_applied">Varsayılan değerler uygulandı, kaydetmeniz gerekiyor</string>
+    <string
+        name="sensor_wifi_status_excellent">Bağlantı: Mükemmel</string>
+    <string
+        name="sensor_wifi_status_good">Bağlantı: İyi</string>
+    <string
+        name="sensor_wifi_status_fair">Bağlantı: Orta</string>
+    <string
+        name="sensor_wifi_status_weak">Bağlantı: Zayıf</string>
+    <string
+        name="sensor_wifi_status_disconnected">Bağlantı yok</string>
+    <string
+        name="sensor_wifi_status_unknown">Sinyal bilinmiyor</string>
+    <string
+        name="sensor_points_title">Sensör Noktaları</string>
+    <string
+        name="sensor_points_subtitle">Bahçedeki kablosuz nem sensörleri</string>
+    <string
+        name="queue_title">Ortak pompa sulama sırası</string>
+    <string
+        name="queue_pump_idle">Pompa beklemede · Açık vana yok</string>
+    <string
+        name="queue_pump_active">%1$s sulanıyor</string>
+    <string
+        name="queue_empty">Sıra boş · Sulama bekleyen bölge yok</string>
+    <string
+        name="queue_position">%1$d. sıra</string>
+    <string
+        name="queue_zone_detail">%1$d%% nem · %2$d puan açık</string>
+    <string
+        name="sensor_status_title">Sensör durumu</string>
+    <string
+        name="sensor_status_description">Noktalar düzenli olarak kontrol ediliyor.</string>
+    <string
+        name="sensor_active">AKTİF</string>
+    <string
+        name="sensor_summary_empty">0 / 0 sensör bağlı</string>
+    <string
+        name="sensor_summary_format">%1$d / %2$d sensör bağlı</string>
+    <string
+        name="sensor_soil_moisture">Toprak nemi</string>
+    <string
+        name="sensor_wifi">Wi-Fi</string>
+    <string
+        name="sensor_waiting_description">Bu bölge için sensör bağlantısı bekleniyor.</string>
+    <string
+        name="sensor_status_waiting">Sensör bekleniyor</string>
+    <string
+        name="sensor_status_paused">Beklemede</string>
+    <string
+        name="sensor_disabled_description">Sensör uygulamadan kapatıldı.</string>
+    <string
+        name="sensor_status_connected">Bağlı</string>
+    <string
+        name="sensor_status_delayed">Bağlantı zayıf</string>
+    <string
+        name="sensor_status_disconnected">Bağlantı yok</string>
+    <string
+        name="sensor_moisture_format">%%%1$d</string>
+    <string
+        name="sensor_rssi_format">%1$d dBm</string>
+    <string
+        name="sensor_last_update_seconds">Son veri: %1$d sn önce</string>
+    <string
+        name="settings_unsaved_dialog_title">Kaydedilmemiş değişiklikler</string>
+    <string
+        name="settings_unsaved_dialog_message">Bu ekrandan ayrılmadan önce değişikliklerinizi kaydetmek ister misiniz?</string>
+    <string
+        name="settings_continue_editing">Düzenlemeye devam et</string>
+    <string
+        name="settings_discard_changes">Değişiklikleri sil</string>
+    <string
+        name="settings_save_and_exit">Kaydet</string>
+    <string
+        name="open_settings">Ayarları aç</string>
     <!-- ANA MENÜ -->
-
-    <string name="open_main_menu">Ana menüyü aç</string>
-
-    <string name="menu_ai">AI Sulama Asistanı</string>
-    <string name="menu_statistics">İstatistikler</string>
-    <string name="menu_device_health">Cihaz Sağlığı</string>
-    <string name="menu_watering_history">Sulama Geçmişi</string>
-    <string name="menu_settings">Ayarlar</string>
-    <string name="menu_about">Hakkında</string>
-
-    <string name="about_coming_soon">Hakkında ekranı yakında eklenecek</string>
-
+    <string
+        name="open_main_menu">Ana menüyü aç</string>
+    <string
+        name="main_notifications_description">Bildirimleri aç</string>
+    <string
+        name="menu_ai">AI Sulama Asistanı</string>
+    <string
+        name="menu_statistics">İstatistikler</string>
+    <string
+        name="menu_device_health">Cihaz Sağlığı</string>
+    <string
+        name="menu_watering_history">Sulama Geçmişi</string>
+    <string
+        name="menu_settings">Ayarlar</string>
+    <string
+        name="menu_about">Hakkında</string>
     <!-- HAKKINDA EKRANI -->
-
-    <string name="title_about">Hakkında</string>
-    <string name="subtitle_about">Uygulama, sistem ve geliştirici bilgileri</string>
-
-    <string name="about_project_tagline">Akıllı bahçe ve sulama asistanı</string>
-    <string name="about_app_version_waiting">Android sürümü yükleniyor</string>
-
-    <string name="about_project_title">AVORA Hakkında</string>
-    <string name="about_project_description">AVORA; Raspberry Pi, Firebase Realtime Database ve Android uygulamasını bir araya getiren uzaktan kontrollü bir IoT sulama sistemidir. Toprak nemini izler, manuel ve otomatik sulama sağlar, cihaz sağlığını takip eder ve sulama geçmişi ile istatistikleri gerçek zamanlı olarak sunar.</string>
-
-    <string name="about_system_title">Sistem Bilgileri</string>
-    <string name="about_device_id">Cihaz kimliği</string>
-    <string name="about_backend_version">Backend sürümü</string>
-    <string name="about_backend_version_waiting">Veri bekleniyor</string>
-
-    <string name="about_developer_title">Geliştirici</string>
-    <string name="about_developer_name">Ali Doğukan</string>
-    <string name="about_developer_role">Android ve Raspberry Pi geliştiricisi</string>
-
-    <string name="about_open_github">GitHub</string>
-    <string name="about_copyright">© 2026 AVORA</string>
-
-    <string name="about_app_version_format">Android v%1$s</string>
-
-    <string name="about_github_open_error">GitHub bağlantısı açılamadı</string>
-
+    <string
+        name="about_app_version_waiting">Android sürümü yükleniyor</string>
+    <string
+        name="about_developer_name">Ali Doğukan</string>
+    <string
+        name="about_developer_role">Android ve Raspberry Pi geliştiricisi</string>
+    <string
+        name="about_open_github">GitHub</string>
+    <string
+        name="about_github_open_error">GitHub bağlantısı açılamadı</string>
     <!-- MATERIAL ALT MENÜ -->
-
-    <string name="main_menu_title">AVORA</string>
-    <string name="main_menu_subtitle">Detay ekranlarına ve sistem ayarlarına erişin</string>
-
-    <string name="menu_statistics_description">Sulama performansı ve başarı oranları</string>
-    <string name="menu_history_description">Geçmiş sulamalar ve nem değişimleri</string>
-    <string name="menu_health_description">Raspberry Pi kaynak ve bağlantı durumu</string>
-    <string name="menu_settings_description">Sulama sınırları ve sistem yapılandırması</string>
-    <string name="menu_about_description">Uygulama, sistem ve geliştirici bilgileri</string>
-
+    <string
+        name="main_menu_title">AVORA</string>
+    <string
+        name="main_menu_subtitle">Akıllı tarım modülleri ve sistem yönetimi</string>
+    <string
+        name="menu_statistics_description">Sulama performansı ve başarı oranları</string>
+    <string
+        name="menu_history_description">Geçmiş sulamalar ve nem değişimleri</string>
+    <string
+        name="menu_health_description">Raspberry Pi kaynak ve bağlantı durumu</string>
+    <string
+        name="menu_settings_description">Sulama sınırları ve sistem yapılandırması</string>
+    <string
+        name="menu_about_description">Uygulama, sistem ve geliştirici bilgileri</string>
     <!-- POMPA AYARI FORMATI -->
-
-    <string name="settings_hours_format">%1$d sa</string>
-    <string name="settings_hours_minutes_format">%1$d sa %2$d dk</string>
-
+    <string
+        name="settings_hours_format">%1$d sa</string>
+    <string
+        name="settings_hours_minutes_format">%1$d sa %2$d dk</string>
     <!-- AYRINTILI HEALTH DURUMLARI -->
-
-    <string name="health_power_details_title">Güç ve Performans Ayrıntıları</string>
-    <string name="health_power_details_subtitle">Aktif ve geçmiş Raspberry Pi güç kısıtlamaları</string>
-
-    <string name="health_current_events_title">Şu an aktif</string>
-    <string name="health_history_events_title">Geçmiş olaylar</string>
-
-    <string name="health_no_current_events">Aktif güç veya sıcaklık kısıtlaması yok</string>
-    <string name="health_no_history_events">Geçmişte kayıtlı bir olay bulunmuyor</string>
-
-    <string name="health_throttling_raw_label">Teknik Bilgi</string>
-    <string name="health_throttling_raw_default">0x0</string>
-
-    <string name="health_event_under_voltage_now">Düşük voltaj algılandı</string>
-    <string name="health_event_frequency_capped_now">CPU frekansı şu anda sınırlandırılıyor</string>
-    <string name="health_event_throttled_now">Sistem aktif olarak throttling uyguluyor</string>
-    <string name="health_event_temperature_limit_now">Yazılımsal sıcaklık limiti aktif</string>
-
-    <string name="health_event_under_voltage_history">Geçmişte düşük voltaj oluştu</string>
-    <string name="health_event_frequency_capped_history">Geçmişte CPU frekansı sınırlandırıldı</string>
-    <string name="health_event_throttled_history">Geçmişte throttling uygulandı</string>
-    <string name="health_event_temperature_limit_history">Geçmişte sıcaklık limiti etkinleşti</string>
-
-    <string name="health_throttling_raw_format">0x%1$X</string>
-
+    <string
+        name="health_power_details_title">Güç ve Performans Ayrıntıları</string>
+    <string
+        name="health_power_details_subtitle">Aktif ve geçmiş Raspberry Pi güç kısıtlamaları</string>
+    <string
+        name="health_current_events_title">Şu an aktif</string>
+    <string
+        name="health_history_events_title">Geçmiş olaylar</string>
+    <string
+        name="health_no_current_events">Aktif güç veya sıcaklık kısıtlaması yok</string>
+    <string
+        name="health_no_history_events">Geçmişte kayıtlı bir olay bulunmuyor</string>
+    <string
+        name="health_throttling_raw_label">Teknik Bilgi</string>
+    <string
+        name="health_throttling_raw_default">0x0</string>
+    <string
+        name="health_event_under_voltage_now">Düşük voltaj algılandı</string>
+    <string
+        name="health_event_frequency_capped_now">CPU frekansı şu anda sınırlandırılıyor</string>
+    <string
+        name="health_event_throttled_now">Sistem aktif olarak throttling uyguluyor</string>
+    <string
+        name="health_event_temperature_limit_now">Yazılımsal sıcaklık limiti aktif</string>
+    <string
+        name="health_event_under_voltage_history">Geçmişte düşük voltaj oluştu</string>
+    <string
+        name="health_event_frequency_capped_history">Geçmişte CPU frekansı sınırlandırıldı</string>
+    <string
+        name="health_event_throttled_history">Geçmişte throttling uygulandı</string>
+    <string
+        name="health_event_temperature_limit_history">Geçmişte sıcaklık limiti etkinleşti</string>
+    <string
+        name="health_throttling_raw_format">0x%1$X</string>
     <!-- ===================================================== -->
     <!-- ADAPTIVE IRRIGATION / AI SULAMA ASİSTANI              -->
     <!-- ===================================================== -->
-
-    <string name="adaptive_title">AI Sulama Asistanı</string>
-
-    <string name="adaptive_subtitle">
+    <string
+        name="adaptive_title">AI Sulama Asistanı</string>
+    <string
+        name="adaptive_subtitle">
         Sulama sonuçlarını analiz ederek en uygun ayarları öğrenir
     </string>
-
-    <string name="adaptive_status_label">Öğrenme durumu</string>
-    <string name="adaptive_status_waiting">Veri bekleniyor</string>
-
-    <string name="adaptive_recommendation_label">Öneri</string>
-    <string name="adaptive_recommendation_waiting">
+    <string
+        name="adaptive_status_label">Öğrenme durumu</string>
+    <string
+        name="adaptive_status_waiting">Veri bekleniyor</string>
+    <string
+        name="adaptive_recommendation_label">Öneri</string>
+    <string
+        name="adaptive_recommendation_waiting">
         Yeterli sulama verisi henüz oluşmadı
     </string>
-
-    <string name="adaptive_confidence_label">Güven</string>
-    <string name="adaptive_confidence_default">DÜŞÜK</string>
-
-    <string name="adaptive_pump_label">Pompa</string>
-    <string name="adaptive_pump_default">—</string>
-
-    <string name="adaptive_records_label">Kayıt</string>
-    <string name="adaptive_records_default">0 Sulama</string>
-
-    <string name="adaptive_updated_label">Son analiz</string>
-    <string name="adaptive_updated_default">Bekleniyor</string>
-
-    <string name="adaptive_learning_badge">ÖĞRENİYOR</string>
-
-    <string name="adaptive_records_format">%1$d kayıt</string>
-    <string name="adaptive_confidence_format">%1$s · %2$d%%</string>
-    <string name="adaptive_pump_same_format">%1$s</string>
-    <string name="adaptive_pump_change_format">%1$s → %2$s</string>
-
-    <string name="adaptive_recommendation_learning">Öğrenme devam ediyor</string>
-    <string name="adaptive_recommendation_keep">Mevcut ayarlar uygun görünüyor</string>
-    <string name="adaptive_recommendation_increase">Pompa süresinin artırılması öneriliyor</string>
-    <string name="adaptive_recommendation_decrease">Pompa süresinin azaltılması öneriliyor</string>
-    <string name="adaptive_recommendation_increase_cooldown">Bekleme süresinin artırılması öneriliyor</string>
-    <string name="adaptive_recommendation_decrease_cooldown">Bekleme süresinin azaltılması öneriliyor</string>
-
-    <string name="adaptive_confidence_low">ÖĞRENİYOR</string>
-    <string name="adaptive_confidence_medium">ORTA</string>
-    <string name="adaptive_confidence_high">YÜKSEK</string>
-
-    <string name="adaptive_updated_format">Son analiz · %1$s</string>
-
-    <string name="adaptive_duration_seconds">%1$d sn</string>
-    <string name="adaptive_duration_minutes">%1$d dk</string>
-    <string name="adaptive_duration_minutes_seconds">%1$d dk %2$d sn</string>
-    <string name="adaptive_duration_hours">%1$d sa</string>
-    <string name="adaptive_duration_hours_minutes">%1$d sa %2$d dk</string>
+    <string
+        name="adaptive_confidence_label">Güven</string>
+    <string
+        name="adaptive_confidence_default">DÜŞÜK</string>
+    <string
+        name="adaptive_pump_label">Pompa</string>
+    <string
+        name="adaptive_pump_default">—</string>
+    <string
+        name="adaptive_records_label">Kayıt</string>
+    <string
+        name="adaptive_records_default">0 Sulama</string>
+    <string
+        name="adaptive_updated_label">Son analiz</string>
+    <string
+        name="adaptive_updated_default">Bekleniyor</string>
+    <string
+        name="adaptive_learning_badge">ÖĞRENİYOR</string>
+    <string
+        name="adaptive_records_format">%1$d kayıt</string>
+    <string
+        name="adaptive_confidence_format">%1$s · %2$d%%</string>
+    <string
+        name="adaptive_pump_same_format">%1$s</string>
+    <string
+        name="adaptive_pump_change_format">%1$s → %2$s</string>
+    <string
+        name="adaptive_recommendation_learning">Öğrenme devam ediyor</string>
+    <string
+        name="adaptive_recommendation_keep">Mevcut ayarlar uygun görünüyor</string>
+    <string
+        name="adaptive_recommendation_increase">Pompa süresinin artırılması öneriliyor</string>
+    <string
+        name="adaptive_recommendation_decrease">Pompa süresinin azaltılması öneriliyor</string>
+    <string
+        name="adaptive_recommendation_increase_cooldown">Bekleme süresinin artırılması öneriliyor</string>
+    <string
+        name="adaptive_recommendation_decrease_cooldown">Bekleme süresinin azaltılması öneriliyor</string>
+    <string
+        name="adaptive_confidence_low">ÖĞRENİYOR</string>
+    <string
+        name="adaptive_confidence_medium">ORTA</string>
+    <string
+        name="adaptive_confidence_high">YÜKSEK</string>
+    <string
+        name="adaptive_updated_format">Son analiz · %1$s</string>
+    <string
+        name="adaptive_duration_seconds">%1$d sn</string>
+    <string
+        name="adaptive_duration_minutes">%1$d dk</string>
+    <string
+        name="adaptive_duration_minutes_seconds">%1$d dk %2$d sn</string>
+    <string
+        name="adaptive_duration_hours">%1$d sa</string>
+    <string
+        name="adaptive_duration_hours_minutes">%1$d sa %2$d dk</string>
     <!-- ========================================================= -->
     <!-- AI SULAMA ASİSTANI                                        -->
     <!-- ========================================================= -->
-
     <!-- Ekran başlığı -->
-
-    <string name="ai_assistant_title">AI Sulama Asistanı</string>
-    <string name="ai_assistant_subtitle">
+    <string
+        name="ai_assistant_title">AI Sulama Asistanı</string>
+    <string
+        name="ai_assistant_subtitle">
         Akıllı kararlar ve açıklanabilir sulama analizleri
     </string>
-
-
     <!-- Akıllı karar kartı -->
-
-    <string name="ai_decision_section_label">Akıllı Karar</string>
-    <string name="ai_decision_preparing_title">
+    <string
+        name="ai_decision_section_label">Akıllı Karar</string>
+    <string
+        name="ai_decision_preparing_title">
         Sistem verileri hazırlanıyor
     </string>
-    <string name="ai_decision_preparing_summary">
+    <string
+        name="ai_decision_preparing_summary">
         AI motorlarından gelen bilgiler birleştirilerek açıklama hazırlanıyor.
     </string>
-    <string name="ai_severity_info">BİLGİ</string>
-
-
+    <string
+        name="ai_severity_info">BİLGİ</string>
     <!-- Karar nedenleri -->
-
-    <string name="ai_reasons_title">Neden?</string>
-    <string name="ai_reasons_subtitle">
+    <string
+        name="ai_reasons_title">Neden?</string>
+    <string
+        name="ai_reasons_subtitle">
         Kararı etkileyen başlıca veriler
     </string>
-
-    <string name="ai_reason_sensor_waiting">
+    <string
+        name="ai_reason_sensor_waiting">
         Sensör bilgileri bekleniyor.
     </string>
-    <string name="ai_reason_history_analyzing">
+    <string
+        name="ai_reason_history_analyzing">
         Sulama geçmişi analiz ediliyor.
     </string>
-    <string name="ai_reason_soil_profile_preparing">
+    <string
+        name="ai_reason_soil_profile_preparing">
         Toprak öğrenme profili hazırlanıyor.
     </string>
-
-
     <!-- Öğrenme ilerlemesi -->
-
-    <string name="ai_learning_progress_title">Öğrenme İlerlemesi</string>
-    <string name="ai_learning_progress_subtitle">
+    <string
+        name="ai_learning_progress_title">Öğrenme İlerlemesi</string>
+    <string
+        name="ai_learning_progress_subtitle">
         Toprak profili oluşturuluyor
     </string>
-    <string name="ai_progress_initial">%%0</string>
-
-
+    <string
+        name="ai_progress_initial">%%0</string>
     <!-- Sonraki adım -->
-
-    <string name="ai_next_step_title">Sonraki Adım</string>
-    <string name="ai_next_step_waiting">
+    <string
+        name="ai_next_step_title">Sonraki Adım</string>
+    <string
+        name="ai_next_step_waiting">
         Yeni sensör ölçümleri bekleniyor.
     </string>
-
-
     <!-- Teknik özet -->
-
-    <string name="ai_technical_summary_title">Teknik Özet</string>
-
-    <string name="ai_confidence_label">GÜVEN</string>
-    <string name="ai_zone_summary_title">Bölgesel karar özeti</string>
-    <string name="ai_zone_summary_subtitle">Her bölge bağımsız sensör verisi ve sulama ayarıyla değerlendirilir.</string>
-    <string name="ai_zone_waiting">Sensör verisi bekleniyor</string>
-    <string name="ai_zone_watering">Sulama devam ediyor</string>
-    <string name="ai_zone_cooldown">Beklemede · %1$s kaldı</string>
-    <string name="ai_zone_queued">Sulama sırasında · %1$d. sıra</string>
-    <string name="ai_zone_moisture_sufficient">Nem yeterli · %1$d%%</string>
-    <string name="ai_zone_moisture_low">Sulama gerekli · %1$d puan nem açığı</string>
-    <string name="ai_zone_unstable">Sensör kararlılığı bekleniyor</string>
-    <string name="ai_zone_recovery_waiting">Nem toparlanması bekleniyor</string>
-    <string name="ai_zone_learning">Karar için ölçüm birikiyor</string>
-    <string name="ai_zone_disabled">Bölgesel sulama kapalı</string>
-    <string name="ai_soil_label">TOPRAK</string>
-    <string name="ai_trend_label">TREND</string>
-
-    <string name="ai_value_unavailable">—</string>
-    <string name="ai_soil_unknown">Bilinmiyor</string>
-    <string name="ai_status_waiting">Bekleniyor</string>
-
-    <string name="ai_last_updated_label">Son güncelleme</string>
-
-    <string name="menu_ai_assistant">AI Sulama Asistanı</string>
-    <string name="menu_ai_assistant_description"> Akıllı sulama kararları ve açıklamaları </string>
-
-
+    <string
+        name="ai_technical_summary_title">Teknik Özet</string>
+    <string
+        name="ai_confidence_label">GÜVEN</string>
+    <string
+        name="ai_zone_summary_title">Bölgesel karar özeti</string>
+    <string
+        name="ai_zone_summary_subtitle">Her bölge bağımsız sensör verisi ve sulama ayarıyla değerlendirilir.</string>
+    <string
+        name="ai_zone_waiting">Sensör verisi bekleniyor</string>
+    <string
+        name="ai_zone_watering">Sulama devam ediyor</string>
+    <string
+        name="ai_zone_cooldown">Beklemede · %1$s kaldı</string>
+    <string
+        name="ai_zone_queued">Sulama sırasında · %1$d. sıra</string>
+    <string
+        name="ai_zone_moisture_sufficient">Nem yeterli · %1$d%%</string>
+    <string
+        name="ai_zone_moisture_low">Sulama gerekli · %1$d puan nem açığı</string>
+    <string
+        name="ai_zone_unstable">Sensör kararlılığı bekleniyor</string>
+    <string
+        name="ai_zone_recovery_waiting">Nem toparlanması bekleniyor</string>
+    <string
+        name="ai_zone_learning">Karar için ölçüm birikiyor</string>
+    <string
+        name="ai_zone_disabled">Bölgesel sulama kapalı</string>
+    <string
+        name="ai_soil_label">TOPRAK</string>
+    <string
+        name="ai_trend_label">TREND</string>
+    <string
+        name="ai_value_unavailable">—</string>
+    <string
+        name="ai_soil_unknown">Bilinmiyor</string>
+    <string
+        name="ai_status_waiting">Bekleniyor</string>
+    <string
+        name="ai_last_updated_label">Son güncelleme</string>
+    <string
+        name="menu_ai_assistant">AI Sulama Asistanı</string>
+    <string
+        name="menu_ai_assistant_description"> Akıllı sulama kararları ve açıklamaları </string>
     <!-- ========================================================= -->
     <!-- ORTAK SEMBOLLER                                           -->
     <!-- ========================================================= -->
-
-    <string name="symbol_back_arrow">←</string>
-    <string name="symbol_check">✓</string>
-    <string name="symbol_next_arrow">➜</string>
-    <string name="symbol_status_dot">●</string>
-    <string name="symbol_right_arrow">→</string>
-    <string name="symbol_menu_arrow">›</string>
-
+    <string
+        name="symbol_back_arrow">←</string>
+    <string
+        name="symbol_check">✓</string>
+    <string
+        name="symbol_next_arrow">➜</string>
+    <string
+        name="symbol_status_dot">●</string>
+    <string
+        name="symbol_right_arrow">→</string>
+    <string
+        name="symbol_menu_arrow">›</string>
     <!-- AI KARAR AKIŞI -->
-
-    <string name="ai_decision_flow_title">AI Karar Akışı</string>
-    <string name="ai_decision_flow_subtitle">Kararın hangi analiz aşamalarından geçerek oluşturulduğunu gösterir.</string>
-
-    <string name="ai_flow_sensor_title">Sensör verisi</string>
-    <string name="ai_flow_sensor_waiting">Sensör ölçümü bekleniyor</string>
-
-    <string name="ai_flow_moisture_title">Nem analizi</string>
-    <string name="ai_flow_moisture_waiting">Nem seviyesi değerlendiriliyor</string>
-
-    <string name="ai_flow_soil_title">Toprak profili</string>
-    <string name="ai_flow_soil_waiting">Toprak davranışı analiz ediliyor</string>
-
-    <string name="ai_flow_history_title">Sulama geçmişi</string>
-    <string name="ai_flow_history_waiting">Geçmiş sonuçlar inceleniyor</string>
-
-    <string name="ai_flow_result_title">AI sonucu</string>
-    <string name="ai_flow_result_waiting">Karar hazırlanıyor</string>
-
-    <string name="ai_flow_connector">↓</string>
-
+    <string
+        name="ai_decision_flow_title">AI Karar Akışı</string>
+    <string
+        name="ai_decision_flow_subtitle">Kararın hangi analiz aşamalarından geçerek oluşturulduğunu gösterir.</string>
+    <string
+        name="ai_flow_sensor_title">Sensör verisi</string>
+    <string
+        name="ai_flow_sensor_waiting">Sensör ölçümü bekleniyor</string>
+    <string
+        name="ai_flow_moisture_title">Nem analizi</string>
+    <string
+        name="ai_flow_moisture_waiting">Nem seviyesi değerlendiriliyor</string>
+    <string
+        name="ai_flow_soil_title">Toprak profili</string>
+    <string
+        name="ai_flow_soil_waiting">Toprak davranışı analiz ediliyor</string>
+    <string
+        name="ai_flow_history_title">Sulama geçmişi</string>
+    <string
+        name="ai_flow_history_waiting">Geçmiş sonuçlar inceleniyor</string>
+    <string
+        name="ai_flow_result_title">AI sonucu</string>
+    <string
+        name="ai_flow_result_waiting">Karar hazırlanıyor</string>
+    <string
+        name="ai_flow_connector">↓</string>
     <!-- AI KARAR AKIŞI ADIM NUMARALARI -->
-
-    <string name="ai_flow_step_one">1</string>
-    <string name="ai_flow_step_two">2</string>
-    <string name="ai_flow_step_three">3</string>
-    <string name="ai_flow_step_four">4</string>
-    <string name="ai_flow_step_five">5</string>
-
+    <string
+        name="ai_flow_step_one">1</string>
+    <string
+        name="ai_flow_step_two">2</string>
+    <string
+        name="ai_flow_step_three">3</string>
+    <string
+        name="ai_flow_step_four">4</string>
+    <string
+        name="ai_flow_step_five">5</string>
     <!-- BÖLGE DETAYI -->
+    <string
+        name="zone_detail_title">Bahçe bölgesi</string>
+    <string
+        name="zone_detail_waiting">Bölge bilgileri yükleniyor</string>
+    <string
+        name="zone_irrigation_enabled">Bu bölge için otomatik sulama</string>
+    <string
+        name="zone_irrigation_enabled_description">Aktif — Bu bölge kendi nem ve süre ayarlarıyla sulanabilir</string>
+    <string
+        name="zone_irrigation_disabled_description">Kapalı — Bu bölge için otomatik sulama yapılmaz</string>
+    <string
+        name="zone_moisture_limit">Nem sınırı</string>
+    <string
+        name="zone_pump_duration">Sulama süresi</string>
+    <string
+        name="zone_default_percentage">%40</string>
+    <string
+        name="zone_default_seconds">10 sn</string>
+    <string
+        name="zone_percentage_format">%%%1$d</string>
+    <string
+        name="zone_seconds_format">%1$d sn</string>
+    <string
+        name="zone_save_settings">Bölge ayarlarını kaydet</string>
+    <string
+        name="zone_settings_saved">Bölge ayarları kaydedildi</string>
+    <string
+        name="zone_sensor_settings_title">Sensör ayarları</string>
+    <string
+        name="zone_sensor_enabled">Bu sensörü etkin kullan</string>
+    <string
+        name="zone_sensor_enabled_description">Kapalıyken bu bölgenin sensör ölçümleri sulama kararında kullanılmaz.</string>
+    <string
+        name="zone_sensor_id_label">Sensör kimliği</string>
+    <string
+        name="zone_sensor_dry_raw_label">Kuru toprak ham değeri</string>
+    <string
+        name="zone_sensor_wet_raw_label">Islak toprak ham değeri</string>
+    <string
+        name="zone_sensor_calibration_hint">Sensör değiştiğinde kuru ve tamamen ıslak toprakta ölçtüğün ham değerleri gir.</string>
+    <string
+        name="zone_sensor_calibration_invalid">Kuru değer, ıslak değerden büyük olmalıdır.</string>
+    <string
+        name="zone_operation_failed">İşlem tamamlanamadı</string>
+    <string
+        name="zone_valve_title">Elektrikli vana</string>
+    <string
+        name="zone_valve_simulation">Simülasyon modu · Fiziksel vana kapalı</string>
+    <string
+        name="zone_valve_physical">Fiziksel vana modu</string>
+    <string
+        name="zone_test_safety_note">Simülasyon sırasında gerçek pompa çalıştırılmaz.</string>
+    <string
+        name="zone_test_simulation">Vana simülasyonunu test et</string>
+    <string
+        name="zone_test_physical">Fiziksel vanayı test et</string>
+    <string
+        name="zone_test_sent">Vana test komutu Raspberry Pi’ye gönderildi</string>
+    <string
+        name="zone_test_start_title">Bölge simülasyonu başlatılsın mı?</string>
+    <string
+        name="zone_test_start_message">%1$s vanası %2$s boyunca simüle edilecek. Gerçek pompa çalışmayacak.</string>
+    <string
+        name="zone_test_start">Simülasyonu başlat</string>
+    <string
+        name="zone_test_cancel">Simülasyonu durdur</string>
+    <string
+        name="zone_test_cancelled">Simülasyon durdurma komutu gönderildi</string>
+    <string
+        name="zone_test_active">Simülasyon çalışıyor · Gerçek pompa kapalı</string>
+    <string
+        name="zone_cooldown">Sulama sonrası bekleme süresi</string>
+    <string
+        name="zone_cooldown_description">Sulama bittikten sonra bu süre dolmadan aynı bölge yeniden sulanmaz.</string>
+    <string
+        name="zone_restart_delta">Yeniden başlatma farkı</string>
+    <string
+        name="zone_restart_delta_description">Nem, sınırın bu kadar üzerine çıkmadan yeni sulama döngüsüne izin verilmez.</string>
+    <string
+        name="zone_default_minutes">10 dk</string>
+    <string
+        name="zone_default_restart_delta">%10</string>
+    <string
+        name="zone_minutes_format">%1$d dk</string>
+    <string
+        name="zone_card_ready">Otomatik sulama izleniyor</string>
+    <string
+        name="zone_card_queued">Sırada · %1$d. bölge</string>
+    <string
+        name="zone_card_watering">Sulanıyor</string>
+    <string
+        name="zone_card_cooldown">Bekleme süresinde · %1$s kaldı</string>
+    <string
+        name="zone_card_auto_disabled">Otomatik sulama kapalı</string>
+    <string
+        name="zone_card_duration_minutes">%1$d dk</string>
+    <string
+        name="zone_card_duration_hours_minutes">%1$d sa %2$d dk</string>
+    <string
+        name="home_garden_title">Bahçenin genel durumu</string>
+    <string
+        name="home_alerts_title">Aktif uyarılar</string>
+    <string
+        name="home_alert_device_offline">Raspberry Pi bağlantısı yok.</string>
+    <string
+        name="home_alert_no_sensors">Bağlı sensör yok. Sensörlerin güç ve bağlantısını kontrol edin.</string>
+    <string
+        name="home_alert_system_error">Sistem güvenli moda geçti: %1$s</string>
+    <string
+        name="home_sensor_count_waiting">Sensör bilgileri yükleniyor</string>
+    <string
+        name="home_sensor_count">%1$d / %2$d sensör bağlı</string>
+    <string
+        name="home_watering_idle">Şu anda sulama gerekmiyor</string>
+    <string
+        name="home_watering_active">%1$s sulanıyor</string>
+    <string
+        name="home_watering_queued">%1$s sulama sırasında</string>
+    <string
+        name="home_watering_cooldown">%1$d bölge bekleme süresinde</string>
+    <string
+        name="home_pump_closed">Pompa kapalı · Açık vana yok</string>
+    <string
+        name="home_pump_running">Ortak pompa çalışıyor</string>
+    <string
+        name="home_simulation_warning">⚠ Vana simülasyon modu aktif · Bölgesel sulamada gerçek pompa korunuyor</string>
+    <string
+        name="home_zones_title">Bölgeler - Bitkiler</string>
+    <string
+        name="home_zones_subtitle">Bir bölgeye dokunarak günlüğünü görüntüleyin.</string>
+    <string
+        name="home_zone_sensor_waiting">Sensör bekleniyor</string>
+    <string
+        name="home_zone_sensor_paused">Sensör uygulamadan kapatıldı</string>
+    <string
+        name="home_zone_sensor_paused_badge">BEKLEMEDE</string>
+    <string
+        name="home_zone_ready">Hazır</string>
+    <string
+        name="home_zone_watering">Sulanıyor</string>
+    <string
+        name="home_zone_queued">Sırada · %1$d</string>
+    <string
+        name="home_zone_cooldown">Beklemede</string>
+    <string
+        name="home_zone_disabled">Kapalı</string>
+    <string
+        name="home_ai_title">Akıllı sulama</string>
+    <string
+        name="home_ai_waiting">Karar hazırlanıyor</string>
+    <string
+        name="home_ai_summary_waiting">Sensör ve sulama geçmişi analiz ediliyor.</string>
+    <string
+        name="home_ai_progress_waiting">%0</string>
+    <string
+        name="home_ai_progress_format">%%%1$d öğrenildi</string>
+    <string
+        name="home_ai_open_details">AI açıklamasını görüntüle ›</string>
+    <string
+        name="manual_relay_test_button">Pompa rölesini test et</string>
+    <string
+        name="manual_relay_test_title">Pompa rölesi testi</string>
+    <string
+        name="manual_relay_test_message">Pompa yalnız açık fiziksel vana varken çalışır. İlk su testinde pompayı birkaç saniye sonra kapatın.</string>
+    <string
+        name="valve_setup_button">Vana kurulumunu yönet</string>
+    <string
+        name="valve_setup_title">Vana kurulumu</string>
+    <string
+        name="valve_setup_hint">Yalnız rölesi ve vanası bağlı bölgeleri fiziksel moda alın.</string>
+    <string
+        name="valve_setup_physical">Fiziksel vana</string>
+    <string
+        name="valve_setup_simulation">Simülasyon</string>
+    <string
+        name="valve_setup_confirm_title">Fiziksel vana modu açılsın mı?</string>
+    <string
+        name="valve_setup_confirm_message">%1$s için gerçek vana kontrolü açılacak. Bağlantı doğrulanmadıysa pompa güvenliği riske girebilir.</string>
+    <string
+        name="manual_relay_test_confirm">Testi başlat</string>
+    <string
+        name="manual_relay_test_cancel">Vazgeç</string>
+    <string
+        name="manual_relay_test_hint">Donanım testi · Bölgesel sulama değildir</string>
+    <string
+        name="home_quick_actions_title">Hızlı işlemler</string>
+    <string
+        name="home_quick_zones">Bölgeler</string>
+    <string
+        name="home_quick_ai">AI Asistanı</string>
+    <string
+        name="home_quick_settings">Ayarlar</string>
+    <string
+        name="home_primary_zone_subtitle">Birincil bölge · %1$s</string>
+    <string
+        name="home_zone_sensor_subtitle">Sensör · %1$s</string>
+    <string
+        name="home_show_advanced">Detaylı kontrolleri göster</string>
+    <string
+        name="home_hide_advanced">Detaylı kontrolleri gizle</string>
+    <string
+        name="zone_unsaved_changes">Kaydedilmemiş bölge ayarları var</string>
+    <string
+        name="zone_unsaved_dialog_title">Değişiklikler kaydedilmedi</string>
+    <string
+        name="zone_unsaved_dialog_message">Bu ekrandan çıkarsanız yaptığınız bölge ayarları kaybolacak.</string>
+    <string
+        name="zone_continue_editing">Düzenlemeye devam et</string>
+    <string
+        name="zone_discard_changes">Değişiklikleri sil</string>
+    <string
+        name="zone_card_moisture_sufficient">Nem yeterli · Sulama gerekmiyor</string>
+    <string
+        name="zone_card_recovery_waiting">Nem toparlanması bekleniyor</string>
+    <string
+        name="ai_learning_goal_title">Öğrenme hedefi</string>
+    <!-- Ana ekran ortak metinleri -->
+    <string
+        name="home_health_summary_accessibility">Bahçe sağlık özeti</string>
+    <string
+        name="home_health_score_title">Bahçe Sağlık Puanı</string>
+    <string
+        name="home_weather_title">Hava durumu</string>
+    <string
+        name="home_weather_default_location">· Merkez / Düzce</string>
+    <string
+        name="home_weather_updated_pending">↻ Güncellendi: —</string>
+    <string
+        name="home_weather_today">BUGÜN</string>
+    <string
+        name="home_weather_tomorrow">YARIN</string>
+    <string
+        name="placeholder_dash">—</string>
+    <string
+        name="home_weather_balanced_comment">AVORA yorumu: Bahçe için hava koşulları dengeli.</string>
+    <string
+        name="home_plant_assistant_content_description">Bitki Asistanı</string>
+    <string
+        name="home_plant_assistant_title">Bitki Asistanı önerisi</string>
+    <string
+        name="home_plant_assistant_empty">Şu an öneri yok</string>
+    <string
+        name="home_irrigation_summary_title">Sulama özeti</string>
+    <string
+        name="home_fertilization_summary_title">Gübreleme özeti</string>
+    <string
+        name="home_fertilization_loading">Gübreleme planları hazırlanıyor</string>
+    <string
+        name="home_moisture_zero">0%</string>
+    <string
+        name="home_scale_dry">Kuru</string>
+    <string
+        name="home_scale_ideal">İdeal</string>
+    <string
+        name="home_scale_high">Yüksek</string>
+    <string
+        name="home_voltage_placeholder">0.00 V</string>
+    <string
+        name="home_adc_model"
+        translatable="false">ADS1115</string>
+    <string
+        name="home_raw_zero">0</string>
+    <string
+        name="home_raw_label">Ham veri</string>
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_plant_journal">Bitki Günlüğü</string>
+    <string name="nav_ai_assistant">AI Asistan</string>
+    <string name="nav_settings">Ayarlar</string>
+    <string name="symbol_middle_dot">·</string>
+    <!-- Merkezi Ayarlar menüsü -->
+    <string name="settings_hub_quick_title">Hızlı Ayarlar</string>
+    <string name="settings_hub_edit">Düzenle</string>
+    <string name="settings_hub_quick_edit_title">Hızlı Ayarlar</string>
+    <string name="settings_quick_irrigation">Sulama\nAyarları</string>
+    <string name="settings_quick_plants">Bitkiler ve\nBölgeler</string>
+    <string name="settings_quick_notifications">Bildirim\nAyarları</string>
+    <string name="settings_quick_weather">Yağış\nAyarları</string>
+    <string name="settings_quick_fertilization">Gübreleme\nAyarları</string>
+    <string name="settings_quick_device">Cihaz\nSağlığı</string>
+    <string name="settings_quick_about">Uygulama\nHakkında</string>
+    <string name="settings_quick_editor_title">Hızlı Ayarları düzenle</string>
+    <string name="settings_quick_editor_message">Dört kısayol seçin, oklarla görünme sırasını değiştirin.</string>
+    <string name="settings_quick_selected_count">Seçili: %1$d / %2$d</string>
+    <string name="settings_quick_exact_count">Lütfen tam %1$d kısayol seçin.</string>
+    <string name="settings_quick_max_count">En fazla %1$d kısayol seçebilirsiniz.</string>
+    <string name="settings_quick_saved">Hızlı Ayarlar kaydedildi.</string>
+    <string name="settings_quick_restore_defaults">Varsayılana dön</string>
+    <string name="settings_quick_move_up">Yukarı taşı</string>
+    <string name="settings_quick_move_down">Aşağı taşı</string>
+    <string name="settings_quick_cancel">İptal</string>
+    <string name="settings_quick_save">Kaydet</string>
 
-    <string name="zone_detail_title">Bahçe bölgesi</string>
-    <string name="zone_detail_waiting">Bölge bilgileri yükleniyor</string>
-    <string name="zone_irrigation_enabled">Bu bölge için otomatik sulama</string>
-    <string name="zone_irrigation_enabled_description">Aktif — Bu bölge kendi nem ve süre ayarlarıyla sulanabilir</string>
-    <string name="zone_irrigation_disabled_description">Kapalı — Bu bölge için otomatik sulama yapılmaz</string>
-    <string name="zone_moisture_limit">Nem sınırı</string>
-    <string name="zone_pump_duration">Sulama süresi</string>
-    <string name="zone_default_percentage">%40</string>
-    <string name="zone_default_seconds">10 sn</string>
-    <string name="zone_percentage_format">%%%1$d</string>
-    <string name="zone_seconds_format">%1$d sn</string>
-    <string name="zone_save_settings">Bölge ayarlarını kaydet</string>
-    <string name="zone_settings_saved">Bölge ayarları kaydedildi</string>
-    <string name="zone_sensor_settings_title">Sensör ayarları</string>
-    <string name="zone_sensor_enabled">Bu sensörü etkin kullan</string>
-    <string name="zone_sensor_enabled_description">Kapalıyken bu bölgenin sensör ölçümleri sulama kararında kullanılmaz.</string>
-    <string name="zone_sensor_id_label">Sensör kimliği</string>
-    <string name="zone_sensor_dry_raw_label">Kuru toprak ham değeri</string>
-    <string name="zone_sensor_wet_raw_label">Islak toprak ham değeri</string>
-    <string name="zone_sensor_calibration_hint">Sensör değiştiğinde kuru ve tamamen ıslak toprakta ölçtüğün ham değerleri gir.</string>
-    <string name="zone_sensor_calibration_invalid">Kuru değer, ıslak değerden büyük olmalıdır.</string>
-    <string name="zone_operation_failed">İşlem tamamlanamadı</string>
-    <string name="zone_valve_title">Elektrikli vana</string>
-    <string name="zone_valve_simulation">Simülasyon modu · Fiziksel vana kapalı</string>
-    <string name="zone_valve_physical">Fiziksel vana modu</string>
-    <string name="zone_test_safety_note">Simülasyon sırasında gerçek pompa çalıştırılmaz.</string>
-    <string name="zone_test_simulation">Vana simülasyonunu test et</string>
-    <string name="zone_test_physical">Fiziksel vanayı test et</string>
-    <string name="zone_test_sent">Vana test komutu Raspberry Pi’ye gönderildi</string>
-    <string name="zone_test_start_title">Bölge simülasyonu başlatılsın mı?</string>
-    <string name="zone_test_start_message">%1$s vanası %2$s boyunca simüle edilecek. Gerçek pompa çalışmayacak.</string>
-    <string name="zone_test_start">Simülasyonu başlat</string>
-    <string name="zone_test_cancel">Simülasyonu durdur</string>
-    <string name="zone_test_cancelled">Simülasyon durdurma komutu gönderildi</string>
-    <string name="zone_test_active">Simülasyon çalışıyor · Gerçek pompa kapalı</string>
-    <string name="zone_cooldown">Sulama sonrası bekleme süresi</string>
-    <string name="zone_cooldown_description">Sulama bittikten sonra bu süre dolmadan aynı bölge yeniden sulanmaz.</string>
-    <string name="zone_restart_delta">Yeniden başlatma farkı</string>
-    <string name="zone_restart_delta_description">Nem, sınırın bu kadar üzerine çıkmadan yeni sulama döngüsüne izin verilmez.</string>
-    <string name="zone_default_minutes">10 dk</string>
-    <string name="zone_default_restart_delta">%10</string>
-    <string name="zone_minutes_format">%1$d dk</string>
-    <string name="zone_card_ready">Otomatik sulama izleniyor</string>
-    <string name="zone_card_queued">Sırada · %1$d. bölge</string>
-    <string name="zone_card_watering">Sulanıyor</string>
-    <string name="zone_card_cooldown">Bekleme süresinde · %1$s kaldı</string>
-    <string name="zone_card_auto_disabled">Otomatik sulama kapalı</string>
-    <string name="zone_card_duration_minutes">%1$d dk</string>
-    <string name="zone_card_duration_hours_minutes">%1$d sa %2$d dk</string>
-    <string name="home_garden_title">Bahçenin genel durumu</string>
-    <string name="home_alerts_title">Aktif uyarılar</string>
-    <string name="home_alert_device_offline">Raspberry Pi bağlantısı yok.</string>
-    <string name="home_alert_no_sensors">Bağlı sensör yok. Sensörlerin güç ve bağlantısını kontrol edin.</string>
-    <string name="home_alert_system_error">Sistem güvenli moda geçti: %1$s</string>
-    <string name="home_sensor_count_waiting">Sensör bilgileri yükleniyor</string>
-    <string name="home_sensor_count">%1$d / %2$d sensör bağlı</string>
-    <string name="home_watering_idle">Şu anda sulama gerekmiyor</string>
-    <string name="home_watering_active">%1$s sulanıyor</string>
-    <string name="home_watering_queued">%1$s sulama sırasında</string>
-    <string name="home_watering_cooldown">%1$d bölge bekleme süresinde</string>
-    <string name="home_pump_closed">Pompa kapalı · Açık vana yok</string>
-    <string name="home_pump_running">Ortak pompa çalışıyor</string>
-    <string name="home_simulation_warning">⚠ Vana simülasyon modu aktif · Bölgesel sulamada gerçek pompa korunuyor</string>
-    <string name="home_zones_title">Bölgeler</string>
-    <string name="home_zones_subtitle">O bölgenin gübreleme planını açmak için bir bölgeye dokunun.</string>
-    <string name="home_zone_sensor_waiting">Sensör bekleniyor</string>
-    <string name="home_zone_sensor_paused">Sensör uygulamadan kapatıldı</string>
-    <string name="home_zone_sensor_paused_badge">BEKLEMEDE</string>
-    <string name="home_zone_ready">Hazır</string>
-    <string name="home_zone_watering">Sulanıyor</string>
-    <string name="home_zone_queued">Sırada · %1$d</string>
-    <string name="home_zone_cooldown">Beklemede</string>
-    <string name="home_zone_disabled">Kapalı</string>
-    <string name="home_ai_title">Akıllı sulama</string>
-    <string name="home_ai_waiting">Karar hazırlanıyor</string>
-    <string name="home_ai_summary_waiting">Sensör ve sulama geçmişi analiz ediliyor.</string>
-    <string name="home_ai_progress_waiting">%0</string>
-    <string name="home_ai_progress_format">%%%1$d öğrenildi</string>
-    <string name="home_ai_open_details">AI açıklamasını görüntüle ›</string>
-    <string name="manual_relay_test_button">Pompa rölesini test et</string>
-    <string name="manual_relay_test_title">Pompa rölesi testi</string>
-    <string name="manual_relay_test_message">Pompa yalnız açık fiziksel vana varken çalışır. İlk su testinde pompayı birkaç saniye sonra kapatın.</string>
-    <string name="valve_setup_button">Vana kurulumunu yönet</string>
-    <string name="valve_setup_title">Vana kurulumu</string>
-    <string name="valve_setup_hint">Yalnız rölesi ve vanası bağlı bölgeleri fiziksel moda alın.</string>
-    <string name="valve_setup_physical">Fiziksel vana</string>
-    <string name="valve_setup_simulation">Simülasyon</string>
-    <string name="valve_setup_confirm_title">Fiziksel vana modu açılsın mı?</string>
-    <string name="valve_setup_confirm_message">%1$s için gerçek vana kontrolü açılacak. Bağlantı doğrulanmadıysa pompa güvenliği riske girebilir.</string>
-    <string name="manual_relay_test_confirm">Testi başlat</string>
-    <string name="manual_relay_test_cancel">Vazgeç</string>
-    <string name="manual_relay_test_hint">Donanım testi · Bölgesel sulama değildir</string>
-    <string name="home_quick_actions_title">Hızlı işlemler</string>
-    <string name="home_quick_zones">Bölgeler</string>
-    <string name="home_quick_ai">AI Asistanı</string>
-    <string name="home_quick_settings">Ayarlar</string>
-    <string name="home_primary_zone_subtitle">Birincil bölge · %1$s</string>
-    <string name="home_zone_sensor_subtitle">Sensör · %1$s</string>
-    <string name="home_show_advanced">Detaylı kontrolleri göster</string>
-    <string name="home_hide_advanced">Detaylı kontrolleri gizle</string>
-    <string name="zone_unsaved_changes">Kaydedilmemiş bölge ayarları var</string>
-    <string name="zone_unsaved_dialog_title">Değişiklikler kaydedilmedi</string>
-    <string name="zone_unsaved_dialog_message">Bu ekrandan çıkarsanız yaptığınız bölge ayarları kaybolacak.</string>
-    <string name="zone_continue_editing">Düzenlemeye devam et</string>
-    <string name="zone_discard_changes">Değişiklikleri sil</string>
+    <string name="settings_category_garden_profile">Bahçe ve Profil</string>
+    <string name="settings_garden_info_title">Bahçe Bilgileri</string>
+    <string name="settings_garden_info_subtitle">Bahçenin adı, konumu ve genel bilgileri</string>
+    <string name="settings_plants_regions_title">Bitkiler ve Bölgeler</string>
+    <string name="settings_plants_regions_subtitle">Bitki türleri ve sulama bölgelerini yönetin</string>
+    <string name="settings_units_title">Birimler</string>
+    <string name="settings_units_subtitle">Sıcaklık, uzunluk, alan ve doz birimleri</string>
 
-    <string name="zone_card_moisture_sufficient">Nem yeterli · Sulama gerekmiyor</string>
-    <string name="zone_card_recovery_waiting">Nem toparlanması bekleniyor</string>
-    <string name="ai_learning_goal_title">&#214;&#287;renme hedefi</string>
+    <string name="settings_category_irrigation_fertilization">Sulama ve Gübreleme</string>
+    <string name="settings_irrigation_menu_title">Sulama Ayarları</string>
+    <string name="settings_irrigation_menu_subtitle">Otomatik sulama, süreler ve nem limitleri</string>
+    <string name="settings_fertilization_menu_title">Gübreleme Ayarları</string>
+    <string name="settings_fertilization_menu_subtitle">Gübre tercihleri, ürünler ve hatırlatmalar</string>
+    <string name="settings_rain_menu_title">Yağış Ayarları</string>
+    <string name="settings_rain_menu_subtitle">Konum, tahmin kaynağı ve yağış davranışı</string>
+
+    <string name="settings_category_notifications">Bildirimler</string>
+    <string name="settings_notification_preferences_title">Bildirim Tercihleri</string>
+    <string name="settings_notification_preferences_subtitle">Hangi bildirimleri almak istediğinizi seçin</string>
+    <string name="settings_reminders_title">Hatırlatıcılar</string>
+    <string name="settings_reminders_subtitle">Sulama, gübreleme ve takip zamanları</string>
+
+    <string name="settings_category_device_application">Cihaz ve Uygulama</string>
+    <string name="settings_device_info_title">Cihaz Bilgileri</string>
+    <string name="settings_device_info_subtitle">Raspberry Pi, ESP32, sensör ve bağlantılar</string>
+    <string name="settings_sync_title">Veri Senkronizasyonu</string>
+    <string name="settings_sync_subtitle">Verilerin son eşitlenme durumunu görüntüleyin</string>
+    <string name="settings_backup_title">Yedekleme</string>
+    <string name="settings_backup_subtitle">Ayar ve kayıt yedeklerini yönetin</string>
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_theme_subtitle">Aydınlık, karanlık veya sistem görünümü</string>
+    <string name="settings_language_title">Dil</string>
+    <string name="settings_language_subtitle">Uygulama dilini seçin</string>
+
+    <string name="settings_category_support_about">Destek ve Hakkında</string>
+    <string name="settings_help_title">Yardım Merkezi</string>
+    <string name="settings_help_subtitle">Kullanım rehberi ve sık sorulan sorular</string>
+    <string name="settings_feedback_title">Geri Bildirim Gönder</string>
+    <string name="settings_feedback_subtitle">Öneri veya karşılaştığınız sorunu bildirin</string>
+    <string name="settings_about_title">Hakkında</string>
+    <string name="settings_about_subtitle">Uygulama, sürüm ve geliştirici bilgileri</string>
+    <string name="settings_feature_preparing">%1$s bölümü sonraki aşamada hazırlanacak.</string>
 </resources>

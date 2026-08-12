@@ -16,10 +16,10 @@ import com.ali.smartgarden.activities.AIAssistantActivity;
 import com.ali.smartgarden.activities.AboutActivity;
 import com.ali.smartgarden.activities.DeviceHealthActivity;
 import com.ali.smartgarden.activities.FertilizationCalendarActivity;
-import com.ali.smartgarden.activities.GardenPhotoArchiveActivity;
-import com.ali.smartgarden.activities.PlantDoctorActivity;
+import com.ali.smartgarden.activities.PlantAssistantActivity;
+import com.ali.smartgarden.activities.PlantListActivity;
 import com.ali.smartgarden.activities.SeasonReportActivity;
-import com.ali.smartgarden.activities.SettingsActivity;
+import com.ali.smartgarden.activities.SettingsHubActivity;
 import com.ali.smartgarden.activities.StatisticsActivity;
 import com.ali.smartgarden.activities.WateringHistoryActivity;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -42,15 +42,15 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        bind(view, R.id.menuCardPlantDoctor, PlantDoctorActivity.class);
+        bind(view, R.id.menuCardPlantAssistant, PlantAssistantActivity.class);
         bind(view, R.id.menuCardAIAssistant, AIAssistantActivity.class);
         bind(view, R.id.menuCardFertilization, FertilizationCalendarActivity.class);
         bind(view, R.id.menuCardStatistics, StatisticsActivity.class);
         bind(view, R.id.menuCardHistory, WateringHistoryActivity.class);
-        bind(view, R.id.menuCardPlantJournal, GardenPhotoArchiveActivity.class);
+        bind(view, R.id.menuCardPlantJournal, PlantListActivity.class);
         bind(view, R.id.menuCardSeasonReport, SeasonReportActivity.class);
         bind(view, R.id.menuCardHealth, DeviceHealthActivity.class);
-        bind(view, R.id.menuCardSettings, SettingsActivity.class);
+        bind(view, R.id.menuCardSettings, SettingsHubActivity.class);
         bind(view, R.id.menuCardAbout, AboutActivity.class);
 
     }

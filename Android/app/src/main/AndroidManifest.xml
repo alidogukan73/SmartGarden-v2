@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
+        android:name=".AvoraApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,92 +21,146 @@
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGarden">
+        <activity
+            android:name=".activities.ThemeSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.LanguageSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.HelpCenterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.FeedbackActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.RainSettingsActivity"
+            android:exported="false" />
 
-        <activity android:name=".activities.WeatherForecastActivity" android:exported="false" />
-        <activity android:name=".activities.GardenLocationActivity" android:exported="false" />
-
+        <service
+            android:name=".notifications.AvoraFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action
+                    android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <activity
+            android:name=".activities.NotificationSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ReminderSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.NotificationDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.NotificationCenterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.NewJournalRecordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.JournalRecordDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.PlantTimelineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.PlantListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.WeatherForecastActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.GardenLocationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.GardenInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.UnitsSettingsActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.GardenHealthDetailActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.GardenPhotoArchiveActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.GardenPhotoGalleryActivity"
             android:exported="false" />
-
         <activity
-            android:name=".activities.PlantDoctorActivity"
+            android:name=".activities.PlantAssistantActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.SeasonReportActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.FertilizationCalendarActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
+        <activity
+            android:name=".activities.FertilizationSettingsActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.FertilizationZoneDetailActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.FertilizerHistoryActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.FertilizerProductsActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.WateringControlActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.AboutActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.SettingsActivity"
-            android:exported="false"/>
-
+            android:exported="false" />        <activity
+            android:name=".activities.IrrigationSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.SettingsHubActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.DeviceHealthActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
+        <activity
+            android:name=".activities.DeviceInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.DataSyncActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.BackupActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.WateringHistoryActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.StatisticsActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action
+                    android:name="android.intent.action.MAIN" />
+                <category
+                    android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".activities.AIAssistantActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.SensorPointsActivity"
             android:exported="false" />
-
         <activity
             android:name=".activities.ZoneDetailActivity"
             android:exported="false" />
-
     </application>
-
 </manifest>

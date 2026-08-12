@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="202dp"
     android:layout_margin="5dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="1dp"
-    app:strokeColor="#D7E5D8"
+    app:strokeColor="@color/border"
     app:strokeWidth="1dp">
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
         <ImageView
             android:id="@+id/imgSelectableGardenPhoto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="Arşiv fotoğrafı"
             android:scaleType="centerCrop" />
-
         <TextView
             android:id="@+id/txtSelectableGardenPhotoDate"
             android:layout_width="wrap_content"
@@ -33,7 +31,6 @@
             android:paddingBottom="5dp"
             android:textColor="@android:color/white"
             android:textSize="11sp" />
-
         <TextView
             android:id="@+id/txtSelectableGardenPhotoCheck"
             android:layout_width="32dp"
@@ -42,7 +39,7 @@
             android:layout_margin="8dp"
             android:background="@drawable/bg_photo_archive_icon"
             android:gravity="center"
-            android:text="✓"
+            android:text="@string/symbol_check"
             android:textColor="@color/primary"
             android:textSize="20sp"
             android:textStyle="bold"

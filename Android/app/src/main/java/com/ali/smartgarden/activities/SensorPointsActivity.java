@@ -259,7 +259,7 @@ public class SensorPointsActivity extends AppCompatActivity {
 
         TextView name = new TextView(this);
         name.setText(
-                (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
+                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
                         + " "
                         + zone.getName()
                         + "\n"

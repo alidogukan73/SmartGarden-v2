@@ -21,6 +21,7 @@ import com.ali.smartgarden.health.GardenHealthZoneResult;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.google.android.material.card.MaterialCardView;
 
@@ -58,7 +59,11 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
 
     private void render(List<GardenZone> zones) {
         long now = System.currentTimeMillis() / 1000L;
-        GardenHealthSummary summary = GardenHealthCalculator.calculate(zones, now);
+        GardenHealthSummary summary = GardenHealthCalculator.calculate(
+                zones,
+                now,
+                PlantAssistantRecommendationStore.healthSignal(this)
+        );
         summaryScore.setText(summary.getScore() + "/100");
         summaryTitle.setText(summary.getTitle());
         summaryDetail.setText(summary.getDetail());
@@ -77,7 +82,11 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
     }
 
     private void addZoneCard(GardenZone zone, long now) {
-        GardenHealthZoneResult result = GardenHealthCalculator.evaluateZone(zone, now);
+        GardenHealthZoneResult result = GardenHealthCalculator.evaluateZone(
+                zone,
+                now,
+                PlantAssistantRecommendationStore.healthSignal(this)
+        );
         MaterialCardView card = new MaterialCardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -101,7 +110,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         text.setLayoutParams(new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         TextView title = new TextView(this);
-        title.setText((zone.getEmoji() == null ? "🌱" : zone.getEmoji()) + " "
+        title.setText((zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji()) + " "
                 + (zone.getName() == null ? "Bölge" : zone.getName()));
         title.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
         title.setTextSize(16);

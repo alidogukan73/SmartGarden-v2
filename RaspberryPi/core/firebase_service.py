@@ -13,6 +13,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+from firebase_admin import messaging
 
 from core.config import AppConfig
 from core.config import FirebaseConfig
@@ -88,6 +89,7 @@ class FirebaseService:
             str,
             tuple[int, int],
         ] = {}
+        self._last_push_sent_at: dict[str, float] = {}
         self._sensor_config_publisher = (
             Esp32SensorConfigPublisher(
                 broker=SensorConfig.MQTT_BROKER,
@@ -500,6 +502,16 @@ class FirebaseService:
                 "last_error": message,
                 "last_seen": datetime.now().isoformat(),
             },
+        )
+
+        self._send_push_notification(
+            notification_type="DEVICE",
+            priority="HIGH",
+            zone_id="",
+            title="AVORA cihaz uyarısı",
+            description=message,
+            source_key=f"device-error:{hash(message)}",
+            minimum_interval_seconds=15 * 60,
         )
 
     def clear_error(self) -> None:
@@ -1100,6 +1112,87 @@ class FirebaseService:
             updates,
         )
 
+        if record.completed:
+            zone_name = self._zone_display_name(record.zone_id)
+            self._send_push_notification(
+                notification_type="IRRIGATION",
+                priority="NORMAL",
+                zone_id=record.zone_id,
+                title=f"{zone_name} sulaması tamamlandı",
+                description=(
+                    f"{record.duration} sn sulama yapıldı. "
+                    f"Nem: %{record.moisture_before} → %{record.moisture_after}."
+                ),
+                source_key=f"watering:{record.zone_id}:{record.firebase_key}",
+            )
+
+    def _zone_display_name(self, zone_id: str) -> str:
+        """Return a human-friendly zone name without making pushes critical."""
+        if not zone_id:
+            return "Bahçe"
+        try:
+            zone = self._device_ref().child(f"zones/{zone_id}").get() or {}
+            return str(zone.get("name") or zone_id)
+        except Exception:
+            return zone_id
+
+    def _send_push_notification(
+        self,
+        *,
+        notification_type: str,
+        priority: str,
+        zone_id: str,
+        title: str,
+        description: str,
+        source_key: str,
+        minimum_interval_seconds: int = 0,
+    ) -> None:
+        """Send a data-only FCM message to registered AVORA installations.
+
+        Firebase database history remains the source of truth. A delivery failure
+        must never affect irrigation or the normal backend loop.
+        """
+        now = time.time()
+        previous = self._last_push_sent_at.get(source_key, 0.0)
+        if minimum_interval_seconds and now - previous < minimum_interval_seconds:
+            return
+
+        try:
+            tokens = self._device_ref().child("push_tokens").get() or {}
+            if not isinstance(tokens, dict):
+                return
+
+            payload = {
+                "type": notification_type,
+                "priority": priority,
+                "zone_id": zone_id or "",
+                "title": title,
+                "description": description,
+                "source_key": source_key,
+            }
+            delivered = False
+            for token_key, value in tokens.items():
+                token = str(value.get("token", "")) if isinstance(value, dict) else ""
+                if not token:
+                    continue
+                try:
+                    messaging.send(
+                        messaging.Message(
+                            data=payload,
+                            token=token,
+                            android=messaging.AndroidConfig(priority="high"),
+                        )
+                    )
+                    delivered = True
+                except messaging.UnregisteredError:
+                    self._device_ref().child(f"push_tokens/{token_key}").delete()
+                except Exception as exc:
+                    self._logger.warning("FCM push delivery skipped: %s", exc)
+            if delivered:
+                self._last_push_sent_at[source_key] = now
+        except Exception as exc:
+            self._logger.warning("FCM push preparation skipped: %s", exc)
+
     def get_statistics(
         self,
     ) -> WateringStatistics:
@@ -1656,6 +1749,12 @@ class FirebaseService:
         location = self._device_ref().child("weather/location").get()
         return dict(location) if isinstance(location, dict) else {}
 
+    def get_weather_irrigation_settings(self) -> dict:
+        """Return user-controlled weather policy values."""
+        settings = self._device_ref().child(
+            "weather/irrigation_settings"
+        ).get()
+        return dict(settings) if isinstance(settings, dict) else {}
     def update_weather_forecast(self, forecast: dict) -> None:
         """Publish advisory-only forecast data for Android and the AI assistant."""
         payload = dict(forecast)

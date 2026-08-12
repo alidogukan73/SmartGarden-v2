@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -10,7 +9,6 @@
     android:clipToPadding="false"
     android:fillViewport="true"
     android:overScrollMode="never">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,15 +17,12 @@
         android:paddingTop="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="40dp">
-
         <!-- EKRAN BAŞLIĞI -->
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBack"
                 style="@style/Widget.Material3.Button.IconButton"
@@ -39,130 +34,107 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:text="@string/symbol_back_arrow"
-                android:textColor="@color/textPrimary"
-                android:textSize="24sp"
                 app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="22dp"
-                app:rippleColor="@color/accentLight"/>
-
+                app:rippleColor="@color/accentLight"
+                android:text="@string/symbol_back_arrow"
+                android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
                     android:text="@string/title_statistics"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_statistics"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
-
         </LinearLayout>
-
         <!-- SULAMA ÖZETİ -->
-
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:clipToPadding="false"
             android:scrollbars="none">
-
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupStatisticZones"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:selectionRequired="true"
                 app:singleSelection="true">
-
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZoneAll"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="@string/history_zone_all"/>
-
+                    android:text="@string/history_zone_all" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZone001"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_zone_tomato"/>
-
+                    android:text="@string/history_zone_tomato" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZone002"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_zone_pepper"/>
-
+                    android:text="@string/history_zone_pepper" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZone003"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_zone_cucumber"/>
-
+                    android:text="@string/history_zone_cucumber" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZone004"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_zone_eggplant"/>
-
+                    android:text="@string/history_zone_eggplant" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipStatisticZone005"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_zone_bean"/>
-
+                    android:text="@string/history_zone_bean" />
             </com.google.android.material.chip.ChipGroup>
-
         </HorizontalScrollView>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/title_watering_summary"
-            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
             android:text="@string/subtitle_watering_summary"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:baselineAligned="false"
             android:orientation="horizontal">
-
             <!-- BUGÜNKÜ SULAMA -->
-
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -172,7 +144,6 @@
                     android:paddingTop="18dp"
                     android:paddingEnd="12dp"
                     android:paddingBottom="18dp">
-
                     <TextView
                         android:id="@+id/txtTodayWaterings"
                         android:layout_width="wrap_content"
@@ -181,29 +152,23 @@
                         android:text="0"
                         android:textColor="@color/primary"
                         android:textSize="34sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:gravity="center"
                         android:text="@string/label_today_waterings"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
-
             <!-- TOPLAM SULAMA -->
-
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -213,7 +178,6 @@
                     android:paddingTop="18dp"
                     android:paddingEnd="12dp"
                     android:paddingBottom="18dp">
-
                     <TextView
                         android:id="@+id/txtTotalWaterings"
                         android:layout_width="wrap_content"
@@ -222,52 +186,41 @@
                         android:text="0"
                         android:textColor="@color/textPrimary"
                         android:textSize="34sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:gravity="center"
                         android:text="@string/label_total_waterings"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
-
-
         <!-- BAŞARI ORANI -->
-
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSuccessRate"
             style="@style/Widget.SmartGarden.Card.Success"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="18dp">
-
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/label_success_rate"
                         android:textColor="@color/textSecondary"
-                        android:textSize="12sp"/>
-
+                        android:textSize="12sp" />
                     <TextView
                         android:id="@+id/txtSuccessDescription"
                         android:layout_width="wrap_content"
@@ -276,10 +229,8 @@
                         android:text="@string/statistics_waiting"
                         android:textColor="@color/online"
                         android:textSize="12sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                 </LinearLayout>
-
                 <TextView
                     android:id="@+id/txtSuccessRate"
                     android:layout_width="wrap_content"
@@ -288,47 +239,37 @@
                     android:text="0%"
                     android:textColor="@color/online"
                     android:textSize="34sp"
-                    android:textStyle="bold"/>
-
+                    android:textStyle="bold" />
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
-
         <!-- SULAMA SONUÇLARI -->
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/title_watering_results"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_watering_results"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -336,7 +277,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="10dp">
-
                         <TextView
                             android:id="@+id/txtCompletedWaterings"
                             android:layout_width="wrap_content"
@@ -344,24 +284,20 @@
                             android:text="0"
                             android:textColor="@color/online"
                             android:textSize="24sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:gravity="center"
                             android:text="@string/label_completed_waterings"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                     <View
                         android:layout_width="1dp"
                         android:layout_height="52dp"
                         android:layout_gravity="center_vertical"
-                        android:background="@color/divider"/>
-
+                        android:background="@color/divider" />
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -369,7 +305,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="10dp">
-
                         <TextView
                             android:id="@+id/txtInterruptedWaterings"
                             android:layout_width="wrap_content"
@@ -377,59 +312,46 @@
                             android:text="0"
                             android:textColor="@color/warning"
                             android:textSize="24sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:gravity="center"
                             android:text="@string/label_interrupted_waterings"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                 </LinearLayout>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
-
         <!-- SÜRE İSTATİSTİKLERİ -->
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/title_duration_statistics"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_duration_statistics"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -437,7 +359,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="8dp">
-
                         <TextView
                             android:id="@+id/txtAverageDuration"
                             android:layout_width="wrap_content"
@@ -446,24 +367,20 @@
                             android:text="0 sn"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
                             android:gravity="center"
                             android:text="@string/label_average_duration_short"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                     <View
                         android:layout_width="1dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center_vertical"
-                        android:background="@color/divider"/>
-
+                        android:background="@color/divider" />
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -471,7 +388,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="8dp">
-
                         <TextView
                             android:id="@+id/txtLastWateringDuration"
                             android:layout_width="wrap_content"
@@ -480,24 +396,20 @@
                             android:text="0 sn"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
                             android:gravity="center"
                             android:text="@string/label_last_duration_short"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                     <View
                         android:layout_width="1dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center_vertical"
-                        android:background="@color/divider"/>
-
+                        android:background="@color/divider" />
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -505,7 +417,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="8dp">
-
                         <TextView
                             android:id="@+id/txtTotalWateringDuration"
                             android:layout_width="wrap_content"
@@ -514,67 +425,53 @@
                             android:text="0 sn"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
                             android:gravity="center"
                             android:text="@string/label_total_duration_short"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                 </LinearLayout>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
-
         <!-- NEM DEĞİŞİMİ -->
-
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardMoistureChange"
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/title_moisture_change"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_moisture_change"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="vertical">
-
                         <TextView
                             android:id="@+id/txtBeforeMoisture"
                             android:layout_width="wrap_content"
@@ -582,17 +479,14 @@
                             android:text="0%"
                             android:textColor="@color/textPrimary"
                             android:textSize="24sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/label_before_moisture"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -600,15 +494,13 @@
                         android:paddingEnd="8dp"
                         android:text="@string/symbol_right_arrow"
                         android:textColor="@color/textTertiary"
-                        android:textSize="26sp"/>
-
+                        android:textSize="26sp" />
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="vertical">
-
                         <TextView
                             android:id="@+id/txtAfterMoisture"
                             android:layout_width="wrap_content"
@@ -616,24 +508,20 @@
                             android:text="0%"
                             android:textColor="@color/textPrimary"
                             android:textSize="24sp"
-                            android:textStyle="bold"/>
-
+                            android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/label_after_moisture"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
-
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardMoistureDelta"
                         style="@style/Widget.SmartGarden.Card.Inner"
                         android:layout_width="84dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -641,7 +529,6 @@
                             android:orientation="vertical"
                             android:paddingTop="10dp"
                             android:paddingBottom="10dp">
-
                             <TextView
                                 android:id="@+id/txtMoistureChange"
                                 android:layout_width="wrap_content"
@@ -649,60 +536,46 @@
                                 android:text="+0%"
                                 android:textColor="@color/primary"
                                 android:textSize="20sp"
-                                android:textStyle="bold"/>
-
+                                android:textStyle="bold" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/label_delta"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                         </LinearLayout>
-
                     </com.google.android.material.card.MaterialCardView>
-
                 </LinearLayout>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
-
         <!-- SON DURUM -->
-
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.SmartGarden.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="18dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/title_last_status"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"/>
-
+                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/label_last_stop_reason"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     <TextView
                         android:id="@+id/txtLastStopReason"
                         android:layout_width="wrap_content"
@@ -712,30 +585,25 @@
                         android:text="@string/statistics_waiting"
                         android:textColor="@color/textPrimary"
                         android:textSize="13sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                 </LinearLayout>
-
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="12dp"
-                    android:background="@color/divider"/>
-
+                    android:background="@color/divider" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/label_statistics_date"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     <TextView
                         android:id="@+id/txtStatisticsDate"
                         android:layout_width="wrap_content"
@@ -743,14 +611,9 @@
                         android:text="-"
                         android:textColor="@color/textPrimary"
                         android:textSize="13sp"
-                        android:textStyle="bold"/>
-
+                        android:textStyle="bold" />
                 </LinearLayout>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
-
 </androidx.core.widget.NestedScrollView>

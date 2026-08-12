@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="irrigation_settings_auto_mode_title">Otomatik sulama</string>
+    <string name="irrigation_settings_auto_mode_active">Aktif — Nem ve güvenlik koşullarına göre otomatik sulama yapılır</string>
+    <string name="irrigation_settings_auto_mode_inactive">Kapalı — Yalnız manuel sulama kullanılabilir</string>
+    <string name="irrigation_settings_auto_mode_blocked">Beklemede — Sistem etkinleştirildiğinde otomatik mod kullanılabilir</string>
+
+    <string name="irrigation_settings_sync_title">Tüm bölgelere uygulansın mı?</string>
+    <string name="irrigation_settings_sync_message">Nem sınırı, sulama süresi, bekleme süresi ve yeniden başlatma farkı tüm bölgelere uygulanacak. Otomatik sulama ve sistem durumu genel ayar olarak kaydedilecek. Daha sonra her bölgenin ayarını ayrı değiştirebilirsiniz.</string>
+    <string name="irrigation_settings_sync_confirm">Tüm bölgelere uygula</string>
+    <string name="irrigation_settings_unsaved_sync_message">Değişiklikler henüz kaydedilmedi. Kaydederseniz sulama değerleri tüm bölgelere uygulanacak.</string>
+</resources>

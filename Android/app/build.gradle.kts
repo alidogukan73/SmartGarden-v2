@@ -23,8 +23,8 @@ android {
         applicationId = "com.ali.smartgarden"
         minSdk = 26
         targetSdk = 36
-        versionCode = 27
-        versionName = "2.7.0"
+        versionCode = 28
+        versionName = "2.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "PLANT_VISION_TOKEN", "\"$plantVisionToken\"")
@@ -54,6 +54,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-messaging")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.work:work-runtime:2.11.2")

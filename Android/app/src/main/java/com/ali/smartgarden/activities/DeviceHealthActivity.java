@@ -25,6 +25,7 @@ import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.viewmodels.DeviceHealthViewModel;
 import com.ali.smartgarden.viewmodels.MainViewModel;
+import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -130,6 +131,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         initializeViewModel();
         observeViewModel();
         initializeActions();
+        PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.DEVICE_HEALTH);
         startSoilConnectionMonitor();
     }
 
@@ -628,7 +630,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
             String message
     ) {
         TextView row = new TextView(this);
-        row.setText((healthy ? "✓ " : "⚠ ") + message);
+        row.setText(getString(healthy ? R.string.symbol_check : R.string.symbol_warning) + " " + message);
         row.setTextColor(
                 color(
                         healthy
@@ -739,7 +741,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         if (builder.length() == 0) {
 
-            return "✓ "
+            return getString(R.string.symbol_check) + " "
                     + getString(
                     R.string.health_no_current_events
             );
@@ -789,7 +791,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         if (builder.length() == 0) {
 
-            return "✓ "
+            return getString(R.string.symbol_check) + " "
                     + getString(
                     R.string.health_no_history_events
             );
@@ -816,7 +818,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         }
 
         builder.append(
-                "⚠ "
+                getString(R.string.symbol_warning) + " "
         );
 
         builder.append(

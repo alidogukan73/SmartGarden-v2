@@ -24,7 +24,7 @@ sonra, planlı bir bakım çalışmasında.
 3. Firebase yapılandırması ve güvenlik kurallarını taşı.
 4. Raspberry Pi servisleri, MQTT konuları ve cihaz kimliğini birlikte güncelle.
 5. Android paket kimliği ile yapılandırma dosyalarını güncelle; yeni APK üret.
-6. Sensör, vana, sulama, hava durumu ve Bitki Doktoru için uçtan uca test yap.
+6. Sensör, vana, sulama, hava durumu ve Bitki Asistanı için uçtan uca test yap.
 7. Eski teknik kimlikleri ancak geçiş doğrulandıktan sonra kaldır.
 
 Not: Bu çalışma yalnızca isim değişikliği değildir; veri ve cihaz bağlantılarını

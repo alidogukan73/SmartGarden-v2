@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardSettingsQuickAction"
+    style="@style/Widget.AVORA.Settings.QuickCard"
+    android:layout_width="@dimen/settings_quick_card_width"
+    android:layout_height="@dimen/settings_quick_card_height"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.AVORA.Settings.IconBox"
+            android:layout_width="@dimen/settings_icon_box_size"
+            android:layout_height="@dimen/settings_icon_box_size">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgSettingsQuickIcon"
+                android:layout_width="@dimen/settings_icon_size"
+                android:layout_height="@dimen/settings_icon_size"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_settings_24"
+                app:tint="@color/primary" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/txtSettingsQuickTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.AVORA.Settings.QuickTitle"
+            tools:text="Sulama\nAyarları" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

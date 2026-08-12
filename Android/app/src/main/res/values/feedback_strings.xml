@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feedback_intro_title">AVORA’yı birlikte geliştirelim</string>
+    <string name="feedback_intro_message">Karşılaştığınız sorunu veya geliştirme önerinizi doğrudan iletin.</string>
+    <string name="feedback_type_title">Bildirim türü</string>
+    <string name="feedback_type_problem">Sorun</string>
+    <string name="feedback_type_suggestion">Öneri</string>
+    <string name="feedback_type_question">Soru</string>
+    <string name="feedback_details_title">Ayrıntılar</string>
+    <string name="feedback_area_hint">İlgili bölüm</string>
+    <string name="feedback_area_general">Genel uygulama</string>
+    <string name="feedback_area_irrigation">Sulama ve donanım</string>
+    <string name="feedback_area_assistant">AI Bitki Asistanı</string>
+    <string name="feedback_area_fertilization">Gübre Asistanı</string>
+    <string name="feedback_area_journal">Bitki Günlüğü</string>
+    <string name="feedback_area_notifications">Bildirimler</string>
+    <string name="feedback_area_settings">Ayarlar</string>
+    <string name="feedback_subject_hint">Kısa başlık</string>
+    <string name="feedback_description_hint">Ne oldu veya nasıl geliştirebiliriz?</string>
+    <string name="feedback_contact_hint">İletişim e-postası (isteğe bağlı)</string>
+    <string name="feedback_diagnostics_title">Tanı bilgilerini ekle</string>
+    <string name="feedback_diagnostics_message">Uygulama sürümü, Android sürümü, telefon modeli ve AVORA cihaz kimliği eklenir.</string>
+    <string name="feedback_privacy_note">Bahçe kayıtları, fotoğraflar, şifreler ve API anahtarları geri bildirime eklenmez.</string>
+    <string name="feedback_submit">Geri bildirimi gönder</string>
+    <string name="feedback_sending">Gönderiliyor…</string>
+    <string name="feedback_success">Teşekkürler. Geri bildiriminiz kaydedildi.</string>
+    <string name="feedback_error">Geri bildirim gönderilemedi. Bağlantıyı kontrol edip yeniden deneyin.</string>
+    <string name="feedback_subject_required">En az 4 karakterlik kısa bir başlık yazın.</string>
+    <string name="feedback_description_required">Açıklama en az 10 karakter olmalıdır.</string>
+    <string name="feedback_email_invalid">E-posta adresini kontrol edin veya alanı boş bırakın.</string>
+    <string name="feedback_type_required">Bildirim türünü seçin.</string>
+</resources>

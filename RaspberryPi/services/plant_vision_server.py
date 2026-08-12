@@ -34,7 +34,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(HTTPStatus.OK, {"configured": SERVICE.configured() and bool(_token())})
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/v1/plant-doctor/analyze":
+        if self.path != "/v1/plant-assistant/analyze":
             self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
             return
         if not _token() or self.headers.get("X-SmartGarden-Token", "") != _token():

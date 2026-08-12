@@ -5,36 +5,31 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="18dp">
-
         <TextView
             android:id="@+id/txtHistoryProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/textPrimary"
             android:textSize="16sp"
-            android:textStyle="bold"/>
-
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/txtHistoryZone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         <TextView
             android:id="@+id/txtHistoryDose"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="@color/primary"
-            android:textStyle="bold"/>
-
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/txtHistoryCalculationBasis"
             android:layout_width="match_parent"
@@ -42,8 +37,7 @@
             android:layout_marginTop="5dp"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body"
             android:textSize="12sp"
-            android:visibility="gone"/>
-
+            android:visibility="gone" />
         <TextView
             android:id="@+id/txtHistoryMethod"
             android:layout_width="match_parent"
@@ -51,8 +45,7 @@
             android:layout_marginTop="5dp"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body"
             android:textSize="12sp"
-            android:visibility="gone"/>
-
+            android:visibility="gone" />
         <TextView
             android:id="@+id/txtHistoryNote"
             android:layout_width="match_parent"
@@ -60,8 +53,7 @@
             android:layout_marginTop="5dp"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body"
             android:textSize="12sp"
-            android:visibility="gone"/>
-
+            android:visibility="gone" />
         <TextView
             android:id="@+id/txtHistoryOutcome"
             android:layout_width="match_parent"
@@ -71,16 +63,13 @@
             android:textColor="@color/primary"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:visibility="gone"/>
-
+            android:visibility="gone" />
         <TextView
             android:id="@+id/txtHistoryDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body"
-            android:textSize="12sp"/>
-
+            android:textSize="12sp" />
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-
     <!-- Gövde -->
     <path
         android:fillColor="@android:color/transparent"
@@ -12,17 +12,14 @@
         android:strokeColor="@color/primary"
         android:strokeLineCap="round"
         android:strokeWidth="1.8" />
-
     <!-- Sol yaprak -->
     <path
         android:fillColor="@color/primary"
         android:pathData="M11.4,10.8C8.1,10.8 5.6,8.8 5.2,5.2C8.8,5.5 11.2,7.6 11.4,10.8Z" />
-
     <!-- Sağ yaprak -->
     <path
         android:fillColor="@color/primary"
         android:pathData="M12.6,10.4C12.9,7.4 15.2,5.4 18.8,5.1C18.4,8.5 16,10.4 12.6,10.4Z" />
-
     <!-- Toprak çizgisi -->
     <path
         android:fillColor="@android:color/transparent"
@@ -30,10 +27,8 @@
         android:strokeColor="@color/primary"
         android:strokeLineCap="round"
         android:strokeWidth="1.8" />
-
     <!-- Toprak tabanı -->
     <path
         android:fillColor="@color/primaryLight"
         android:pathData="M6.5,18.7H17.5C18.3,18.7 19,19.4 19,20.2V20.8H5V20.2C5,19.4 5.7,18.7 6.5,18.7Z" />
-
 </vector>

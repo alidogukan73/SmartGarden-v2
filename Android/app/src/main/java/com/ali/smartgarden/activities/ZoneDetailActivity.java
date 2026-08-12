@@ -477,7 +477,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         + zone.getSensor_id()
         );
         title.setText(
-                (zone.getEmoji() == null ? "🌱" : zone.getEmoji())
+                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
                         + " "
                         + zone.getName()
         );

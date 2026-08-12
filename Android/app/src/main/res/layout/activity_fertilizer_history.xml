@@ -9,131 +9,113 @@
     android:paddingTop="16dp"
     android:paddingEnd="16dp"
     android:paddingBottom="24dp">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBack"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:contentDescription="@string/back_to_main"
-            android:text="@string/symbol_back_arrow"/>
-
+            android:text="@string/symbol_back_arrow"
+            android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="vertical">
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/fertilizer_history_title"
-                android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"/>
-
+                android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
                 android:text="@string/fertilizer_history_subtitle"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
     </LinearLayout>
-
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:overScrollMode="never"
         android:scrollbars="none">
-
         <com.google.android.material.chip.ChipGroup
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/chipGroupFertilizerZones"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingBottom="4dp"
             app:selectionRequired="true"
-            app:singleSelection="true"
-            xmlns:app="http://schemas.android.com/apk/res-auto">
-
+            app:singleSelection="true">
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerAll"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="@string/history_zone_all"/>
-
+                android:text="@string/history_zone_all" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerTomato"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_tomato"/>
-
+                android:text="@string/history_zone_tomato" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerPepper"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_pepper"/>
-
+                android:text="@string/history_zone_pepper" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerCucumber"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_cucumber"/>
-
+                android:text="@string/history_zone_cucumber" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerEggplant"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_eggplant"/>
-
+                android:text="@string/history_zone_eggplant" />
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFertilizerBean"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_zone_bean"/>
-
+                android:text="@string/history_zone_bean" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
-
     <com.google.android.material.card.MaterialCardView
         style="@style/Widget.SmartGarden.Card.Main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="14dp">
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/fertilizer_history_statistics"
                 android:textColor="@color/textPrimary"
-                android:textStyle="bold"/>
-
+                android:textStyle="bold" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
-
                 <TextView
                     android:id="@+id/txtFertilizerHistoryCount"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -141,8 +123,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/fertilizer_history_count_empty"/>
-
+                    android:text="@string/fertilizer_history_count_empty" />
                 <TextView
                     android:id="@+id/txtFertilizerHistoryProducts"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -150,8 +131,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/fertilizer_history_products_empty"/>
-
+                    android:text="@string/fertilizer_history_products_empty" />
                 <TextView
                     android:id="@+id/txtFertilizerHistoryLast"
                     style="@style/TextAppearance.SmartGarden.Body"
@@ -159,79 +139,67 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/fertilizer_history_last_empty"/>
+                    android:text="@string/fertilizer_history_last_empty" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
     <com.google.android.material.card.MaterialCardView
         style="@style/Widget.SmartGarden.Card.Info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="14dp">
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/fertilizer_history_usage_title"
                 android:textColor="@color/textPrimary"
-                android:textStyle="bold"/>
-
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/txtFertilizerUsageSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="@string/fertilizer_history_usage_empty"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
-
     <com.google.android.material.card.MaterialCardView
         style="@style/Widget.SmartGarden.Card.Main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="14dp">
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="AI sonuç değerlendirmesi"
                 android:textColor="@color/textPrimary"
-                android:textStyle="bold"/>
-
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/txtFertilizerOutcomeSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="Uygulama sonuçları kaydedildikçe bu bölüm eğilimleri gösterir."
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
+                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnExportFertilizerHistory"
         style="@style/Widget.SmartGarden.Button.Secondary"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginTop="10dp"
-        android:text="@string/fertilizer_history_export"/>
-
+        android:text="@string/fertilizer_history_export" />
     <TextView
         android:id="@+id/txtHistoryEmpty"
         android:layout_width="match_parent"
@@ -240,8 +208,7 @@
         android:gravity="center"
         android:padding="24dp"
         android:text="@string/fertilizer_history_empty"
-        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
+        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerFertilizerHistory"
         android:layout_width="match_parent"
@@ -249,6 +216,5 @@
         android:layout_marginTop="18dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:overScrollMode="never"/>
-
+        android:overScrollMode="never" />
 </LinearLayout>

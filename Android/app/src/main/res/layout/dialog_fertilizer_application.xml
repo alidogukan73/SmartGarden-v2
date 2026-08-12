@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillViewport="false"
+    android:scrollbars="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -8,122 +10,106 @@
     android:paddingTop="8dp"
     android:paddingEnd="24dp"
     android:paddingBottom="8dp">
-
-    <TextView
-        android:id="@+id/txtApplicationProduct"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/textPrimary"
-        android:textStyle="bold"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:hint="@string/fertilizer_application_product">
-
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/dropdownApplicationProduct"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/txtApplicationProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="none"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:hint="@string/fertilization_applied_dose">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/inputAppliedDose"
+            android:textColor="@color/textPrimary"
+            android:textStyle="bold" />
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <TextView
-        android:id="@+id/txtApplicationDoseUnit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textAppearance="@style/TextAppearance.SmartGarden.Body"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="@string/fertilization_application_date">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/inputApplicationDate"
+            android:layout_marginTop="6dp"
+            android:hint="@string/fertilizer_application_product">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/dropdownApplicationProduct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:cursorVisible="false"
-            android:focusable="false"
-            android:inputType="none"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="@string/fertilization_application_method">
-
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/dropdownApplicationMethod"
+            android:layout_marginTop="6dp"
+            android:hint="@string/fertilization_applied_dose">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputAppliedDose"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:id="@+id/txtApplicationDoseUnit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="none"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:hint="@string/fertilization_application_notes">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/inputApplicationNotes"
+            android:layout_marginTop="6dp"
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLength="200"
-            android:maxLines="3"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/checkDeductStock"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:checked="false"
-        android:visibility="gone"/>
-
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/checkApplicationSafety"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:checked="false"
-        android:text="@string/fertilization_safety_confirmation"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/fertilization_manual_record_warning"
-        android:textColor="@color/warning"
-        android:textSize="12sp"/>
-
-</LinearLayout>
+            android:layout_marginTop="6dp"
+            android:hint="@string/fertilization_application_date">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputApplicationDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:hint="@string/fertilization_application_method">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/dropdownApplicationMethod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkDeductStock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:checked="false"
+            android:visibility="gone" />
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkApplicationSafety"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:checked="false"
+            android:text="@string/fertilization_safety_confirmation" />
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:hint="@string/fertilization_application_notes">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputApplicationNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLength="200"
+                android:maxLines="2" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/fertilization_manual_record_warning"
+            android:textColor="@color/warning"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

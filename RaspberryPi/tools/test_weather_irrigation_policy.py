@@ -39,6 +39,25 @@ def main() -> None:
     assert wind_delay.postpone
     assert wind_delay.reason == "WEATHER_WIND_DELAY"
 
+
+    policy.configure({
+        "rain_delay_enabled": True,
+        "rain_probability_threshold": 60,
+        "rain_mm_threshold": 1,
+    })
+    custom_threshold = policy.evaluate(
+        forecast={"today_rain_probability": 65, "today_rain_mm": 1.5},
+        moisture_deficit=5,
+    )
+    assert custom_threshold.postpone
+
+    policy.configure({"rain_delay_enabled": False})
+    disabled = policy.evaluate(
+        forecast={"today_rain_probability": 100, "today_rain_mm": 20},
+        moisture_deficit=5,
+    )
+    assert not disabled.postpone
+
     print("[PASS] Weather irrigation policy safety scenarios.")
 
 

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -14,7 +13,6 @@
     android:paddingTop="8dp"
     android:paddingEnd="4dp"
     android:paddingBottom="8dp">
-
     <TextView
         android:id="@+id/txtHomeZoneName"
         android:layout_width="0dp"
@@ -24,8 +22,7 @@
         android:maxLines="1"
         android:textColor="@color/textPrimary"
         android:textSize="14sp"
-        android:textStyle="bold"/>
-
+        android:textStyle="bold" />
     <TextView
         android:id="@+id/txtHomeZoneMoisture"
         android:layout_width="wrap_content"
@@ -35,8 +32,7 @@
         android:gravity="end"
         android:textColor="@color/primary"
         android:textSize="14sp"
-        android:textStyle="bold"/>
-
+        android:textStyle="bold" />
     <TextView
         android:id="@+id/txtHomeZoneState"
         android:layout_width="wrap_content"
@@ -47,6 +43,5 @@
         android:minWidth="112dp"
         android:textColor="@color/textSecondary"
         android:textSize="11sp"
-        android:textStyle="bold"/>
-
+        android:textStyle="bold" />
 </LinearLayout>

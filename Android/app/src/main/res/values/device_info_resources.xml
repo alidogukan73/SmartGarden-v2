@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_info_title">Cihaz Bilgileri</string>
+    <string name="device_info_intro_title">AVORA cihaz özeti</string>
+    <string name="device_info_intro_message">Kimlik, bağlantı ve bağlı donanım bilgileri canlı olarak gösterilir.</string>
+    <string name="device_info_status_waiting">Bağlantı kontrol ediliyor</string>
+    <string name="device_info_status_online">Cihaz bağlı</string>
+    <string name="device_info_status_offline">Cihaz bağlantısı güncel değil</string>
+    <string name="device_info_summary_online">Raspberry Pi bağlantısı güncel.</string>
+    <string name="device_info_summary_offline">Son canlı bağlantı bekleniyor.</string>
+    <string name="device_info_read_error">Cihaz bilgileri şu an alınamadı.</string>
+    <string name="device_info_identity_section">Cihaz Kimliği</string>
+    <string name="device_info_device_id">Cihaz kimliği</string>
+    <string name="device_info_backend_version">Raspberry Pi backend sürümü</string>
+    <string name="device_info_esp_firmware">ESP32 sensör yazılımı</string>
+    <string name="device_info_connection_section">Bağlantı</string>
+    <string name="device_info_ip_address">Yerel IP adresi</string>
+    <string name="device_info_last_connection">Son bağlantı</string>
+    <string name="device_info_uptime">Çalışma süresi</string>
+    <string name="device_info_hardware_section">Bağlı Donanım</string>
+    <string name="device_info_zone_count">Etkin bölge</string>
+    <string name="device_info_sensor_count">Etkin sensör</string>
+    <string name="device_info_valve_count">Fiziksel vana</string>
+    <string name="device_info_zone_count_value">%1$d bölge</string>
+    <string name="device_info_sensor_count_value">%1$d sensör</string>
+    <string name="device_info_valve_count_value">%1$d vana</string>
+    <string name="device_info_details_section">Ayrıntılı Görünüm</string>
+    <string name="device_info_open_health">Cihaz Sağlığını Görüntüle</string>
+    <string name="device_info_open_health_subtitle">Sıcaklık, bellek, disk ve güç uyarıları</string>
+    <string name="device_info_open_sensors">Sensör Noktalarını Görüntüle</string>
+    <string name="device_info_open_sensors_subtitle">Bölgesel sensör bağlantıları ve ölçümler</string>
+    <string name="device_info_waiting">Bekleniyor</string>
+    <string name="device_info_unavailable">Bilgi yok</string>
+    <string name="device_info_sensor_firmware_waiting">Sensörlerden sürüm bekleniyor</string>
+    <string name="device_info_duration_days">%1$d gün %2$d sa</string>
+    <string name="device_info_duration_hours">%1$d sa %2$d dk</string>
+    <string name="device_info_duration_minutes">%1$d dk</string>
+    <string name="device_info_chevron">&#8250;</string>
+</resources>
