@@ -1912,7 +1912,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAIWateringControl"
+                android:id="@+id/cardAIWateringSettings"
                 style="@style/Widget.SmartGarden.Card.Inner"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
@@ -1931,7 +1931,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:gravity="center"
-                        android:text="@string/symbol_water_drop"
+                        android:text="@string/symbol_settings_shortcut"
                         android:textSize="22sp" />
                     <LinearLayout
                         android:layout_width="0dp"
@@ -1942,7 +1942,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/title_watering_control"
+                            android:text="@string/ai_watering_settings_shortcut_title"
                             android:textColor="@color/textPrimary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -1950,7 +1950,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="@string/menu_watering_control_description"
+                            android:text="@string/ai_watering_settings_shortcut_description"
                             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                     </LinearLayout>
                     <TextView
@@ -1964,6 +1964,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAISensorPoints"
                 style="@style/Widget.SmartGarden.Card.Inner"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:layout_marginTop="12dp"

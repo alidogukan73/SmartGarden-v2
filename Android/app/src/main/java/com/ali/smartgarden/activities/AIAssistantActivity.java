@@ -64,7 +64,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardAISeverityBadge;
     private MaterialButton btnBack;
     private MaterialButton btnAIAdvancedDetails;
-    private MaterialCardView cardAIWateringControl;
+    private MaterialCardView cardAIWateringSettings;
     private MaterialCardView cardAISensorPoints;
     private MaterialCardView cardPredictionValidationStatusBadge;
     private MaterialCardView cardPredictionValidation;
@@ -256,8 +256,8 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         btnAIAdvancedDetails =
                 findViewById(R.id.btnAIAdvancedDetails);
-        cardAIWateringControl =
-                findViewById(R.id.cardAIWateringControl);
+        cardAIWateringSettings =
+                findViewById(R.id.cardAIWateringSettings);
         cardAISensorPoints =
                 findViewById(R.id.cardAISensorPoints);
 
@@ -661,12 +661,10 @@ public class AIAssistantActivity extends AppCompatActivity {
                 )
         );
 
-        cardAIWateringControl.setOnClickListener(view ->
+        cardAIWateringSettings.setOnClickListener(view ->
                 startActivity(new Intent(this,
-                        WateringControlActivity.class))
+                        IrrigationSettingsActivity.class))
         );
-        cardAISensorPoints.setOnClickListener(view ->
-                startActivity(new Intent(this, SensorPointsActivity.class)));
 
         cardMoisturePrediction.setOnTouchListener(
                 (view, event) -> {
@@ -731,8 +729,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 cardAINextStep,
                 cardAIWeatherGuidance,
                 cardAIAdaptiveRecommendation,
-                cardAIWateringControl,
-                cardAISensorPoints,
+                cardAIWateringSettings,
                 cardAITechnicalSummary,
                 btnAIAdvancedDetails
         };
@@ -747,10 +744,8 @@ public class AIAssistantActivity extends AppCompatActivity {
         parent.addView(cardAIWeatherGuidance, insertIndex++);
         parent.addView(cardAIAdaptiveRecommendation, insertIndex++);
         parent.addView(cardAIProgress, insertIndex++);
+        parent.addView(cardAIWateringSettings, insertIndex++);
         parent.addView(btnAIAdvancedDetails, insertIndex++);
-
-        parent.addView(cardAIWateringControl, insertIndex++);
-        parent.addView(cardAISensorPoints, insertIndex++);
         parent.addView(cardAIReasons, insertIndex++);
         parent.addView(cardAIDecisionFlow, insertIndex++);
         parent.addView(cardMoisturePrediction, insertIndex++);
@@ -768,8 +763,6 @@ public class AIAssistantActivity extends AppCompatActivity {
         advancedDetailsVisible = visible;
 
         View[] technicalCards = {
-                cardAIWateringControl,
-                cardAISensorPoints,
                 cardAIReasons,
                 cardAIDecisionFlow,
                 cardMoisturePrediction,

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ShapeAppearance.Avora.AiToolThumbnail" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+    <style name="Animation.Avora.AiToolsPopup" parent="">
+        <item name="android:windowEnterAnimation">@anim/ai_tools_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/ai_tools_slide_out</item>
+    </style>
+</resources>

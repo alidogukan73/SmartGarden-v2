@@ -49,6 +49,7 @@ public final class AiToolsBottomSheet {
         popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popup.setOutsideTouchable(true);
         popup.setElevation(dp(activity, 10));
+        popup.setAnimationStyle(R.style.Animation_Avora_AiToolsPopup);
         popup.setOnDismissListener(() -> {
             if (visiblePopup == popup) visiblePopup = null;
             if (onDismiss != null && !activity.isFinishing()) onDismiss.run();

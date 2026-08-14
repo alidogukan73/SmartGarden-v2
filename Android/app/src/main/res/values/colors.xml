@@ -169,4 +169,24 @@
     <!-- ========================================================= -->
     <color
         name="bottomSheetBackground">#F7FBF5</color>
+    <!-- AI hızlı menüsü -->
+    <color name="aiPlantSurface">#F8F3FC</color>
+    <color name="aiPlantAccent">#6F42C1</color>
+    <color name="aiPlantBorder">#D9C8ED</color>
+    <color name="aiWaterSurface">#EDF8F5</color>
+    <color name="aiWaterAccent">#00796B</color>
+    <color name="aiWaterBorder">#B9DED7</color>
+    <color name="aiFertilizerSurface">#FFF7E8</color>
+    <color name="aiFertilizerAccent">#E27616</color>
+    <color name="aiFertilizerBorder">#F0D2A3</color>
+    <!-- Bitki listesi siralama denetimi -->
+    <color name="sortControlSurface">#EEF7EF</color>
+    <color name="sortControlContent">#2E7D32</color>
+    <color name="weatherDayBadgeSurface">#EEF7EF</color>
+    <color name="weatherDayBadgeBorder">#C8E6C9</color>
+    <color name="weatherDayBadgeText">#2E7D32</color>
+    <color name="homeGardenPlanIconSurface">#EEF7EF</color>
+    <color name="homeGardenPlanIconBorder">#D3E8D5</color>
+    <color name="homeGardenPlanIcon">#2E7D32</color>
+    <color name="homeGardenPlanIconDetail">#DDF1DF</color>
 </resources>

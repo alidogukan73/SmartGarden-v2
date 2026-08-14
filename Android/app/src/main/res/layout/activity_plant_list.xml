@@ -119,7 +119,7 @@
                     android:layout_height="30dp"
                     android:background="@drawable/bg_sort_dropdown"
                     android:clickable="true"
-                    android:contentDescription="Bitkileri sırala"
+                    android:contentDescription="@string/plant_sort_content_description"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:gravity="center"
@@ -130,14 +130,15 @@
                         android:layout_width="13dp"
                         android:layout_height="13dp"
                         android:contentDescription=""
-                        android:src="@drawable/ic_sort_18" />
+                        android:src="@drawable/ic_sort_18"
+                        app:tint="@color/sortControlContent" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:includeFontPadding="false"
-                        android:text="Sırala"
-                        android:textColor="@color/primaryDark"
+                        android:text="@string/plant_sort_label"
+                        android:textColor="@color/sortControlContent"
                         android:textSize="10sp"
                         android:textStyle="bold" />
                     <ImageView
@@ -145,7 +146,8 @@
                         android:layout_height="12dp"
                         android:layout_marginStart="2dp"
                         android:contentDescription=""
-                        android:src="@drawable/ic_expand_more_14" />
+                        android:src="@drawable/ic_expand_more_14"
+                        app:tint="@color/sortControlContent" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout

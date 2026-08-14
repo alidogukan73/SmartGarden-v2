@@ -19,6 +19,8 @@ public class Status {
 
     private String last_error;
 
+    private String error_incident_id;
+
     private long restart_count;
 
     private long cooldown_remaining;
@@ -80,6 +82,11 @@ public class Status {
         return last_error;
     }
 
+    @PropertyName("error_incident_id")
+    public String getErrorIncidentId() {
+        return error_incident_id;
+    }
+
     public long getRestartCount() {
         return restart_count;
     }
@@ -114,6 +121,11 @@ public class Status {
 
     public void setLastError(String last_error) {
         this.last_error = last_error;
+    }
+
+    @PropertyName("error_incident_id")
+    public void setErrorIncidentId(String errorIncidentId) {
+        this.error_incident_id = errorIncidentId;
     }
 
     public void setRestartCount(long restart_count) {

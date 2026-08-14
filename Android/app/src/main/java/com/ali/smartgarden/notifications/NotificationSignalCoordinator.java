@@ -7,6 +7,7 @@ import com.ali.smartgarden.models.WateringHistory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 /** Converts meaningful weather, device and watering changes into deduplicated AVORA alerts. */
 public final class NotificationSignalCoordinator {
@@ -40,27 +41,57 @@ public final class NotificationSignalCoordinator {
 
     public static void evaluateDevice(Context context, Status status, Health health) {
         GardenNotificationManager notifications = new GardenNotificationManager(context);
-        String date = LocalDate.now().toString();
         if (status != null && !status.isOnline()) {
-            notifications.publishOnce("DEVICE", "HIGH", "", "Raspberry Pi bağlantısı yok",
+            notifications.publishIncident("device_offline", "DEVICE", "HIGH", "",
+                    "Raspberry Pi bağlantısı yok",
                     "Bahçe cihazı çevrimdışı görünüyor. Enerji ve ağ bağlantısını kontrol edin.",
-                    "device:offline:" + date);
+                    "device:offline",
+                    GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS);
             return;
         }
-        if (status != null && status.getLastError() != null
-                && !status.getLastError().isBlank()) {
-            notifications.publishOnce("DEVICE", "HIGH", "", "Bahçe cihazı uyarısı",
-                    status.getLastError(),
-                    "device:error:" + status.getLastError().hashCode() + ":" + date);
+        if (status != null) {
+            notifications.resetIncident("device_offline");
+            String error = status.getLastError();
+            if (error != null && !error.isBlank()) {
+                boolean sensorFailure = isSensorFailure(error);
+                String incidentId = status.getErrorIncidentId();
+                String stableSource = incidentId == null || incidentId.isBlank()
+                        ? "device-error:legacy"
+                        : "device-error:incident:" + incidentId;
+                notifications.publishIncident("device_error", "DEVICE", "HIGH", "",
+                        sensorFailure ? "Sensör verisi alınamıyor" : "Bahçe cihazı uyarısı",
+                        sensorFailure
+                                ? "Kablosuz sensörlerden güncel ölçüm alınamıyor. Enerji ve bağlantıyı kontrol edin."
+                                : error,
+                        stableSource,
+                        GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS);
+            } else {
+                notifications.resetIncident("device_error");
+            }
         }
-        if (health != null && (health.isUnderVoltageNow() || health.isThrottledNow()
-                || health.isFrequencyCappedNow() || health.getCpuTemperature() >= 80D
-                || health.getDiskUsage() >= 90D)) {
-            notifications.publishOnce("DEVICE", "HIGH", "", "Raspberry Pi kaynak uyarısı",
-                    "Cihazda güç, sıcaklık veya kaynak sınırı algılandı. "
-                            + "Cihaz Sağlığı ekranından ayrıntıları inceleyin.",
-                    "device:health:" + date);
+        if (health != null) {
+            boolean warning = health.isUnderVoltageNow() || health.isThrottledNow()
+                    || health.isFrequencyCappedNow() || health.getCpuTemperature() >= 80D
+                    || health.getDiskUsage() >= 90D;
+            if (warning) {
+                notifications.publishIncident("device_health", "DEVICE", "HIGH", "",
+                        "Raspberry Pi kaynak uyarısı",
+                        "Cihazda güç, sıcaklık veya kaynak sınırı algılandı. "
+                                + "Cihaz Sağlığı ekranından ayrıntıları inceleyin.",
+                        "device:health",
+                        GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS);
+            } else {
+                notifications.resetIncident("device_health");
+            }
         }
+    }
+
+    private static boolean isSensorFailure(String error) {
+        String normalized = error.toLowerCase(Locale.ROOT);
+        return normalized.contains("sensor") || normalized.contains("sensör")
+                || normalized.contains("wireless") || normalized.contains("mqtt")
+                || normalized.contains("soil moisture") || normalized.contains("measurement")
+                || normalized.contains("ölçüm");
     }
 
     /** Sends only newly completed cycles; opening a journal never replays old watering alerts. */

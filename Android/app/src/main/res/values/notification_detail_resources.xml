@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_detail_title">Bildirim Detayı</string>
+    <string name="notification_detail_back">Geri</string>
+    <string name="notification_detail_category">Kategori</string>
+    <string name="notification_detail_priority">Öncelik</string>
+    <string name="notification_detail_zone">İlgili bölge</string>
+    <string name="notification_detail_description">Açıklama</string>
+    <string name="notification_detail_save">Kaydet</string>
+    <string name="notification_detail_saved">Kaydedildi</string>
+    <string name="notification_detail_mark_read">Okundu işaretle</string>
+    <string name="notification_detail_read">Okundu</string>
+    <string name="notification_detail_general">Genel</string>
+    <string name="notification_detail_zone_loading">Bölge bilgisi yükleniyor</string>
+    <string name="notification_category_photo">Fotoğraf takibi</string>
+    <string name="notification_category_plant_assistant">Bitki Asistanı</string>
+    <string name="notification_category_system">Sistem</string>
+    <string name="notification_priority_high">Yüksek</string>
+    <string name="notification_priority_normal">Orta</string>
+    <string name="notification_priority_low">Düşük</string>
+</resources>

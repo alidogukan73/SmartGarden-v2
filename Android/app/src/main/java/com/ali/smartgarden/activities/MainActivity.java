@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import android.view.View;
+import android.view.ViewStub;
 import android.os.SystemClock;
 
 import androidx.activity.EdgeToEdge;
@@ -287,21 +288,6 @@ public class MainActivity extends AppCompatActivity {
         txtHomeHealthDetail = findViewById(R.id.txtHomeHealthDetail);
         txtHomeHealthScore = findViewById(R.id.txtHomeHealthScore);
         progressHomeHealthScore = findViewById(R.id.progressHomeHealthScore);
-        cardHomeWeather = findViewById(R.id.cardHomeWeather);
-        txtHomeWeatherIcon = findViewById(R.id.txtHomeWeatherIcon);
-        txtHomeWeatherTitle = findViewById(R.id.txtHomeWeatherTitle);
-        txtHomeWeatherLocation = findViewById(R.id.txtHomeWeatherLocation);
-        txtHomeWeatherTodayIcon = findViewById(R.id.txtHomeWeatherTodayIcon);
-        txtHomeWeatherTodayTemperature = findViewById(R.id.txtHomeWeatherTodayTemperature);
-        txtHomeWeatherTodayRain = findViewById(R.id.txtHomeWeatherTodayRain);
-        txtHomeWeatherTodayWind = findViewById(R.id.txtHomeWeatherTodayWind);
-        txtHomeWeatherTomorrowIcon = findViewById(R.id.txtHomeWeatherTomorrowIcon);
-        txtHomeWeatherTomorrowTemperature = findViewById(R.id.txtHomeWeatherTomorrowTemperature);
-        txtHomeWeatherTomorrowRain = findViewById(R.id.txtHomeWeatherTomorrowRain);
-        txtHomeWeatherTomorrowWind = findViewById(R.id.txtHomeWeatherTomorrowWind);
-        txtHomeWeatherImpact = findViewById(R.id.txtHomeWeatherImpact);
-        txtHomeWeatherImpactIcon = findViewById(R.id.txtHomeWeatherImpactIcon);
-        txtHomeWeatherUpdated = findViewById(R.id.txtHomeWeatherUpdated);
         recyclerHomeZones = findViewById(
                 R.id.recyclerHomeZones
         );
@@ -367,6 +353,29 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    private void ensureHomeWeatherViews() {
+        if (cardHomeWeather != null) return;
+        ViewStub stub = findViewById(R.id.stubHomeWeather);
+        if (stub != null) stub.inflate();
+        cardHomeWeather = findViewById(R.id.cardHomeWeather);
+        txtHomeWeatherIcon = findViewById(R.id.txtHomeWeatherIcon);
+        txtHomeWeatherTitle = findViewById(R.id.txtHomeWeatherTitle);
+        txtHomeWeatherLocation = findViewById(R.id.txtHomeWeatherLocation);
+        txtHomeWeatherTodayIcon = findViewById(R.id.txtHomeWeatherTodayIcon);
+        txtHomeWeatherTodayTemperature = findViewById(R.id.txtHomeWeatherTodayTemperature);
+        txtHomeWeatherTodayRain = findViewById(R.id.txtHomeWeatherTodayRain);
+        txtHomeWeatherTodayWind = findViewById(R.id.txtHomeWeatherTodayWind);
+        txtHomeWeatherTomorrowIcon = findViewById(R.id.txtHomeWeatherTomorrowIcon);
+        txtHomeWeatherTomorrowTemperature = findViewById(R.id.txtHomeWeatherTomorrowTemperature);
+        txtHomeWeatherTomorrowRain = findViewById(R.id.txtHomeWeatherTomorrowRain);
+        txtHomeWeatherTomorrowWind = findViewById(R.id.txtHomeWeatherTomorrowWind);
+        txtHomeWeatherImpact = findViewById(R.id.txtHomeWeatherImpact);
+        txtHomeWeatherImpactIcon = findViewById(R.id.txtHomeWeatherImpactIcon);
+        txtHomeWeatherUpdated = findViewById(R.id.txtHomeWeatherUpdated);
+        cardHomeWeather.setOnClickListener(
+                view -> startActivity(new Intent(this, WeatherForecastActivity.class))
+        );
+    }
     private void renderHomeWeather(WeatherForecast forecast) {
         latestWeather = forecast;
         if (forecast != null) {
@@ -376,9 +385,12 @@ public class MainActivity extends AppCompatActivity {
         }
         renderHomePlantAssistantRecommendation();
         if (forecast == null || forecast.getTomorrowTemperatureMax() == null) {
-            cardHomeWeather.setVisibility(View.GONE);
+            if (cardHomeWeather != null) {
+                cardHomeWeather.setVisibility(View.GONE);
+            }
             return;
         }
+        ensureHomeWeatherViews();
         cardHomeWeather.setVisibility(View.VISIBLE);
         String location = forecast.getDistrict().isBlank()
                 ? forecast.getCity()
@@ -1020,9 +1032,6 @@ public class MainActivity extends AppCompatActivity {
                 )
         );
 
-        cardHomeWeather.setOnClickListener(
-                view -> startActivity(new Intent(this, WeatherForecastActivity.class))
-        );
 
         cardHomeFertilizationSummary.setOnClickListener(
                 view -> startActivity(

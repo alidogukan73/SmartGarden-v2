@@ -7,6 +7,7 @@ Handles Firebase Realtime Database communication.
 from __future__ import annotations
 import threading
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -90,6 +91,7 @@ class FirebaseService:
             tuple[int, int],
         ] = {}
         self._last_push_sent_at: dict[str, float] = {}
+        self._active_error_incident_id = ""
         self._sensor_config_publisher = (
             Esp32SensorConfigPublisher(
                 broker=SensorConfig.MQTT_BROKER,
@@ -495,23 +497,55 @@ class FirebaseService:
         Save last application error.
         """
 
-        self._device_ref().child(
-            "status",
-        ).update(
+        status_ref = self._device_ref().child("status")
+        if not self._active_error_incident_id:
+            try:
+                current_status = status_ref.get() or {}
+                active_id = str(current_status.get("error_incident_id", "")).strip()
+                if active_id and str(current_status.get("last_error", "")).strip():
+                    self._active_error_incident_id = active_id
+                else:
+                    self._active_error_incident_id = uuid.uuid4().hex
+            except Exception:
+                self._active_error_incident_id = uuid.uuid4().hex
+
+        status_ref.update(
             {
                 "last_error": message,
                 "last_seen": datetime.now().isoformat(),
+                "error_incident_id": self._active_error_incident_id,
             },
         )
 
+        reminder_seconds = 6 * 60 * 60
+        normalized_message = message.lower()
+        sensor_failure = any(
+            marker in normalized_message
+            for marker in (
+                "sensor",
+                "wireless",
+                "mqtt",
+                "soil moisture",
+                "measurement",
+            )
+        )
         self._send_push_notification(
             notification_type="DEVICE",
             priority="HIGH",
             zone_id="",
-            title="AVORA cihaz uyarısı",
-            description=message,
-            source_key=f"device-error:{hash(message)}",
-            minimum_interval_seconds=15 * 60,
+            title=(
+                "Sensör verisi alınamıyor"
+                if sensor_failure
+                else "AVORA cihaz uyarısı"
+            ),
+            description=(
+                "Kablosuz sensörlerden güncel ölçüm alınamıyor. "
+                "Enerji ve bağlantıyı kontrol edin."
+                if sensor_failure
+                else message
+            ),
+            source_key=f"device-error:incident:{self._active_error_incident_id}",
+            minimum_interval_seconds=reminder_seconds,
         )
 
     def clear_error(self) -> None:
@@ -526,8 +560,10 @@ class FirebaseService:
             {
                 "last_error": "",
                 "last_seen": datetime.now().isoformat(),
+                "error_incident_id": "",
             },
         )
+        self._active_error_incident_id = ""
 
     # -------------------------------------------------
     # Sensor

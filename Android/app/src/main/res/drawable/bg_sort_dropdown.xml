@@ -2,7 +2,7 @@
 <shape
     xmlns:android="http://schemas.android.com/apk/res/android">
     <solid
-        android:color="#EEF7EF" />
+        android:color="@color/sortControlSurface" />
     <corners
         android:radius="14dp" />
 </shape>

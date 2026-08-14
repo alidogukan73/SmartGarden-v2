@@ -2,111 +2,237 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/notificationDetailRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
             android:paddingBottom="94dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="48dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-                <TextView
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNotificationDetailBack"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="Geri"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:contentDescription="@string/notification_detail_back"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
                     android:text="@string/symbol_back_arrow"
-                    android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+                    android:textAppearance="@style/TextAppearance.AVORA.BackButton"
+                    app:backgroundTint="@android:color/transparent"
+                    app:cornerRadius="22dp"
+                    app:rippleColor="@color/accentLight" />
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Bildirim Detayı"
+                    android:text="@string/notification_detail_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+
                 <View
-                    android:layout_width="40dp"
+                    android:layout_width="44dp"
                     android:layout_height="1dp" />
             </LinearLayout>
+
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/card"
-                app:cardCornerRadius="18dp"
-                app:strokeColor="@color/border"
-                app:strokeWidth="1dp">
+                android:layout_marginTop="12dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="18dp">
-                    <TextView
-                        android:id="@+id/txtNotificationDetailIcon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="28sp" />
-                    <TextView
-                        android:id="@+id/txtNotificationDetailTitle"
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
-                    <TextView
-                        android:id="@+id/txtNotificationDetailTime"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="12dp"
+                            app:cardBackgroundColor="@color/onlineBackground"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/border"
+                            app:strokeWidth="1dp">
+
+                            <TextView
+                                android:id="@+id/txtNotificationDetailIcon"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:textColor="@color/primary"
+                                android:textSize="24sp" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtNotificationDetailTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+
+                            <TextView
+                                android:id="@+id/txtNotificationDetailTime"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="16dp"
-                        android:background="@color/border" />
-                    <TextView
-                        android:id="@+id/txtNotificationDetailMeta"
+                        android:background="@color/divider" />
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="92dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/notification_detail_category"
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        <TextView
+                            android:id="@+id/txtNotificationDetailCategory"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="92dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/notification_detail_priority"
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        <TextView
+                            android:id="@+id/txtNotificationDetailPriority"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="92dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/notification_detail_zone"
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        <TextView
+                            android:id="@+id/txtNotificationDetailZone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/notification_detail_description"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
                     <TextView
                         android:id="@+id/txtNotificationDetailDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:textColor="@color/textPrimary"
-                        android:textSize="15sp" />
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="2dp"
+                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+
+                    <TextView
+                        android:id="@+id/txtNotificationDetailMeta"
+                        android:layout_width="1dp"
+                        android:layout_height="1dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNotificationSave"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
-                android:text="Kaydet" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNotificationMarkRead"
-                style="@style/Widget.SmartGarden.Button.Secondary"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="10dp"
-                android:text="Okundu olarak işaretle" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotificationSave"
+                    style="@style/Widget.SmartGarden.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
+                    android:text="@string/notification_detail_save" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotificationMarkRead"
+                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_weight="1"
+                    android:text="@string/notification_detail_mark_read" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-    <include
-        layout="@layout/include_primary_navigation" />
+
+    <include layout="@layout/include_primary_navigation" />
 </FrameLayout>

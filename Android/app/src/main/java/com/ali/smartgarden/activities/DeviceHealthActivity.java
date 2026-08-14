@@ -1,6 +1,7 @@
 package com.ali.smartgarden.activities;
 
 import android.content.res.ColorStateList;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -69,6 +70,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtEsp32SensorStatus;
     private TextView txtEsp32SensorDetail;
     private TextView txtEsp32SensorLastSeen;
+    private TextView txtSensorPointsShortcutSummary;
 
     private TextView txtCpuTemperature;
     private TextView txtCpuUsage;
@@ -111,6 +113,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtThrottlingRaw;
     private TextView txtDiagnosticsSummary;
     private LinearLayout layoutDiagnostics;
+    private LinearLayout layoutSensorPointsShortcut;
     private Health latestHealth;
     private Status latestStatus;
     private List<GardenZone> latestZones =
@@ -174,6 +177,9 @@ public class DeviceHealthActivity extends AppCompatActivity {
         layoutDiagnostics =
                 findViewById(R.id.layoutDiagnostics);
 
+        layoutSensorPointsShortcut =
+                findViewById(R.id.layoutSensorPointsShortcut);
+
         btnBack = findViewById(R.id.btnBack);
 
         btnRestartDevice =
@@ -222,6 +228,8 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 findViewById(R.id.txtEsp32SensorDetail);
         txtEsp32SensorLastSeen =
                 findViewById(R.id.txtEsp32SensorLastSeen);
+        txtSensorPointsShortcutSummary =
+                findViewById(R.id.txtSensorPointsShortcutSummary);
 
         txtCpuTemperature =
                 findViewById(R.id.txtCpuTemperature);
@@ -327,6 +335,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
                             ? Collections.emptyList()
                             : zones;
                     renderDiagnostics();
+                    renderSensorPointsShortcut();
                 }
         );
     }
@@ -339,6 +348,55 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         btnRestartDevice.setOnClickListener(
                 view -> showRestartConfirmationDialog()
+        );
+
+        layoutSensorPointsShortcut.setOnClickListener(
+                view -> startActivity(
+                        new Intent(
+                                this,
+                                SensorPointsActivity.class
+                        )
+                )
+        );
+    }
+    private void renderSensorPointsShortcut() {
+        int totalSensors = 0;
+        int connectedSensors = 0;
+        long now = Instant.now().getEpochSecond();
+
+        for (GardenZone zone : latestZones) {
+            if (zone == null
+                    || !zone.isEnabled()
+                    || !zone.isSensor_enabled()
+                    || zone.getSensor_id() == null
+                    || zone.getSensor_id().isBlank()) {
+                continue;
+            }
+
+            totalSensors++;
+            long updatedAt = zone.getUpdated_at_epoch();
+            long age = updatedAt > 0L
+                    ? Math.max(0L, now - updatedAt)
+                    : Long.MAX_VALUE;
+
+            if (age <= 90L) {
+                connectedSensors++;
+            }
+        }
+
+        if (totalSensors == 0) {
+            txtSensorPointsShortcutSummary.setText(
+                    R.string.sensor_points_health_waiting
+            );
+            return;
+        }
+
+        txtSensorPointsShortcutSummary.setText(
+                getString(
+                        R.string.sensor_points_health_summary_format,
+                        connectedSensors,
+                        totalSensors
+                )
         );
     }
     private void showRestartConfirmationDialog() {
