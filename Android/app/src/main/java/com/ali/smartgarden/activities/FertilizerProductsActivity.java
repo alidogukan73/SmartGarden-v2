@@ -23,13 +23,37 @@ import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerAiProfile;
+import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
 
 public class FertilizerProductsActivity extends AppCompatActivity {
+
+    private static final String[] PRODUCT_STAGE_CODES = {
+            FertilizerStagePolicy.SOIL_PREPARATION,
+            FertilizerStagePolicy.ROOTING,
+            FertilizerStagePolicy.VEGETATIVE,
+            FertilizerStagePolicy.FLOWERING,
+            FertilizerStagePolicy.FRUITING,
+            FertilizerStagePolicy.HARVEST
+    };
+    private static final String[] FUNCTION_TAG_CODES = {
+            "",
+            "TRACE_ELEMENTS",
+            "ORGANIC_MATTER",
+            "HUMIC_FULVIC",
+            "SEAWEED",
+            "CALCIUM_MAGNESIUM",
+            "AMINO_ACIDS",
+            "MICROBIAL",
+            "CALCIUM",
+            "PHOSPHATE",
+            "SULFATE"
+    };
 
     private final FirebaseRepository repository =
             new FirebaseRepository();
@@ -128,6 +152,15 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 content.findViewById(R.id.dropdownStockUnit);
         MaterialAutoCompleteTextView dropdownApplicationType =
                 content.findViewById(R.id.dropdownApplicationType);
+        TextInputEditText inputFunctionalTags =
+                content.findViewById(R.id.inputFunctionalTags);
+        MaterialSwitch switchOrganicFarmingEligible =
+                content.findViewById(R.id.switchOrganicFarmingEligible);
+        TextInputEditText inputRecommendedStages =
+                content.findViewById(R.id.inputRecommendedStages);
+        boolean[] selectedStages = new boolean[PRODUCT_STAGE_CODES.length];
+        boolean[] selectedFunctionalTags =
+                new boolean[FUNCTION_TAG_CODES.length - 1];
         TextView txtAiProductProfile =
                 content.findViewById(R.id.txtAiProductProfile);
 
@@ -155,8 +188,28 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 getString(R.string.fertilizer_type_conditioner),
                 getString(R.string.fertilizer_type_biostimulant)
         };
+        String[] functionalTagLabels = functionalTagLabels();
         dropdownStockUnit.setSimpleItems(stockUnits);
         dropdownApplicationType.setSimpleItems(applicationTypes);
+        applyExistingStageSelection(existing, selectedStages);
+        updateStageSelectionText(inputRecommendedStages, selectedStages);
+        inputRecommendedStages.setOnClickListener(view ->
+                showStageSelectionDialog(
+                        inputRecommendedStages,
+                        selectedStages
+                )
+        );
+        applyExistingFunctionalTagSelection(existing, selectedFunctionalTags);
+        updateFunctionalTagSelectionText(
+                inputFunctionalTags,
+                selectedFunctionalTags
+        );
+        inputFunctionalTags.setOnClickListener(view ->
+                showFunctionalTagSelectionDialog(
+                        inputFunctionalTags,
+                        selectedFunctionalTags
+                )
+        );
 
         bindAiProductProfile(txtAiProductProfile, existing);
 
@@ -166,6 +219,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             inputInterval.setText("14");
             dropdownStockUnit.setText(stockUnits[0], false);
             dropdownApplicationType.setText(applicationTypes[0], false);
+            switchOrganicFarmingEligible.setChecked(false);
         } else {
             inputName.setText(existing.getName());
             inputNpk.setText(existing.getNpk());
@@ -212,6 +266,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                     ),
                     false
             );
+            switchOrganicFarmingEligible.setChecked(existing.isOrganic_farming_eligible());
         }
 
         MaterialAlertDialogBuilder dialogBuilder =
@@ -237,6 +292,14 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             }
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                         .setOnClickListener(view -> {
+                            if (selectedStageCodes(selectedStages).isEmpty()) {
+                                Toast.makeText(
+                                        this,
+                                        R.string.fertilizer_stage_required,
+                                        Toast.LENGTH_LONG
+                                ).show();
+                                return;
+                            }
                             FertilizerProduct product =
                                     readProduct(
                                             existing,
@@ -249,7 +312,10 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                                             inputStockAmount,
                                             inputLowStockThreshold,
                                             dropdownStockUnit,
-                                            dropdownApplicationType
+                                            dropdownApplicationType,
+                                            selectedStages,
+                                            selectedFunctionalTags,
+                                            switchOrganicFarmingEligible.isChecked()
                                     );
                             if (product == null) {
                                 Toast.makeText(
@@ -287,6 +353,152 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+    }
+
+    private void applyExistingStageSelection(
+            @Nullable FertilizerProduct product,
+            boolean[] selected
+    ) {
+        List<String> configured = FertilizerStagePolicy.effectiveStages(product);
+        for (int index = 0; index < PRODUCT_STAGE_CODES.length; index++) {
+            selected[index] = configured.contains(PRODUCT_STAGE_CODES[index]);
+        }
+    }
+
+    private void showStageSelectionDialog(
+            TextInputEditText target,
+            boolean[] selected
+    ) {
+        boolean[] draft = selected.clone();
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.fertilizer_stage_dialog_title)
+                .setMultiChoiceItems(
+                        productStageLabels(),
+                        draft,
+                        (dialog, which, checked) -> draft[which] = checked
+                )
+                .setNegativeButton(R.string.settings_cancel, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    System.arraycopy(draft, 0, selected, 0, selected.length);
+                    updateStageSelectionText(target, selected);
+                })
+                .show();
+    }
+
+    private void updateStageSelectionText(
+            TextInputEditText target,
+            boolean[] selected
+    ) {
+        String[] labels = productStageLabels();
+        List<String> values = new java.util.ArrayList<>();
+        for (int index = 0; index < selected.length; index++) {
+            if (selected[index]) values.add(labels[index]);
+        }
+        target.setText(values.isEmpty()
+                ? getString(R.string.fertilizer_stage_missing)
+                : String.join(", ", values));
+    }
+
+    private List<String> selectedStageCodes(boolean[] selected) {
+        List<String> result = new java.util.ArrayList<>();
+        for (int index = 0; index < selected.length; index++) {
+            if (selected[index]) result.add(PRODUCT_STAGE_CODES[index]);
+        }
+        return result;
+    }
+
+    private String[] productStageLabels() {
+        return new String[]{
+                getString(R.string.fertilizer_stage_soil_preparation),
+                getString(R.string.growth_stage_rooting),
+                getString(R.string.growth_stage_vegetative),
+                getString(R.string.growth_stage_flowering),
+                getString(R.string.growth_stage_fruiting),
+                getString(R.string.growth_stage_harvest)
+        };
+    }
+    private String[] functionalTagLabels() {
+        return new String[]{
+                getString(R.string.fertilizer_function_general),
+                getString(R.string.fertilizer_function_trace_elements),
+                getString(R.string.fertilizer_function_organic_matter),
+                getString(R.string.fertilizer_function_humic_fulvic),
+                getString(R.string.fertilizer_function_seaweed),
+                getString(R.string.fertilizer_function_calcium_magnesium),
+                getString(R.string.fertilizer_function_amino_acids),
+                getString(R.string.fertilizer_function_microbial),
+                getString(R.string.fertilizer_function_calcium),
+                getString(R.string.fertilizer_function_phosphate),
+                getString(R.string.fertilizer_function_sulfate)
+        };
+    }
+
+    private void applyExistingFunctionalTagSelection(
+            @Nullable FertilizerProduct product,
+            boolean[] selected
+    ) {
+        List<String> configured = product == null
+                || product.getFunctional_tags() == null
+                ? java.util.Collections.emptyList()
+                : product.getFunctional_tags();
+        for (int index = 0; index < selected.length; index++) {
+            selected[index] = containsIgnoreCase(
+                    configured,
+                    FUNCTION_TAG_CODES[index + 1]
+            );
+        }
+    }
+
+    private void showFunctionalTagSelectionDialog(
+            TextInputEditText target,
+            boolean[] selected
+    ) {
+        boolean[] draft = selected.clone();
+        String[] allLabels = functionalTagLabels();
+        String[] selectableLabels = new String[selected.length];
+        System.arraycopy(allLabels, 1, selectableLabels, 0, selected.length);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.fertilizer_function_label)
+                .setMultiChoiceItems(
+                        selectableLabels,
+                        draft,
+                        (dialog, which, checked) -> draft[which] = checked
+                )
+                .setNegativeButton(R.string.settings_cancel, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    System.arraycopy(draft, 0, selected, 0, selected.length);
+                    updateFunctionalTagSelectionText(target, selected);
+                })
+                .show();
+    }
+
+    private void updateFunctionalTagSelectionText(
+            TextInputEditText target,
+            boolean[] selected
+    ) {
+        String[] labels = functionalTagLabels();
+        List<String> values = new java.util.ArrayList<>();
+        for (int index = 0; index < selected.length; index++) {
+            if (selected[index]) values.add(labels[index + 1]);
+        }
+        target.setText(values.isEmpty()
+                ? labels[0]
+                : String.join(", ", values));
+    }
+
+    private List<String> selectedFunctionalTagCodes(boolean[] selected) {
+        List<String> values = new java.util.ArrayList<>();
+        for (int index = 0; index < selected.length; index++) {
+            if (selected[index]) values.add(FUNCTION_TAG_CODES[index + 1]);
+        }
+        return values;
+    }
+
+    private boolean containsIgnoreCase(List<String> values, String expected) {
+        for (String value : values) {
+            if (expected.equalsIgnoreCase(value)) return true;
+        }
+        return false;
     }
 
     private void bindAiProductProfile(
@@ -462,7 +674,10 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             TextInputEditText inputStockAmount,
             TextInputEditText inputLowStockThreshold,
             MaterialAutoCompleteTextView dropdownStockUnit,
-            MaterialAutoCompleteTextView dropdownApplicationType
+            MaterialAutoCompleteTextView dropdownApplicationType,
+            boolean[] selectedStages,
+            boolean[] selectedFunctionalTags,
+            boolean organicFarmingEligible
     ) {
         String name = text(inputName);
         String doseText = text(inputDose).replace(',', '.');
@@ -475,7 +690,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         try {
             double dose = Double.parseDouble(doseText);
             int interval = Integer.parseInt(intervalText);
-            if (dose <= 0 || interval < 1 || interval > 365) {
+            if (dose <= 0 || interval < 0 || interval > 365) {
                 return null;
             }
             FertilizerProduct product = existing == null
@@ -510,6 +725,11 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             product.setStock_unit(
                     dropdownStockUnit.getText().toString().trim()
             );
+            product.setRecommended_stages(
+                    selectedStageCodes(selectedStages)
+            );
+            product.setFunctional_tags(selectedFunctionalTagCodes(selectedFunctionalTags));
+            product.setOrganic_farming_eligible(organicFarmingEligible);
             return product;
         } catch (NumberFormatException ignored) {
             return null;

@@ -332,7 +332,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
         PopupMenu menu = new PopupMenu(this, findViewById(R.id.btnTimelineAdd));
         String[] types = {"Dikim yapıldı", "Gözlem / not", "Çiçeklenme dönemi başladı", "İlk ürün", "Hasat", "Özel olay", "Gelişim fotoğrafı ekle"};
         for (String type : types) menu.getMenu().add(type);
-        menu.setOnMenuItemClickListener(choice -> { String type = String.valueOf(choice.getTitle()); if ("Gelişim fotoğrafı ekle".equals(type)) { Intent i = new Intent(this, GardenPhotoArchiveActivity.class); i.putExtra("zone_id", zoneId); startActivity(i); } else showNewEventDialog(type); return true; });
+        menu.setOnMenuItemClickListener(choice -> { String type = String.valueOf(choice.getTitle()); if ("Gelişim fotoğrafı ekle".equals(type)) { Intent i = new Intent(this, NewJournalRecordActivity.class); i.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID, zoneId); i.putExtra(NewJournalRecordActivity.EXTRA_INITIAL_TYPE, NewJournalRecordActivity.RECORD_TYPE_PHOTO); startActivity(i); } else showNewEventDialog(type); return true; });
         menu.show();
     }
     private void showNewEventDialog(String type) {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_mix_check">Karışım kontrolü</string>
+    <string name="fertilizer_mix_requires_two_products">Karışım kontrolü için en az iki etkin gübre ekleyin.</string>
+    <string name="fertilizer_mix_select_first">İlk gübreyi seçin</string>
+    <string name="fertilizer_mix_select_second">İkinci gübreyi seçin</string>
+    <string name="fertilizer_mix_result_message">%1$s + %2$s\n\n%3$s\n\nBu kontrol öneri amaçlıdır; ürün etiketi ve kavanoz testi önceliklidir.</string>
+    <string name="fertilizer_mix_record_action">Karışım olarak kaydet</string>
+    <string name="fertilizer_mix_no_eligible_zones">İki ürünün dozunun da güvenle hesaplanabildiği etkin bölge bulunamadı.</string>
+    <string name="fertilizer_mix_select_zones">Karışımın uygulanacağı bölgeleri seçin</string>
+    <string name="fertilizer_mix_blocked">Bu ürünler aynı tankta kaydedilemez.</string>
+    <string name="fertilizer_mix_invalid_zone">Şu bölgelerde iki ürünün dozu veya birimi birlikte hesaplanamadı: %1$s</string>
+    <string name="fertilizer_mix_history_note">Karışım uygulaması · Diğer ürün: %1$s</string>
+    <string name="fertilizer_mix_stock_unit_missing">%1$s için stok birimi girilmeden karışım kaydedilemez.</string>
+    <string name="fertilizer_mix_stock_unit_mismatch">%1$s stok birimi (%2$s) ile uygulama birimi (%3$s) uyuşmuyor.</string>
+    <string name="fertilizer_mix_stock_insufficient">%1$s için %2$s %3$s gerekli; mevcut stok %4$s.</string>
+    <string name="fertilizer_mix_confirm_title">Karışım uygulamasını onaylayın</string>
+    <string name="fertilizer_mix_confirm_message">%1$d bölgeye uygulanacak:\n\n%2$s: %3$s %4$s\n%5$s: %6$s %7$s\nTarih: %8$s\n\nAVORA değerlendirmesi: %9$s</string>
+    <string name="fertilizer_mix_safety_confirmation">İki ürünün etiketini kontrol ettim ve aynı sulama suyuyla kavanoz testi yaptım.</string>
+    <string name="fertilizer_mix_confirm_action">Güvenli biçimde kaydet</string>
+    <string name="fertilizer_mix_confirmation_required">Kaydetmeden önce etiket ve kavanoz testi kontrolünü onaylayın.</string>
+    <string name="fertilizer_mix_saved">Karışım uygulaması ve iki ürünün stok hareketi birlikte kaydedildi.</string>
+    <string name="fertilizer_mix_save_failed">Karışım kaydedilemedi: %1$s</string>
+</resources>

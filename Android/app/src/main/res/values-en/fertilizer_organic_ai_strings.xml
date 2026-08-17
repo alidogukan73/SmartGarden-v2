@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_organic_ai_loading">AVORA AI is researching suitable organic product criteria…</string>
+    <string name="fertilizer_organic_ai_heading">AVORA AI organic alternative guidance</string>
+    <string name="fertilizer_organic_ai_unavailable">AI guidance is currently unavailable. The organic-only warning remains active; no conventional product was selected.</string>
+    <string name="fertilizer_recommended_products">Recommended products</string>
+    <string name="fertilizer_organic_ai_recommended_profiles">Suitable product types</string>
+    <string name="fertilizer_organic_ai_verify_label">  Verify on label: %1$s</string>
+    <string name="fertilizer_organic_ai_application">  Application: %1$s</string>
+    <string name="fertilizer_organic_ai_cautions">Caution</string>
+</resources>

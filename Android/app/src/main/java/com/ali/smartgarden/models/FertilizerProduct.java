@@ -20,6 +20,8 @@ public class FertilizerProduct {
     private boolean verified;
     private String source_url;
     private List<String> recommended_stages;
+    private List<String> functional_tags;
+    private boolean organic_farming_eligible;
     private double stock_amount;
     private String stock_unit;
     private double low_stock_threshold;
@@ -73,6 +75,16 @@ public class FertilizerProduct {
     }
     public void setRecommended_stages(List<String> value) {
         recommended_stages = value;
+    }
+    public List<String> getFunctional_tags() { return functional_tags; }
+    public void setFunctional_tags(List<String> value) {
+        functional_tags = value;
+    }
+    public boolean isOrganic_farming_eligible() {
+        return organic_farming_eligible;
+    }
+    public void setOrganic_farming_eligible(boolean value) {
+        organic_farming_eligible = value;
     }
     public double getStock_amount() { return stock_amount; }
     public void setStock_amount(double value) { stock_amount = value; }

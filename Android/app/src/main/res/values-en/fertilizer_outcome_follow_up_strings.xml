@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_outcome_follow_up_title">Fertilizer result needs evaluation</string>
+    <string name="fertilizer_outcome_follow_up_message">Evaluate plant development after applying %2$s in the %1$s zone.</string>
+    <string name="fertilizer_outcome_follow_up_product">fertilizer</string>
+    <string name="fertilizer_outcome_learning_empty">Record application outcomes so AVORA can learn. At least 2 results are required for the same product and zone.</string>
+    <string name="fertilizer_outcome_learning_progress">AVORA is learning: %1$d/%2$d reliable results completed.</string>
+    <string name="fertilizer_outcome_learning_ready">AVORA now uses fertilizer outcomes from this zone in its advice. %1$d evaluations completed.</string>
+    <string name="fertilizer_outcome_action">Record application result</string>
+    <string name="fertilizer_outcome_dialog_title">Application result</string>
+    <string name="fertilizer_outcome_dialog_message">This record is used to improve the AI Fertilizer Assistant’s future advice.</string>
+    <string name="fertilizer_outcome_date_hint">Observation date</string>
+    <string name="fertilizer_outcome_notes_hint">Observation note (optional)</string>
+    <string name="fertilizer_outcome_invalid_date">Select a valid observation date.</string>
+    <string-array name="fertilizer_outcome_statuses">
+        <item>Improvement observed</item>
+        <item>No significant change</item>
+        <item>Problem observed</item>
+    </string-array>
+    <string-array name="fertilizer_outcome_vigor_scores">
+        <item>Select vigor score</item>
+        <item>1 / 5</item>
+        <item>2 / 5</item>
+        <item>3 / 5</item>
+        <item>4 / 5</item>
+        <item>5 / 5</item>
+    </string-array>
+    <string name="fertilizer_outcome_stats">%1$d result records: %2$d improved · %3$d unchanged · %4$d issues.</string>
+    <string name="fertilizer_outcome_vigor"> Average vigor: %1$s/5.</string>
+    <string name="fertilizer_outcome_trend_positive"> Positive trend observed.</string>
+    <string name="fertilizer_outcome_trend_issue"> Review the dose, mix and label instructions.</string>
+    <string name="fertilizer_outcome_trend_mixed"> Results are mixed; record more observations under the same conditions.</string>
+    <string name="fertilizer_outcome_learning_overview_progress">AVORA is learning: %1$d/%2$d results completed for the strongest product/zone match.</string>
+    <string name="fertilizer_outcome_learning_overview_ready">AVORA uses outcome data from %1$d product/zone matches in its advice.</string>
+</resources>

@@ -34,7 +34,11 @@ class Handler(BaseHTTPRequestHandler):
         self._json(HTTPStatus.OK, {"configured": SERVICE.configured() and bool(_token())})
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/v1/plant-assistant/analyze":
+        supported_paths = {
+            "/v1/plant-assistant/analyze",
+            "/v1/fertilizer-assistant/organic-alternatives",
+        }
+        if self.path not in supported_paths:
             self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
             return
         if not _token() or self.headers.get("X-SmartGarden-Token", "") != _token():
@@ -46,7 +50,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             body = json.loads(self.rfile.read(length).decode("utf-8"))
-            result = SERVICE.analyze(body["image_base64"], body.get("mime_type", "image/jpeg"), body.get("context", {}))
+            if self.path == "/v1/plant-assistant/analyze":
+                result = SERVICE.analyze(
+                    body["image_base64"],
+                    body.get("mime_type", "image/jpeg"),
+                    body.get("context", {}),
+                )
+            else:
+                result = SERVICE.advise_organic(body.get("context", {}))
             self._json(HTTPStatus.OK, result)
         except ValueError as error:
             self._json(HTTPStatus.BAD_REQUEST, {"error": str(error)})

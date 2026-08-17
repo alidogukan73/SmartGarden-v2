@@ -13,16 +13,23 @@ import android.view.LayoutInflater;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizationProfile;
+import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerApplicationSchedule;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerAiProfile;
 import com.ali.smartgarden.fertilization.FertilizerAdvice;
 import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
+import com.ali.smartgarden.fertilization.OrganicFertilizerAiAdvisor;
+import com.ali.smartgarden.fertilization.FertilizerExperiencePresenter;
+import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
+import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
+import com.ali.smartgarden.fertilization.FertilizerSafetyPolicy;
 import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.GardenZone;
@@ -55,7 +62,8 @@ public class FertilizationZoneDetailActivity
             "VEGETATIVE",
             "FLOWERING",
             "FRUITING",
-            "HARVEST"
+            "HARVEST",
+            "SEASON_END"
     };
     private static final DateTimeFormatter DISPLAY_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault());
@@ -68,6 +76,7 @@ public class FertilizationZoneDetailActivity
     private TextInputEditText inputFertilizationTank;
     private MaterialAutoCompleteTextView dropdownGrowthStage;
     private MaterialAutoCompleteTextView dropdownProduct;
+    private NestedScrollView scrollFertilizationZone;
     private TextView txtApplicationPreview;
     private TextView txtFertilizationDoseCalculation;
     private TextView txtFertilizerRecommendation;
@@ -91,8 +100,15 @@ public class FertilizationZoneDetailActivity
     private TextView txtZoneAiAdviceReason;
     private TextView txtZoneAiAdviceContext;
     private TextView txtZoneAiAdviceProducts;
+    private MaterialCardView cardZoneAiExperience;
+    private TextView txtZoneAiExperience;
     private TextView txtZoneAiAdviceRisks;
     private TextView txtWaterAnalysisSummary;
+    private TextView txtPlanStatus;
+    private TextView txtScheduleSummary;
+    private TextView txtScheduleToggle;
+    private View layoutScheduleDetails;
+    private MaterialButton btnDiscardChanges;
 
     private String zoneId;
     private boolean rendering;
@@ -100,6 +116,7 @@ public class FertilizationZoneDetailActivity
     private boolean remoteLoaded;
     private boolean saveAndExit;
     private boolean originalEnabled;
+    private boolean scheduleExpanded;
     private boolean originalReminder = true;
     private String originalPlantingDate = "";
     private String originalStage = "NOT_SET";
@@ -114,6 +131,7 @@ public class FertilizationZoneDetailActivity
     private String zoneName = "";
     private GardenZone currentZone;
     private WeatherForecast currentWeather;
+    private List<FertilizerApplication> currentHistory = new ArrayList<>();
     private Map<String, FertilizerApplicationSchedule>
             applicationSchedules;
     private final List<FertilizerProduct> products =
@@ -173,6 +191,10 @@ public class FertilizationZoneDetailActivity
                 this,
                 this::renderZone
         );
+        repository.observeFertilizerHistory().observe(this, history -> {
+            currentHistory = history == null ? new ArrayList<>() : history;
+            renderZoneAiAdvice();
+        });
         repository.observeWeatherForecast().observe(this, weather -> {
             currentWeather = weather;
             renderZoneAiAdvice();
@@ -191,6 +213,7 @@ public class FertilizationZoneDetailActivity
                 R.id.dropdownGrowthStage
         );
         dropdownProduct = findViewById(R.id.dropdownProduct);
+        scrollFertilizationZone = findViewById(R.id.scrollFertilizationZone);
         txtApplicationPreview = findViewById(
                 R.id.txtApplicationPreview
         );
@@ -232,7 +255,15 @@ public class FertilizationZoneDetailActivity
         txtZoneAiAdviceReason = findViewById(R.id.txtZoneAiAdviceReason);
         txtZoneAiAdviceContext = findViewById(R.id.txtZoneAiAdviceContext);
         txtZoneAiAdviceProducts = findViewById(R.id.txtZoneAiAdviceProducts);
+        cardZoneAiExperience = findViewById(R.id.cardZoneAiExperience);
+        txtZoneAiExperience = findViewById(R.id.txtZoneAiExperience);
         txtZoneAiAdviceRisks = findViewById(R.id.txtZoneAiAdviceRisks);
+        txtPlanStatus = findViewById(R.id.txtPlanStatus);
+        txtScheduleSummary = findViewById(R.id.txtScheduleSummary);
+        txtScheduleToggle = findViewById(R.id.txtScheduleToggle);
+        layoutScheduleDetails = findViewById(R.id.layoutScheduleDetails);
+        btnDiscardChanges = findViewById(R.id.btnDiscardChanges);
+
 
         String[] stageLabels = {
                 getString(R.string.fertilization_not_set),
@@ -240,12 +271,19 @@ public class FertilizationZoneDetailActivity
                 getString(R.string.growth_stage_vegetative),
                 getString(R.string.growth_stage_flowering),
                 getString(R.string.growth_stage_fruiting),
-                getString(R.string.growth_stage_harvest)
+                getString(R.string.growth_stage_harvest),
+                getString(R.string.growth_stage_season_end)
         };
         dropdownGrowthStage.setSimpleItems(stageLabels);
         dropdownGrowthStage.setOnItemClickListener(
                 (parent, view, position, id) -> {
                     selectedStage = STAGE_CODES[position];
+                    if (isSeasonEndStage()) {
+                        rendering = true;
+                        switchEnabled.setChecked(false);
+                        switchReminder.setChecked(false);
+                        rendering = false;
+                    }
                     rebuildProductOptions();
                     updateAdvanceStageButton();
                     updateUnsavedState();
@@ -254,12 +292,15 @@ public class FertilizationZoneDetailActivity
         dropdownProduct.setOnItemClickListener(
                 (parent, view, position, id) -> {
                     if (position >= 0 && position < products.size()) {
+                        int savedScrollY = scrollFertilizationZone.getScrollY();
                         selectedProductId =
                                 products.get(position).getProduct_id();
+                        dropdownProduct.clearFocus();
                         updateFertilizerRecommendation();
                         updateApplicationPreview();
                         updateDoseCalculation();
                         updateUnsavedState();
+                        restoreScrollPosition(savedScrollY);
                     }
                 }
         );
@@ -297,6 +338,17 @@ public class FertilizationZoneDetailActivity
         );
     }
 
+    private void restoreScrollPosition(int scrollY) {
+        if (scrollFertilizationZone == null) {
+            return;
+        }
+        scrollFertilizationZone.postOnAnimation(() ->
+                scrollFertilizationZone.postOnAnimation(() ->
+                        scrollFertilizationZone.scrollTo(0, scrollY)
+                )
+        );
+    }
+
     private void bindActions() {
         findViewById(R.id.btnBack).setOnClickListener(
                 view -> requestClose()
@@ -329,6 +381,11 @@ public class FertilizationZoneDetailActivity
                 }
         );
         btnSave.setOnClickListener(view -> save());
+        btnDiscardChanges.setOnClickListener(
+                view -> discardUnsavedChanges()
+        );
+        findViewById(R.id.layoutScheduleHeader).setOnClickListener(
+                view -> toggleScheduleDetails());
         btnUseFertilizerRecommendation.setOnClickListener(
                 view -> useRecommendedProduct()
         );
@@ -339,7 +396,7 @@ public class FertilizationZoneDetailActivity
                 view -> confirmAdvanceGrowthStage()
         );
         btnWaterAnalysis.setOnClickListener(view -> showWaterAnalysisDialog());
-        btnZonePhoto.setOnClickListener(view -> openZonePhotoArchive());
+        btnZonePhoto.setOnClickListener(view -> openZonePhotoRecord());
         btnZonePlantAssistant.setOnClickListener(view -> openZonePlantAssistant());
     }
 
@@ -409,16 +466,20 @@ public class FertilizationZoneDetailActivity
     private void renderWaterAnalysis(FertilizationProfile profile) {
         if (profile.getWater_ph() <= 0.0 && profile.getWater_ec_ms() <= 0.0) {
             txtWaterAnalysisSummary.setText(
-                    "EC / pH bilgisi girilmedi. Sensör gelene kadar ölçümü elle ekleyebilirsiniz.");
+                    R.string.fertilization_water_analysis_missing);
             return;
         }
         String ph = profile.getWater_ph() > 0.0 ? "pH "
-                + String.format(Locale.getDefault(), "%.1f", profile.getWater_ph()) : "pH yok";
+                + String.format(Locale.getDefault(), "%.1f", profile.getWater_ph())
+                : getString(R.string.fertilization_water_ph_missing);
         String ec = profile.getWater_ec_ms() > 0.0 ? "EC "
                 + String.format(Locale.getDefault(), "%.2f", profile.getWater_ec_ms())
-                + " mS/cm" : "EC yok";
-        txtWaterAnalysisSummary.setText(ph + " · " + ec
-                + " · yalnızca danışman uyarısı için kullanılır.");
+                + " mS/cm" : getString(R.string.fertilization_water_ec_missing);
+        txtWaterAnalysisSummary.setText(getString(
+                R.string.fertilization_water_analysis_summary,
+                ph,
+                ec
+        ));
     }
 
     private void showWaterAnalysisDialog() {
@@ -467,9 +528,11 @@ public class FertilizationZoneDetailActivity
         return normalized.isEmpty() ? 0.0 : Double.parseDouble(normalized);
     }
 
-    private void openZonePhotoArchive() {
-        Intent intent = new Intent(this, GardenPhotoArchiveActivity.class);
-        intent.putExtra("zone_id", zoneId);
+    private void openZonePhotoRecord() {
+        Intent intent = new Intent(this, NewJournalRecordActivity.class);
+        intent.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID, zoneId);
+        intent.putExtra(NewJournalRecordActivity.EXTRA_INITIAL_TYPE,
+                NewJournalRecordActivity.RECORD_TYPE_PHOTO);
         startActivity(intent);
     }
 
@@ -498,8 +561,9 @@ public class FertilizationZoneDetailActivity
             return;
         }
         FertilizerAdvice advice = FertilizerDecisionEngine.advise(
-                currentZone, allProducts, currentWeather,
-                Instant.now().getEpochSecond()
+                currentZone, allProducts, currentWeather, currentHistory,
+                Instant.now().getEpochSecond(),
+                new FertilizationPreferenceStore(this).preferOrganicInputs()
         );
         cardZoneAiAdvice.setVisibility(View.VISIBLE);
         txtZoneAiAdviceStatus.setText(advice.getStatus());
@@ -512,21 +576,62 @@ public class FertilizationZoneDetailActivity
             txtZoneAiAdviceContext.setText(advice.getContext());
         }
         if (advice.getCandidates().isEmpty()) {
-            txtZoneAiAdviceProducts.setVisibility(View.GONE);
+            if (OrganicFertilizerAiAdvisor.isRequired(advice)) {
+                txtZoneAiAdviceProducts.setVisibility(View.VISIBLE);
+                txtZoneAiAdviceProducts.setText(
+                        R.string.fertilizer_organic_ai_loading);
+                requestOrganicAiAdvice();
+            } else {
+                txtZoneAiAdviceProducts.setVisibility(View.GONE);
+            }
         } else {
             txtZoneAiAdviceProducts.setVisibility(View.VISIBLE);
-            txtZoneAiAdviceProducts.setText("Onerilen urunler\n"
-                    + String.join("\n\n", advice.getCandidates()));
+            txtZoneAiAdviceProducts.setText(
+                    getString(R.string.fertilizer_recommended_products)
+                            + "\n" + String.join("\n\n", advice.getCandidates()));
         }
+        FertilizerExperiencePresenter.bind(
+                this,
+                cardZoneAiExperience,
+                txtZoneAiExperience,
+                advice.getExperience(),
+                currentZone,
+                currentHistory
+        );
         if (advice.getRisks().isEmpty()) {
             txtZoneAiAdviceRisks.setVisibility(View.GONE);
         } else {
             txtZoneAiAdviceRisks.setVisibility(View.VISIBLE);
-            txtZoneAiAdviceRisks.setText("Dikkat edilmesi gerekenler\n• "
-                    + String.join("\n• ", advice.getRisks()));
+            txtZoneAiAdviceRisks.setText(
+                    getString(R.string.fertilization_risks_title)
+                            + "\n• "
+                            + String.join("\n• ", advice.getRisks()));
         }
     }
 
+
+    private void requestOrganicAiAdvice() {
+        GardenZone requestedZone = currentZone;
+        OrganicFertilizerAiAdvisor.request(requestedZone,
+                new OrganicFertilizerAiAdvisor.Callback() {
+                    @Override
+                    public void onResult(OrganicFertilizerAiAdvisor.Result result) {
+                        if (isFinishing() || isDestroyed()
+                                || currentZone != requestedZone) return;
+                        txtZoneAiAdviceProducts.setText(getString(
+                                R.string.fertilizer_organic_ai_heading)
+                                + "\n" + result.fullText(FertilizationZoneDetailActivity.this));
+                    }
+
+                    @Override
+                    public void onUnavailable() {
+                        if (isFinishing() || isDestroyed()
+                                || currentZone != requestedZone) return;
+                        txtZoneAiAdviceProducts.setText(
+                                R.string.fertilizer_organic_ai_unavailable);
+                    }
+                });
+    }
     private void renderRecommendations(
             List<FertilizerRecommendation> value
     ) {
@@ -548,12 +653,14 @@ public class FertilizationZoneDetailActivity
 
     private void rebuildProductOptions() {
         products.clear();
-        for (FertilizerProduct product : allProducts) {
-            List<String> stages = product.getRecommended_stages();
-            if (stages == null
-                    || stages.isEmpty()
-                    || stages.contains(selectedStage)) {
-                products.add(product);
+        if (!isSeasonEndStage()) {
+            for (FertilizerProduct product : allProducts) {
+                if (FertilizerSafetyPolicy.isEligibleForStage(
+                        product,
+                        selectedStage
+                )) {
+                    products.add(product);
+                }
             }
         }
         String[] names = new String[products.size()];
@@ -566,6 +673,16 @@ public class FertilizationZoneDetailActivity
         updateFertilizerRecommendation();
         updateApplicationPreview();
         updateDoseCalculation();
+    }
+
+
+
+    private boolean isHarvestStage() {
+        return FertilizerStagePolicy.HARVEST.equals(selectedStage);
+    }
+
+    private boolean isSeasonEndStage() {
+        return FertilizerStagePolicy.SEASON_END.equals(selectedStage);
     }
 
     private void ensureSelectedProduct() {
@@ -586,10 +703,18 @@ public class FertilizationZoneDetailActivity
         }
         if (!products.isEmpty()) {
             selectedProductId = products.get(0).getProduct_id();
+        } else {
+            selectedProductId = "";
         }
     }
 
     private void updateFertilizerRecommendation() {
+        if (isSeasonEndStage()) {
+            txtFertilizerRecommendation.setText(R.string.fertilization_season_end_no_application);
+            btnUseFertilizerRecommendation.setVisibility(View.GONE);
+            cardFertilizerRecommendation.setVisibility(View.VISIBLE);
+            return;
+        }
         FertilizerRecommendation recommendation =
                 currentRecommendation();
         FertilizerProduct product = recommendation == null
@@ -644,10 +769,14 @@ public class FertilizationZoneDetailActivity
             detail.append("Ürün uygunluğu: ")
                     .append(aiProfile.getSuitability())
                     .append("\nNeden: ")
-                    .append(aiProfile.getReason())
-                    .append("\nMeyve döneminde: ")
-                    .append(aiProfile.getFruitStageAdvice())
-                    .append("\nGüvenlik: ")
+                    .append(aiProfile.getReason());
+            if ("FRUITING".equals(selectedStage)) {
+                detail.append("\nMeyve döneminde: ")
+                        .append(aiProfile.getFruitStageAdvice());
+            } else if (isHarvestStage()) {
+                detail.append("\nAktif hasatta: Yalnız ürün etiketinde hasada kadar kullanım açıkça belirtiliyorsa ve hasat öncesi kısıt yoksa değerlendirin.");
+            }
+            detail.append("\nGüvenlik: ")
                     .append(aiProfile.getSafetyNote());
 
             if (isRepeatBlocked()) {
@@ -732,8 +861,12 @@ public class FertilizationZoneDetailActivity
                     R.string.fertilization_soil_support_fruiting
             );
         }
+
         if ("HARVEST".equals(selectedStage)) {
             return getString(R.string.fertilization_soil_support_harvest);
+        }
+        if ("SEASON_END".equals(selectedStage)) {
+            return getString(R.string.fertilization_soil_support_season_end);
         }
         return "";
     }
@@ -844,6 +977,10 @@ public class FertilizationZoneDetailActivity
 
     private void updateDoseCalculation() {
         if (txtFertilizationDoseCalculation == null) {
+            return;
+        }
+        if (isSeasonEndStage()) {
+            txtFertilizationDoseCalculation.setText(R.string.fertilization_season_end_no_application);
             return;
         }
         FertilizerProduct product = selectedProduct();
@@ -1125,7 +1262,13 @@ public class FertilizationZoneDetailActivity
 
     private void save() {
         String plantingDate = currentPlantingDate();
-        if (switchEnabled.isChecked()
+        boolean seasonEndStage = isSeasonEndStage();
+        boolean planEnabled = !seasonEndStage && switchEnabled.isChecked();
+        boolean remindersEnabled = !seasonEndStage && switchReminder.isChecked();
+        if (seasonEndStage) {
+            selectedProductId = "";
+        }
+        if (planEnabled
                 && (plantingDate.isBlank()
                 || "NOT_SET".equals(selectedStage))) {
             saveAndExit = false;
@@ -1137,7 +1280,7 @@ public class FertilizationZoneDetailActivity
             return;
         }
         FertilizerProduct selectedProduct = selectedProduct();
-        if (switchEnabled.isChecked() && selectedProduct == null) {
+        if (planEnabled && selectedProduct == null) {
             saveAndExit = false;
             new MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.fertilization_missing_title)
@@ -1150,10 +1293,12 @@ public class FertilizationZoneDetailActivity
         int intervalDays = selectedProduct == null
                 ? 0
                 : selectedProduct.getMinimum_interval_days();
-        long nextApplicationEpoch = calculateFirstApplicationEpoch(
-                plantingDate,
-                intervalDays
-        );
+        long nextApplicationEpoch = seasonEndStage
+                ? 0L
+                : calculateFirstApplicationEpoch(
+                        plantingDate,
+                        intervalDays
+                );
         double areaM2 = currentAreaM2();
         double tankLiters = currentTankLiters();
 
@@ -1161,10 +1306,10 @@ public class FertilizationZoneDetailActivity
         setControlsEnabled(false);
         repository.updateFertilizationProfile(
                 zoneId,
-                switchEnabled.isChecked(),
+                planEnabled,
                 plantingDate,
                 selectedStage,
-                switchReminder.isChecked(),
+                remindersEnabled,
                 selectedProductId,
                 intervalDays,
                 nextApplicationEpoch,
@@ -1172,8 +1317,14 @@ public class FertilizationZoneDetailActivity
                 tankLiters
         ).addOnSuccessListener(unused -> {
             saving = false;
-            originalEnabled = switchEnabled.isChecked();
-            originalReminder = switchReminder.isChecked();
+            originalEnabled = planEnabled;
+            originalReminder = remindersEnabled;
+            if (seasonEndStage) {
+                rendering = true;
+                switchEnabled.setChecked(false);
+                switchReminder.setChecked(false);
+                rendering = false;
+            }
             originalPlantingDate = plantingDate;
             originalStage = selectedStage;
             originalProductId = selectedProductId;
@@ -1207,6 +1358,7 @@ public class FertilizationZoneDetailActivity
         cardUnsaved.setVisibility(changed ? View.VISIBLE : View.GONE);
         btnSave.setEnabled(changed && !saving);
         updateRecordButton();
+        updatePlanStatus();
     }
 
     private void updateRecordButton() {
@@ -1215,6 +1367,7 @@ public class FertilizationZoneDetailActivity
         }
         btnRecordFertilizerApplication.setEnabled(
                 remoteLoaded
+                        && !isSeasonEndStage()
                         && originalEnabled
                         && !saving
                         && !hasUnsavedChanges()
@@ -1245,6 +1398,105 @@ public class FertilizationZoneDetailActivity
                 R.string.fertilizer_type_biostimulant,
                 scheduleFor("BIOSTIMULANT")
         ));
+        updateScheduleSummary();
+    }
+
+    private void updatePlanStatus() {
+        if (txtPlanStatus == null || switchEnabled == null) {
+            return;
+        }
+        int message;
+        int color = R.color.textSecondary;
+        if (isSeasonEndStage()) {
+            message = R.string.fertilization_plan_season_end_description;
+        } else if (!switchEnabled.isChecked()) {
+            message = R.string.fertilization_plan_disabled_description;
+        } else if (currentPlantingDate().isBlank()
+                || "NOT_SET".equals(selectedStage)) {
+            message = R.string.fertilization_plan_missing_description;
+            color = R.color.warning;
+        } else {
+            message = R.string.fertilization_plan_active_description;
+            color = R.color.primary;
+        }
+        txtPlanStatus.setText(message);
+        txtPlanStatus.setTextColor(getColor(color));
+    }
+
+    private void updateScheduleSummary() {
+        if (txtScheduleSummary == null) {
+            return;
+        }
+        long earliestEpoch = Long.MAX_VALUE;
+        String[] types = {
+                "NUTRITION", "ORGANIC", "CONDITIONER", "BIOSTIMULANT"
+        };
+        for (String type : types) {
+            FertilizerApplicationSchedule schedule = scheduleFor(type);
+            if (schedule == null
+                    || schedule.getNext_application_at_epoch() <= 0L) {
+                continue;
+            }
+            earliestEpoch = Math.min(
+                    earliestEpoch,
+                    schedule.getNext_application_at_epoch()
+            );
+        }
+        if (earliestEpoch == Long.MAX_VALUE) {
+            txtScheduleSummary.setText(
+                    R.string.fertilization_schedule_summary_empty
+            );
+            txtScheduleSummary.setTextColor(
+                    getColor(R.color.textSecondary)
+            );
+            return;
+        }
+        LocalDate next = Instant.ofEpochSecond(earliestEpoch)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        if (!next.isAfter(LocalDate.now())) {
+            txtScheduleSummary.setText(
+                    R.string.fertilization_schedule_summary_due
+            );
+            txtScheduleSummary.setTextColor(getColor(R.color.warning));
+        } else {
+            txtScheduleSummary.setText(getString(
+                    R.string.fertilization_schedule_summary_next,
+                    next.format(DISPLAY_DATE_FORMAT)
+            ));
+            txtScheduleSummary.setTextColor(getColor(R.color.textSecondary));
+        }
+    }
+
+    private void toggleScheduleDetails() {
+        scheduleExpanded = !scheduleExpanded;
+        layoutScheduleDetails.setVisibility(
+                scheduleExpanded ? View.VISIBLE : View.GONE
+        );
+        txtScheduleToggle.setText(scheduleExpanded
+                ? R.string.fertilization_schedule_hide
+                : R.string.fertilization_schedule_show);
+    }
+
+    private void discardUnsavedChanges() {
+        if (!remoteLoaded || saving) {
+            return;
+        }
+        rendering = true;
+        switchEnabled.setChecked(originalEnabled);
+        switchReminder.setChecked(originalReminder);
+        inputPlantingDate.setText(displayDate(originalPlantingDate));
+        inputFertilizationArea.setText(editableNumber(originalAreaM2));
+        inputFertilizationTank.setText(editableNumber(originalTankLiters));
+        selectedStage = originalStage;
+        selectedProductId = originalProductId;
+        dropdownGrowthStage.setText(stageLabel(originalStage), false);
+        rendering = false;
+        rebuildProductOptions();
+        updateApplicationSchedules();
+        updateAdvanceStageButton();
+        updateUnsavedState();
+        renderZoneAiAdvice();
     }
 
     private FertilizerApplicationSchedule scheduleFor(String type) {
@@ -1357,15 +1609,23 @@ public class FertilizationZoneDetailActivity
         if ("FLOWERING".equals(stage)) {
             return "FRUITING";
         }
+
         if ("FRUITING".equals(stage)) {
             return "HARVEST";
+        }
+        if ("HARVEST".equals(stage)) {
+            return "SEASON_END";
         }
         return null;
     }
 
     private void showRecordApplicationDialog() {
         FertilizerProduct product = selectedProduct();
-        if (product == null || !originalEnabled) {
+        FertilizationProfile activeProfile = currentZone == null
+                ? null : currentZone.getFertilization();
+        if (product == null || !originalEnabled
+                || !FertilizerSafetyPolicy.isEligible(product, activeProfile)) {
+            Toast.makeText(this, R.string.fertilizer_application_policy_blocked, Toast.LENGTH_LONG).show();
             return;
         }
         View content = LayoutInflater.from(this).inflate(
@@ -1420,7 +1680,8 @@ public class FertilizationZoneDetailActivity
         List<FertilizerProduct> selectableProducts = new ArrayList<>();
         List<String> productNames = new ArrayList<>();
         for (FertilizerProduct candidate : allProducts) {
-            if (candidate.isEnabled()) {
+            if (FertilizerSafetyPolicy.isEligible(
+                    candidate, activeProfile)) {
                 selectableProducts.add(candidate);
                 productNames.add(candidate.getName());
             }
@@ -1525,6 +1786,12 @@ public class FertilizationZoneDetailActivity
                 ).setOnClickListener(view -> {
                     FertilizerProduct productToRecord =
                             selectedApplicationProduct[0];
+                    if (!FertilizerSafetyPolicy.isEligible(
+                            productToRecord, activeProfile)) {
+                        Toast.makeText(this, R.string.fertilizer_application_policy_blocked,
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     double dose;
                     try {
                         dose = Double.parseDouble(
@@ -1853,7 +2120,7 @@ public class FertilizationZoneDetailActivity
         dialog.getButton(
                 androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE
         ).setEnabled(false);
-        repository.recordFertilizerApplication(
+        repository.recordFertilizerApplicationSafely(
                 zoneId,
                 zoneName,
                 product,
@@ -2033,6 +2300,12 @@ public class FertilizationZoneDetailActivity
     }
 
     private void updateApplicationPreview() {
+        if (isSeasonEndStage()) {
+            txtApplicationPreview.setVisibility(View.VISIBLE);
+            txtApplicationPreview.setText(R.string.fertilization_season_end_no_application);
+            txtApplicationPreview.setTextColor(getColor(R.color.textSecondary));
+            return;
+        }
         if (originalLastApplicationAt > 0L) {
             txtApplicationPreview.setVisibility(View.GONE);
             return;

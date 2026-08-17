@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_today_status_ready">BUGÜN UYGUN</string>
+    <string name="fertilizer_today_status_wait">%1$d GÜN BEKLEYİN</string>
+    <string name="fertilizer_today_status_check">ÖNCE KONTROL EDİN</string>
+    <string name="fertilizer_today_action_ready">Bugün gübreleme planı değerlendirilebilir.</string>
+    <string name="fertilizer_today_action_wait">Bugün gübreleme yapmayın.</string>
+    <string name="fertilizer_today_action_organic_missing">Bu dönem için uygun organik ürün kaydı yok.</string>
+    <string name="fertilizer_today_action_prepare">Uygulama öncesi ürün bilgilerini tamamlayın.</string>
+    <string name="fertilizer_today_action_water_first">Gübrelemeden önce toprak nemini güvenli düzeye getirin.</string>
+    <string name="fertilizer_today_action_refresh_data">Karar vermeden önce sensör verisini yenileyin.</string>
+    <string name="fertilizer_today_support_ready">Dönem, stok ve güvenlik koşulları kontrol edildi.</string>
+    <string name="fertilizer_today_support_ready_organic">Yalnız organik tarıma uygun dönem ürünleri değerlendirildi.</string>
+    <string name="fertilizer_today_support_wait">Minimum uygulama aralığı devam ediyor.</string>
+    <string name="fertilizer_today_support_organic_missing">Organik tarıma uygun ürün ekleyin veya AVORA önerisini inceleyin.</string>
+    <string name="fertilizer_today_product_recommended">Önerilen ürün</string>
+    <string name="fertilizer_today_product_next">Sonraki uygun ürün</string>
+    <string name="fertilizer_today_experience_learning">Geçmiş deneyim: %1$d kayıtla öğreniyor.</string>
+    <string name="fertilizer_today_experience_reliable">Geçmiş deneyim: %1$d uygulamada %%%2$d başarı.</string>
+    <string name="fertilizer_today_risk_notes">%1$d güvenlik notu var. Ayrıntıları inceleyin.</string>
+    <string name="fertilizer_today_open_details">Öneriyi görüntüle  ›</string>
+</resources>

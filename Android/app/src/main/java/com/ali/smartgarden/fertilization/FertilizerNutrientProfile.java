@@ -41,6 +41,11 @@ public final class FertilizerNutrientProfile {
     public double getPhosphorus() { return phosphorus == null ? 0.0 : phosphorus; }
     public double getPotassium() { return potassium == null ? 0.0 : potassium; }
     public boolean isPotassiumForward() { return hasNpk() && getPotassium() > getNitrogen() && getPotassium() >= 20.0; }
+    public boolean isNitrogenForward() {
+        return hasNpk() && getNitrogen() >= 15.0
+                && getNitrogen() > getPotassium()
+                && getNitrogen() > getPhosphorus();
+    }
     public boolean isBalanced() { return hasNpk() && Math.abs(getNitrogen() - getPotassium()) <= 2.0 && Math.abs(getNitrogen() - getPhosphorus()) <= 2.0; }
 
     private static Double parse(String value) {

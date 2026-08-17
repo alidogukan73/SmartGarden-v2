@@ -13,7 +13,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.activities.FertilizerHistoryActivity;
 import com.ali.smartgarden.activities.NotificationDetailActivity;
+import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenNotification;
 import java.util.List;
@@ -120,11 +122,22 @@ public final class GardenNotificationManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
         ensurePhoneChannel();
-        Intent intent = new Intent(context, NotificationDetailActivity.class)
-                .putExtra("id", value.getId()).putExtra("type", value.getType()).putExtra("priority", value.getPriority())
-                .putExtra("zone_id", value.getZone_id()).putExtra("title", value.getTitle()).putExtra("description", value.getDescription())
-                .putExtra("created_at_epoch", value.getCreated_at_epoch()).putExtra("read", value.isRead()).putExtra("saved", value.isSaved())
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        String applicationId = FertilizerOutcomeFollowUpPolicy.applicationIdFromSource(
+                value.getSource_key()
+        );
+        Intent intent;
+        if (!applicationId.isBlank()) {
+            intent = new Intent(context, FertilizerHistoryActivity.class)
+                    .putExtra("outcome_application_id", applicationId)
+                    .putExtra("zone_id", value.getZone_id());
+        } else {
+            intent = new Intent(context, NotificationDetailActivity.class)
+                    .putExtra("id", value.getId()).putExtra("type", value.getType()).putExtra("priority", value.getPriority())
+                    .putExtra("zone_id", value.getZone_id()).putExtra("title", value.getTitle()).putExtra("description", value.getDescription())
+                    .putExtra("source_key", value.getSource_key())
+                    .putExtra("created_at_epoch", value.getCreated_at_epoch()).putExtra("read", value.isRead()).putExtra("saved", value.isSaved());
+        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pending = PendingIntent.getActivity(context, value.getId().hashCode(), intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         boolean urgent = "HIGH".equals(value.getPriority());

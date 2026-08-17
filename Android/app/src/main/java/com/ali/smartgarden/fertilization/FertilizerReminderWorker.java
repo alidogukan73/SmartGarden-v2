@@ -22,6 +22,7 @@ import androidx.work.WorkerParameters;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.activities.FertilizationCalendarActivity;
 import com.ali.smartgarden.models.FertilizationProfile;
+import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerApplicationSchedule;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizerProduct;
@@ -49,12 +50,6 @@ public class FertilizerReminderWorker extends Worker {
             "fertilizer_reminders";
     private static final String PREFS =
             "fertilizer_reminder_state";
-
-    private static class DoseInfo {
-        double min;
-        double max;
-        String unit;
-    }
 
     public FertilizerReminderWorker(
             @NonNull Context context,
@@ -97,6 +92,11 @@ public class FertilizerReminderWorker extends Worker {
                     20,
                     TimeUnit.SECONDS
             );
+            DataSnapshot historySnapshot = Tasks.await(
+                    deviceRef.child("fertilizer_history").get(),
+                    20,
+                    TimeUnit.SECONDS
+            );
             Map<String, FertilizerProduct> products = new HashMap<>();
             for (DataSnapshot child
                     : productSnapshot.getChildren()) {
@@ -127,12 +127,56 @@ public class FertilizerReminderWorker extends Worker {
                         recommendations
                 );
             }
+            notifyOutcomeFollowUps(context, historySnapshot, snapshot);
             return Result.success();
         } catch (Exception error) {
             return Result.retry();
         }
     }
 
+    private void notifyOutcomeFollowUps(
+            Context context,
+            DataSnapshot historySnapshot,
+            DataSnapshot zonesSnapshot
+    ) {
+        NotificationSettingsStore settings = new NotificationSettingsStore(context);
+        if (!settings.isCategoryEnabled("fertilization")
+                || !settings.isReminderEnabled("fertilization")) return;
+
+        long now = Instant.now().getEpochSecond();
+        GardenNotificationManager manager = new GardenNotificationManager(context);
+        for (DataSnapshot child : historySnapshot.getChildren()) {
+            FertilizerApplication application = child.getValue(FertilizerApplication.class);
+            if (application == null) continue;
+            if (application.getApplication_id() == null
+                    || application.getApplication_id().isBlank()) {
+                application.setApplication_id(child.getKey());
+            }
+            if (!FertilizerOutcomeFollowUpPolicy.isDue(application, now)) continue;
+            String sourceKey = FertilizerOutcomeFollowUpPolicy.sourceKey(application);
+            if (sourceKey.isBlank()) continue;
+
+            String zoneId = safe(application.getZone_id(), "");
+            GardenZone zone = zonesSnapshot.child(zoneId).getValue(GardenZone.class);
+            String zoneName = zone == null
+                    ? safe(application.getZone_name(), zoneId)
+                    : safe(zone.getName(), safe(application.getZone_name(), zoneId));
+            String productName = safe(application.getProduct_name(),
+                    context.getString(R.string.fertilizer_outcome_follow_up_product));
+            manager.publishOnce(
+                    "FERTILIZATION",
+                    "NORMAL",
+                    zoneId,
+                    context.getString(R.string.fertilizer_outcome_follow_up_title),
+                    context.getString(
+                            R.string.fertilizer_outcome_follow_up_message,
+                            zoneName,
+                            productName
+                    ),
+                    sourceKey
+            );
+        }
+    }
     private void notifyIfDue(
             Context context,
             GardenZone zone,
@@ -207,13 +251,13 @@ public class FertilizerReminderWorker extends Worker {
                 + " uygulaması kaydı bekleniyor.";
         FertilizerProduct product = products.get(productId);
         if (product != null) {
-            DoseInfo dose = calculateDose(
+            FertilizerApplicationSafety.Dose dose = calculateDose(
                     zone,
                     profile,
                     product,
                     recommendations
             );
-            if (dose == null) {
+            if (!dose.isSupported()) {
                 message += context.getString(
                         R.string
                                 .fertilizer_notification_measurement_missing
@@ -222,26 +266,26 @@ public class FertilizerReminderWorker extends Worker {
                 message += context.getString(
                         R.string.fertilizer_notification_dose,
                         product.getName(),
-                        format(dose.min),
-                        format(dose.max),
-                        dose.unit
+                        format(dose.getMinAmount()),
+                        format(dose.getMaxAmount()),
+                        dose.getUnit()
                 );
                 String stockUnit = safe(product.getStock_unit(), "");
                 if (stockUnit.isBlank()
-                        || !stockUnit.equalsIgnoreCase(dose.unit)) {
+                        || !stockUnit.equalsIgnoreCase(dose.getUnit())) {
                     message += context.getString(
                             R.string
                                     .fertilizer_notification_stock_unknown
                     );
-                } else if (product.getStock_amount() < dose.max) {
+                } else if (product.getStock_amount() < dose.getMaxAmount()) {
                     message += context.getString(
                             R.string
                                     .fertilizer_notification_stock_short,
                             format(
-                                    dose.max
+                                    dose.getMaxAmount()
                                             - product.getStock_amount()
                             ),
-                            dose.unit
+                            dose.getUnit()
                     );
                 } else {
                     message += context.getString(
@@ -304,7 +348,7 @@ public class FertilizerReminderWorker extends Worker {
         return "";
     }
 
-    private static DoseInfo calculateDose(
+    private static FertilizerApplicationSafety.Dose calculateDose(
             GardenZone zone,
             FertilizationProfile profile,
             FertilizerProduct product,
@@ -335,34 +379,8 @@ public class FertilizerReminderWorker extends Worker {
                 break;
             }
         }
-        if (max <= 0.0) {
-            max = min;
-        }
-        String normalized = sourceUnit.toLowerCase(Locale.ROOT)
-                .replace(" ", "");
-        DoseInfo result = new DoseInfo();
-        if (normalized.contains("kg/dekar")
-                && profile.getArea_m2() > 0.0) {
-            result.min = min * profile.getArea_m2();
-            result.max = max * profile.getArea_m2();
-            result.unit = "g";
-            return result;
-        }
-        if (normalized.contains("l/dekar")
-                && profile.getArea_m2() > 0.0) {
-            result.min = min * profile.getArea_m2();
-            result.max = max * profile.getArea_m2();
-            result.unit = "ml";
-            return result;
-        }
-        if (normalized.contains("ml/100l")
-                && profile.getTank_liters() > 0.0) {
-            result.min = min * profile.getTank_liters() / 100.0;
-            result.max = max * profile.getTank_liters() / 100.0;
-            result.unit = "ml";
-            return result;
-        }
-        return null;
+        return FertilizerApplicationSafety.calculateDose(
+                profile, min, max, sourceUnit);
     }
 
     private static void collectRecommendations(

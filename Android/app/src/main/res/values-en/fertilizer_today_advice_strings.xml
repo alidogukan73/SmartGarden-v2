@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_today_status_ready">SUITABLE TODAY</string>
+    <string name="fertilizer_today_status_wait">WAIT %1$d DAYS</string>
+    <string name="fertilizer_today_status_check">CHECK FIRST</string>
+    <string name="fertilizer_today_action_ready">Today’s fertilization plan can be evaluated.</string>
+    <string name="fertilizer_today_action_wait">Do not fertilize today.</string>
+    <string name="fertilizer_today_action_organic_missing">No suitable organic product is recorded for this stage.</string>
+    <string name="fertilizer_today_action_prepare">Complete the product information before application.</string>
+    <string name="fertilizer_today_action_water_first">Bring soil moisture to a safe level before fertilizing.</string>
+    <string name="fertilizer_today_action_refresh_data">Refresh the sensor reading before making a decision.</string>
+    <string name="fertilizer_today_support_ready">Stage, stock and safety conditions were checked.</string>
+    <string name="fertilizer_today_support_ready_organic">Only stage-compatible products approved for organic farming were evaluated.</string>
+    <string name="fertilizer_today_support_wait">The minimum application interval is still active.</string>
+    <string name="fertilizer_today_support_organic_missing">Add an organic-farming-approved product or review AVORA’s suggestion.</string>
+    <string name="fertilizer_today_product_recommended">Recommended product</string>
+    <string name="fertilizer_today_product_next">Next suitable product</string>
+    <string name="fertilizer_today_experience_learning">Past experience: learning from %1$d records.</string>
+    <string name="fertilizer_today_experience_reliable">Past experience: %2$d%% success across %1$d applications.</string>
+    <string name="fertilizer_today_risk_notes">%1$d safety notes available. Review details.</string>
+    <string name="fertilizer_today_open_details">View recommendation  ›</string>
+</resources>

@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerHistoryAdapter;
 import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -31,9 +32,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -54,6 +57,8 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     private List<FertilizerApplication> allValues =
             Collections.emptyList();
     private String selectedZoneId = "";
+    private String pendingOutcomeApplicationId = "";
+    private boolean pendingOutcomeOpened;
     private List<FertilizerApplication> visibleValues =
             Collections.emptyList();
     private final ActivityResultLauncher<Intent> exportLauncher =
@@ -71,6 +76,9 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fertilizer_history);
+        pendingOutcomeApplicationId = safe(
+                getIntent().getStringExtra("outcome_application_id")
+        );
 
         findViewById(R.id.btnBack).setOnClickListener(
                 view -> finish()
@@ -131,6 +139,19 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 ? Collections.emptyList()
                 : values;
         applyFilter();
+        openPendingOutcomeIfReady();
+    }
+
+    private void openPendingOutcomeIfReady() {
+        if (pendingOutcomeOpened || pendingOutcomeApplicationId.isBlank()) return;
+        for (FertilizerApplication value : allValues) {
+            if (value != null && pendingOutcomeApplicationId.equals(
+                    safe(value.getApplication_id()))) {
+                pendingOutcomeOpened = true;
+                recycler.post(() -> showOutcomeDialog(value));
+                return;
+            }
+        }
     }
 
     private void showApplicationActions(FertilizerApplication value) {
@@ -139,7 +160,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .setMessage(value.getProduct_name())
                 .setNegativeButton(android.R.string.cancel, null)
                 .setItems(new String[]{
-                                "Uygulama sonucunu kaydet",
+                                getString(R.string.fertilizer_outcome_action),
                                 getString(R.string.fertilizer_history_edit),
                                 getString(R.string.fertilizer_history_delete)
                         },
@@ -163,7 +184,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         content.setPadding(padding, 0, padding, 0);
 
         EditText dateInput = new EditText(this);
-        dateInput.setHint("Gözlem tarihi");
+        dateInput.setHint(R.string.fertilizer_outcome_date_hint);
         dateInput.setFocusable(false);
         LocalDate initialDate = value.getOutcome_observed_at_epoch() > 0
                 ? Instant.ofEpochSecond(value.getOutcome_observed_at_epoch())
@@ -181,7 +202,9 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         ).show());
 
         Spinner status = new Spinner(this);
-        String[] statuses = {"İyileşme gözlendi", "Belirgin değişiklik yok", "Sorun gözlendi"};
+        String[] statuses = getResources().getStringArray(
+                R.array.fertilizer_outcome_statuses
+        );
         status.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, statuses));
         if ("UNCHANGED".equals(value.getOutcome_status())) {
@@ -191,7 +214,9 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         }
 
         Spinner vigor = new Spinner(this);
-        String[] vigorValues = {"Canlılık puanı seçin", "1 / 5", "2 / 5", "3 / 5", "4 / 5", "5 / 5"};
+        String[] vigorValues = getResources().getStringArray(
+                R.array.fertilizer_outcome_vigor_scores
+        );
         vigor.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, vigorValues));
         if (value.getOutcome_vigor_score() > 0
@@ -199,7 +224,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
             vigor.setSelection(value.getOutcome_vigor_score());
         }
         EditText notes = new EditText(this);
-        notes.setHint("Gözlem notu (isteğe bağlı)");
+        notes.setHint(R.string.fertilizer_outcome_notes_hint);
         notes.setMinLines(2);
         notes.setText(value.getOutcome_notes());
         content.addView(dateInput);
@@ -208,8 +233,8 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         content.addView(notes);
 
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Uygulama sonucu")
-                .setMessage("Bu kayıt, AI Gübre Asistanı'nın sonraki önerilerini geliştirmek için kullanılır.")
+                .setTitle(R.string.fertilizer_outcome_dialog_title)
+                .setMessage(R.string.fertilizer_outcome_dialog_message)
                 .setView(content)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.settings_save, (dialog, which) -> {
@@ -223,11 +248,15 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         value.setOutcome_notes(notes.getText().toString().trim());
                         value.setOutcome_observed_at_epoch(observed.atStartOfDay(
                                 ZoneId.systemDefault()).toEpochSecond());
-                        repository.updateFertilizerApplication(value)
-                                .addOnSuccessListener(result -> showPhotoPrompt(value));
+                        repository.updateFertilizerApplicationSafely(value)
+                                .addOnSuccessListener(result -> showPhotoPrompt(value))
+                                .addOnFailureListener(error -> showHistoryError(
+                                        R.string.fertilizer_history_update_failed,
+                                        error
+                                ));
                     } catch (Exception ignored) {
                         android.widget.Toast.makeText(this,
-                                "Geçerli bir gözlem tarihi seçin.",
+                                R.string.fertilizer_outcome_invalid_date,
                                 android.widget.Toast.LENGTH_LONG).show();
                     }
                 })
@@ -240,10 +269,12 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .setMessage("İsterseniz bu gözleme ait bir bitki fotoğrafını da yerel arşive ekleyebilirsiniz.")
                 .setNegativeButton("Şimdi değil", null)
                 .setPositiveButton("Fotoğraf ekle", (dialog, which) -> {
-                    Intent intent = new Intent(this,
-                            GardenPhotoArchiveActivity.class);
-                    intent.putExtra("zone_id", value.getZone_id());
-                    intent.putExtra("related_application_id",
+                    Intent intent = new Intent(this, NewJournalRecordActivity.class);
+                    intent.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID,
+                            value.getZone_id());
+                    intent.putExtra(NewJournalRecordActivity.EXTRA_INITIAL_TYPE,
+                            NewJournalRecordActivity.RECORD_TYPE_PHOTO);
+                    intent.putExtra(NewJournalRecordActivity.EXTRA_RELATED_APPLICATION_ID,
                             value.getApplication_id());
                     startActivity(intent);
                 })
@@ -325,7 +356,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                                 );
                                 value.setNotes(inputNotes.getText()
                                         .toString().trim());
-                                repository.updateFertilizerApplication(value)
+                                repository.updateFertilizerApplicationSafely(value)
                                         .addOnSuccessListener(result ->
                                                 android.widget.Toast.makeText(
                                                         this,
@@ -333,6 +364,13 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                                                                 .fertilizer_history_updated,
                                                         android.widget.Toast.LENGTH_LONG
                                                 ).show()
+                                        )
+                                        .addOnFailureListener(error ->
+                                                showHistoryError(
+                                                        R.string
+                                                                .fertilizer_history_update_failed,
+                                                        error
+                                                )
                                         );
                             } catch (Exception ignored) {
                                 android.widget.Toast.makeText(
@@ -355,10 +393,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .setPositiveButton(
                         R.string.fertilizer_history_delete,
                         (dialog, which) -> repository
-                                .deleteFertilizerApplication(
-                                        value,
-                                        new ArrayList<>(allValues)
-                                )
+                                .deleteFertilizerApplicationSafely(value)
                                 .addOnSuccessListener(result ->
                                         android.widget.Toast.makeText(
                                                 this,
@@ -366,6 +401,13 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                                                         .fertilizer_history_deleted,
                                                 android.widget.Toast.LENGTH_LONG
                                         ).show()
+                                )
+                                .addOnFailureListener(error ->
+                                        showHistoryError(
+                                                R.string
+                                                        .fertilizer_history_delete_failed,
+                                                error
+                                        )
                                 )
                 )
                 .show();
@@ -502,6 +544,18 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         return value == null ? "" : value;
     }
 
+    private void showHistoryError(int messageResource, Exception error) {
+        String detail = error == null ? "" : safe(error.getMessage()).trim();
+        if (detail.isEmpty()) {
+            detail = getString(R.string.fertilization_application_failed);
+        }
+        android.widget.Toast.makeText(
+                this,
+                getString(messageResource, detail),
+                android.widget.Toast.LENGTH_LONG
+        ).show();
+    }
+
     private void renderOutcomeSummary(
             List<FertilizerApplication> values
     ) {
@@ -511,14 +565,14 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         int issue = 0;
         double vigorTotal = 0.0;
         int vigorCount = 0;
-        String latestProduct = "";
-        long latestObservedAt = 0L;
+        Map<String, Integer> pairCounts = new HashMap<>();
         for (FertilizerApplication value : values) {
-            String status = safe(value.getOutcome_status());
-            if (status.isBlank()) {
-                continue;
-            }
+            if (!FertilizerOutcomeFollowUpPolicy.isEvaluated(value)) continue;
             observed++;
+            String pairKey = safe(value.getZone_id()) + "|"
+                    + safe(value.getProduct_id());
+            pairCounts.put(pairKey, pairCounts.getOrDefault(pairKey, 0) + 1);
+            String status = safe(value.getOutcome_status());
             if ("IMPROVED".equals(status)) {
                 improved++;
             } else if ("ISSUE".equals(status)) {
@@ -530,41 +584,46 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 vigorTotal += value.getOutcome_vigor_score();
                 vigorCount++;
             }
-            if (value.getOutcome_observed_at_epoch() >= latestObservedAt) {
-                latestObservedAt = value.getOutcome_observed_at_epoch();
-                latestProduct = safe(value.getProduct_name());
-            }
         }
         if (observed == 0) {
-            outcomeSummary.setText(
-                    "Henüz sonuç gözlemi yok. Bir uygulama kaydına dokunup “Uygulama sonucunu kaydet” seçin."
-            );
+            outcomeSummary.setText(R.string.fertilizer_outcome_learning_empty);
             return;
         }
-        String base = observed + " sonuç kaydı: " + improved
-                + " iyileşme · " + unchanged + " değişiklik yok · " + issue
-                + " sorun.";
-        if (vigorCount > 0) {
-            base += " Ortalama canlılık: "
-                    + String.format(Locale.getDefault(), "%.1f", vigorTotal / vigorCount)
-                    + "/5.";
-        }
-        if (observed < 3) {
-            outcomeSummary.setText(base
-                    + " Güvenilir eğilim için en az 3 gözlem gerekir.");
-        } else if (issue > improved) {
-            outcomeSummary.setText(base
-                    + " Bu kayıtlar beklenen faydayı göstermiyor; doz, karışım ve etiket talimatı gözden geçirilmeli.");
-        } else if (improved > issue) {
-            outcomeSummary.setText(base
-                    + (latestProduct.isBlank() ? " Olumlu eğilim gözleniyor."
-                    : " Son gözlem: " + latestProduct + ". Olumlu eğilim gözleniyor."));
-        } else {
-            outcomeSummary.setText(base
-                    + " Sonuçlar karışık; aynı uygulama koşullarında birkaç gözlem daha kaydedin.");
-        }
-    }
 
+        int target = FertilizerOutcomeFollowUpPolicy.RELIABLE_OBSERVATION_COUNT;
+        int learnedPairs = 0;
+        int strongestPair = 0;
+        for (int pairCount : pairCounts.values()) {
+            strongestPair = Math.max(strongestPair, pairCount);
+            if (pairCount >= target) learnedPairs++;
+        }
+        String learning = learnedPairs == 0
+                ? getString(R.string.fertilizer_outcome_learning_overview_progress,
+                Math.min(strongestPair, target), target)
+                : getString(R.string.fertilizer_outcome_learning_overview_ready,
+                learnedPairs);
+        String statistics = getString(
+                R.string.fertilizer_outcome_stats,
+                observed,
+                improved,
+                unchanged,
+                issue
+        );
+        if (vigorCount > 0) {
+            statistics += getString(
+                    R.string.fertilizer_outcome_vigor,
+                    String.format(Locale.getDefault(), "%.1f", vigorTotal / vigorCount)
+            );
+        }
+        if (learnedPairs > 0) {
+            statistics += getString(issue > improved
+                    ? R.string.fertilizer_outcome_trend_issue
+                    : improved > issue
+                    ? R.string.fertilizer_outcome_trend_positive
+                    : R.string.fertilizer_outcome_trend_mixed);
+        }
+        outcomeSummary.setText(learning + "\n" + statistics);
+    }
     private String formatAmount(double value) {
         return value == Math.rint(value)
                 ? String.format(Locale.getDefault(), "%.0f", value)

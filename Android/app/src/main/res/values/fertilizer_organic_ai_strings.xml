@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_organic_ai_loading">AVORA AI uygun organik ürün özelliklerini araştırıyor…</string>
+    <string name="fertilizer_organic_ai_heading">AVORA AI organik alternatif önerisi</string>
+    <string name="fertilizer_organic_ai_unavailable">AI önerisi şu anda alınamadı. Organik ürün uyarısı geçerlidir; kimyasal ürüne geçilmedi.</string>
+    <string name="fertilizer_recommended_products">Önerilen ürünler</string>
+    <string name="fertilizer_organic_ai_recommended_profiles">Uygun ürün türleri</string>
+    <string name="fertilizer_organic_ai_verify_label">  Etikette doğrula: %1$s</string>
+    <string name="fertilizer_organic_ai_application">  Uygulama: %1$s</string>
+    <string name="fertilizer_organic_ai_cautions">Dikkat</string>
+</resources>

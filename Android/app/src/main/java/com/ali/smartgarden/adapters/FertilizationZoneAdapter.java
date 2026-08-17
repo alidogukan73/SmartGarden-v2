@@ -270,9 +270,14 @@ public class FertilizationZoneAdapter extends RecyclerView.Adapter<
                     return itemView.getContext().getString(
                             R.string.growth_stage_fruiting
                     );
+
                 case "HARVEST":
                     return itemView.getContext().getString(
                             R.string.growth_stage_harvest
+                    );
+                case "SEASON_END":
+                    return itemView.getContext().getString(
+                            R.string.growth_stage_season_end
                     );
                 default:
                     return itemView.getContext().getString(

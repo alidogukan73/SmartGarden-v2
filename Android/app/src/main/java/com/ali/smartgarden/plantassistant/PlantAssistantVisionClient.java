@@ -18,7 +18,8 @@ public final class PlantAssistantVisionClient {
     private PlantAssistantVisionClient() { }
     // Use the Raspberry Pi's LAN address: Android devices do not reliably resolve .local names.
     /** Tailscale özel ağı üzerinden Raspberry Pi'deki görsel analiz servisi. */
-    public static final String ENDPOINT = "http://100.97.32.111:8787/v1/plant-assistant/analyze";
+    public static final String BASE_URL = "http://100.97.32.111:8787";
+    public static final String ENDPOINT = BASE_URL + "/v1/plant-assistant/analyze";
 
     public static JSONObject analyze(Bitmap bitmap, JSONObject context) throws Exception {
         bitmap = scaledForUpload(bitmap);

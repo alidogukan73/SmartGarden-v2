@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.FertilizerProduct;
+import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,23 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
                         emptyFallback(product.getNpk())
                 )
         );
+        String functionLabel = functionalTagLabel(holder.itemView, product);
+        String organicLabel = product.isOrganic_farming_eligible()
+                ? holder.itemView.getContext().getString(
+                        R.string.fertilizer_organic_eligible_badge)
+                : "";
+        if (functionLabel.isBlank() && organicLabel.isBlank()) {
+            holder.traits.setVisibility(View.GONE);
+        } else {
+            holder.traits.setVisibility(View.VISIBLE);
+            holder.traits.setText(functionLabel.isBlank()
+                    ? organicLabel
+                    : organicLabel.isBlank()
+                    ? functionLabel
+                    : holder.itemView.getContext().getString(
+                            R.string.fertilizer_traits_format,
+                            functionLabel, organicLabel));
+        }
         boolean hasRange = product.getLabel_dosage_min() > 0
                 && product.getLabel_dosage_max()
                 > product.getLabel_dosage_min();
@@ -114,6 +132,11 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
                         categoryColor(category)
                 )
         );
+        List<String> stages = FertilizerStagePolicy.effectiveStages(product);
+        holder.stages.setText(stageSummary(holder.itemView, stages));
+        holder.stages.setTextColor(holder.itemView.getContext().getColor(
+                stages.isEmpty() ? R.color.warning : categoryColor(category)
+        ));
         boolean stockKnown = product.getStock_unit() != null
                 && !product.getStock_unit().isBlank();
         boolean lowStock = stockKnown
@@ -153,6 +176,59 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
         return products.size();
     }
 
+    private static String functionalTagLabel(View view, FertilizerProduct product) {
+        List<String> tags = product.getFunctional_tags();
+        if (tags == null || tags.isEmpty() || tags.get(0) == null) return "";
+        int resource;
+        switch (tags.get(0)) {
+            case "TRACE_ELEMENTS":
+                resource = R.string.fertilizer_function_trace_elements;
+                break;
+            case "ORGANIC_MATTER":
+                resource = R.string.fertilizer_function_organic_matter;
+                break;
+            case "HUMIC_FULVIC":
+                resource = R.string.fertilizer_function_humic_fulvic;
+                break;
+            case "SEAWEED":
+                resource = R.string.fertilizer_function_seaweed;
+                break;
+            case "CALCIUM_MAGNESIUM":
+                resource = R.string.fertilizer_function_calcium_magnesium;
+                break;
+            case "AMINO_ACIDS":
+                resource = R.string.fertilizer_function_amino_acids;
+                break;
+            default:
+                resource = R.string.fertilizer_function_general;
+        }
+        return view.getContext().getString(resource);
+    }
+
+    private static String stageSummary(View view, List<String> stages) {
+        if (stages == null || stages.isEmpty()) {
+            return view.getContext().getString(R.string.fertilizer_stage_missing);
+        }
+        List<String> labels = new ArrayList<>();
+        for (String stage : stages) {
+            int label = FertilizerStagePolicy.SOIL_PREPARATION.equals(stage)
+                    ? R.string.fertilizer_stage_soil_preparation
+                    : FertilizerStagePolicy.ROOTING.equals(stage)
+                    ? R.string.growth_stage_rooting
+                    : FertilizerStagePolicy.VEGETATIVE.equals(stage)
+                    ? R.string.growth_stage_vegetative
+                    : FertilizerStagePolicy.FLOWERING.equals(stage)
+                    ? R.string.growth_stage_flowering
+                    : FertilizerStagePolicy.FRUITING.equals(stage)
+                    ? R.string.growth_stage_fruiting
+                    : R.string.growth_stage_harvest;
+            labels.add(view.getContext().getString(label));
+        }
+        return view.getContext().getString(
+                R.string.fertilizer_stages_summary,
+                String.join(", ", labels)
+        );
+    }
     private static String formLabel(String form) {
         if ("GRANULAR".equals(form)) {
             return "Granül";
@@ -225,8 +301,10 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
         final TextView name;
         final TextView category;
         final TextView info;
+        final TextView traits;
         final TextView inactive;
         final TextView dose;
+        final TextView stages;
         final TextView stock;
 
         ProductViewHolder(@NonNull View itemView) {
@@ -234,8 +312,10 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
             name = itemView.findViewById(R.id.txtProductName);
             category = itemView.findViewById(R.id.txtProductCategory);
             info = itemView.findViewById(R.id.txtProductInfo);
+            traits = itemView.findViewById(R.id.txtProductTraits);
             inactive = itemView.findViewById(R.id.txtProductInactive);
             dose = itemView.findViewById(R.id.txtProductDose);
+            stages = itemView.findViewById(R.id.txtProductStages);
             stock = itemView.findViewById(R.id.txtProductStock);
         }
     }

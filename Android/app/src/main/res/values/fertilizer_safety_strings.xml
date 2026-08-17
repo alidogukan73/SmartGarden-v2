@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_bulk_no_products">Önce kullanılacak etkin bir gübre ürünü ekleyin.</string>
+    <string name="fertilizer_bulk_select_product">Gübre ürününü seçin</string>
+    <string name="fertilizer_bulk_no_eligible_zones">Alan veya tank bilgisi olan etkin bölge bulunamadı.</string>
+    <string name="fertilizer_bulk_select_zones">Uygulanacak bölgeleri seçin</string>
+    <string name="fertilizer_bulk_select_date">Tarih seç</string>
+    <string name="fertilizer_bulk_choose_zone">En az bir bölge seçin.</string>
+    <string name="fertilizer_bulk_future_date">Gelecek tarihli bir uygulama kaydedilemez.</string>
+    <string name="fertilizer_bulk_invalid_zone">Şu bölgelerin alan, tank veya doz bilgisi eksik: %1$s</string>
+    <string name="fertilizer_bulk_stage_blocked">Ürün şu bölgelerin mevcut gelişim dönemine uygun değil: %1$s</string>
+    <string name="fertilizer_bulk_repeat_blocked">Şu bölgelerde ürün türünün güvenli tekrar aralığı henüz dolmadı: %1$s</string>
+    <string name="fertilizer_bulk_stock_unit_missing">Toplu uygulamadan önce ürünün stok miktarı ve stok birimi girilmelidir.</string>
+    <string name="fertilizer_bulk_stock_unit_mismatch">Stok birimi (%1$s), hesaplanan uygulama birimiyle (%2$s) uyuşmuyor.</string>
+    <string name="fertilizer_bulk_stock_insufficient">Toplam %1$s %2$s gerekli; mevcut stok %3$s %2$s. Kayıt yapılmadı.</string>
+    <string name="fertilizer_bulk_confirm_title">Toplu uygulamayı doğrulayın</string>
+    <string name="fertilizer_bulk_confirm_message">%1$d bölgeye %2$s uygulanacak.\nToplam miktar: %3$s %4$s\nTarih: %5$s\n\nTüm kayıtlar ve stok tek işlemde güncellenecek.</string>
+    <string name="fertilizer_bulk_confirm_action">Uygulamayı kaydet</string>
+    <string name="fertilizer_bulk_success">Uygulama seçilen bölgelere kaydedildi ve stok güncellendi.</string>
+    <string name="fertilizer_bulk_failure">Kayıt tamamlanamadı: %1$s</string>
+    <string name="fertilizer_bulk_note">Toplu uygulama kaydı</string>
+    <string name="fertilizer_history_update_failed">Kayıt güncellenemedi: %1$s</string>
+    <string name="fertilizer_history_delete_failed">Kayıt silinemedi: %1$s</string>
+    <string name="fertilizer_application_policy_blocked">Bu ürün mevcut gelişim döneminin güvenlik kuralına uygun değil. Meyve oluşumu ve hasatta yalnız organik tarıma uygun ürünler kaydedilebilir.</string>
+</resources>

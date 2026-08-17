@@ -19,6 +19,11 @@ public class FertilizerApplication {
     private String application_type = "NUTRITION";
     private String application_method;
     private String notes;
+    private String mix_group_id;
+    private String mix_partner_product_id;
+    private String mix_partner_product_name;
+    private String mix_risk_level;
+    private long outcome_follow_up_due_at_epoch;
     private long outcome_observed_at_epoch;
     private String outcome_status;
     private int outcome_vigor_score;
@@ -78,6 +83,20 @@ public class FertilizerApplication {
     }
     public String getNotes() { return notes; }
     public void setNotes(String value) { notes = value; }
+    public String getMix_group_id() { return mix_group_id; }
+    public void setMix_group_id(String value) { mix_group_id = value; }
+    public String getMix_partner_product_id() { return mix_partner_product_id; }
+    public void setMix_partner_product_id(String value) { mix_partner_product_id = value; }
+    public String getMix_partner_product_name() { return mix_partner_product_name; }
+    public void setMix_partner_product_name(String value) { mix_partner_product_name = value; }
+    public String getMix_risk_level() { return mix_risk_level; }
+    public void setMix_risk_level(String value) { mix_risk_level = value; }
+    public long getOutcome_follow_up_due_at_epoch() {
+        return outcome_follow_up_due_at_epoch;
+    }
+    public void setOutcome_follow_up_due_at_epoch(long value) {
+        outcome_follow_up_due_at_epoch = value;
+    }
     public long getOutcome_observed_at_epoch() {
         return outcome_observed_at_epoch;
     }

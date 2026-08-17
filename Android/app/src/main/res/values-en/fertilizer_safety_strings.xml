@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_bulk_no_products">Add an enabled fertilizer product first.</string>
+    <string name="fertilizer_bulk_select_product">Select fertilizer product</string>
+    <string name="fertilizer_bulk_no_eligible_zones">No enabled zone with area or tank information was found.</string>
+    <string name="fertilizer_bulk_select_zones">Select application zones</string>
+    <string name="fertilizer_bulk_select_date">Select date</string>
+    <string name="fertilizer_bulk_choose_zone">Select at least one zone.</string>
+    <string name="fertilizer_bulk_future_date">A future application cannot be recorded.</string>
+    <string name="fertilizer_bulk_invalid_zone">Area, tank, or dose information is missing for: %1$s</string>
+    <string name="fertilizer_bulk_stage_blocked">This product is not suitable for the current growth stage of: %1$s</string>
+    <string name="fertilizer_bulk_repeat_blocked">The safe repeat interval has not elapsed for: %1$s</string>
+    <string name="fertilizer_bulk_stock_unit_missing">Enter the product stock amount and stock unit before a bulk application.</string>
+    <string name="fertilizer_bulk_stock_unit_mismatch">Stock unit (%1$s) does not match the calculated application unit (%2$s).</string>
+    <string name="fertilizer_bulk_stock_insufficient">A total of %1$s %2$s is required; available stock is %3$s %2$s. Nothing was recorded.</string>
+    <string name="fertilizer_bulk_confirm_title">Confirm bulk application</string>
+    <string name="fertilizer_bulk_confirm_message">%2$s will be applied to %1$d zones.\nTotal amount: %3$s %4$s\nDate: %5$s\n\nAll records and stock will be updated in one operation.</string>
+    <string name="fertilizer_bulk_confirm_action">Record application</string>
+    <string name="fertilizer_bulk_success">The application was recorded for the selected zones and stock was updated.</string>
+    <string name="fertilizer_bulk_failure">Could not complete the record: %1$s</string>
+    <string name="fertilizer_bulk_note">Bulk application record</string>
+    <string name="fertilizer_history_update_failed">Could not update the record: %1$s</string>
+    <string name="fertilizer_history_delete_failed">Could not delete the record: %1$s</string>
+    <string name="fertilizer_application_policy_blocked">This product is not allowed by the current growth-stage safety policy. Only products suitable for organic farming can be recorded from fruit formation through harvest.</string>
+</resources>

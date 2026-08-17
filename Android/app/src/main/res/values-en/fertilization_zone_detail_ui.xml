@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilization_today_status_title">Today</string>
+    <string name="fertilization_plan_information_title">Plan information</string>
+    <string name="fertilization_plan_enabled_short">Fertilizer plan enabled</string>
+    <string name="fertilization_plan_active_description">The plan is active. Advice is prepared from the saved planting and growth-stage information.</string>
+    <string name="fertilization_plan_disabled_description">The plan is off. Fertilizer advice and reminders are paused.</string>
+    <string name="fertilization_plan_missing_description">Complete the planting date and growth stage to use the plan.</string>
+    <string name="fertilization_plan_season_end_description">The season is complete. No new fertilizer application is recommended.</string>
+    <string name="fertilization_product_advice_title">Product and AVORA advice</string>
+    <string name="fertilization_schedule_reminder_title">Schedule and reminders</string>
+    <string name="fertilization_schedule_summary_empty">No application has been recorded yet</string>
+    <string name="fertilization_schedule_summary_due">An application is due</string>
+    <string name="fertilization_schedule_summary_next">Next application: %1$s</string>
+    <string name="fertilization_schedule_show">Show schedule</string>
+    <string name="fertilization_schedule_hide">Hide schedule</string>
+    <string name="fertilization_supporting_data_title">Supporting information</string>
+    <string name="fertilization_water_analysis_action">EC / pH water analysis</string>
+    <string name="fertilization_water_analysis_missing">No EC / pH information. You can add the measurement manually.</string>
+    <string name="fertilization_water_ph_missing">No pH</string>
+    <string name="fertilization_water_ec_missing">No EC</string>
+    <string name="fertilization_zone_photo_action">Add photo to plant journal</string>
+    <string name="fertilization_zone_assistant_action">AI Plant Assistant</string>
+    <string name="fertilization_discard_changes">Discard</string>
+    <string name="fertilization_unsaved_short">Unsaved changes</string>
+    <string name="fertilization_ai_advice_title">AVORA fertilizer advice</string>
+    <string name="fertilization_risks_title">Things to consider</string>
+</resources>

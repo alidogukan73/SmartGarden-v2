@@ -12,6 +12,7 @@ public class WeatherForecast {
     private final Double currentTemperature, currentHumidity, currentWind, currentPressure;
     private final Long currentWeatherCode;
     private String source = "";
+    private long updatedAtEpoch;
     public WeatherForecast(String city, String district, Double tomorrowTemperatureMax,
                            Double tomorrowRainProbability, Double tomorrowRainMm, Double tomorrowWindMax) {
         this.city = city == null ? "" : city;
@@ -62,4 +63,6 @@ public class WeatherForecast {
     public Long getCurrentWeatherCode() { return currentWeatherCode; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source == null ? "" : source; }
+    public long getUpdatedAtEpoch() { return updatedAtEpoch; }
+    public void setUpdatedAtEpoch(long value) { updatedAtEpoch = value; }
 }

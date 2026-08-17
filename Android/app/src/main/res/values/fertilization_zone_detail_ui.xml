@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilization_today_status_title">Bugünkü durum</string>
+    <string name="fertilization_plan_information_title">Plan bilgileri</string>
+    <string name="fertilization_plan_enabled_short">Gübre planı etkin</string>
+    <string name="fertilization_plan_active_description">Plan aktif. Öneriler kayıtlı dikim ve dönem bilgilerine göre hazırlanıyor.</string>
+    <string name="fertilization_plan_disabled_description">Plan kapalı. Gübre önerileri ve hatırlatmalar durdurulur.</string>
+    <string name="fertilization_plan_missing_description">Planı kullanmak için dikim tarihi ile gelişim dönemini tamamlayın.</string>
+    <string name="fertilization_plan_season_end_description">Sezon tamamlandı. Yeni gübre uygulaması önerilmez.</string>
+    <string name="fertilization_product_advice_title">Ürün ve AVORA önerisi</string>
+    <string name="fertilization_schedule_reminder_title">Takvim ve hatırlatma</string>
+    <string name="fertilization_schedule_summary_empty">Henüz uygulama kaydı yok</string>
+    <string name="fertilization_schedule_summary_due">Uygulama zamanı gelmiş bir kayıt var</string>
+    <string name="fertilization_schedule_summary_next">Sonraki uygulama: %1$s</string>
+    <string name="fertilization_schedule_show">Takvimi göster</string>
+    <string name="fertilization_schedule_hide">Takvimi gizle</string>
+    <string name="fertilization_supporting_data_title">Karara yardımcı veriler</string>
+    <string name="fertilization_water_analysis_action">EC / pH su analizi</string>
+    <string name="fertilization_water_analysis_missing">EC / pH bilgisi girilmedi. Ölçümü elle ekleyebilirsiniz.</string>
+    <string name="fertilization_water_ph_missing">pH yok</string>
+    <string name="fertilization_water_ec_missing">EC yok</string>
+    <string name="fertilization_zone_photo_action">Bitki günlüğüne fotoğraf ekle</string>
+    <string name="fertilization_zone_assistant_action">AI Bitki Asistanı</string>
+    <string name="fertilization_discard_changes">Vazgeç</string>
+    <string name="fertilization_unsaved_short">Kaydedilmemiş değişiklikler</string>
+    <string name="fertilization_ai_advice_title">AVORA gübre önerisi</string>
+    <string name="fertilization_risks_title">Dikkat edilmesi gerekenler</string>
+</resources>

@@ -29,21 +29,27 @@ public final class FertilizerRiskAdvisor {
             return risks;
         }
 
-        if (zone.hasSensorData() && zone.getMoisture() < zone.getMoisture_limit()) {
+        risks.addAll(FertilizerDataFreshnessPolicy.warnings(zone, weather, now));
+        boolean sensorFresh = FertilizerDataFreshnessPolicy.isSensorFresh(zone, now);
+        boolean weatherFresh = FertilizerDataFreshnessPolicy.isWeatherFresh(weather, now);
+        boolean analysisFresh = FertilizerDataFreshnessPolicy
+                .isWaterAnalysisFresh(profile, now);
+
+        if (sensorFresh && zone.getMoisture() < zone.getMoisture_limit()) {
             risks.add("Toprak nemi dusuk. Damlama ile besleme dusunuluyorsa "
                     + "once kok bolgesini guvenli nem duzeyine getirin.");
         }
-        if (weather != null && weather.getTomorrowTemperatureMax() != null
+        if (weatherFresh && weather.getTomorrowTemperatureMax() != null
                 && weather.getTomorrowTemperatureMax() >= 35.0) {
             risks.add("Yarin sicaklik yuksek gorunuyor. Uygulamayi serin saatlere "
                     + "alin ve etiketteki sulandirma onerisine uyun.");
         }
-        if (profile.getWater_ph() > 0.0
+        if (analysisFresh && profile.getWater_ph() > 0.0
                 && (profile.getWater_ph() < 5.5 || profile.getWater_ph() > 7.5)) {
             risks.add("Girilen su pH değeri " + String.format(Locale.ROOT, "%.1f", profile.getWater_ph())
                     + ". Besin alımını etkileyebilir; ürün etiketi ve su/toprak analiziyle doğrulayın.");
         }
-        if (profile.getWater_ec_ms() >= 2.5) {
+        if (analysisFresh && profile.getWater_ec_ms() >= 2.5) {
             risks.add("Girilen EC " + String.format(Locale.ROOT, "%.2f", profile.getWater_ec_ms())
                     + " mS/cm. Yeni gübre eklemeden önce su ve kök bölgesi analizini kontrol edin.");
         }

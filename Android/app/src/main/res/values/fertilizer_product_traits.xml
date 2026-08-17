@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_function_label">&#x0130;&#x015F;levler (birden fazla se&#x00E7;ilebilir)</string>
+    <string name="fertilizer_function_general">Genel besleme / destek</string>
+    <string name="fertilizer_function_trace_elements">&#x0130;z element deste&#x011F;i</string>
+    <string name="fertilizer_function_organic_matter">Organik madde deste&#x011F;i</string>
+    <string name="fertilizer_function_humic_fulvic">H&#x00FC;mik + f&#x00FC;lvik asit</string>
+    <string name="fertilizer_function_seaweed">Deniz yosunu / biyostim&#x00FC;lant</string>
+    <string name="fertilizer_function_calcium_magnesium">Kalsiyum + magnezyum</string>
+    <string name="fertilizer_function_amino_acids">Amino asit deste&#x011F;i</string>
+    <string name="fertilizer_function_microbial">Canl&#x0131; mikrobiyal i&#x00E7;erik</string>
+    <string name="fertilizer_function_calcium">Kalsiyum kayna&#x011F;&#x0131;</string>
+    <string name="fertilizer_function_phosphate">Fosfat i&#x00E7;eren</string>
+    <string name="fertilizer_function_sulfate">S&#x00FC;lfat i&#x00E7;eren</string>
+    <string name="fertilizer_organic_eligible_title">Organik tar&#x0131;mda kullan&#x0131;labilir</string>
+    <string name="fertilizer_organic_eligible_message">Yaln&#x0131;z &#x00FC;r&#x00FC;n etiketi veya ge&#x00E7;erli sertifika bunu a&#x00E7;&#x0131;k&#x00E7;a belirtiyorsa etkinle&#x015F;tirin. Bu i&#x015F;aret &#x00FC;r&#x00FC;n&#x00FC;n ana grubunu de&#x011F;i&#x015F;tirmez.</string>
+    <string name="fertilizer_ai_evaluation_title">Ak&#x0131;ll&#x0131; &#x00FC;r&#x00FC;n de&#x011F;erlendirmesi</string>
+    <string name="fertilizer_traits_format">%1$s &#x00B7; %2$s</string>
+    <string name="fertilizer_organic_eligible_badge">Organik tar&#x0131;ma uygun</string>
+    <string name="fertilizer_organic_preference_title">Meyve olu&#x015F;umunda organik beslemeye ge&#x00E7;</string>
+    <string name="fertilizer_organic_preference_message">Meyve olu&#x015F;umundan &#x00F6;nce kimyasal ve organik &#x00FC;r&#x00FC;nler de&#x011F;erlendirilebilir. Meyve olu&#x015F;umu ve hasatta yaln&#x0131;z organik tar&#x0131;mda kullan&#x0131;ma uygun &#x00FC;r&#x00FC;nler &#x00F6;nerilir.</string>
+</resources>

@@ -42,11 +42,25 @@
             android:layout_marginTop="6dp"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         <TextView
+            android:id="@+id/txtProductTraits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/primary"
+            android:textStyle="bold" />
+        <TextView
             android:id="@+id/txtProductDose"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="@color/primary"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/txtProductStages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body"
             android:textStyle="bold" />
         <TextView
             android:id="@+id/txtProductStock"

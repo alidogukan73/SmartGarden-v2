@@ -161,7 +161,7 @@
                         android:layout_height="56dp"
                         android:layout_marginStart="5dp"
                         android:layout_weight="1"
-                        android:text="Karışım kontrolü"
+                        android:text="@string/fertilizer_mix_check"
                         android:textAllCaps="false"
                         android:textSize="12sp" />
                 </LinearLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_function_label">Functions (multiple selection)</string>
+    <string name="fertilizer_function_general">General nutrition / support</string>
+    <string name="fertilizer_function_trace_elements">Trace element support</string>
+    <string name="fertilizer_function_organic_matter">Organic matter support</string>
+    <string name="fertilizer_function_humic_fulvic">Humic + fulvic acid</string>
+    <string name="fertilizer_function_seaweed">Seaweed / biostimulant</string>
+    <string name="fertilizer_function_calcium_magnesium">Calcium + magnesium</string>
+    <string name="fertilizer_function_amino_acids">Amino acid support</string>
+    <string name="fertilizer_function_microbial">Live microbial content</string>
+    <string name="fertilizer_function_calcium">Calcium source</string>
+    <string name="fertilizer_function_phosphate">Contains phosphate</string>
+    <string name="fertilizer_function_sulfate">Contains sulfate</string>
+    <string name="fertilizer_organic_eligible_title">Allowed in organic farming</string>
+    <string name="fertilizer_organic_eligible_message">Enable only when the product label or a valid certificate explicitly states this. This attribute does not change the product\'s main group.</string>
+    <string name="fertilizer_ai_evaluation_title">Smart product evaluation</string>
+    <string name="fertilizer_traits_format">%1$s &#x00B7; %2$s</string>
+    <string name="fertilizer_organic_eligible_badge">Organic-compatible</string>
+    <string name="fertilizer_organic_preference_title">Switch to organic nutrition at fruit formation</string>
+    <string name="fertilizer_organic_preference_message">Chemical and organic products may be evaluated before fruit formation. From fruit formation through harvest, only products allowed in organic farming are recommended.</string>
+</resources>

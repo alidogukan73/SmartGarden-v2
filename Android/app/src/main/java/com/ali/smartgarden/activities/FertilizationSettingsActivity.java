@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
+import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.GardenZone;
@@ -24,6 +25,7 @@ import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.gms.tasks.Tasks;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,8 +35,10 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     private final FirebaseRepository repository = new FirebaseRepository();
 
     private NotificationSettingsStore settings;
+    private FertilizationPreferenceStore fertilizationPreferences;
     private MaterialSwitch fertilizationReminders;
     private MaterialSwitch stockWarnings;
+    private MaterialSwitch preferOrganicInputs;
     private TextView planSummary;
     private TextView productSummary;
     private TextView stockSummary;
@@ -42,6 +46,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
 
     private boolean applyingValues;
     private boolean dirty;
+    private boolean savedPreferOrganicInputs;
     private boolean savedFertilizationReminders;
     private boolean savedStockWarnings;
     private List<GardenZone> zones = Collections.emptyList();
@@ -55,6 +60,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
         applyWindowInsets();
 
         settings = new NotificationSettingsStore(this);
+        fertilizationPreferences = new FertilizationPreferenceStore(this);
         bindViews();
         configureToolbar();
         configureActions();
@@ -76,6 +82,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     private void bindViews() {
         fertilizationReminders = findViewById(R.id.switchFertilizationReminders);
         stockWarnings = findViewById(R.id.switchFertilizerStockWarnings);
+        preferOrganicInputs = findViewById(R.id.switchPreferOrganicInputs);
         planSummary = findViewById(R.id.txtFertilizationPlanSummary);
         productSummary = findViewById(R.id.txtFertilizerProductSummary);
         stockSummary = findViewById(R.id.txtFertilizerStockSummary);
@@ -93,6 +100,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     }
 
     private void configureActions() {
+        preferOrganicInputs.setOnCheckedChangeListener((button, checked) -> markDirty());
         fertilizationReminders.setOnCheckedChangeListener((button, checked) -> markDirty());
         stockWarnings.setOnCheckedChangeListener((button, checked) -> markDirty());
 
@@ -107,6 +115,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnSaveFertilizationSettings).setOnClickListener(view -> save(false));
         findViewById(R.id.btnResetFertilizationSettings).setOnClickListener(view -> {
             applyingValues = true;
+            preferOrganicInputs.setChecked(true);
             fertilizationReminders.setChecked(true);
             stockWarnings.setChecked(true);
             applyingValues = false;
@@ -117,8 +126,10 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
 
     private void applyStoredSettings() {
         applyingValues = true;
+        savedPreferOrganicInputs = fertilizationPreferences.preferOrganicInputs();
         savedFertilizationReminders = settings.isCategoryEnabled("fertilization");
         savedStockWarnings = settings.isCategoryEnabled("stock");
+        preferOrganicInputs.setChecked(savedPreferOrganicInputs);
         fertilizationReminders.setChecked(savedFertilizationReminders);
         stockWarnings.setChecked(savedStockWarnings);
         applyingValues = false;
@@ -129,6 +140,11 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     private void restoreSettingsFromCloud() {
         repository.loadNotificationSettings(values -> runOnUiThread(() -> {
             if (dirty || !settings.applyBackup(values)) return;
+            applyStoredSettings();
+            status.setText(R.string.fertilization_settings_cloud_loaded);
+        }));
+        repository.loadFertilizationPreferences(values -> runOnUiThread(() -> {
+            if (dirty || !fertilizationPreferences.applyBackup(values)) return;
             applyStoredSettings();
             status.setText(R.string.fertilization_settings_cloud_loaded);
         }));
@@ -194,18 +210,24 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     }
 
     private boolean hasUnsavedChanges() {
-        return fertilizationReminders.isChecked() != savedFertilizationReminders
+        return preferOrganicInputs.isChecked() != savedPreferOrganicInputs
+                || fertilizationReminders.isChecked() != savedFertilizationReminders
                 || stockWarnings.isChecked() != savedStockWarnings;
     }
 
     private void save(boolean closeAfterSave) {
+        savedPreferOrganicInputs = preferOrganicInputs.isChecked();
         savedFertilizationReminders = fertilizationReminders.isChecked();
         savedStockWarnings = stockWarnings.isChecked();
+        fertilizationPreferences.setPreferOrganicInputs(savedPreferOrganicInputs);
         settings.setCategoryEnabled("fertilization", savedFertilizationReminders);
         settings.setCategoryEnabled("stock", savedStockWarnings);
         dirty = false;
         status.setText(R.string.settings_status_saving);
-        repository.saveNotificationSettings(settings.snapshot())
+        Tasks.whenAll(
+                        repository.saveNotificationSettings(settings.snapshot()),
+                        repository.saveFertilizationPreferences(
+                                fertilizationPreferences.snapshot()))
                 .addOnSuccessListener(unused -> {
                     FertilizerReminderScheduler.schedule(this);
                     status.setText(R.string.fertilization_settings_saved);

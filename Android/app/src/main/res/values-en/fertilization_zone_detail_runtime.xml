@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilization_water_analysis_summary">%1$s · %2$s · used only for advisory warnings.</string>
+</resources>

@@ -51,6 +51,50 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:hint="@string/fertilizer_function_label">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputFunctionalTags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none"
+                android:minLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchOrganicFarmingEligible"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/fertilizer_organic_eligible_title" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/fertilizer_organic_eligible_message"
+            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/fertilizer_recommended_stages">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputRecommendedStages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none"
+                android:minLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:hint="@string/fertilizer_npk">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputNpk"
@@ -154,7 +198,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Akıllı ürün değerlendirmesi"
+                    android:text="@string/fertilizer_ai_evaluation_title"
                     android:textColor="@color/textPrimary"
                     android:textStyle="bold" />
                 <TextView

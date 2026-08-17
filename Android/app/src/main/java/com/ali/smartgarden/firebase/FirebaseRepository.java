@@ -4,6 +4,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
@@ -27,12 +28,15 @@ import com.ali.smartgarden.models.RainSettings;
 import com.ali.smartgarden.models.GardenProfile;
 import com.ali.smartgarden.models.DisplayUnitSettings;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -40,8 +44,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class FirebaseRepository {
@@ -242,6 +248,8 @@ public class FirebaseRepository {
 
                WeatherForecast weatherForecast = new WeatherForecast((String)snapshot.child("city").getValue(String.class), (String)snapshot.child("district").getValue(String.class), (Double)snapshot.child("today_temperature_max").getValue(Double.class), (Double)snapshot.child("today_rain_probability").getValue(Double.class), (Double)snapshot.child("today_rain_mm").getValue(Double.class), (Double)snapshot.child("today_wind_max").getValue(Double.class), (Double)snapshot.child("tomorrow_temperature_max").getValue(Double.class), (Double)snapshot.child("tomorrow_rain_probability").getValue(Double.class), (Double)snapshot.child("tomorrow_rain_mm").getValue(Double.class), (Double)snapshot.child("tomorrow_wind_max").getValue(Double.class), days, (Long)snapshot.child("today_weather_code").getValue(Long.class), (Long)snapshot.child("tomorrow_weather_code").getValue(Long.class), (Double)snapshot.child("current_temperature").getValue(Double.class), (Double)snapshot.child("current_humidity").getValue(Double.class), (Double)snapshot.child("current_wind").getValue(Double.class), (Double)snapshot.child("current_pressure").getValue(Double.class), (Long)snapshot.child("current_weather_code").getValue(Long.class));
                weatherForecast.setSource((String)snapshot.child("source").getValue(String.class));
+               weatherForecast.setUpdatedAtEpoch(Math.round(
+                       snapshotNumber(snapshot.child("updated_at_epoch"), 0d)));
                liveData.setValue(weatherForecast);
             }
          }
@@ -518,73 +526,7 @@ public class FirebaseRepository {
       return this.fertilizerProductsRef.child(productId).removeValue();
    }
 
-   public Task<Void> recordFertilizerApplication(String zoneId, String zoneName, FertilizerProduct product, double appliedDose, String appliedUnit, double areaM2, double tankLiters, double recommendedDoseMin, double recommendedDoseMax, boolean deductStock, String applicationMethod, String notes, long appliedAt, String applicationType) {
-      String applicationId = "application-" + UUID.randomUUID();
-      long recordedAt = System.currentTimeMillis() / 1000L;
-      if (appliedAt <= 0L) {
-         appliedAt = recordedAt;
-      }
 
-      long nextAt = appliedAt + (long)Math.max(1, product.getMinimum_interval_days()) * 86400L;
-      String planId = "plan-" + zoneId;
-      Map<String, Object> updates = new HashMap();
-      String historyPath = "fertilizer_history/" + applicationId + "/";
-      updates.put(historyPath + "application_id", applicationId);
-      updates.put(historyPath + "zone_id", zoneId);
-      updates.put(historyPath + "zone_name", zoneName);
-      updates.put(historyPath + "product_id", product.getProduct_id());
-      updates.put(historyPath + "product_name", product.getName());
-      updates.put(historyPath + "applied_dose", appliedDose);
-      updates.put(historyPath + "dose_unit", appliedUnit);
-      updates.put(historyPath + "area_m2", areaM2);
-      updates.put(historyPath + "tank_liters", tankLiters);
-      updates.put(historyPath + "recommended_dose_min", recommendedDoseMin);
-      updates.put(historyPath + "recommended_dose_max", recommendedDoseMax);
-      updates.put(historyPath + "applied_at_epoch", appliedAt);
-      updates.put(historyPath + "next_application_at_epoch", nextAt);
-      updates.put(historyPath + "source", "MANUAL");
-      updates.put(historyPath + "application_type", applicationType);
-      updates.put(historyPath + "application_method", applicationMethod);
-      updates.put(historyPath + "notes", notes);
-      String schedulePath = "zones/" + zoneId + "/fertilization/application_schedules/" + applicationType + "/";
-      updates.put(schedulePath + "product_id", product.getProduct_id());
-      updates.put(schedulePath + "product_name", product.getName());
-      updates.put(schedulePath + "last_application_at_epoch", appliedAt);
-      updates.put(schedulePath + "next_application_at_epoch", nextAt);
-      updates.put(schedulePath + "interval_days", Math.max(1, product.getMinimum_interval_days()));
-      updates.put(schedulePath + "updated_at_epoch", recordedAt);
-      if (deductStock && product.getStock_unit() != null && product.getStock_unit().equalsIgnoreCase(appliedUnit)) {
-         updates.put("fertilizer_products/" + product.getProduct_id() + "/stock_amount", Math.max((double)0.0F, product.getStock_amount() - appliedDose));
-         updates.put("fertilizer_products/" + product.getProduct_id() + "/updated_at_epoch", recordedAt);
-         updates.put(historyPath + "stock_deducted", true);
-      } else {
-         updates.put(historyPath + "stock_deducted", false);
-      }
-
-      if ("NUTRITION".equals(applicationType)) {
-         String profilePath = "zones/" + zoneId + "/fertilization/";
-         updates.put(profilePath + "last_application_at_epoch", appliedAt);
-         updates.put(profilePath + "next_application_at_epoch", nextAt);
-         updates.put(profilePath + "updated_at_epoch", recordedAt);
-         String planPath = "fertilizer_plans/" + planId + "/";
-         updates.put(planPath + "last_application_at_epoch", appliedAt);
-         updates.put(planPath + "next_application_at_epoch", nextAt);
-         updates.put(planPath + "updated_at_epoch", recordedAt);
-      }
-
-      return this.deviceRef.updateChildren(updates);
-   }
-
-   public Task<Void> deductBulkFertilizerStock(FertilizerProduct product, double totalAmount, String unit) {
-      if (product.getStock_unit() != null && product.getStock_unit().equalsIgnoreCase(unit)) {
-         Map<String, Object> updates = new HashMap();
-         updates.put("fertilizer_products/" + product.getProduct_id() + "/stock_amount", Math.max((double)0.0F, product.getStock_amount() - totalAmount));
-         updates.put("fertilizer_products/" + product.getProduct_id() + "/updated_at_epoch", System.currentTimeMillis() / 1000L);
-         return this.deviceRef.updateChildren(updates);
-      } else {
-         return Tasks.forResult(null);
-      }
-   }
 
    public LiveData<List<FertilizerApplication>> observeFertilizerHistory() {
       final MutableLiveData<List<FertilizerApplication>> liveData = new MutableLiveData();
@@ -635,68 +577,377 @@ public class FirebaseRepository {
       return liveData;
    }
 
-   public Task<Void> deleteFertilizerApplication(FertilizerApplication target, List<FertilizerApplication> allApplications) {
-      Map<String, Object> updates = new HashMap();
-      updates.put("fertilizer_history/" + target.getApplication_id(), (Object)null);
-      String type = target.getApplication_type() != null && !target.getApplication_type().isBlank() ? target.getApplication_type() : "NUTRITION";
-      FertilizerApplication latest = null;
 
-      for(FertilizerApplication value : allApplications) {
-         if (!value.getApplication_id().equals(target.getApplication_id()) && target.getZone_id().equals(value.getZone_id())) {
-            String candidateType = value.getApplication_type() != null && !value.getApplication_type().isBlank() ? value.getApplication_type() : "NUTRITION";
-            if (type.equals(candidateType) && (latest == null || value.getApplied_at_epoch() > latest.getApplied_at_epoch())) {
-               latest = value;
+
+   public static final class BulkFertilizerApplication {
+      private final String zoneId;
+      private final String zoneName;
+      private final double appliedDose;
+      private final double areaM2;
+      private final double tankLiters;
+      private final double recommendedDoseMin;
+      private final double recommendedDoseMax;
+      private final String applicationMethod;
+      private final String notes;
+      private final long appliedAt;
+      private final String applicationType;
+      private final String mixGroupId;
+      private final String mixPartnerProductId;
+      private final String mixPartnerProductName;
+      private final String mixRiskLevel;
+
+      public BulkFertilizerApplication(String zoneId, String zoneName, double appliedDose, double areaM2, double tankLiters, double recommendedDoseMin, double recommendedDoseMax, String applicationMethod, String notes, long appliedAt, String applicationType) {
+         this(zoneId, zoneName, appliedDose, areaM2, tankLiters, recommendedDoseMin, recommendedDoseMax, applicationMethod, notes, appliedAt, applicationType, "", "", "", "");
+      }
+
+      public BulkFertilizerApplication(String zoneId, String zoneName, double appliedDose, double areaM2, double tankLiters, double recommendedDoseMin, double recommendedDoseMax, String applicationMethod, String notes, long appliedAt, String applicationType, String mixGroupId, String mixPartnerProductId, String mixPartnerProductName, String mixRiskLevel) {
+         this.zoneId = zoneId;
+         this.zoneName = zoneName;
+         this.appliedDose = appliedDose;
+         this.areaM2 = areaM2;
+         this.tankLiters = tankLiters;
+         this.recommendedDoseMin = recommendedDoseMin;
+         this.recommendedDoseMax = recommendedDoseMax;
+         this.applicationMethod = applicationMethod;
+         this.notes = notes;
+         this.appliedAt = appliedAt;
+         this.applicationType = applicationType;
+         this.mixGroupId = mixGroupId == null ? "" : mixGroupId;
+         this.mixPartnerProductId = mixPartnerProductId == null ? "" : mixPartnerProductId;
+         this.mixPartnerProductName = mixPartnerProductName == null ? "" : mixPartnerProductName;
+         this.mixRiskLevel = mixRiskLevel == null ? "" : mixRiskLevel;
+      }
+   }
+
+   public static final class FertilizerApplicationBatch {
+      private final FertilizerProduct product;
+      private final List<BulkFertilizerApplication> applications;
+      private final String appliedUnit;
+      private final boolean deductStock;
+
+      public FertilizerApplicationBatch(FertilizerProduct product, List<BulkFertilizerApplication> applications, String appliedUnit, boolean deductStock) {
+         this.product = product;
+         this.applications = applications;
+         this.appliedUnit = appliedUnit;
+         this.deductStock = deductStock;
+      }
+   }
+
+   public Task<Void> recordFertilizerApplicationSafely(String zoneId, String zoneName, FertilizerProduct product, double appliedDose, String appliedUnit, double areaM2, double tankLiters, double recommendedDoseMin, double recommendedDoseMax, boolean deductStock, String applicationMethod, String notes, long appliedAt, String applicationType) {
+      long effectiveAppliedAt = appliedAt > 0L ? appliedAt : System.currentTimeMillis() / 1000L;
+      BulkFertilizerApplication application = new BulkFertilizerApplication(zoneId, zoneName, appliedDose, areaM2, tankLiters, recommendedDoseMin, recommendedDoseMax, applicationMethod, notes, effectiveAppliedAt, applicationType);
+      List<BulkFertilizerApplication> applications = new ArrayList<>();
+      applications.add(application);
+      return recordBulkFertilizerApplicationsSafely(product, applications, appliedUnit, deductStock);
+   }
+
+   public Task<Void> recordBulkFertilizerApplicationsSafely(FertilizerProduct product, List<BulkFertilizerApplication> applications, String appliedUnit, boolean deductStock) {
+      List<FertilizerApplicationBatch> batches = new ArrayList<>();
+      batches.add(new FertilizerApplicationBatch(product, applications, appliedUnit, deductStock));
+      return recordFertilizerApplicationBatchesSafely(batches);
+   }
+
+   public Task<Void> recordFertilizerApplicationBatchesSafely(List<FertilizerApplicationBatch> batches) {
+      if (batches == null || batches.isEmpty()) {
+         return Tasks.forException(new IllegalArgumentException("Kaydedilecek gübre uygulaması bulunamadı."));
+      }
+      final List<List<String>> applicationIds = new ArrayList<>();
+      for (FertilizerApplicationBatch batch : batches) {
+         if (batch == null || batch.product == null || batch.product.getProduct_id() == null || batch.product.getProduct_id().isBlank()) {
+            return Tasks.forException(new IllegalArgumentException("Gübre ürünü kimliği eksik."));
+         }
+         if (batch.applications == null || batch.applications.isEmpty()) {
+            return Tasks.forException(new IllegalArgumentException("Kaydedilecek bölge bulunamadı."));
+         }
+         List<String> batchIds = new ArrayList<>();
+         for (BulkFertilizerApplication ignored : batch.applications) {
+            batchIds.add("application-" + UUID.randomUUID());
+         }
+         applicationIds.add(batchIds);
+      }
+      return runAtomicDeviceUpdate("Gübre uygulaması kaydedilemedi.", root -> {
+         long recordedAt = System.currentTimeMillis() / 1000L;
+         for (int batchIndex = 0; batchIndex < batches.size(); batchIndex++) {
+            FertilizerApplicationBatch batch = batches.get(batchIndex);
+            double totalDose = 0.0;
+            for (BulkFertilizerApplication application : batch.applications) {
+               if (application.appliedDose <= 0.0) {
+                  throw new IllegalStateException("Uygulama miktarı sıfırdan büyük olmalıdır.");
+               }
+               totalDose += application.appliedDose;
+            }
+            if (batch.deductStock) {
+               changeStock(root, batch.product.getProduct_id(), batch.appliedUnit, totalDose, recordedAt);
+            }
+            for (int index = 0; index < batch.applications.size(); index++) {
+               writeFertilizerApplication(root, applicationIds.get(batchIndex).get(index), batch.applications.get(index), batch.product, batch.appliedUnit, batch.deductStock, recordedAt);
             }
          }
+      });
+   }
+   public Task<Void> updateFertilizerApplicationSafely(FertilizerApplication value) {
+      if (value == null || value.getApplication_id() == null || value.getApplication_id().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Gübre uygulama kaydı bulunamadı."));
       }
+      return runAtomicDeviceUpdate("Gübre uygulama kaydı güncellenemedi.", root -> {
+         MutableData history = root.child("fertilizer_history").child(value.getApplication_id());
+         if (history.getValue() == null) {
+            throw new IllegalStateException("Düzenlenecek gübre uygulama kaydı artık mevcut değil.");
+         }
+         String oldZoneId = stringValue(history.child("zone_id"));
+         String oldType = normalizedApplicationType(stringValue(history.child("application_type")));
+         String oldProductId = stringValue(history.child("product_id"));
+         String oldUnit = stringValue(history.child("dose_unit"));
+         double oldDose = numberValue(history.child("applied_dose"));
+         boolean stockDeducted = booleanValue(history.child("stock_deducted"));
+         long recordedAt = System.currentTimeMillis() / 1000L;
+         if (stockDeducted) {
+            double difference = value.getApplied_dose() - oldDose;
+            if (Math.abs(difference) > 0.000001) {
+               changeStock(root, oldProductId, oldUnit, difference, recordedAt);
+            }
+         }
+         history.child("applied_dose").setValue(value.getApplied_dose());
+         history.child("applied_at_epoch").setValue(value.getApplied_at_epoch());
+         history.child("next_application_at_epoch").setValue(value.getNext_application_at_epoch());
+         history.child("application_method").setValue(value.getApplication_method());
+         history.child("notes").setValue(value.getNotes());
+         history.child("outcome_follow_up_due_at_epoch").setValue(
+               value.getApplied_at_epoch() + FertilizerOutcomeFollowUpPolicy.FOLLOW_UP_DELAY_SECONDS
+         );
+         history.child("outcome_observed_at_epoch").setValue(value.getOutcome_observed_at_epoch());
+         history.child("outcome_status").setValue(value.getOutcome_status());
+         history.child("outcome_vigor_score").setValue(value.getOutcome_vigor_score());
+         history.child("outcome_notes").setValue(value.getOutcome_notes());
+         history.child("updated_at_epoch").setValue(recordedAt);
+         recalculateApplicationSchedule(root, oldZoneId, oldType, recordedAt);
+      });
+   }
 
-      String schedulePath = "zones/" + target.getZone_id() + "/fertilization/application_schedules/" + type;
+   public Task<Void> deleteFertilizerApplicationSafely(FertilizerApplication target) {
+      if (target == null || target.getApplication_id() == null || target.getApplication_id().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Silinecek gübre uygulama kaydı bulunamadı."));
+      }
+      return runAtomicDeviceUpdate("Gübre uygulama kaydı silinemedi.", root -> {
+         MutableData history = root.child("fertilizer_history").child(target.getApplication_id());
+         if (history.getValue() == null) {
+            throw new IllegalStateException("Silinecek gübre uygulama kaydı artık mevcut değil.");
+         }
+         String zoneId = stringValue(history.child("zone_id"));
+         String type = normalizedApplicationType(stringValue(history.child("application_type")));
+         long recordedAt = System.currentTimeMillis() / 1000L;
+         if (booleanValue(history.child("stock_deducted"))) {
+            changeStock(root, stringValue(history.child("product_id")), stringValue(history.child("dose_unit")), -numberValue(history.child("applied_dose")), recordedAt);
+         }
+         history.setValue(null);
+         recalculateApplicationSchedule(root, zoneId, type, recordedAt);
+      });
+   }
+
+   private void writeFertilizerApplication(MutableData root, String applicationId, BulkFertilizerApplication application, FertilizerProduct product, String appliedUnit, boolean stockDeducted, long recordedAt) {
+      String type = normalizedApplicationType(application.applicationType);
+      int intervalDays = Math.max(0, product.getMinimum_interval_days());
+      long nextAt = intervalDays == 0 ? 0L
+            : application.appliedAt + (long)intervalDays * 86400L;
+      MutableData history = root.child("fertilizer_history").child(applicationId);
+      history.child("application_id").setValue(applicationId);
+      history.child("zone_id").setValue(application.zoneId);
+      history.child("zone_name").setValue(application.zoneName);
+      history.child("product_id").setValue(product.getProduct_id());
+      history.child("product_name").setValue(product.getName());
+      history.child("applied_dose").setValue(application.appliedDose);
+      history.child("dose_unit").setValue(appliedUnit);
+      history.child("area_m2").setValue(application.areaM2);
+      history.child("tank_liters").setValue(application.tankLiters);
+      history.child("recommended_dose_min").setValue(application.recommendedDoseMin);
+      history.child("recommended_dose_max").setValue(application.recommendedDoseMax);
+      history.child("applied_at_epoch").setValue(application.appliedAt);
+      history.child("next_application_at_epoch").setValue(nextAt);
+      history.child("outcome_follow_up_due_at_epoch").setValue(
+            application.appliedAt + FertilizerOutcomeFollowUpPolicy.FOLLOW_UP_DELAY_SECONDS
+      );
+      history.child("source").setValue("MANUAL");
+      history.child("application_type").setValue(type);
+      history.child("application_method").setValue(application.applicationMethod);
+      history.child("notes").setValue(application.notes);
+      history.child("stock_deducted").setValue(stockDeducted);
+      history.child("recorded_at_epoch").setValue(recordedAt);
+      if (!application.mixGroupId.isBlank()) {
+         history.child("mix_group_id").setValue(application.mixGroupId);
+         history.child("mix_partner_product_id").setValue(application.mixPartnerProductId);
+         history.child("mix_partner_product_name").setValue(application.mixPartnerProductName);
+         history.child("mix_risk_level").setValue(application.mixRiskLevel);
+      }
+      updateScheduleIfNewer(root, history, recordedAt);
+   }
+
+   private void updateScheduleIfNewer(MutableData root, MutableData history, long recordedAt) {
+      String zoneId = stringValue(history.child("zone_id"));
+      String type = normalizedApplicationType(stringValue(history.child("application_type")));
+      long appliedAt = longValue(history.child("applied_at_epoch"));
+      MutableData schedule = root.child("zones").child(zoneId).child("fertilization").child("application_schedules").child(type);
+      long scheduledAt = longValue(schedule.child("last_application_at_epoch"));
+      long scheduledNextAt = longValue(schedule.child("next_application_at_epoch"));
+      long candidateNextAt = longValue(history.child("next_application_at_epoch"));
+      if (appliedAt < scheduledAt
+            || (appliedAt == scheduledAt && candidateNextAt < scheduledNextAt)) {
+         return;
+      }
+      copyHistoryToSchedule(schedule, history, recordedAt);
+      if ("NUTRITION".equals(type)) {
+         updateNutritionPointers(root, zoneId, history, recordedAt);
+      }
+   }
+
+   private void recalculateApplicationSchedule(MutableData root, String zoneId, String type, long recordedAt) {
+      MutableData latest = null;
+      long latestAt = Long.MIN_VALUE;
+      for (MutableData candidate : root.child("fertilizer_history").getChildren()) {
+         if (!zoneId.equals(stringValue(candidate.child("zone_id")))) {
+            continue;
+         }
+         if (!type.equals(normalizedApplicationType(stringValue(candidate.child("application_type"))))) {
+            continue;
+         }
+         long candidateAt = longValue(candidate.child("applied_at_epoch"));
+         if (candidateAt > latestAt) {
+            latest = candidate;
+            latestAt = candidateAt;
+         }
+      }
+      MutableData schedule = root.child("zones").child(zoneId).child("fertilization").child("application_schedules").child(type);
       if (latest == null) {
-         updates.put(schedulePath, (Object)null);
-      } else {
-         updates.put(schedulePath + "/product_name", latest.getProduct_name());
-         updates.put(schedulePath + "/last_application_at_epoch", latest.getApplied_at_epoch());
-         updates.put(schedulePath + "/next_application_at_epoch", latest.getNext_application_at_epoch());
+         schedule.setValue(null);
+         if ("NUTRITION".equals(type)) {
+            clearNutritionPointers(root, zoneId, recordedAt);
+         }
+         return;
       }
-
+      copyHistoryToSchedule(schedule, latest, recordedAt);
       if ("NUTRITION".equals(type)) {
-         String profilePath = "zones/" + target.getZone_id() + "/fertilization/";
-         updates.put(profilePath + "last_application_at_epoch", latest == null ? 0L : latest.getApplied_at_epoch());
-         updates.put(profilePath + "next_application_at_epoch", latest == null ? 0L : latest.getNext_application_at_epoch());
-         String planPath = "fertilizer_plans/plan-" + target.getZone_id() + "/";
-         updates.put(planPath + "last_application_at_epoch", latest == null ? 0L : latest.getApplied_at_epoch());
-         updates.put(planPath + "next_application_at_epoch", latest == null ? 0L : latest.getNext_application_at_epoch());
+         updateNutritionPointers(root, zoneId, latest, recordedAt);
       }
-
-      return this.deviceRef.updateChildren(updates);
    }
 
-   public Task<Void> updateFertilizerApplication(FertilizerApplication value) {
-      Map<String, Object> updates = new HashMap();
-      String path = "fertilizer_history/" + value.getApplication_id() + "/";
-      updates.put(path + "applied_dose", value.getApplied_dose());
-      updates.put(path + "applied_at_epoch", value.getApplied_at_epoch());
-      updates.put(path + "next_application_at_epoch", value.getNext_application_at_epoch());
-      updates.put(path + "application_method", value.getApplication_method());
-      updates.put(path + "notes", value.getNotes());
-      updates.put(path + "outcome_observed_at_epoch", value.getOutcome_observed_at_epoch());
-      updates.put(path + "outcome_status", value.getOutcome_status());
-      updates.put(path + "outcome_vigor_score", value.getOutcome_vigor_score());
-      updates.put(path + "outcome_notes", value.getOutcome_notes());
-      updates.put(path + "updated_at_epoch", System.currentTimeMillis() / 1000L);
-      String type = value.getApplication_type() != null && !value.getApplication_type().isBlank() ? value.getApplication_type() : "NUTRITION";
-      String schedulePath = "zones/" + value.getZone_id() + "/fertilization/application_schedules/" + type + "/";
-      updates.put(schedulePath + "last_application_at_epoch", value.getApplied_at_epoch());
-      updates.put(schedulePath + "next_application_at_epoch", value.getNext_application_at_epoch());
-      if ("NUTRITION".equals(type)) {
-         String profilePath = "zones/" + value.getZone_id() + "/fertilization/";
-         updates.put(profilePath + "last_application_at_epoch", value.getApplied_at_epoch());
-         updates.put(profilePath + "next_application_at_epoch", value.getNext_application_at_epoch());
-      }
-
-      return this.deviceRef.updateChildren(updates);
+   private void copyHistoryToSchedule(MutableData schedule, MutableData history, long recordedAt) {
+      long appliedAt = longValue(history.child("applied_at_epoch"));
+      long nextAt = longValue(history.child("next_application_at_epoch"));
+      schedule.child("product_id").setValue(stringValue(history.child("product_id")));
+      schedule.child("product_name").setValue(stringValue(history.child("product_name")));
+      schedule.child("last_application_at_epoch").setValue(appliedAt);
+      schedule.child("next_application_at_epoch").setValue(nextAt);
+      schedule.child("interval_days").setValue(nextAt <= 0L ? 0L
+            : Math.max(0L, (nextAt - appliedAt) / 86400L));
+      schedule.child("updated_at_epoch").setValue(recordedAt);
    }
 
+   private void updateNutritionPointers(MutableData root, String zoneId, MutableData history, long recordedAt) {
+      long appliedAt = longValue(history.child("applied_at_epoch"));
+      long nextAt = longValue(history.child("next_application_at_epoch"));
+      MutableData profile = root.child("zones").child(zoneId).child("fertilization");
+      profile.child("last_application_at_epoch").setValue(appliedAt);
+      profile.child("next_application_at_epoch").setValue(nextAt);
+      profile.child("updated_at_epoch").setValue(recordedAt);
+      MutableData plan = root.child("fertilizer_plans").child("plan-" + zoneId);
+      plan.child("last_application_at_epoch").setValue(appliedAt);
+      plan.child("next_application_at_epoch").setValue(nextAt);
+      plan.child("updated_at_epoch").setValue(recordedAt);
+   }
+
+   private void clearNutritionPointers(MutableData root, String zoneId, long recordedAt) {
+      MutableData profile = root.child("zones").child(zoneId).child("fertilization");
+      profile.child("last_application_at_epoch").setValue(0L);
+      profile.child("next_application_at_epoch").setValue(0L);
+      profile.child("updated_at_epoch").setValue(recordedAt);
+      MutableData plan = root.child("fertilizer_plans").child("plan-" + zoneId);
+      plan.child("last_application_at_epoch").setValue(0L);
+      plan.child("next_application_at_epoch").setValue(0L);
+      plan.child("updated_at_epoch").setValue(recordedAt);
+   }
+
+   private void changeStock(MutableData root, String productId, String appliedUnit, double amountToDeduct, long recordedAt) {
+      if (productId == null || productId.isBlank()) {
+         throw new IllegalStateException("Stok güncellemesi için ürün kimliği eksik.");
+      }
+      MutableData product = root.child("fertilizer_products").child(productId);
+      if (product.getValue() == null) {
+         throw new IllegalStateException("Stok güncellenecek gübre ürünü bulunamadı.");
+      }
+      String stockUnit = stringValue(product.child("stock_unit"));
+      if (stockUnit.isBlank() || appliedUnit == null || !stockUnit.equalsIgnoreCase(appliedUnit)) {
+         throw new IllegalStateException("Gübre stok birimi uygulama birimiyle uyuşmuyor.");
+      }
+      double currentStock = numberValue(product.child("stock_amount"));
+      double updatedStock = currentStock - amountToDeduct;
+      if (updatedStock < -0.000001) {
+         throw new IllegalStateException("Gübre stoğu bu uygulama için yetersiz.");
+      }
+      product.child("stock_amount").setValue(Math.max(0.0, updatedStock));
+      product.child("updated_at_epoch").setValue(recordedAt);
+   }
+
+   private Task<Void> runAtomicDeviceUpdate(String fallbackMessage, DeviceMutation mutation) {
+      TaskCompletionSource<Void> completion = new TaskCompletionSource<>();
+      AtomicReference<String> failure = new AtomicReference<>(fallbackMessage);
+      this.deviceRef.runTransaction(new Transaction.Handler() {
+         @NonNull
+         @Override
+         public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+            try {
+               mutation.apply(currentData);
+               return Transaction.success(currentData);
+            } catch (RuntimeException error) {
+               if (error.getMessage() != null && !error.getMessage().isBlank()) {
+                  failure.set(error.getMessage());
+               }
+               return Transaction.abort();
+            }
+         }
+
+         @Override
+         public void onComplete(DatabaseError error, boolean committed, DataSnapshot snapshot) {
+            if (error != null) {
+               completion.setException(error.toException());
+            } else if (!committed) {
+               completion.setException(new IllegalStateException(failure.get()));
+            } else {
+               completion.setResult(null);
+            }
+         }
+      });
+      return completion.getTask();
+   }
+
+   private static String normalizedApplicationType(String value) {
+      return value == null || value.isBlank()
+            ? "NUTRITION"
+            : value.trim().toUpperCase(Locale.ROOT);
+   }
+
+   private static String stringValue(MutableData data) {
+      Object value = data.getValue();
+      return value == null ? "" : String.valueOf(value);
+   }
+
+   private static double numberValue(MutableData data) {
+      Object value = data.getValue();
+      return value instanceof Number ? ((Number)value).doubleValue() : 0.0;
+   }
+
+   private static long longValue(MutableData data) {
+      Object value = data.getValue();
+      return value instanceof Number ? ((Number)value).longValue() : 0L;
+   }
+
+   private static boolean booleanValue(MutableData data) {
+      Object value = data.getValue();
+      return value instanceof Boolean && (Boolean)value;
+   }
+
+   @FunctionalInterface
+   private interface DeviceMutation {
+      void apply(MutableData root);
+   }
    public Task<Void> requestZoneValveTest(GardenZone zone, int durationSeconds) {
       Map<String, Object> command = new HashMap();
       command.put("requested", true);
@@ -975,6 +1226,28 @@ public class FirebaseRepository {
       });
    }
 
+   public Task<Void> saveFertilizationPreferences(Map<String, Object> values) {
+      return values != null && !values.isEmpty()
+              ? this.deviceRef.child("settings").child("fertilization").setValue(values)
+              : Tasks.forResult(null);
+   }
+
+   public void loadFertilizationPreferences(final Consumer<Map<String, Object>> consumer) {
+      this.deviceRef.child("settings").child("fertilization")
+              .addListenerForSingleValueEvent(new ValueEventListener() {
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            Map<String, Object> values = new HashMap<>();
+            for (DataSnapshot child : snapshot.getChildren()) {
+               values.put(child.getKey(), child.getValue());
+            }
+            consumer.accept(values);
+         }
+
+         public void onCancelled(@NonNull DatabaseError error) {
+            consumer.accept(new HashMap<>());
+         }
+      });
+   }
    public Task<Void> savePushToken(String token) {
       if (token != null && !token.isBlank()) {
          Map<String, Object> values = new HashMap();

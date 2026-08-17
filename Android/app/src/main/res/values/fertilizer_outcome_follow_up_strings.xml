@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilizer_outcome_follow_up_title">Gübre sonucu değerlendirilmeyi bekliyor</string>
+    <string name="fertilizer_outcome_follow_up_message">%1$s bölgesinde %2$s uygulamasından sonra bitki gelişimini değerlendirin.</string>
+    <string name="fertilizer_outcome_follow_up_product">gübre</string>
+    <string name="fertilizer_outcome_learning_empty">AVORA’nın öğrenebilmesi için uygulama sonuçlarını kaydedin. Aynı ürün ve bölgede en az 2 sonuç gerekir.</string>
+    <string name="fertilizer_outcome_learning_progress">AVORA öğreniyor: %1$d/%2$d güvenilir sonuç tamamlandı.</string>
+    <string name="fertilizer_outcome_learning_ready">AVORA bu bölgenin gübre sonuçlarını önerilerinde kullanıyor. %1$d değerlendirme tamamlandı.</string>
+    <string name="fertilizer_outcome_action">Uygulama sonucunu kaydet</string>
+    <string name="fertilizer_outcome_dialog_title">Uygulama sonucu</string>
+    <string name="fertilizer_outcome_dialog_message">Bu kayıt, AI Gübre Asistanı’nın sonraki önerilerini geliştirmek için kullanılır.</string>
+    <string name="fertilizer_outcome_date_hint">Gözlem tarihi</string>
+    <string name="fertilizer_outcome_notes_hint">Gözlem notu (isteğe bağlı)</string>
+    <string name="fertilizer_outcome_invalid_date">Geçerli bir gözlem tarihi seçin.</string>
+    <string-array name="fertilizer_outcome_statuses">
+        <item>İyileşme gözlendi</item>
+        <item>Belirgin değişiklik yok</item>
+        <item>Sorun gözlendi</item>
+    </string-array>
+    <string-array name="fertilizer_outcome_vigor_scores">
+        <item>Canlılık puanı seçin</item>
+        <item>1 / 5</item>
+        <item>2 / 5</item>
+        <item>3 / 5</item>
+        <item>4 / 5</item>
+        <item>5 / 5</item>
+    </string-array>
+    <string name="fertilizer_outcome_stats">%1$d sonuç kaydı: %2$d iyileşme · %3$d değişiklik yok · %4$d sorun.</string>
+    <string name="fertilizer_outcome_vigor"> Ortalama canlılık: %1$s/5.</string>
+    <string name="fertilizer_outcome_trend_positive"> Olumlu eğilim gözleniyor.</string>
+    <string name="fertilizer_outcome_trend_issue"> Doz, karışım ve etiket talimatını gözden geçirin.</string>
+    <string name="fertilizer_outcome_trend_mixed"> Sonuçlar karışık; aynı koşullarda birkaç gözlem daha kaydedin.</string>
+    <string name="fertilizer_outcome_learning_overview_progress">AVORA öğreniyor: en güçlü ürün/bölge eşleşmesinde %1$d/%2$d sonuç tamamlandı.</string>
+    <string name="fertilizer_outcome_learning_overview_ready">AVORA %1$d ürün/bölge eşleşmesinin sonuçlarını önerilerinde kullanıyor.</string>
+</resources>

@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.notifications.NotificationSettingsStore;
@@ -160,9 +161,20 @@ public class NotificationCenterActivity extends AppCompatActivity {
     }
 
     private void openDetail(GardenNotification value) {
+        String applicationId = FertilizerOutcomeFollowUpPolicy.applicationIdFromSource(
+                value.getSource_key()
+        );
+        if (!applicationId.isBlank()) {
+            manager.setState(value, true, value.isSaved());
+            startActivity(new Intent(this, FertilizerHistoryActivity.class)
+                    .putExtra("outcome_application_id", applicationId)
+                    .putExtra("zone_id", value.getZone_id()));
+            return;
+        }
         Intent intent = new Intent(this, NotificationDetailActivity.class);
         intent.putExtra("id", value.getId()).putExtra("type", value.getType()).putExtra("priority", value.getPriority())
                 .putExtra("zone_id", value.getZone_id()).putExtra("title", value.getTitle()).putExtra("description", value.getDescription())
+                .putExtra("source_key", value.getSource_key())
                 .putExtra("created_at_epoch", value.getCreated_at_epoch()).putExtra("read", value.isRead()).putExtra("saved", value.isSaved());
         startActivity(intent);
     }

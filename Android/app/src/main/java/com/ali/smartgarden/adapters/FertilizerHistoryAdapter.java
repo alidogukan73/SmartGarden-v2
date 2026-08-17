@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
 
 import java.time.Instant;
@@ -136,11 +137,19 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
         }
         String outcome = outcomeLabel(value);
         if (outcome.isEmpty()) {
-            holder.outcome.setVisibility(View.GONE);
+            int evaluated = FertilizerOutcomeFollowUpPolicy.evaluatedCount(
+                    values, value.getZone_id(), value.getProduct_id()
+            );
+            int target = FertilizerOutcomeFollowUpPolicy.RELIABLE_OBSERVATION_COUNT;
+            holder.outcome.setText(evaluated >= target
+                    ? holder.itemView.getContext().getString(
+                    R.string.fertilizer_outcome_learning_ready, evaluated)
+                    : holder.itemView.getContext().getString(
+                    R.string.fertilizer_outcome_learning_progress, evaluated, target));
         } else {
             holder.outcome.setText(outcome);
-            holder.outcome.setVisibility(View.VISIBLE);
         }
+        holder.outcome.setVisibility(View.VISIBLE);
         holder.date.setText(
                 Instant.ofEpochSecond(value.getApplied_at_epoch())
                         .atZone(ZoneId.systemDefault())

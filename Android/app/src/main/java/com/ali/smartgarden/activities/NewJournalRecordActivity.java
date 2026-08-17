@@ -19,6 +19,7 @@ import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.journal.LocalGardenEventStore;
 import com.ali.smartgarden.models.GardenEvent;
+import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.photos.LocalGardenPhotoStore;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -33,10 +34,15 @@ import java.util.UUID;
 
 /** Manual season record entry point for a single plant journal. */
 public final class NewJournalRecordActivity extends AppCompatActivity {
+    public static final String EXTRA_ZONE_ID = "zone_id";
+    public static final String EXTRA_INITIAL_TYPE = "initial_record_type";
+    public static final String EXTRA_RELATED_APPLICATION_ID = "related_application_id";
+    public static final String RECORD_TYPE_PHOTO = "Fotoğraf";
     private static final String[] TYPES = {"Gözlem", "Sulama", "Gübreleme", "Fotoğraf", "Olay"};
     private static final int[] TYPE_CARDS = {R.id.cardRecordObservation, R.id.cardRecordWatering, R.id.cardRecordFertilizer, R.id.cardRecordPhoto, R.id.cardRecordEvent};
     private final Calendar selectedDateTime = Calendar.getInstance();
     private String zoneId = "";
+    private String relatedApplicationId = "";
     private String selectedType = TYPES[0];
     private static final int MAX_PHOTOS_PER_RECORD = 5;
     private final List<Uri> selectedPhotos = new ArrayList<>();
@@ -67,8 +73,11 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_new_journal_record);
-        zoneId = getIntent().getStringExtra("zone_id");
+        zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID);
         if (zoneId == null) zoneId = "";
+        relatedApplicationId = getIntent().getStringExtra(EXTRA_RELATED_APPLICATION_ID);
+        if (relatedApplicationId == null) relatedApplicationId = "";
+        String initialType = getIntent().getStringExtra(EXTRA_INITIAL_TYPE);
         dateText = findViewById(R.id.txtNewRecordDate);
         timeText = findViewById(R.id.txtNewRecordTime);
         photoState = findViewById(R.id.txtNewRecordPhotoState);
@@ -83,7 +92,15 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
             findViewById(TYPE_CARDS[i]).setOnClickListener(v -> selectType(index));
         }
         refreshDateTime();
-        selectType(0);
+        selectType(typeIndex(initialType));
+    }
+
+    private int typeIndex(String requestedType) {
+        if (requestedType == null || requestedType.isBlank()) return 0;
+        for (int i = 0; i < TYPES.length; i++) {
+            if (TYPES[i].equals(requestedType)) return i;
+        }
+        return 0;
     }
 
     private void selectType(int index) {
@@ -148,10 +165,19 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
         try {
             boolean hasPhoto = !selectedPhotos.isEmpty() || !selectedPhotoBitmaps.isEmpty();
             if (hasPhoto) {
-                String photoGroupId = "journal_record_" + UUID.randomUUID();
+                String photoGroupId = relatedApplicationId.isBlank()
+                        ? "journal_record_" + UUID.randomUUID()
+                        : relatedApplicationId;
                 LocalGardenPhotoStore store = new LocalGardenPhotoStore(this);
-                for (Uri photo : selectedPhotos) store.save(photo, zoneId, note, photoGroupId);
-                for (Bitmap bitmap : selectedPhotoBitmaps) store.save(bitmap, zoneId, note, photoGroupId);
+                FirebaseRepository repository = new FirebaseRepository();
+                for (Uri photo : selectedPhotos) {
+                    GardenPhoto saved = store.save(photo, zoneId, note, photoGroupId);
+                    repository.saveGardenPhotoMetadata(saved);
+                }
+                for (Bitmap bitmap : selectedPhotoBitmaps) {
+                    GardenPhoto saved = store.save(bitmap, zoneId, note, photoGroupId);
+                    repository.saveGardenPhotoMetadata(saved);
+                }
             }
             // Fotoğraflı kayıt, zaman çizelgesinde tek bir gelişim kaydı olarak gösterilir.
             if (!hasPhoto && !"Fotoğraf".equals(selectedType)) {

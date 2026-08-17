@@ -85,9 +85,6 @@
             android:name=".activities.GardenHealthDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.GardenPhotoArchiveActivity"
-            android:exported="false" />
-        <activity
             android:name=".activities.GardenPhotoGalleryActivity"
             android:exported="false" />
         <activity

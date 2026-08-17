@@ -1,7 +1,7 @@
 package com.ali.smartgarden.fertilization;
 
 import com.ali.smartgarden.models.FertilizationProfile;
-import com.ali.smartgarden.models.FertilizerApplicationSchedule;
+import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
@@ -19,79 +19,297 @@ public final class FertilizerDecisionEngine {
 
     public static FertilizerAdvice advise(GardenZone zone, List<FertilizerProduct> products,
                                            WeatherForecast weather, long now) {
+        return advise(zone, products, weather, new ArrayList<>(), now);
+    }
+
+    public static FertilizerAdvice advise(GardenZone zone, List<FertilizerProduct> products,
+                                           WeatherForecast weather,
+                                           List<FertilizerApplication> history,
+                                           long now) {
+        return advise(zone, products, weather, history, now, false);
+    }
+
+    public static FertilizerAdvice advise(GardenZone zone, List<FertilizerProduct> products,
+                                           WeatherForecast weather,
+                                           List<FertilizerApplication> history,
+                                           long now,
+                                           boolean preferOrganicInputs) {
         FertilizationProfile profile = zone.getFertilization();
         String title = safe(zone.getEmoji(), "\uD83C\uDF31") + " " + safe(zone.getName(), "Bölge");
-        if (profile == null || !profile.isEnabled() || safe(profile.getGrowth_stage(), "NOT_SET").equals("NOT_SET")) {
+        String normalizedStage = profile == null
+                ? "NOT_SET"
+                : FertilizerStagePolicy.normalize(profile.getGrowth_stage());
+        if (profile == null || "NOT_SET".equals(normalizedStage)) {
             return new FertilizerAdvice(title, "PLAN HAZIR DEĞİL",
                     "Dikim tarihi ve gelişim dönemi girildiğinde kişisel öneri hazırlanır.",
                     "", new ArrayList<>(),
-                    FertilizerRiskAdvisor.assess(zone, products, weather, now));
+                    combinedRisks(zone, products, weather, history, now));
         }
         String context = buildContext(zone, profile, weather, now);
+        if (FertilizerStagePolicy.SEASON_END.equals(normalizedStage)) {
+            return new FertilizerAdvice(title, "SEZON TAMAMLANDI",
+                    "Besleme gübresi önerilmez. Gelecek sezon için toprak analizi, organik madde ve taban gübresi planını hazırlayın.",
+                    context, new ArrayList<>(),
+                    combinedRisks(zone, products, weather, history, now));
+        }
+        if (!profile.isEnabled()) {
+            return new FertilizerAdvice(title, "PLAN PASİF",
+                    "Bu bölgenin gübreleme planı kapalı. Önerileri yeniden görmek için planı etkinleştirin.",
+                    context, new ArrayList<>(),
+                    combinedRisks(zone, products, weather, history, now));
+        }
+        boolean organicStageGate =
+                FertilizerSafetyPolicy.requiresOrganicProduct(profile);
         List<Candidate> candidates = new ArrayList<>();
         for (FertilizerProduct product : products) {
-            if (product != null && product.isEnabled()) {
-                candidates.add(score(product, profile, weather,
-                        remainingDays(profile, product, now)));
+            if (FertilizerSafetyPolicy.isEligible(product, profile)) {
+                candidates.add(score(
+                        product,
+                        profile,
+                        remainingDays(profile, product),
+                        FertilizerPerformanceAdvisor.evaluate(
+                                zone, product, history, now
+                        ),
+                        preferOrganicInputs
+                ));
             }
         }
         candidates.sort(Comparator.comparingInt(Candidate::score).reversed());
-        List<Candidate> available = new ArrayList<>();
+
+        List<Candidate> stageSuitable = new ArrayList<>();
+        List<Candidate> ready = new ArrayList<>();
         for (Candidate candidate : candidates) {
-            if (candidate.isAvailable()) available.add(candidate);
+            if (candidate.waitDays <= 0L) {
+                stageSuitable.add(candidate);
+                if (candidate.isReady()) ready.add(candidate);
+            }
         }
+
+        List<Candidate> displayed = ready.isEmpty() ? stageSuitable : ready;
+        FertilizerAdvice.Experience experience = primaryExperience(displayed);
         List<String> result = new ArrayList<>();
-        for (int i = 0; i < Math.min(3, available.size()); i++) {
-            result.add(available.get(i).display());
+        for (int i = 0; i < Math.min(3, displayed.size()); i++) {
+            result.add(displayed.get(i).display());
         }
-        if (available.isEmpty()) {
+
+        if (candidates.isEmpty() && organicStageGate
+                && (products == null || products.isEmpty()
+                || hasStageCompatibleConventionalProduct(products, profile))) {
+            String period = FertilizerStagePolicy.HARVEST.equals(normalizedStage)
+                    ? "Aktif hasat" : "Meyve oluşumu";
+            return new FertilizerAdvice(title, "ORGANİK ÜRÜN GEREKİYOR",
+                    period + " döneminde kimyasal içerikli ürünler öneri dışında bırakıldı. "
+                            + "Bu döneme uygun ve etiketi organik tarımda kullanıma izin veren bir ürün ekleyin.",
+                    context, new ArrayList<>(),
+                    combinedRisks(zone, products, weather, history, now));
+        }
+        if (stageSuitable.isEmpty()) {
             long nearest = nearestWait(candidates);
             String reason = nearest == Long.MAX_VALUE
                     ? "Bu dönem için etkin ve uygun ürün bulunamadı."
-                    : "Ürünlerin kendi bekleme aralıkları sürüyor. En yakın tekrar uygulama "
-                    + nearest + " gün sonra değerlendirilebilir.";
+                    : "Bu uygulama türü için güvenli bekleme aralığı sürüyor. "
+                    + "En yakın tekrar uygulama " + nearest
+                    + " gün sonra değerlendirilebilir.";
             return new FertilizerAdvice(title, "HENÜZ ERKEN", reason, context,
                     new ArrayList<>(),
-                    FertilizerRiskAdvisor.assess(zone, products, weather, now));
+                    combinedRisks(zone, products, weather, history, now));
         }
-        String reason = "Bugün uygulama planı değerlendirilebilir.";
-        if (zone.hasSensorData() && zone.getMoisture() < zone.getMoisture_limit()) {
-            reason += " Toprak nemi düşük; önce sulama ve kök bölgesini kontrol edin.";
+        if (ready.isEmpty()) {
+            return new FertilizerAdvice(title, "HAZIRLIK GEREKİYOR",
+                    preparationReason(stageSuitable.get(0)), context, result,
+                    combinedRisks(zone, products, weather, history, now),
+                    experience);
+        }
+        if (FertilizerDataFreshnessPolicy.requiresLiveSensor(zone)
+                && !FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)) {
+            return new FertilizerAdvice(title, "VERİYİ YENİLEYİN",
+                    "Güncel toprak nemi alınamadığı için bugün uygulama kararı verilmedi. "
+                            + "Sensör verisi yenilendiğinde öneriyi tekrar değerlendirin.",
+                    context, result,
+                    combinedRisks(zone, products, weather, history, now),
+                    experience);
+        }
+        if (FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)
+                && zone.getMoisture() < zone.getMoisture_limit()) {
+            return new FertilizerAdvice(title, "ÖNCE SULAMA",
+                    "Toprak nemi uygulama sınırının altında. Önce güvenli bir sulama yapın; "
+                            + "kök bölgesi dengelendikten sonra gübreleme planını yeniden değerlendirin.",
+                    context, result,
+                    combinedRisks(zone, products, weather, history, now),
+                    experience);
+        }
+
+        String reason;
+        if (organicStageGate) {
+            reason = FertilizerStagePolicy.HARVEST.equals(normalizedStage)
+                    ? "Aktif hasatta yalnız organik tarımda kullanıma uygun ve hasat dönemiyle uyumlu ürünler gösteriliyor."
+                    : "Meyve oluşumu başladı. Yalnız organik tarımda kullanıma uygun ve dönemle uyumlu ürünler gösteriliyor.";
+        } else {
+            reason = FertilizerStagePolicy.HARVEST.equals(normalizedStage)
+                    ? "Hasat devam ediyor. Yalnız etiketi aktif hasat dönemini destekleyen ve güvenlik koşulları uygun ürünler gösteriliyor."
+                    : "Bugün uygulama planı değerlendirilebilir.";
+        }
+        if (FertilizerDataFreshnessPolicy.isWeatherFresh(weather, now)
+                && weather.getTomorrowTemperatureMax() != null
+                && weather.getTomorrowTemperatureMax() >= 35.0) {
+            reason += " Sıcaklık yüksek; serin saatleri tercih edin.";
         }
         return new FertilizerAdvice(title, "BUGÜNKÜ ÖNERİ", reason, context, result,
-                FertilizerRiskAdvisor.assess(zone, products, weather, now));
+                combinedRisks(zone, products, weather, history, now),
+                experience);
     }
 
-    private static Candidate score(FertilizerProduct product, FertilizationProfile profile,
-                                   WeatherForecast weather, long waitDays) {
+    private static boolean hasStageCompatibleConventionalProduct(
+            List<FertilizerProduct> products,
+            FertilizationProfile profile
+    ) {
+        if (products == null) return false;
+        for (FertilizerProduct product : products) {
+            if (product != null && product.isEnabled()
+                    && FertilizerApplicationSafety.isStageCompatible(product, profile)
+                    && !FertilizerSafetyPolicy.isOrganicCompatible(product)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static FertilizerAdvice.Experience primaryExperience(
+            List<Candidate> candidates
+    ) {
+        if (candidates == null || candidates.isEmpty()) {
+            return FertilizerAdvice.Experience.none();
+        }
+        Candidate candidate = candidates.get(0);
+        FertilizerPerformanceAdvisor.Result performance = candidate.performance;
+        return new FertilizerAdvice.Experience(
+                candidate.productId,
+                candidate.name,
+                performance.getObservations(),
+                performance.getMinimumObservations(),
+                performance.hasEvidence(),
+                performance.getSuccessScore()
+        );
+    }
+
+    private static List<String> combinedRisks(
+            GardenZone zone,
+            List<FertilizerProduct> products,
+            WeatherForecast weather,
+            List<FertilizerApplication> history,
+            long now
+    ) {
+        List<String> risks = new ArrayList<>(
+                FertilizerHistoryRiskAdvisor.assess(
+                        zone, products, history, now
+                )
+        );
+        for (String risk : FertilizerRiskAdvisor.assess(
+                zone, products, weather, now
+        )) {
+            if (!risks.contains(risk)) risks.add(risk);
+        }
+        return risks;
+    }
+
+    private static Candidate score(
+            FertilizerProduct product,
+            FertilizationProfile profile,
+            long waitDays,
+            FertilizerPerformanceAdvisor.Result performance,
+            boolean preferOrganicInputs
+    ) {
         String text = (safe(product.getName(), "") + " " + safe(product.getNpk(), "")).toLowerCase(Locale.ROOT);
         FertilizerNutrientProfile nutrients = FertilizerNutrientProfile.from(product);
-        String stage = safe(profile.getGrowth_stage(), "");
-        int score = 45; String role = "Destek ürünü";
-        if ("FRUITING".equals(stage)) {
-            if (nutrients.isPotassiumForward()) { score = 95; role = "Ana potasyum beslemesi"; }
-            else if (matches(text, "calsimagsi", "kalsiyum", "magsul")) { score = 84; role = "Kalsiyum / magnezyum desteği"; }
-            else if (matches(text, "deniz yosunu", "searius")) { score = 72; role = "Biyostimülant desteği"; }
-            else if (matches(text, "fertisol", "15-0-5", "15.0.5")) { score = 58; role = "Mikro element desteği"; }
-            else if (matches(text, "20-20-20", "20.20.20")) { score = 48; role = "Dengeli destek; tek başına ana tercih değil"; }
+        String stage = FertilizerStagePolicy.normalize(profile.getGrowth_stage());
+        boolean traceElements = hasFunctionalTag(product, "TRACE_ELEMENTS");
+        boolean organicMatter = hasFunctionalTag(product, "ORGANIC_MATTER");
+        boolean humicFulvic = hasFunctionalTag(product, "HUMIC_FULVIC");
+        boolean seaweed = hasFunctionalTag(product, "SEAWEED");
+        boolean calciumMagnesium = hasFunctionalTag(product, "CALCIUM_MAGNESIUM");
+        boolean aminoAcids = hasFunctionalTag(product, "AMINO_ACIDS");
+        boolean soilSupport = organicMatter || humicFulvic;
+        boolean biostimulant = seaweed || aminoAcids;
+
+        int score = 45;
+        String role = "Destek ürünü";
+        if (FertilizerStagePolicy.SOIL_PREPARATION.equals(stage)) {
+            if (soilSupport) {
+                score = 95; role = "Toprak hazırlığı ve organik madde desteği";
+            } else if (nutrients.isBalanced()) {
+                score = 68; role = "Toprak analizine göre taban beslemesi";
+            }
+        } else if ("ROOTING".equals(stage)) {
+            if (soilSupport) { score = 92; role = "Kök / toprak desteği"; }
+            else if (biostimulant) { score = 80; role = "Köklenme stresine karşı biyostimülant destek"; }
+            else if (nutrients.isBalanced()) { score = 72; role = "Dengeli başlangıç desteği"; }
         } else if ("VEGETATIVE".equals(stage)) {
             if (nutrients.isBalanced()) { score = 92; role = "Dengeli ana besleme"; }
-            else if (matches(text, "fertisol", "15-0-5", "15.0.5")) { score = 78; role = "Mikro element desteği"; }
-            else if (matches(text, "humik", "fulvik", "leonardit", "super root")) { score = 74; role = "Kök ve toprak desteği"; }
-        } else if ("ROOTING".equals(stage)) {
-            if (matches(text, "humik", "fulvik", "leonardit", "super root")) { score = 92; role = "Kök / toprak desteği"; }
-            else if (matches(text, "20-20-20", "20.20.20")) { score = 72; role = "Dengeli başlangıç desteği"; }
+            else if (traceElements) { score = 78; role = "Çoklu iz element desteği; ana NPK yerine geçmez"; }
+            else if (soilSupport) { score = 74; role = "Kök ve toprak desteği"; }
+            else if (biostimulant) { score = 70; role = "Vejetatif gelişim için biyostimülant destek"; }
         } else if ("FLOWERING".equals(stage)) {
-            if (matches(text, "calsimagsi", "kalsiyum")) { score = 86; role = "Kalsiyum desteği"; }
-            else if (matches(text, "10-5-40", "10.5.40")) { score = 82; role = "Potasyum ağırlıklı destek"; }
-            else if (matches(text, "deniz yosunu", "searius")) { score = 76; role = "Biyostimülant desteği"; }
+            if (calciumMagnesium) { score = 86; role = "Kalsiyum / magnezyum desteği"; }
+            else if (nutrients.isPotassiumForward()) { score = 82; role = "Potasyum ağırlıklı destek"; }
+            else if (biostimulant) { score = 76; role = "Çiçeklenme stresine karşı biyostimülant destek"; }
+            else if (traceElements) { score = 68; role = "Çoklu iz element desteği; ana NPK yerine geçmez"; }
+        } else if ("FRUITING".equals(stage)) {
+            if (nutrients.isPotassiumForward()) { score = 95; role = "Ana potasyum beslemesi"; }
+            else if (calciumMagnesium) { score = 84; role = "Kalsiyum / magnezyum desteği"; }
+            else if (biostimulant) { score = 72; role = "Meyve gelişimi için biyostimülant destek"; }
+            else if (traceElements) { score = 60; role = "Çoklu iz element desteği; ana NPK yerine geçmez"; }
+            else if (soilSupport) { score = 54; role = "İsteğe bağlı toprak desteği; ana besleme değildir"; }
+        } else if (FertilizerStagePolicy.HARVEST.equals(stage)) {
+            if (biostimulant) {
+                score = 86; role = "Hasat ve toplama stresinde biyostimülant desteği";
+            } else if (nutrients.isPotassiumForward()) {
+                score = 82; role = "Hasat sürecinde potasyum desteği; etiket kısıtlarını doğrulayın";
+            } else if (calciumMagnesium) {
+                score = 74; role = "Kalsiyum / magnezyum desteği; nem düzenini doğrulayın";
+            } else if (soilSupport) {
+                score = 62; role = "İsteğe bağlı toprak desteği; ana besleme değildir";
+            } else if (traceElements) {
+                score = 55; role = "Çoklu iz element desteği; yalnız doğrulanmış ihtiyaçta kullanın";
+            } else if (nutrients.isBalanced() || matches(text, "20-20-20", "20.20.20")) {
+                score = 35; role = "Azot yükünü artırmadan önce analiz edin";
+            } else {
+                score = 45; role = "Etiket ve hasat aralığı doğrulanırsa koşullu destek";
+            }
         }
+
+        // Legacy products may not yet have structured tags. Name matching is
+        // kept only as a compatibility fallback until the product is edited.
+        if ("Destek ürünü".equals(role)) {
+            if (matches(text, "humik", "fulvik", "leonardit", "super root", "solucan")) {
+                score = "ROOTING".equals(stage) ? 92 : 62;
+                role = "Kök / toprak desteği";
+            } else if (matches(text, "calsimagsi", "kalsiyum", "magsul", "magnezyum")) {
+                score = "FLOWERING".equals(stage) ? 86 : 74;
+                role = "Kalsiyum / magnezyum desteği";
+            } else if (matches(text, "deniz yosunu", "searius", "amino asit")) {
+                score = FertilizerStagePolicy.HARVEST.equals(stage) ? 86 : 72;
+                role = "Biyostimülant desteği";
+            } else if (matches(text, "fertisol", "15-0-5", "15.0.5")) {
+                score = "VEGETATIVE".equals(stage) ? 78 : 58;
+                role = "Mikro element desteği";
+            }
+        }
+        boolean organicCompatible = FertilizerSafetyPolicy.isOrganicCompatible(product);
+        if (preferOrganicInputs && organicCompatible) score += 12;
+        if (organicCompatible) role = "Organik tar\u0131ma uygun \u00b7 " + role;
+        FertilizerApplicationSafety.Dose requiredDose =
+                FertilizerApplicationSafety.calculateDose(product, profile);
+        StockReadiness readiness = stockReadiness(product, requiredDose);
         String stock = stockSummary(product, profile);
-        if (stock.contains("eksik") || stock.startsWith("Stok yok")) score -= 55;
-        else if (stock.startsWith("Düşük stok")) score -= 25;
-        else if (stock.equals("Bilgi girilmedi")) score -= 5;
-        return new Candidate(product.getName(), Math.max(0, score), role, stock,
-                doseSummary(product), zoneDoseSummary(product, profile), waitDays);
+        if (readiness == StockReadiness.INSUFFICIENT) score -= 55;
+        else if (readiness == StockReadiness.STOCK_UNKNOWN
+                || readiness == StockReadiness.UNIT_MISMATCH) score -= 25;
+        else if (readiness == StockReadiness.DOSE_UNKNOWN) score -= 10;
+        score += performance.getRankingAdjustment();
+        return new Candidate(product.getProduct_id(), product.getName(),
+                Math.max(0, Math.min(100, score)), role, stock,
+                doseSummary(product), zoneDoseSummary(product, profile), waitDays,
+                readiness, performance);
     }
 
     private static String buildContext(GardenZone zone, FertilizationProfile profile, WeatherForecast weather, long now) {
@@ -99,12 +317,15 @@ public final class FertilizerDecisionEngine {
         long age = plantAge(profile.getPlanting_date());
         if (age >= 0) parts.add(age + " günlük");
         parts.add(stageLabel(profile.getGrowth_stage()));
-        if (zone.hasSensorData()) parts.add("nem %" + zone.getMoisture());
+        if (FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)) {
+            parts.add("nem %" + zone.getMoisture());
+        }
         if (profile.getLast_application_at_epoch() > 0) {
             long days = Math.max(0, (now - profile.getLast_application_at_epoch()) / 86400L);
             parts.add("son uygulama " + days + " gün önce");
         }
-        if (weather != null && weather.getTomorrowTemperatureMax() != null) parts.add("yarın " + Math.round(weather.getTomorrowTemperatureMax()) + "°C");
+        if (FertilizerDataFreshnessPolicy.isWeatherFresh(weather, now)
+                && weather.getTomorrowTemperatureMax() != null) parts.add("yarın " + Math.round(weather.getTomorrowTemperatureMax()) + "°C");
         return String.join(" · ", parts);
     }
 
@@ -113,23 +334,9 @@ public final class FertilizerDecisionEngine {
         catch (Exception ignored) { return -1; }
     }
     private static long remainingDays(FertilizationProfile profile,
-                                      FertilizerProduct product, long now) {
-        String type = applicationType(product);
-        FertilizerApplicationSchedule schedule = profile.getApplication_schedules() == null
-                ? null : profile.getApplication_schedules().get(type);
-        String productId = safe(product.getProduct_id(), "");
-        if (schedule != null && (productId.equals(safe(schedule.getProduct_id(), ""))
-                || (safe(schedule.getProduct_id(), "").isBlank()
-                && safe(product.getName(), "").equalsIgnoreCase(
-                safe(schedule.getProduct_name(), ""))))) {
-            return daysUntil(schedule.getNext_application_at_epoch());
-        }
-        // Records created before product_id was added can be migrated safely.
-        if ("NUTRITION".equals(type)
-                && productId.equals(safe(profile.getActive_product_id(), ""))) {
-            return daysUntil(profile.getNext_application_at_epoch());
-        }
-        return 0L;
+                                      FertilizerProduct product) {
+        return daysUntil(FertilizerApplicationSafety.nextApplicationAt(
+                profile, applicationType(product)));
     }
     private static long daysUntil(long epoch) {
         if (epoch <= 0) return 0L;
@@ -160,38 +367,72 @@ public final class FertilizerDecisionEngine {
     private static String stockSummary(FertilizerProduct product,
                                        FertilizationProfile profile) {
         String stockUnit = safe(product.getStock_unit(), "");
-        DoseForZone need = doseForZone(product, profile);
+        FertilizerApplicationSafety.Dose need =
+                FertilizerApplicationSafety.calculateDose(product, profile);
         if (stockUnit.isBlank()) return "Bilgi girilmedi";
         if (product.getStock_amount() <= 0) {
-            return need == null ? "Stok yok" : "0 " + stockUnit + " · "
-                    + trim(need.max) + " " + need.unit + " eksik";
+            return !need.isSupported() ? "Stok yok" : "0 " + stockUnit + " · "
+                    + trim(need.getMaxAmount()) + " " + need.getUnit() + " eksik";
         }
-        if (need == null || !stockUnit.equalsIgnoreCase(need.unit)) {
+        if (!need.isSupported() || !stockUnit.equalsIgnoreCase(need.getUnit())) {
             return product.getLow_stock_threshold() > 0
                     && product.getStock_amount() <= product.getLow_stock_threshold()
                     ? "Düşük stok: " + trim(product.getStock_amount()) + " " + stockUnit
                     : trim(product.getStock_amount()) + " " + stockUnit;
         }
-        if (product.getStock_amount() < need.max) {
+        if (product.getStock_amount() < need.getMaxAmount()) {
             return trim(product.getStock_amount()) + " " + stockUnit + " · "
-                    + trim(need.max - product.getStock_amount()) + " " + need.unit + " eksik";
+                    + trim(need.getMaxAmount() - product.getStock_amount()) + " "
+                    + need.getUnit() + " eksik";
         }
-        int applications = (int) Math.floor(product.getStock_amount() / need.max);
+        int applications = (int) Math.floor(product.getStock_amount() / need.getMaxAmount());
         return trim(product.getStock_amount()) + " " + stockUnit
                 + " · yaklaşık " + Math.max(1, applications) + " uygulama yeter";
     }
+    private static StockReadiness stockReadiness(FertilizerProduct product,
+                                                  FertilizerApplicationSafety.Dose requiredDose) {
+        if (requiredDose == null || !requiredDose.isSupported()) {
+            return StockReadiness.DOSE_UNKNOWN;
+        }
+        String stockUnit = safe(product.getStock_unit(), "");
+        if (stockUnit.isBlank()) return StockReadiness.STOCK_UNKNOWN;
+        if (!stockUnit.equalsIgnoreCase(requiredDose.getUnit())) {
+            return StockReadiness.UNIT_MISMATCH;
+        }
+        return product.getStock_amount() + 0.000001 >= requiredDose.getMaxAmount()
+                ? StockReadiness.READY
+                : StockReadiness.INSUFFICIENT;
+    }
+
+    private static String preparationReason(Candidate candidate) {
+        switch (candidate.readiness) {
+            case DOSE_UNKNOWN:
+                return "Seçilen ürünün etiketteki dozunu ve doz birimini tamamlayın.";
+            case STOCK_UNKNOWN:
+                return "Seçilen ürünün stok miktarı ve stok birimi girilmeden güvenli uygulama önerilmez.";
+            case UNIT_MISMATCH:
+                return "Seçilen ürünün stok birimi hesaplanan uygulama birimiyle uyuşmuyor.";
+            case INSUFFICIENT:
+                return "Seçilen ürünün stoku bu bölge için hesaplanan doza yetmiyor.";
+            default:
+                return "Uygulama bilgilerini kontrol edin.";
+        }
+    }
+
     private static String zoneDoseSummary(FertilizerProduct product,
                                           FertilizationProfile profile) {
-        DoseForZone dose = doseForZone(product, profile);
-        if (dose == null) return "";
-        String amount = dose.max > dose.min ? trim(dose.min) + "–" + trim(dose.max)
-                : trim(dose.min);
+        FertilizerApplicationSafety.Dose dose =
+                FertilizerApplicationSafety.calculateDose(product, profile);
+        if (!dose.isSupported()) return "";
+        String amount = dose.getMaxAmount() > dose.getMinAmount()
+                ? trim(dose.getMinAmount()) + "–" + trim(dose.getMaxAmount())
+                : trim(dose.getMinAmount());
         String sourceUnit = safe(product.getDosage_unit(), "");
         String method = applicationNote(sourceUnit);
-        String scope = dose.isTank ? trim(profile.getTank_liters()) + " L tank için"
+        String scope = dose.isTankBased() ? trim(profile.getTank_liters()) + " L tank için"
                 : trim(profile.getArea_m2()) + " m² için";
-        String areaOrTank = (dose.isTank ? "Tank dozu: " : "Alan dozu: ")
-                + amount + " " + dose.unit + " · " + scope;
+        String areaOrTank = (dose.isTankBased() ? "Tank dozu: " : "Alan dozu: ")
+                + amount + " " + dose.getUnit() + " · " + scope;
         String tankMix = tankMixSummary(product, profile, sourceUnit);
         if (!tankMix.isBlank()) return areaOrTank + "\n" + tankMix;
         return areaOrTank + (method.isBlank() ? "" : " · " + method);
@@ -234,23 +475,76 @@ public final class FertilizerDecisionEngine {
         int separator = unit.indexOf('·');
         return separator < 0 ? "" : unit.substring(separator + 1).trim();
     }
-    private static DoseForZone doseForZone(FertilizerProduct product,
-                                           FertilizationProfile profile) {
-        double min = product.getLabel_dosage_min() > 0 ? product.getLabel_dosage_min() : product.getLabel_dosage();
-        double max = product.getLabel_dosage_max() > 0 ? product.getLabel_dosage_max() : min;
-        if (min <= 0) return null;
-        String unit = safe(product.getDosage_unit(), "").toLowerCase(Locale.ROOT).replace(" ", "");
-        if (unit.contains("kg/dekar") && profile.getArea_m2() > 0) return new DoseForZone(min * profile.getArea_m2(), max * profile.getArea_m2(), "g", false);
-        if (unit.contains("l/dekar") && profile.getArea_m2() > 0) return new DoseForZone(min * profile.getArea_m2(), max * profile.getArea_m2(), "ml", false);
-        if (unit.contains("ml/100l") && profile.getTank_liters() > 0) return new DoseForZone(min * profile.getTank_liters() / 100.0, max * profile.getTank_liters() / 100.0, "ml", true);
-        return null;
-    }
     private static String trim(double value) {
         return value == Math.rint(value) ? String.valueOf((long) value) : String.format(Locale.ROOT, "%.1f", value);
     }
+    private static boolean hasFunctionalTag(FertilizerProduct product, String expected) {
+        if (product.getFunctional_tags() == null) return false;
+        for (String tag : product.getFunctional_tags()) {
+            if (expected.equalsIgnoreCase(safe(tag, ""))) return true;
+        }
+        return false;
+    }
     private static boolean matches(String value, String... keys) { for (String key : keys) if (value.contains(key)) return true; return false; }
-    private static String stageLabel(String stage) { if ("FRUITING".equals(stage)) return "Meyve dönemi"; if ("FLOWERING".equals(stage)) return "Çiçeklenme"; if ("VEGETATIVE".equals(stage)) return "Vejetatif dönem"; if ("ROOTING".equals(stage)) return "Kök gelişimi"; return "Gelişim dönemi"; }
+    private static String stageLabel(String stage) {
+        String normalized = FertilizerStagePolicy.normalize(stage);
+        if (FertilizerStagePolicy.SEASON_END.equals(normalized)) return "Sezon sonu";
+        if (FertilizerStagePolicy.HARVEST.equals(normalized)) return "Aktif hasat";
+        if ("FRUITING".equals(normalized)) return "Meyve dönemi";
+        if ("FLOWERING".equals(normalized)) return "Çiçeklenme";
+        if ("VEGETATIVE".equals(normalized)) return "Vejetatif dönem";
+        if ("ROOTING".equals(normalized)) return "Kök gelişimi";
+        return "Gelişim dönemi";
+    }
     private static String safe(String value, String fallback) { return value == null || value.isBlank() ? fallback : value; }
-    private static class DoseForZone { final double min, max; final String unit; final boolean isTank; DoseForZone(double min, double max, String unit, boolean isTank) { this.min = min; this.max = max; this.unit = unit; this.isTank = isTank; } }
-    private static class Candidate { final String name, role, stock, dose, zoneDose; final int score; final long waitDays; Candidate(String name, int score, String role, String stock, String dose, String zoneDose, long waitDays) { this.name=name; this.score=score; this.role=role; this.stock=stock; this.dose=dose; this.zoneDose=zoneDose; this.waitDays=waitDays; } int score() { return score; } boolean isAvailable() { return waitDays <= 0; } String display() { return stars(score) + " " + name + "\n" + role + "\n" + dose + (zoneDose.isBlank() ? "" : "\n" + zoneDose) + "\nStok: " + stock; } private static String stars(int value) { int count=Math.max(1, Math.min(5, Math.round(value / 20f))); return "★★★★★".substring(0, count) + "☆☆☆☆☆".substring(0, 5-count); } }
+    private enum StockReadiness {
+        READY,
+        DOSE_UNKNOWN,
+        STOCK_UNKNOWN,
+        UNIT_MISMATCH,
+        INSUFFICIENT
+    }
+
+    private static class Candidate {
+        final String productId, name, role, stock, dose, zoneDose;
+        final int score;
+        final long waitDays;
+        final StockReadiness readiness;
+        final FertilizerPerformanceAdvisor.Result performance;
+
+        Candidate(String productId, String name, int score, String role, String stock, String dose,
+                  String zoneDose, long waitDays, StockReadiness readiness,
+                  FertilizerPerformanceAdvisor.Result performance) {
+            this.productId = productId == null ? "" : productId;
+            this.name = name;
+            this.score = score;
+            this.role = role;
+            this.stock = stock;
+            this.dose = dose;
+            this.zoneDose = zoneDose;
+            this.waitDays = waitDays;
+            this.readiness = readiness;
+            this.performance = performance;
+        }
+
+        int score() {
+            return score;
+        }
+
+        boolean isReady() {
+            return waitDays <= 0L && readiness == StockReadiness.READY;
+        }
+
+        String display() {
+            return stars(score) + " " + name + "\n" + role + "\n" + dose
+                    + (zoneDose.isBlank() ? "" : "\n" + zoneDose)
+                    + "\nStok: " + stock;
+        }
+
+        private static String stars(int value) {
+            int count = Math.max(1, Math.min(5, Math.round(value / 20f)));
+            return "★★★★★".substring(0, count)
+                    + "☆☆☆☆☆".substring(0, 5 - count);
+        }
+    }
 }

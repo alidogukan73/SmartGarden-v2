@@ -2,7 +2,7 @@
 <resources>
     <!-- UYGULAMA -->
     <string
-        name="app_name">AVORA</string>
+        name="app_name" translatable="false">AVORA</string>
     <string
         name="app_subtitle">Akıllı Bitki Asistanı</string>
     <!-- CİHAZ DURUMU -->
@@ -53,7 +53,8 @@
     <string
         name="growth_stage_fruiting">Meyve oluşumu</string>
     <string
-        name="growth_stage_harvest">Hasat dönemi</string>
+        name="growth_stage_harvest">Aktif hasat</string>
+    <string name="growth_stage_season_end">Sezon sonu</string>
     <string
         name="menu_fertilization_description">Akıllı besleme önerileri, planlar ve hatırlatmalar</string>
     <string
@@ -126,6 +127,8 @@
         name="fertilization_first_application_overdue">İlk uygulama: %1$s · Gecikmiş görünüyor</string>
     <string
         name="fertilization_missing_product">Planı etkinleştirmek için kayıtlı bir gübre ürünü seçin.</string>
+    <string name="fertilization_harvest_no_application">Aktif hasatta yalnız etiketi bu dönemi açıkça destekleyen ürünler; nem, hava, stok ve güvenli tekrar aralığı uygunsa değerlendirilir.</string>
+    <string name="fertilization_season_end_no_application">Sezon tamamlandı. Besleme gübresi uygulanmaz; gelecek sezon için toprak analizi ve toprak hazırlığı planlanır.</string>
     <string
         name="fertilization_no_stage_product">Seçilen gelişim dönemine uygun bir ürün seçin.</string>
     <string
@@ -381,6 +384,18 @@
     <string
         name="fertilizer_application_type">Uygulama türü</string>
     <string
+        name="fertilizer_recommended_stages">Uygun uygulama dönemleri</string>
+    <string
+        name="fertilizer_stage_dialog_title">Ürünün uygulanabileceği dönemler</string>
+    <string
+        name="fertilizer_stage_soil_preparation">Toprak hazırlığı</string>
+    <string
+        name="fertilizer_stage_missing">Dönem bilgisi seçilmedi</string>
+    <string
+        name="fertilizer_stage_required">En az bir uygun uygulama dönemi seçin.</string>
+    <string
+        name="fertilizer_stages_summary">Uygun dönemler: %1$s</string>
+    <string
         name="fertilizer_application_product">Uygulanan ürün</string>
     <string
         name="fertilizer_type_nutrition">Besleme gübresi</string>
@@ -403,7 +418,8 @@
     <string
         name="fertilization_soil_support_fruiting">Meyve döneminde organik/toprak düzenleyici uygulamasını ana NPK programından ayrı kaydedin; bu kayıt besleme takvimini değiştirmez.</string>
     <string
-        name="fertilization_soil_support_harvest">Hasat sonrası organik madde ve toprak düzenleyiciyle gelecek dönem için toprak yapısını iyileştirmeyi planlayın.</string>
+        name="fertilization_soil_support_harvest">Aktif hasatta yalnız etiketi hasat dönemini destekleyen düzeltici ürünleri değerlendirin; rutin uygulama yapmayın ve hasat öncesi etiketteki kısıtlara uyun.</string>
+    <string name="fertilization_soil_support_season_end">Sezon kapandıktan sonra toprak analizi yaptırın; organik madde ve toprak düzenleyici planını gelecek ekim hazırlığına göre oluşturun.</string>
     <string
         name="fertilization_soil_support_safety">Kesin ürün ve doz kararı için etiket ile toprak/yaprak analizini esas alın.</string>
     <string

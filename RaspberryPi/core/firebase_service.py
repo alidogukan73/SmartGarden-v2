@@ -1795,6 +1795,7 @@ class FirebaseService:
         """Publish advisory-only forecast data for Android and the AI assistant."""
         payload = dict(forecast)
         payload["updated_at"] = datetime.now().isoformat()
+        payload["updated_at_epoch"] = int(time.time())
         self._device_ref().child("weather/forecast").set(payload)
 
     def check_restart_command(
