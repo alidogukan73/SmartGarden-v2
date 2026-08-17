@@ -12,7 +12,7 @@ class AppConfig:
 
     DEVICE_ID = "smartgarden-001"
 
-    VERSION = "2.4.0-dev"
+    VERSION = "2.6.0"
 
     LOOP_DELAY_SECONDS = 2.0
 
@@ -103,7 +103,10 @@ class ValveConfig:
     its separate 12 V supply have been installed and tested.
     """
 
-    SIMULATION_MODE = True
+    # Simulation is no longer global: a valve becomes physical only when its
+    # relay and 12 V wiring have actually been installed and tested.  This
+    # prevents an unfinished zone from ever starting the shared pump.
+    SIMULATION_MODE = False
 
     ACTIVE_LOW = False
 
@@ -113,7 +116,31 @@ class ValveConfig:
         "valve-003": 13,
         "valve-004": 19,
         "valve-005": 26,
+        "valve-006": 16,
+        "valve-007": 20,
+        "valve-008": 21,
     }
+
+    # Raspberry Pi 40-pin header positions.  These are published to Firebase
+    # for the Android app as read-only wiring documentation.
+    GPIO_PHYSICAL_PINS = {
+        "valve-001": 29,
+        "valve-002": 31,
+        "valve-003": 33,
+        "valve-004": 35,
+        "valve-005": 37,
+        "valve-006": 36,
+        "valve-007": 38,
+        "valve-008": 40,
+    }
+
+    # Only valve-001 has a real relay/valve test planned right now.  Add a
+    # valve id here only after its GPIO relay and 12 V valve wiring pass the
+    # valve-only test.  The first five *garden zones* remain active in the
+    # app; this list is strictly a physical-hardware safety interlock.
+    PHYSICAL_VALVE_IDS = frozenset({
+        "valve-001",
+    })
 
     OPENING_DELAY_SECONDS = 8.0
     CLOSING_DELAY_SECONDS = 8.0
@@ -152,6 +179,11 @@ class IrrigationConfig:
     COOLDOWN_SECONDS = 600
 
     DEFAULT_RESTART_DELTA = 10
+
+    # Damla sulamada nem sensÃ¶re hemen ulaÅŸmayabilir. AynÄ± bÃ¶lge,
+    # bekleme sÃ¼resi korunarak bu sayÄ± kadar kÄ±sa Ã§evrim yapabilir.
+    # Limit dolunca nem toparlanmasÄ± gÃ¶rÃ¼lmeden yeni Ã§evrim baÅŸlatÄ±lmaz.
+    DEFAULT_MAX_AUTOMATIC_WATERING_CYCLES = 3
 
     DEFAULT_COOLDOWN_SECONDS = 600
 

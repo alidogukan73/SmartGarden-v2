@@ -24,7 +24,10 @@ class AdaptiveIrrigationEngine:
 
     MINIMUM_COMPLETED_WATERINGS = 5
 
-    MINIMUM_RECOMMENDED_PUMP_DURATION_SECONDS = 60
+    # Short pulse irrigation is valid for drip systems. Recommendations may
+    # improve a 10-second pulse gradually; they must never jump it to one
+    # minute merely because of an arbitrary recommendation floor.
+    MINIMUM_RECOMMENDED_PUMP_DURATION_SECONDS = 1
     MAXIMUM_RECOMMENDED_PUMP_DURATION_SECONDS = 7200
 
     MINIMUM_RECOMMENDED_COOLDOWN_SECONDS = 300
@@ -42,7 +45,10 @@ class AdaptiveIrrigationEngine:
     MINIMUM_VALID_MOISTURE_GAIN = 1
     MAXIMUM_VALID_MOISTURE_GAIN = 30
 
-    SUPPORTED_FIRMWARE_PREFIX = "3."    
+    # The watering record structure used by the adaptive analysis has been
+    # stable since the 2.x backend. Keep both supported generations so valid
+    # real irrigations are not silently excluded from learning.
+    SUPPORTED_FIRMWARE_PREFIXES = ("2.", "3.")
 
     def analyze(
         self,
@@ -227,7 +233,7 @@ class AdaptiveIrrigationEngine:
                 continue
 
             if not record.firmware.startswith(
-                self.SUPPORTED_FIRMWARE_PREFIX
+                self.SUPPORTED_FIRMWARE_PREFIXES
             ):
                 continue
 

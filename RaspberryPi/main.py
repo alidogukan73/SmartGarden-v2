@@ -1,5 +1,5 @@
 """
-SmartGarden application entry point.
+AVORA application entry point.
 """
 
 from __future__ import annotations
@@ -38,13 +38,13 @@ def _request_shutdown(
 
 def main() -> None:
     """
-    Run SmartGarden.
+    Run AVORA.
     """
 
     logger = AppLogger().logger
 
     logger.info(
-        "SmartGarden started.",
+        "AVORA started.",
     )
 
     service = IrrigationService()
@@ -72,7 +72,7 @@ def main() -> None:
     ):
 
         logger.info(
-            "Stopping SmartGarden...",
+            "Stopping AVORA...",
         )
 
     finally:
@@ -80,7 +80,7 @@ def main() -> None:
         service.cleanup()
 
         logger.info(
-            "SmartGarden stopped.",
+            "AVORA stopped.",
         )
 
 

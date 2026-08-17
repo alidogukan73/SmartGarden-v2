@@ -61,6 +61,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ 20.20.20+ME",
         "form": "POWDER",
         "npk": "20-20-20+ME",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS", "PHOSPHATE"],
         "label_dosage": 3.5,
         "label_dosage_min": 3.0,
         "label_dosage_max": 4.0,
@@ -84,6 +86,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ 10.5.40+ME",
         "form": "POWDER",
         "npk": "10-5-40+ME",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS", "PHOSPHATE"],
         "label_dosage": 5.5,
         "label_dosage_min": 5.0,
         "label_dosage_max": 6.0,
@@ -103,6 +107,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ CALSİMAGSI",
         "form": "POWDER",
         "npk": "13-0-0 + 16CaO + 6MgO",
+        "application_type": "NUTRITION",
+        "functional_tags": ["CALCIUM_MAGNESIUM", "CALCIUM"],
         "label_dosage": 3.5,
         "label_dosage_min": 3.0,
         "label_dosage_max": 4.0,
@@ -122,6 +128,9 @@ PRODUCTS = {
         "name": "AgraGron Biohumagro Hümik Fülvik",
         "form": "LIQUID",
         "npk": "Leonardit menşeli humik + fulvik asit",
+        "application_type": "ORGANIC",
+        "organic_farming_eligible": True,
+        "functional_tags": ["ORGANIC_MATTER", "HUMIC_FULVIC"],
         "label_dosage": 100.0,
         "label_dosage_min": 100.0,
         "label_dosage_max": 100.0,
@@ -142,6 +151,8 @@ PRODUCTS = {
         "name": "Supersol Fertisol",
         "form": "POWDER",
         "npk": "15-0-5 + 5MgO + ME",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS"],
         "label_dosage": 0.75,
         "label_dosage_min": 0.5,
         "label_dosage_max": 1.0,
@@ -161,6 +172,8 @@ PRODUCTS = {
         "name": "Supersol SS Micro Trace",
         "form": "POWDER",
         "npk": "İz element karışımı",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS"],
         "label_dosage": 0.75,
         "label_dosage_min": 0.5,
         "label_dosage_max": 1.0,
@@ -180,6 +193,9 @@ PRODUCTS = {
         "name": "Supersol SS-Super Root",
         "form": "LIQUID",
         "npk": "Mikrobiyal · 1×10⁷ kob/ml",
+        "application_type": "ORGANIC",
+        "organic_farming_eligible": True,
+        "functional_tags": ["MICROBIAL"],
         "label_dosage": 1.0,
         "label_dosage_min": 1.0,
         "label_dosage_max": 1.0,
@@ -199,6 +215,9 @@ PRODUCTS = {
         "name": "Supersol SS-Super Green",
         "form": "LIQUID",
         "npk": "Mikrobiyal · 1×10⁷ kob/ml",
+        "application_type": "ORGANIC",
+        "organic_farming_eligible": True,
+        "functional_tags": ["MICROBIAL"],
         "label_dosage": 1.0,
         "label_dosage_min": 1.0,
         "label_dosage_max": 1.0,
@@ -218,6 +237,9 @@ PRODUCTS = {
         "name": "Supersol SS-Super Pan",
         "form": "LIQUID",
         "npk": "Mikrobiyal · 1×10⁷ kob/ml",
+        "application_type": "ORGANIC",
+        "organic_farming_eligible": True,
+        "functional_tags": ["MICROBIAL"],
         "label_dosage": 1.0,
         "label_dosage_min": 1.0,
         "label_dosage_max": 1.0,
@@ -237,6 +259,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ SEARİUS",
         "form": "LIQUID",
         "npk": "Deniz yosunu · %1 K₂O",
+        "application_type": "BIOSTIMULANT",
+        "functional_tags": ["SEAWEED"],
         "label_dosage": 1.0,
         "label_dosage_min": 1.0,
         "label_dosage_max": 1.0,
@@ -249,13 +273,15 @@ PRODUCTS = {
         "enabled": True,
         "verified": True,
         "source_url": GUBRETAS_SEARIUS_URL,
-        "recommended_stages": ["ROOTING", "FLOWERING", "FRUITING"],
+        "recommended_stages": ["ROOTING", "FLOWERING", "FRUITING", "HARVEST"],
     },
     "product-gubretas-magsul": {
         "product_id": "product-gubretas-magsul",
         "name": "GÜBRETAŞ MAGSUL",
         "form": "POWDER",
         "npk": "16MgO + 32SO₃",
+        "application_type": "NUTRITION",
+        "functional_tags": ["CALCIUM_MAGNESIUM", "SULFATE"],
         "label_dosage": 4.0,
         "label_dosage_min": 3.0,
         "label_dosage_max": 5.0,
@@ -275,6 +301,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ 18.18.18+ME",
         "form": "POWDER",
         "npk": "18-18-18+ME",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS", "PHOSPHATE"],
         "label_dosage": 3.5,
         "label_dosage_min": 3.0,
         "label_dosage_max": 4.0,
@@ -294,6 +322,8 @@ PRODUCTS = {
         "name": "GÜBRETAŞ COMBİ PLUS",
         "form": "POWDER",
         "npk": "Cu + Fe + Mn + Zn + B + Mo",
+        "application_type": "NUTRITION",
+        "functional_tags": ["TRACE_ELEMENTS"],
         "label_dosage": 0.325,
         "label_dosage_min": 0.2,
         "label_dosage_max": 0.45,
@@ -404,9 +434,14 @@ def build_stage_guides() -> dict[str, object]:
             "Kalsiyumu fosfatlı veya sülfatlı ürünlerle aynı tankta karıştırmayın.",
         )
         guides[f"{plant}/HARVEST"] = stage_guide(
-            "Kalıntı ve gereksiz tuz birikimini önleme",
-            "Yalnız ürün etiketi ve analiz gerektiriyorsa düzeltici besleme",
-            "10.5.40+ME ve CALSİMAGSI uygulamasını hasattan 15-20 gün önce durdurun.",
+            "Hasat sürerken kaliteyi ve bitki dengesini koruma",
+            "Yalnız etiketi hasada kadar kullanımı destekleyen ürün; belirtili veya analizli düzeltici destek",
+            "Hasat öncesi kısıt, tekrar aralığı ve karışım kurallarına uyun; sıfır kalıntı garantisi verilmez.",
+        )
+        guides[f"{plant}/SEASON_END"] = stage_guide(
+            "Sezonu kapatma ve gelecek ekime hazırlık",
+            "Toprak analizi, organik madde ve taban gübresi planı",
+            "Aktif bitki besleme planını kapatın; uygulamayı yeni sezon hazırlığına göre kaydedin.",
         )
 
     for plant in ("cucumber",):
@@ -431,9 +466,14 @@ def build_stage_guides() -> dict[str, object]:
             "Kalsiyumu fosfatlı veya sülfatlı ürünlerle aynı tankta karıştırmayın.",
         )
         guides[f"{plant}/HARVEST"] = stage_guide(
-            "Hasat kalitesini koruma",
-            "Yalnız analiz veya belirti varsa düzeltici destek",
-            "Ürün etiketindeki hasat öncesi durdurma süresine uyun.",
+            "Hasat sürerken kaliteyi ve bitki dengesini koruma",
+            "Yalnız etiketi hasada kadar kullanımı destekleyen ürün; belirtili veya analizli düzeltici destek",
+            "Hasat öncesi kısıt, tekrar aralığı ve karışım kurallarına uyun; sıfır kalıntı garantisi verilmez.",
+        )
+        guides[f"{plant}/SEASON_END"] = stage_guide(
+            "Sezonu kapatma ve gelecek ekime hazırlık",
+            "Toprak analizi, organik madde ve taban gübresi planı",
+            "Aktif bitki besleme planını kapatın; uygulamayı yeni sezon hazırlığına göre kaydedin.",
         )
 
     for stage, guide in {
@@ -458,9 +498,14 @@ def build_stage_guides() -> dict[str, object]:
             "Kalsiyumu fosfatlı veya sülfatlı ürünlerle aynı tankta karıştırmayın.",
         ),
         "HARVEST": stage_guide(
-            "Gereksiz gübrelemeyi ve tuz birikimini önleme",
-            "Yalnız analiz veya belirti varsa düzeltici uygulama",
-            "Hasada yakın dönemde rutin gübre uygulamayın.",
+            "Hasat sürerken bakla kalitesini ve bitki dengesini koruma",
+            "Yalnız etiketi hasada kadar kullanımı destekleyen ürün; belirtili veya analizli düzeltici destek",
+            "Fazla azottan kaçının; hasat öncesi kısıt ve tekrar aralığına uyun.",
+        ),
+        "SEASON_END": stage_guide(
+            "Sezonu kapatma ve gelecek ekime hazırlık",
+            "Toprak analizi, organik madde ve taban gübresi planı",
+            "Aktif bitki besleme planını kapatın; uygulamayı yeni sezon hazırlığına göre kaydedin.",
         ),
     }.items():
         guides[f"bean/{stage}"] = guide
@@ -543,6 +588,13 @@ def main() -> None:
                 updates[
                     f"fertilizer_products/{product_id}/{field}"
                 ] = value
+        configured_stages = list(existing.get("recommended_stages") or [])
+        catalog_stages = list(product.get("recommended_stages") or [])
+        merged_stages = list(dict.fromkeys(configured_stages + catalog_stages))
+        if merged_stages != configured_stages:
+            updates[
+                f"fertilizer_products/{product_id}/recommended_stages"
+            ] = merged_stages
 
     existing_recommendations = (
         (current.get("fertilization") or {})
@@ -572,7 +624,7 @@ def main() -> None:
             (existing_guides.get(plant) or {})
             .get(stage)
         )
-        if existing is None:
+        if existing != value:
             updates[
                 f"fertilization/stage_guides/{path}"
             ] = value

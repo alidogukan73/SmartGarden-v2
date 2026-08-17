@@ -295,7 +295,7 @@ class WateringController:
             if on_valve_changed is not None:
                 on_valve_changed(valve_id, True)
 
-            if self._valves.simulation_mode:
+            if self._valves.is_simulated_valve(valve_id):
                 self._logger.info(
                     "Zone watering simulated; pump was not started. "
                     "valve_id=%s requested_duration=%d",
@@ -307,6 +307,10 @@ class WateringController:
                     stop_reason="VALVE_SIMULATION",
                     duration=0,
                 )
+
+            # The UI is notified immediately after relay output changes,
+            # while the pump still waits for the valve's mechanical travel.
+            self._valves.wait_for_opening(valve_id)
 
             return self.water(
                 duration=duration,
@@ -320,9 +324,9 @@ class WateringController:
                 callback=on_relay_changed,
                 relay_on=False,
             )
-            self._valves.close_all()
             if on_valve_changed is not None:
                 on_valve_changed(None, False)
+            self._valves.close_all()
 
     def _notify_relay_changed(
         self,

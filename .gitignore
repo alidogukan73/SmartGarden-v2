@@ -24,3 +24,10 @@ logs/
 
 # macOS
 .DS_Store
+# SmartGarden private credentials
+RaspberryPi/*_api_key.txt
+RaspberryPi/*_client_token.txt
+
+# SmartGarden logs
+RaspberryPi/*.log
+RaspberryPi/*.log.*

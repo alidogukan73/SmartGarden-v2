@@ -78,7 +78,7 @@ def run_scenario(
 
 def run_hysteresis_scenario() -> None:
     """
-    Verify that watering cannot repeat before recovery.
+    Verify three drip cycles are allowed before recovery is required.
     """
 
     engine = SmartIrrigationEngine()
@@ -102,26 +102,25 @@ def run_hysteresis_scenario() -> None:
     assert decision is not None
     assert decision.should_water
 
-    engine.mark_watering_completed()
+    for cycle in range(1, 4):
+        engine.mark_watering_completed()
 
-    for moisture in [
-        44,
-        45,
-        44,
-        45,
-        44,
-    ]:
-        decision = engine.evaluate(
-            reading=create_reading(moisture),
-            commands=commands,
-            cooldown_active=False,
-        )
+        for _ in range(5):
+            decision = engine.evaluate(
+                reading=create_reading(30),
+                commands=commands,
+                cooldown_active=False,
+            )
 
-    assert not decision.should_water
-    assert (
-        decision.reason
-        == "WAITING_FOR_MOISTURE_RECOVERY"
-    )
+        assert decision is not None
+        if cycle < 3:
+            assert decision.should_water
+        else:
+            assert not decision.should_water
+            assert (
+                decision.reason
+                == "WAITING_FOR_MOISTURE_RECOVERY"
+            )
 
     for _ in range(5):
         decision = engine.evaluate(
@@ -144,7 +143,7 @@ def run_hysteresis_scenario() -> None:
 
     print()
     print(
-        "Scenario 5 - Post-watering hysteresis: PASS"
+        "Scenario 5 - Three-cycle drip safeguard: PASS"
     )
 
 
