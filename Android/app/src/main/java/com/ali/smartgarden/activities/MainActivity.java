@@ -83,6 +83,16 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialButton btnMainMenu;
     private TextView txtMainNotificationBadge;
+    private final android.content.BroadcastReceiver notificationChangedReceiver =
+            new android.content.BroadcastReceiver() {
+                @Override
+                public void onReceive(
+                        android.content.Context context,
+                        android.content.Intent intent
+                ) {
+                    updateNotificationBadge();
+                }
+            };
     private MaterialCardView cardHomePlantAssistantSummary;
     private AppCompatImageView imgHomePlantAssistantSummary;
     private TextView txtHomePlantAssistantSummary;
@@ -206,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationSignalScheduler.schedule(this);
         new GardenNotificationManager(this).restoreCloudBackup(imported -> { });
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
-                token -> new FirebaseRepository().savePushToken(token)
+                token -> new FirebaseRepository().savePushToken(this, token)
         );
     }
 
@@ -232,7 +242,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
     }
-
 
     @Override
     protected void onResume() {
@@ -1075,6 +1084,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
 
         super.onStart();
+
+        androidx.core.content.ContextCompat.registerReceiver(
+                this,
+                notificationChangedReceiver,
+                new android.content.IntentFilter(
+                        GardenNotificationManager.ACTION_NOTIFICATIONS_CHANGED
+                ),
+                androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        );
+
         renderHomePlantAssistantRecommendation();
 
         onlineStatusHandler.removeCallbacks(
@@ -1130,6 +1149,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+
+        unregisterReceiver(notificationChangedReceiver);
 
         onlineStatusHandler.removeCallbacks(
                 onlineStatusChecker

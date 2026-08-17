@@ -8,7 +8,7 @@ import com.google.firebase.messaging.RemoteMessage;
 public final class AvoraFirebaseMessagingService extends FirebaseMessagingService {
     @Override public void onNewToken(String token) {
         super.onNewToken(token);
-        new FirebaseRepository().savePushToken(token);
+        new FirebaseRepository().savePushToken(getApplicationContext(), token);
     }
 
     @Override public void onMessageReceived(RemoteMessage message) {

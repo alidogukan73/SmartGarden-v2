@@ -1,5 +1,6 @@
 package com.ali.smartgarden.models;
-
+import com.google.firebase.database.IgnoreExtraProperties;
+@IgnoreExtraProperties
 public class ZoneIrrigationStatus {
 
     private String decision;

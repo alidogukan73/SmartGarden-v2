@@ -2615,7 +2615,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderSelectedMoisturePrediction() {
         if (predictionZones.isEmpty()) {
             txtMoisturePredictionTitle.setText("Nem Tahmini");
-            txtMoisturePredictionZone.setText("BÃ¶lge verisi bekleniyor");
+            txtMoisturePredictionZone.setText("Bölge verisi bekleniyor");
             renderMoisturePredictionData(latestMoisturePrediction);
             return;
         }

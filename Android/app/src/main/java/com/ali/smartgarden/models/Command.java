@@ -1,7 +1,9 @@
 package com.ali.smartgarden.models;
 
 import com.google.firebase.database.PropertyName;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+@IgnoreExtraProperties
 public class Command {
 
     private boolean autoMode;

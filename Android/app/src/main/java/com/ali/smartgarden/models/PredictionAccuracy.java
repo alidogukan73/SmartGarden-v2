@@ -1,5 +1,7 @@
 package com.ali.smartgarden.models;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+@IgnoreExtraProperties
 public class PredictionAccuracy {
 
     private long prediction_count;

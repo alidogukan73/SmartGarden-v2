@@ -12,12 +12,14 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.app.TaskStackBuilder;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.activities.FertilizerHistoryActivity;
 import com.ali.smartgarden.activities.NotificationDetailActivity;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenNotification;
+import com.ali.smartgarden.activities.MainActivity;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -25,6 +27,7 @@ import java.util.function.Consumer;
 public final class GardenNotificationManager {
     private static final String PHONE_CHANNEL = "avora_garden_alerts";
     private static final String INCIDENT_PREFS = "avora_notification_incidents";
+    public static final String ACTION_NOTIFICATIONS_CHANGED = "com.ali.smartgarden.NOTIFICATIONS_CHANGED";
     static final long DEVICE_INCIDENT_REMINDER_MILLIS = 6L * 60L * 60L * 1000L;
     private static final Object INCIDENT_LOCK = new Object();
     private final Context context;
@@ -32,17 +35,36 @@ public final class GardenNotificationManager {
     private final FirebaseRepository repository;
     public GardenNotificationManager(Context context) { this.context = context.getApplicationContext(); store = new LocalGardenNotificationStore(this.context); repository = new FirebaseRepository(); }
 
-    public GardenNotification publish(String type, String priority, String zoneId, String title, String description, String sourceKey) {
+    public GardenNotification publish(String type, String priority, String zoneId,
+                                      String title, String description, String sourceKey) {
         if (!new NotificationSettingsStore(context).isCategoryEnabled(type)) return null;
-        GardenNotification value = store.add(type, priority, zoneId, title, description, sourceKey);
+
+        GardenNotification value =
+                store.add(type, priority, zoneId, title, description, sourceKey);
+
         repository.saveGardenNotification(value);
+
+        notifyNotificationsChanged();
+
         showPhoneAlert(value);
+
         return value;
     }
-    public GardenNotification publishOnce(String type, String priority, String zoneId, String title, String description, String sourceKey) {
+    public GardenNotification publishOnce(String type, String priority, String zoneId,
+                                          String title, String description, String sourceKey) {
         if (!new NotificationSettingsStore(context).isCategoryEnabled(type)) return null;
-        GardenNotification value = store.addOnce(type, priority, zoneId, title, description, sourceKey);
-        if (value != null) { repository.saveGardenNotification(value); showPhoneAlert(value); }
+
+        GardenNotification value =
+                store.addOnce(type, priority, zoneId, title, description, sourceKey);
+
+        if (value != null) {
+            repository.saveGardenNotification(value);
+
+            notifyNotificationsChanged();
+
+            showPhoneAlert(value);
+        }
+
         return value;
     }
     /**
@@ -102,8 +124,18 @@ public final class GardenNotificationManager {
     }
     public void setState(GardenNotification value, boolean read, boolean saved) {
         if (value == null) return;
+
         if (store.updateState(value.getId(), read, saved)) {
-            value.setRead(read); value.setSaved(saved); repository.updateGardenNotificationState(value.getId(), read, saved);
+            value.setRead(read);
+            value.setSaved(saved);
+
+            repository.updateGardenNotificationState(
+                    value.getId(),
+                    read,
+                    saved
+            );
+
+            notifyNotificationsChanged();
         }
     }
     public List<GardenNotification> localNotifications() { return store.load(); }
@@ -112,7 +144,14 @@ public final class GardenNotificationManager {
     public void restoreCloudBackup(Consumer<Integer> completed) {
         repository.loadGardenNotifications(values -> {
             int imported = store.mergeFromCloud(values);
-            if (completed != null) completed.accept(imported);
+
+            if (imported > 0) {
+                notifyNotificationsChanged();
+            }
+
+            if (completed != null) {
+                completed.accept(imported);
+            }
         });
     }
 
@@ -137,9 +176,17 @@ public final class GardenNotificationManager {
                     .putExtra("source_key", value.getSource_key())
                     .putExtra("created_at_epoch", value.getCreated_at_epoch()).putExtra("read", value.isRead()).putExtra("saved", value.isSaved());
         }
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pending = PendingIntent.getActivity(context, value.getId().hashCode(), intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Intent mainIntent = new Intent(context, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addNextIntent(mainIntent);
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent pending = stackBuilder.getPendingIntent(
+                value.getId().hashCode(),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
         boolean urgent = "HIGH".equals(value.getPriority());
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, PHONE_CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle(value.getTitle()).setContentText(value.getDescription())
@@ -153,5 +200,11 @@ public final class GardenNotificationManager {
         NotificationChannel channel = new NotificationChannel(PHONE_CHANNEL, "AVORA bahçe bildirimleri", NotificationManager.IMPORTANCE_DEFAULT);
         channel.setDescription("Sulama, gübreleme, Bitki Asistanı, stok ve cihaz bildirimleri");
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+    }
+
+    private void notifyNotificationsChanged() {
+        Intent intent = new Intent(ACTION_NOTIFICATIONS_CHANGED);
+        intent.setPackage(context.getPackageName());
+        context.sendBroadcast(intent);
     }
 }

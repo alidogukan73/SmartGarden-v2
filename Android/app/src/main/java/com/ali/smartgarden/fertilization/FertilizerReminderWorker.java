@@ -389,9 +389,14 @@ public class FertilizerReminderWorker extends Worker {
             String plantType,
             String growthStage
     ) {
-        FertilizerRecommendation direct = snapshot.getValue(
-                FertilizerRecommendation.class
-        );
+        FertilizerRecommendation direct = null;
+
+        if (snapshot.hasChild("product_id")) {
+            direct = snapshot.getValue(
+                    FertilizerRecommendation.class
+            );
+        }
+
         if (direct != null
                 && direct.getProduct_id() != null
                 && !direct.getProduct_id().isBlank()) {

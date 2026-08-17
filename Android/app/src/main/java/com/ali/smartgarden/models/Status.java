@@ -1,31 +1,26 @@
 package com.ali.smartgarden.models;
 
 import com.google.firebase.database.PropertyName;
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 public class Status {
 
     private boolean online;
-
     private boolean relay;
-
     private String version;
 
     private String last_seen;
-
     private String last_sensor_read;
-
     private String last_watering;
-
     private String watering_state;
-
     private String last_error;
-
     private String error_incident_id;
 
     private long restart_count;
-
     private long cooldown_remaining;
-
     private long last_seen_epoch;
+
     private String active_valve_id = "";
     private boolean valve_open;
     private String valve_mode = "";
@@ -40,20 +35,32 @@ public class Status {
     }
 
     @PropertyName("last_seen_epoch")
-    public void setLastSeenEpoch(long last_seen_epoch) {
-        this.last_seen_epoch = last_seen_epoch;
+    public void setLastSeenEpoch(long lastSeenEpoch) {
+        this.last_seen_epoch = lastSeenEpoch;
     }
 
     public boolean isOnline() {
         return online;
     }
 
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
     public boolean isRelay() {
         return relay;
     }
 
+    public void setRelay(boolean relay) {
+        this.relay = relay;
+    }
+
     public String getVersion() {
         return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     @PropertyName("last_seen")
@@ -62,24 +69,48 @@ public class Status {
     }
 
     @PropertyName("last_seen")
-    public void setLastSeen(String last_seen) {
-        this.last_seen = last_seen;
+    public void setLastSeen(String lastSeen) {
+        this.last_seen = lastSeen;
     }
 
+    @PropertyName("last_sensor_read")
     public String getLastSensorRead() {
         return last_sensor_read;
     }
 
+    @PropertyName("last_sensor_read")
+    public void setLastSensorRead(String lastSensorRead) {
+        this.last_sensor_read = lastSensorRead;
+    }
+
+    @PropertyName("last_watering")
     public String getLastWatering() {
         return last_watering;
     }
 
+    @PropertyName("last_watering")
+    public void setLastWatering(String lastWatering) {
+        this.last_watering = lastWatering;
+    }
+
+    @PropertyName("watering_state")
     public String getWateringState() {
         return watering_state;
     }
 
+    @PropertyName("watering_state")
+    public void setWateringState(String wateringState) {
+        this.watering_state = wateringState;
+    }
+
+    @PropertyName("last_error")
     public String getLastError() {
         return last_error;
+    }
+
+    @PropertyName("last_error")
+    public void setLastError(String lastError) {
+        this.last_error = lastError;
     }
 
     @PropertyName("error_incident_id")
@@ -87,53 +118,29 @@ public class Status {
         return error_incident_id;
     }
 
-    public long getRestartCount() {
-        return restart_count;
-    }
-
-    public long getCooldownRemaining() {
-        return cooldown_remaining;
-    }
-
-    public void setOnline(boolean online) {
-        this.online = online;
-    }
-
-    public void setRelay(boolean relay) {
-        this.relay = relay;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public void setLastSensorRead(String last_sensor_read) {
-        this.last_sensor_read = last_sensor_read;
-    }
-
-    public void setLastWatering(String last_watering) {
-        this.last_watering = last_watering;
-    }
-
-    public void setWateringState(String watering_state) {
-        this.watering_state = watering_state;
-    }
-
-    public void setLastError(String last_error) {
-        this.last_error = last_error;
-    }
-
     @PropertyName("error_incident_id")
     public void setErrorIncidentId(String errorIncidentId) {
         this.error_incident_id = errorIncidentId;
     }
 
-    public void setRestartCount(long restart_count) {
-        this.restart_count = restart_count;
+    @PropertyName("restart_count")
+    public long getRestartCount() {
+        return restart_count;
     }
 
-    public void setCooldownRemaining(long cooldown_remaining) {
-        this.cooldown_remaining = cooldown_remaining;
+    @PropertyName("restart_count")
+    public void setRestartCount(long restartCount) {
+        this.restart_count = restartCount;
+    }
+
+    @PropertyName("cooldown_remaining")
+    public long getCooldownRemaining() {
+        return cooldown_remaining;
+    }
+
+    @PropertyName("cooldown_remaining")
+    public void setCooldownRemaining(long cooldownRemaining) {
+        this.cooldown_remaining = cooldownRemaining;
     }
 
     @PropertyName("active_valve_id")

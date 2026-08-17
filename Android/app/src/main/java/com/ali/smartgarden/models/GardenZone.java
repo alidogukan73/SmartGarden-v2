@@ -1,5 +1,7 @@
 package com.ali.smartgarden.models;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+@IgnoreExtraProperties
 public class GardenZone {
 
     private String zone_id;

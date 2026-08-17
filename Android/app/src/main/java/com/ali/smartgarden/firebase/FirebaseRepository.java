@@ -1,6 +1,8 @@
 package com.ali.smartgarden.firebase;
 
 import android.util.Log;
+import android.content.Context;
+import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -1248,30 +1250,50 @@ public class FirebaseRepository {
          }
       });
    }
-   public Task<Void> savePushToken(String token) {
-      if (token != null && !token.isBlank()) {
-         Map<String, Object> values = new HashMap();
-         values.put("token", token);
-         values.put("updated_at_epoch", ServerValue.TIMESTAMP);
-         values.put("platform", "android");
-         return this.pushTokensRef.child(stableTokenKey(token)).setValue(values);
-      } else {
-         return Tasks.forException(new IllegalArgumentException("Push token is required"));
+   public Task<Void> savePushToken(Context context, String token) {
+      if (token == null || token.isBlank()) {
+         return Tasks.forException(
+                 new IllegalArgumentException("Push token is required")
+         );
       }
+
+      Map<String, Object> values = new HashMap<>();
+      values.put("token", token);
+      values.put("updated_at_epoch", ServerValue.TIMESTAMP);
+      values.put("platform", "android");
+
+      String key = stableDeviceKey(context);
+
+      return this.pushTokensRef
+              .child(key)
+              .setValue(values);
    }
 
-   private static String stableTokenKey(String token) {
+   private static String stableDeviceKey(Context context) {
       try {
-         byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
+         String androidId = Settings.Secure.getString(
+                 context.getContentResolver(),
+                 Settings.Secure.ANDROID_ID
+         );
+
+         if (androidId == null || androidId.isBlank()) {
+            throw new IllegalStateException("ANDROID_ID unavailable");
+         }
+
+         byte[] digest = MessageDigest
+                 .getInstance("SHA-256")
+                 .digest(androidId.getBytes(StandardCharsets.UTF_8));
+
          StringBuilder key = new StringBuilder("android_");
 
-         for(byte value : digest) {
+         for (byte value : digest) {
             key.append(String.format("%02x", value));
          }
 
          return key.toString();
-      } catch (Exception var7) {
-         return "android_" + Integer.toHexString(token.hashCode());
+
+      } catch (Exception e) {
+         return "android_device_unknown";
       }
    }
 
