@@ -66,6 +66,16 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         restoreCloudBackup();
         renderPhonePermission();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
+
+        findViewById(R.id.btnOpenReminderSettings)
+                .setOnClickListener(view ->
+                        startActivity(
+                                new Intent(
+                                        this,
+                                        ReminderSettingsActivity.class
+                                )
+                        )
+                );
     }
 
     @Override

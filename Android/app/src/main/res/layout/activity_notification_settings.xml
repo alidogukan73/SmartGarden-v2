@@ -197,6 +197,14 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenReminderSettings"
+                style="@style/Widget.SmartGarden.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/reminder_settings_title" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenNotificationCenter"
                 style="@style/Widget.SmartGarden.Button.Outlined"
                 android:layout_width="match_parent"

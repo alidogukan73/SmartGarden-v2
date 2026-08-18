@@ -93,10 +93,6 @@ public class ReminderSettingsActivity extends AppCompatActivity {
         });
         quietStart.setOnClickListener(view -> pickTime(true));
         quietEnd.setOnClickListener(view -> pickTime(false));
-        findViewById(R.id.btnSaveReminderSettings).setOnClickListener(view -> {
-            syncAndSchedule();
-            Toast.makeText(this, R.string.reminder_settings_saved, Toast.LENGTH_SHORT).show();
-        });
     }
 
     private void renderLocalValues() {

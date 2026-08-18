@@ -3,7 +3,9 @@ package com.ali.smartgarden.activities;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.view.View;
 
+import androidx.appcompat.widget.PopupMenu;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +19,6 @@ import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.google.android.material.button.MaterialButton;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,8 +30,6 @@ public class NotificationDetailActivity extends AppCompatActivity {
 
     private GardenNotification value;
     private GardenNotificationManager manager;
-    private MaterialButton saveButton;
-    private MaterialButton readButton;
     private TextView zoneView;
 
     @Override
@@ -41,7 +40,16 @@ public class NotificationDetailActivity extends AppCompatActivity {
         applyWindowInsets();
 
         manager = new GardenNotificationManager(this);
-        value = notificationFromIntent();
+
+        GardenNotification intentValue =
+                notificationFromIntent();
+
+        GardenNotification currentValue =
+                manager.findLocalById(intentValue.getId());
+
+        value = currentValue != null
+                ? currentValue
+                : intentValue;
         bindViews();
         renderNotification();
         observeZoneName();
@@ -49,7 +57,6 @@ public class NotificationDetailActivity extends AppCompatActivity {
 
         manager.setState(value, true, value.isSaved());
         value.setRead(true);
-        renderState();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.NOTIFICATIONS);
     }
 
@@ -65,22 +72,67 @@ public class NotificationDetailActivity extends AppCompatActivity {
     }
 
     private GardenNotification notificationFromIntent() {
-        GardenNotification notification = new GardenNotification();
-        notification.setId(getIntent().getStringExtra("id"));
-        notification.setType(getIntent().getStringExtra("type"));
-        notification.setPriority(getIntent().getStringExtra("priority"));
-        notification.setZone_id(getIntent().getStringExtra("zone_id"));
-        notification.setTitle(getIntent().getStringExtra("title"));
-        notification.setDescription(getIntent().getStringExtra("description"));
-        notification.setCreated_at_epoch(getIntent().getLongExtra("created_at_epoch", 0L));
-        notification.setRead(getIntent().getBooleanExtra("read", false));
-        notification.setSaved(getIntent().getBooleanExtra("saved", false));
+
+        GardenNotification notification =
+                new GardenNotification();
+
+        notification.setId(
+                safe(getIntent().getStringExtra("id"))
+        );
+
+        notification.setType(
+                safe(getIntent().getStringExtra("type"))
+        );
+
+        notification.setPriority(
+                safe(getIntent().getStringExtra("priority"))
+        );
+
+        notification.setZone_id(
+                safe(getIntent().getStringExtra("zone_id"))
+        );
+
+        notification.setTitle(
+                safe(getIntent().getStringExtra("title"))
+        );
+
+        notification.setDescription(
+                safe(getIntent().getStringExtra("description"))
+        );
+
+        notification.setSource_key(
+                safe(getIntent().getStringExtra("source_key"))
+        );
+
+        notification.setCreated_at_epoch(
+                getIntent().getLongExtra(
+                        "created_at_epoch",
+                        0L
+                )
+        );
+
+        notification.setRead(
+                getIntent().getBooleanExtra(
+                        "read",
+                        false
+                )
+        );
+
+        notification.setSaved(
+                getIntent().getBooleanExtra(
+                        "saved",
+                        false
+                )
+        );
+
         return notification;
     }
 
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
     private void bindViews() {
-        saveButton = findViewById(R.id.btnNotificationSave);
-        readButton = findViewById(R.id.btnNotificationMarkRead);
         zoneView = findViewById(R.id.txtNotificationDetailZone);
     }
 
@@ -138,27 +190,35 @@ public class NotificationDetailActivity extends AppCompatActivity {
     }
 
     private void configureActions() {
-        findViewById(R.id.btnNotificationDetailBack).setOnClickListener(view -> finish());
-        saveButton.setOnClickListener(view -> {
-            value.setSaved(!value.isSaved());
-            manager.setState(value, value.isRead(), value.isSaved());
-            renderState();
-        });
-        readButton.setOnClickListener(view -> {
-            value.setRead(true);
-            manager.setState(value, true, value.isSaved());
-            renderState();
-        });
+        findViewById(R.id.btnNotificationDetailBack)
+                .setOnClickListener(view -> finish());
+
+        findViewById(R.id.btnNotificationDetailMenu)
+                .setOnClickListener(this::showNotificationMenu);
     }
 
-    private void renderState() {
-        saveButton.setText(value.isSaved()
-                ? R.string.notification_detail_saved
-                : R.string.notification_detail_save);
-        readButton.setText(value.isRead()
-                ? R.string.notification_detail_read
-                : R.string.notification_detail_mark_read);
-        readButton.setEnabled(!value.isRead());
+    private void showNotificationMenu(View anchor) {
+        PopupMenu popupMenu = new PopupMenu(this, anchor);
+
+        String title = value.isSaved()
+                ? "Kaydı kaldır"
+                : "Kaydet";
+
+        popupMenu.getMenu().add(title);
+
+        popupMenu.setOnMenuItemClickListener(item -> {
+            value.setSaved(!value.isSaved());
+
+            manager.setState(
+                    value,
+                    true,
+                    value.isSaved()
+            );
+
+            return true;
+        });
+
+        popupMenu.show();
     }
 
     private String formatDate(long epochSeconds) {

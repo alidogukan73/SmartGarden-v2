@@ -53,9 +53,22 @@
                     android:text="@string/notification_detail_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
 
-                <View
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotificationDetailMenu"
+                    style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="44dp"
-                    android:layout_height="1dp" />
+                    android:layout_height="44dp"
+                    android:contentDescription="Bildirim menüsü"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="⋮"
+                    android:textSize="24sp"
+                    android:textColor="@color/textPrimary"
+                    app:backgroundTint="@android:color/transparent"
+                    app:cornerRadius="22dp"
+                    app:rippleColor="@color/accentLight" />
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -190,7 +203,6 @@
                         android:textColor="@color/textPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
-
                     <TextView
                         android:id="@+id/txtNotificationDetailDescription"
                         android:layout_width="match_parent"
@@ -207,30 +219,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNotificationSave"
-                    style="@style/Widget.SmartGarden.Button.Outlined"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:text="@string/notification_detail_save" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNotificationMarkRead"
-                    style="@style/Widget.SmartGarden.Button.Secondary"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:text="@string/notification_detail_mark_read" />
-            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

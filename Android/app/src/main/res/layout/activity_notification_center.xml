@@ -20,16 +20,18 @@
                 android:layout_height="52dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
                 <TextView
                     android:id="@+id/btnNotificationBack"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:gravity="center"
                     android:clickable="true"
-                    android:focusable="true"
                     android:contentDescription="Geri"
+                    android:focusable="true"
+                    android:gravity="center"
                     android:text="@string/symbol_back_arrow"
                     android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -37,13 +39,27 @@
                     android:gravity="center"
                     android:text="Bildirimler"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
-                <TextView
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/btnNotificationClear"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="⚙"
-                    android:textSize="20sp"
-                    android:textColor="@color/textSecondary" />
+                    android:clickable="true"
+                    android:contentDescription="Bildirimleri temizle"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_delete_24" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/btnNotificationSettings"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:clickable="true"
+                    android:contentDescription="Bildirim ayarları"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_settings_24" />
+
             </LinearLayout>
             <TextView
                 android:id="@+id/txtNotificationSummary"
@@ -96,12 +112,13 @@
                         android:text="Filtrele" />
                 </LinearLayout>
             </HorizontalScrollView>
-            <LinearLayout
-                android:id="@+id/layoutNotificationList"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listNotifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:orientation="vertical" />
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never" />
             <TextView
                 android:id="@+id/txtNotificationEmpty"
                 android:layout_width="match_parent"

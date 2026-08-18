@@ -23,6 +23,7 @@ import com.ali.smartgarden.adapters.FertilizerHistoryAdapter;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
+import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -79,7 +80,14 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         pendingOutcomeApplicationId = safe(
                 getIntent().getStringExtra("outcome_application_id")
         );
+        String notificationId = safe(
+                getIntent().getStringExtra("notification_id")
+        );
 
+        if (!notificationId.isBlank()) {
+            new GardenNotificationManager(this)
+                    .markRead(notificationId);
+        }
         findViewById(R.id.btnBack).setOnClickListener(
                 view -> finish()
         );

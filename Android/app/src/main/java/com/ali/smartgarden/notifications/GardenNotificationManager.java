@@ -21,11 +21,13 @@ import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.activities.MainActivity;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 /** Single entry point for all future AVORA notification sources. */
 public final class GardenNotificationManager {
     private static final String PHONE_CHANNEL = "avora_garden_alerts";
+    private static final String PHONE_CHANNEL_URGENT = "avora_garden_alerts_urgent";
     private static final String INCIDENT_PREFS = "avora_notification_incidents";
     public static final String ACTION_NOTIFICATIONS_CHANGED = "com.ali.smartgarden.NOTIFICATIONS_CHANGED";
     static final long DEVICE_INCIDENT_REMINDER_MILLIS = 6L * 60L * 60L * 1000L;
@@ -139,6 +141,144 @@ public final class GardenNotificationManager {
         }
     }
     public List<GardenNotification> localNotifications() { return store.load(); }
+
+    public GardenNotification findLocalById(String id) {
+
+        if (id == null || id.isBlank()) {
+            return null;
+        }
+
+        for (GardenNotification value : store.load()) {
+
+            if (value != null && id.equals(value.getId())) {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    public void markRead(String id) {
+
+        GardenNotification value = findLocalById(id);
+
+        if (value == null || value.isRead()) {
+            return;
+        }
+
+        setState(
+                value,
+                true,
+                value.isSaved()
+        );
+    }
+    public void deleteNotification(
+            GardenNotification value,
+            Consumer<Boolean> completed
+    ) {
+        if (value == null
+                || value.getId() == null
+                || value.getId().isBlank()) {
+
+            if (completed != null) {
+                completed.accept(false);
+            }
+
+            return;
+        }
+
+        List<String> ids = new ArrayList<>();
+        ids.add(value.getId());
+
+        List<GardenNotification> removable = new ArrayList<>();
+        removable.add(value);
+
+        repository.deleteGardenNotifications(ids)
+                .addOnSuccessListener(unused -> {
+
+                    // Aynı olay tekrar üretilmesin.
+                    store.rememberDismissed(removable);
+
+                    /*
+                     * Firebase listener bildirimi bizden önce
+                     * local store'dan kaldırmış olabilir.
+                     * Bu nedenle removed == 0 hata değildir.
+                     */
+                    store.removeAll(ids);
+
+                    NotificationManagerCompat
+                            .from(context)
+                            .cancel(value.getId().hashCode());
+
+                    notifyNotificationsChanged();
+
+                    /*
+                     * Firebase silme işlemi başarılıysa
+                     * operasyon başarılı kabul edilir.
+                     */
+                    if (completed != null) {
+                        completed.accept(true);
+                    }
+                })
+                .addOnFailureListener(error -> {
+
+                    if (completed != null) {
+                        completed.accept(false);
+                    }
+                });
+    }
+    public void clearUnsavedNotifications(Consumer<Integer> completed) {
+
+        List<GardenNotification> current = store.load();
+        List<GardenNotification> removable = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+
+        for (GardenNotification value : current) {
+            if (value == null) continue;
+
+            if (!value.isSaved()
+                    && value.getId() != null
+                    && !value.getId().isBlank()) {
+
+                removable.add(value);
+                ids.add(value.getId());
+            }
+        }
+
+        if (ids.isEmpty()) {
+            if (completed != null) completed.accept(0);
+            return;
+        }
+
+        repository.deleteGardenNotifications(ids)
+                .addOnSuccessListener(unused -> {
+
+                    // Kullanıcının sildiği olayları hatırla.
+                    store.rememberDismissed(removable);
+
+                    int removed = store.removeAll(ids);
+
+                    NotificationManagerCompat notificationManager =
+                            NotificationManagerCompat.from(context);
+
+                    for (GardenNotification value : removable) {
+                        notificationManager.cancel(
+                                value.getId().hashCode()
+                        );
+                    }
+
+                    notifyNotificationsChanged();
+
+                    if (completed != null) {
+                        completed.accept(removed);
+                    }
+                })
+                .addOnFailureListener(error -> {
+                    if (completed != null) {
+                        completed.accept(-1);
+                    }
+                });
+    }
     public void syncLocalBackup() { for (GardenNotification value : store.load()) repository.saveGardenNotification(value); }
     /** Restores backed-up history on another phone, then keeps any local-only alerts. */
     public void restoreCloudBackup(Consumer<Integer> completed) {
@@ -160,7 +300,6 @@ public final class GardenNotificationManager {
         if (value == null || !new NotificationSettingsStore(context).shouldShowPhoneAlert(value.getType())) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
-        ensurePhoneChannel();
         String applicationId = FertilizerOutcomeFollowUpPolicy.applicationIdFromSource(
                 value.getSource_key()
         );
@@ -168,7 +307,8 @@ public final class GardenNotificationManager {
         if (!applicationId.isBlank()) {
             intent = new Intent(context, FertilizerHistoryActivity.class)
                     .putExtra("outcome_application_id", applicationId)
-                    .putExtra("zone_id", value.getZone_id());
+                    .putExtra("zone_id", value.getZone_id())
+                    .putExtra("notification_id", value.getId());
         } else {
             intent = new Intent(context, NotificationDetailActivity.class)
                     .putExtra("id", value.getId()).putExtra("type", value.getType()).putExtra("priority", value.getPriority())
@@ -187,24 +327,93 @@ public final class GardenNotificationManager {
                 value.getId().hashCode(),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        boolean urgent = "HIGH".equals(value.getPriority());
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(context, PHONE_CHANNEL)
-                .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle(value.getTitle()).setContentText(value.getDescription())
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(value.getDescription())).setAutoCancel(true)
-                .setPriority(urgent ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT).setContentIntent(pending);
-        NotificationManagerCompat.from(context).notify(value.getId().hashCode(), notification.build());
+        boolean urgent =
+                "HIGH".equalsIgnoreCase(value.getPriority());
+
+        ensurePhoneChannels();
+
+        String channelId = urgent
+                ? PHONE_CHANNEL_URGENT
+                : PHONE_CHANNEL;
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, channelId)
+                        .setSmallIcon(R.drawable.ic_avora_notification_small)
+                        .setColor(
+                                ContextCompat.getColor(
+                                        context,
+                                        R.color.homeGardenPlanIcon
+                                )
+                        )
+                        .setContentTitle(value.getTitle())
+                        .setContentText(value.getDescription())
+                        .setStyle(
+                                new NotificationCompat.BigTextStyle()
+                                        .bigText(value.getDescription())
+                        )
+                        .setAutoCancel(true)
+                        .setContentIntent(pending);
+
+        NotificationManagerCompat.from(context).notify(
+                value.getId().hashCode(),
+                builder.build()
+        );
     }
 
-    private void ensurePhoneChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-        NotificationChannel channel = new NotificationChannel(PHONE_CHANNEL, "AVORA bahçe bildirimleri", NotificationManager.IMPORTANCE_DEFAULT);
-        channel.setDescription("Sulama, gübreleme, Bitki Asistanı, stok ve cihaz bildirimleri");
-        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+    private void ensurePhoneChannels() {
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+
+        NotificationManager manager =
+                (NotificationManager) context.getSystemService(
+                        Context.NOTIFICATION_SERVICE
+                );
+
+        if (manager == null) {
+            return;
+        }
+
+        NotificationChannel normal =
+                new NotificationChannel(
+                        PHONE_CHANNEL,
+                        "AVORA bahçe bildirimleri",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                );
+
+        normal.setDescription(
+                "Sulama, gübreleme, Bitki Asistanı, stok ve sistem bildirimleri"
+        );
+
+        manager.createNotificationChannel(normal);
+
+        NotificationChannel urgent =
+                new NotificationChannel(
+                        PHONE_CHANNEL_URGENT,
+                        "AVORA kritik uyarıları",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+
+        urgent.setDescription(
+                "Acil cihaz, kritik stok ve gecikmiş işlem uyarıları"
+        );
+
+        urgent.enableVibration(true);
+
+        manager.createNotificationChannel(urgent);
     }
 
     private void notifyNotificationsChanged() {
         Intent intent = new Intent(ACTION_NOTIFICATIONS_CHANGED);
         intent.setPackage(context.getPackageName());
         context.sendBroadcast(intent);
+    }
+
+    public void applyCloudSnapshot(
+            List<GardenNotification> values
+    ) {
+        store.reconcileCloudSnapshot(values);
+        notifyNotificationsChanged();
     }
 }

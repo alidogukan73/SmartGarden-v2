@@ -3,22 +3,33 @@ package com.ali.smartgarden.activities;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+
+import com.ali.smartgarden.notifications.NotificationSwipeCallback;
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.notifications.NotificationCenterAdapter;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.firebase.FirebaseRepository;
+
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
+
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -29,23 +40,112 @@ import java.util.Set;
 /** Chronological AVORA notification center with state and category filters. */
 public class NotificationCenterActivity extends AppCompatActivity {
     private static final String ALL = "ALL", SAVED = "SAVED", READ = "READ", UNREAD = "UNREAD";
-    private LinearLayout list;
+    private RecyclerView list;
+    private NotificationCenterAdapter adapter;
     private TextView summary, empty;
     private GardenNotificationManager manager;
     private String statusFilter = ALL;
     private final Set<String> categoryFilters = new HashSet<>();
+    private final BroadcastReceiver notificationChangedReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    render(manager.localNotifications());
+                }
+            };
     private MaterialButton all, saved, read, unread, category;
 
     @Override public void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_notification_center);
         manager = new GardenNotificationManager(this);
-        list = findViewById(R.id.layoutNotificationList);
+        new FirebaseRepository()
+                .observeGardenNotifications()
+                .observe(this, values -> {
+
+                    if (values == null) {
+                        return;
+                    }
+
+                    manager.applyCloudSnapshot(values);
+                    render(manager.localNotifications());
+                });
+        list = findViewById(R.id.listNotifications);
+
+        adapter = new NotificationCenterAdapter(
+                this,
+                new NotificationCenterAdapter.Listener() {
+
+                    @Override
+                    public void onNotificationClick(
+                            GardenNotification value
+                    ) {
+
+                        openDetail(value);
+                    }
+
+                    @Override
+                    public void onSaveClick(
+                            GardenNotification value
+                    ) {
+
+                        manager.setState(
+                                value,
+                                value.isRead(),
+                                !value.isSaved()
+                        );
+
+                        render(
+                                manager.localNotifications()
+                        );
+                    }
+
+                    @Override
+                    public void onDeleteClick(
+                            GardenNotification value
+                    ) {
+
+                        confirmDeleteNotification(
+                                value
+                        );
+                    }
+                }
+        );
+
+        list.setLayoutManager(
+                new LinearLayoutManager(this)
+        );
+
+        list.setAdapter(adapter);
+        NotificationSwipeCallback swipeCallback =
+                new NotificationSwipeCallback(
+                        adapter
+                );
+
+        new ItemTouchHelper(
+                swipeCallback
+        ).attachToRecyclerView(list);
+
+        new ItemTouchHelper(
+                swipeCallback
+        ).attachToRecyclerView(list);
         summary = findViewById(R.id.txtNotificationSummary);
         empty = findViewById(R.id.txtNotificationEmpty);
-        findViewById(R.id.btnNotificationBack).setOnClickListener(v -> finish());
-        ((ViewGroup) findViewById(R.id.btnNotificationBack).getParent()).getChildAt(2)
-                .setOnClickListener(v -> startActivity(new Intent(this, NotificationSettingsActivity.class)));
+        findViewById(R.id.btnNotificationBack)
+                .setOnClickListener(v -> finish());
+
+        findViewById(R.id.btnNotificationSettings)
+                .setOnClickListener(v ->
+                        startActivity(
+                                new Intent(
+                                        this,
+                                        NotificationSettingsActivity.class
+                                )
+                        )
+                );
+
+        findViewById(R.id.btnNotificationClear)
+                .setOnClickListener(v -> showClearNotificationsDialog());
         all = findViewById(R.id.btnNotificationFilterAll);
         saved = findViewById(R.id.btnNotificationFilterSaved);
         read = findViewById(R.id.btnNotificationFilterRead);
@@ -59,34 +159,97 @@ public class NotificationCenterActivity extends AppCompatActivity {
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.NOTIFICATIONS);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        ContextCompat.registerReceiver(
+                this,
+                notificationChangedReceiver,
+                new IntentFilter(
+                        GardenNotificationManager.ACTION_NOTIFICATIONS_CHANGED
+                ),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        );
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(notificationChangedReceiver);
+        super.onStop();
+    }
+
     @Override protected void onResume() {
         super.onResume();
-        manager.syncLocalBackup();
-        manager.restoreCloudBackup(imported -> runOnUiThread(() -> render(manager.localNotifications())));
         render(manager.localNotifications());
+
+        manager.restoreCloudBackup(imported ->
+                runOnUiThread(() -> {
+
+                    render(manager.localNotifications());
+
+                    // Önce cloud state alındıktan sonra
+                    // local-only kayıtları yedekle.
+                    manager.syncLocalBackup();
+                })
+        );
     }
 
     private void render(List<GardenNotification> values) {
-        list.removeAllViews();
-        int unreadCount = 0, shown = 0;
-        String lastDay = "";
-        for (GardenNotification value : values) {
-            if (!value.isRead()) unreadCount++;
-            if (!matches(value)) continue;
-            shown++;
-            String day = dayLabel(value.getCreated_at_epoch());
-            if (!day.equals(lastDay)) {
-                TextView header = text(day, 15, R.color.textPrimary);
-                header.setTypeface(null, android.graphics.Typeface.BOLD);
-                header.setPadding(0, dp(14), 0, dp(7));
-                list.addView(header);
-                lastDay = day;
+
+        List<GardenNotification> visible =
+                new ArrayList<>();
+
+        int unreadCount = 0;
+
+        if (values != null) {
+
+            for (GardenNotification value : values) {
+
+                if (value == null) {
+                    continue;
+                }
+
+                if (!matches(value)) {
+                    continue;
+                }
+
+                visible.add(value);
+
+                if (!value.isRead()) {
+                    unreadCount++;
+                }
             }
-            list.addView(card(value));
         }
-        summary.setText(shown + " bildirim g\u00f6steriliyor" + (unreadCount == 0 ? ". T\u00fcm\u00fc okundu." : " \u00b7 " + unreadCount + " okunmam\u0131\u015f."));
-        empty.setVisibility(shown == 0 ? View.VISIBLE : View.GONE);
-        empty.setText(values.isEmpty() ? "Hen\u00fcz bildirim yok." : "Bu filtreye uygun bildirim bulunamad\u0131.");
+
+        adapter.submitList(visible);
+
+        int shown = visible.size();
+
+        summary.setText(
+                shown
+                        + " bildirim gösteriliyor"
+                        + (
+                        unreadCount == 0
+                                ? ". Tümü okundu."
+                                : " · "
+                                  + unreadCount
+                                  + " okunmamış."
+                )
+        );
+
+        empty.setVisibility(
+                shown == 0
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+
+        empty.setText(
+                values == null || values.isEmpty()
+                        ? "Henüz bildirim yok."
+                        : "Bu filtreye uygun bildirim bulunamadı."
+        );
+
         updateFilterButtons();
     }
 
@@ -102,6 +265,78 @@ public class NotificationCenterActivity extends AppCompatActivity {
         render(manager.localNotifications());
     }
 
+    private void showClearNotificationsDialog() {
+
+        List<GardenNotification> notifications =
+                manager.localNotifications();
+
+        int removableCount = 0;
+
+        for (GardenNotification value : notifications) {
+            if (value != null && !value.isSaved()) {
+                removableCount++;
+            }
+        }
+
+        if (removableCount == 0) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Bildirimleri temizle")
+                    .setMessage(
+                            "Silinebilecek bildirim yok.\n\n" +
+                                    "Kaydedilmiş bildirimler korunuyor."
+                    )
+                    .setPositiveButton("Tamam", null)
+                    .show();
+
+            return;
+        }
+
+        int finalRemovableCount = removableCount;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Bildirimleri temizle")
+                .setMessage(
+                        finalRemovableCount +
+                                " bildirim kalıcı olarak silinecek.\n\n" +
+                                "Kaydedilmiş bildirimler korunacak."
+                )
+                .setNegativeButton("İptal", null)
+                .setPositiveButton("Temizle", (dialog, which) -> {
+
+                    manager.clearUnsavedNotifications(result ->
+
+                            runOnUiThread(() -> {
+
+                                if (result < 0) {
+
+                                    new AlertDialog.Builder(this)
+                                            .setTitle("Silinemedi")
+                                            .setMessage(
+                                                    "Bildirimler silinirken " +
+                                                            "Firebase bağlantı hatası oluştu."
+                                            )
+                                            .setPositiveButton("Tamam", null)
+                                            .show();
+
+                                    return;
+                                }
+
+                                render(manager.localNotifications());
+
+                                new AlertDialog.Builder(this)
+                                        .setTitle("Bildirimler temizlendi")
+                                        .setMessage(
+                                                result +
+                                                        " bildirim silindi.\n\n" +
+                                                        "Kaydedilmiş bildirimler korundu."
+                                        )
+                                        .setPositiveButton("Tamam", null)
+                                        .show();
+                            })
+                    );
+                })
+                .show();
+    }
     private void showCategoryFilter() {
         String[] labels = {"Sulama", "G\u00fcbreleme", "Bitki Asistan\u0131", "Hava durumu", "Cihaz ve sistem", "Stok"};
         String[] keys = {"irrigation", "fertilization", "plant", "weather", "device", "stock"};
@@ -128,36 +363,6 @@ public class NotificationCenterActivity extends AppCompatActivity {
         button.setBackgroundTintList(ColorStateList.valueOf(getColor(active ? R.color.surfaceGreen : R.color.card)));
         button.setStrokeColor(ColorStateList.valueOf(getColor(active ? R.color.primary : R.color.border)));
         button.setTextColor(getColor(active ? R.color.primary : R.color.textPrimary));
-    }
-
-    private View card(GardenNotification value) {
-        MaterialCardView card = new MaterialCardView(this);
-        card.setRadius(dp(16));
-        card.setCardBackgroundColor(getColor(value.isRead() ? R.color.card : R.color.surfaceGreen));
-        card.setStrokeColor(getColor(R.color.border));
-        card.setStrokeWidth(dp(1));
-        LinearLayout.LayoutParams outer = new LinearLayout.LayoutParams(-1, -2);
-        outer.bottomMargin = dp(8);
-        card.setLayoutParams(outer);
-        LinearLayout row = new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(13), dp(12), dp(13), dp(12));
-        TextView icon = text(icon(value.getType()), 23, R.color.primary);
-        icon.setGravity(Gravity.CENTER);
-        row.addView(icon, new LinearLayout.LayoutParams(dp(42), dp(48)));
-        LinearLayout info = new LinearLayout(this);
-        info.setOrientation(LinearLayout.VERTICAL);
-        TextView title = text(value.getTitle(), 14, R.color.textPrimary);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        TextView description = text(value.getDescription(), 12, R.color.textSecondary);
-        description.setMaxLines(2);
-        info.addView(title); info.addView(description);
-        row.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView time = text(new SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(new Date(value.getCreated_at_epoch() * 1000L)), 11, R.color.textSecondary);
-        row.addView(time);
-        card.setOnClickListener(v -> openDetail(value));
-        card.addView(row);
-        return card;
     }
 
     private void openDetail(GardenNotification value) {
@@ -196,6 +401,52 @@ public class NotificationCenterActivity extends AppCompatActivity {
         if ("DEVICE".equals(type)) return "\u25A3";
         return "\u2022";
     }
-    private TextView text(String value, int size, int color) { TextView view = new TextView(this); view.setText(value); view.setTextSize(size); view.setTextColor(getColor(color)); return view; }
-    private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
+    private void confirmDeleteNotification(
+            GardenNotification value
+    ) {
+
+        new AlertDialog.Builder(this)
+                .setTitle("Bildirimi sil")
+                .setMessage(
+                        "Bu bildirimi kalıcı olarak silmek istiyor musunuz?"
+                )
+                .setNegativeButton(
+                        "İptal",
+                        null
+                )
+                .setPositiveButton(
+                        "Sil",
+                        (dialog, which) ->
+
+                                manager.deleteNotification(
+                                        value,
+                                        success ->
+
+                                                runOnUiThread(() -> {
+
+                                                    if (!success) {
+
+                                                        new AlertDialog.Builder(this)
+                                                                .setTitle("Silinemedi")
+                                                                .setMessage(
+                                                                        "Bildirim silinirken Firebase bağlantı hatası oluştu."
+                                                                )
+                                                                .setPositiveButton(
+                                                                        "Tamam",
+                                                                        null
+                                                                )
+                                                                .show();
+
+                                                        return;
+                                                    }
+
+                                                    render(
+                                                            manager.localNotifications()
+                                                    );
+                                                })
+                                )
+                )
+                .show();
+    }
 }

@@ -1151,6 +1151,25 @@ public class FirebaseRepository {
       return notification != null && !notification.getId().isBlank() ? this.notificationsRef.child(notification.getId()).setValue(notification) : Tasks.forException(new IllegalArgumentException("Notification id is required"));
    }
 
+   public Task<Void> deleteGardenNotifications(List<String> ids) {
+      if (ids == null || ids.isEmpty()) {
+         return Tasks.forResult(null);
+      }
+
+      Map<String, Object> updates = new HashMap<>();
+
+      for (String id : ids) {
+         if (id != null && !id.isBlank()) {
+            updates.put(id, null);
+         }
+      }
+
+      if (updates.isEmpty()) {
+         return Tasks.forResult(null);
+      }
+
+      return this.notificationsRef.updateChildren(updates);
+   }
    public Task<Void> updateGardenNotificationState(String id, boolean read, boolean saved) {
       if (id != null && !id.isBlank()) {
          Map<String, Object> values = new HashMap();

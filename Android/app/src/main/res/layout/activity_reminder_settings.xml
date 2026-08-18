@@ -279,14 +279,6 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveReminderSettings"
-                style="@style/Widget.SmartGarden.Button.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
-                android:text="@string/reminder_save" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
