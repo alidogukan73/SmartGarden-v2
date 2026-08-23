@@ -382,6 +382,35 @@ def run_short_pulse_scenario(
         recommendation,
     )
 
+def run_high_confidence_runtime_scenario(
+    engine: AdaptiveIrrigationEngine,
+) -> None:
+    """Verify that only mature evidence becomes runtime-applicable."""
+
+    records = [
+        create_record(
+            duration=10,
+            moisture_before=30,
+            moisture_after=31,
+        )
+        for _ in range(15)
+    ]
+    recommendation = engine.analyze(
+        records=records,
+        current_pump_duration_seconds=10,
+        current_cooldown_seconds=600,
+    )
+
+    assert recommendation.confidence >= engine.HIGH_CONFIDENCE
+    assert recommendation.should_apply is True
+    assert recommendation.recommended_pump_duration_seconds == 12
+
+    print_recommendation(
+        "Scenario 7 - Mature evidence enables safe runtime refinement",
+        recommendation,
+    )
+
+
 
 def main() -> None:
     """
@@ -411,6 +440,10 @@ def main() -> None:
     )
 
     run_short_pulse_scenario(
+        engine
+    )
+
+    run_high_confidence_runtime_scenario(
         engine
     )
 

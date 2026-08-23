@@ -17,6 +17,7 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DecisionStepAdapter
         extends RecyclerView.Adapter<DecisionStepAdapter.DecisionStepViewHolder> {
@@ -50,24 +51,42 @@ public class DecisionStepAdapter
     }
 
     /**
-     * RecyclerView içeriğini yeniler.
+     * RecyclerView içeriğini yalnız gerçekten değişen satırlarda yeniler.
+     *
+     * Önceki uygulama her Firebase güncellemesinde bütün satırları kaldırıp
+     * yeniden ekliyordu. Bu davranış RecyclerView geçiş animasyonlarını
+     * tetiklediği için AI Karar Akışı kartı yanıp sönüyormuş gibi görünüyordu.
      */
     public void submitList(List<DecisionStep> newSteps) {
-        int previousSize = decisionSteps.size();
+        List<DecisionStep> safeSteps =
+                newSteps == null ? new ArrayList<>() : new ArrayList<>(newSteps);
 
-        decisionSteps.clear();
-
-        if (previousSize > 0) {
-            notifyItemRangeRemoved(0, previousSize);
+        if (decisionSteps.size() != safeSteps.size()) {
+            decisionSteps.clear();
+            decisionSteps.addAll(safeSteps);
+            notifyDataSetChanged();
+            return;
         }
 
-        if (newSteps != null) {
-            decisionSteps.addAll(newSteps);
-        }
+        for (int index = 0; index < safeSteps.size(); index++) {
+            DecisionStep current = decisionSteps.get(index);
+            DecisionStep updated = safeSteps.get(index);
 
-        if (!decisionSteps.isEmpty()) {
-            notifyItemRangeInserted(0, decisionSteps.size());
+            if (!hasSameContent(current, updated)) {
+                decisionSteps.set(index, updated);
+                notifyItemChanged(index);
+            }
         }
+    }
+
+    private boolean hasSameContent(DecisionStep first, DecisionStep second) {
+        return first.getStepNumber() == second.getStepNumber()
+                && first.getIconResource() == second.getIconResource()
+                && Objects.equals(first.getTitle(), second.getTitle())
+                && Objects.equals(first.getDescription(), second.getDescription())
+                && Objects.equals(first.getBadgeText(), second.getBadgeText())
+                && first.getStatus() == second.getStatus()
+                && first.isShowBottomLine() == second.isShowBottomLine();
     }
 
     static class DecisionStepViewHolder extends RecyclerView.ViewHolder {

@@ -41,3 +41,9 @@ class CommandState:
     zone_test_duration: int = 10
     zone_test_cancel_requested: bool = False
     zone_test_requested_at_ms: int = 0
+
+    # One-shot reset of one zone's transient irrigation-assistant state.
+    irrigation_assistant_reset_requested: bool = False
+    irrigation_assistant_reset_request_id: str = ""
+    irrigation_assistant_reset_zone_id: str = ""
+    irrigation_assistant_reset_requested_at_ms: int = 0

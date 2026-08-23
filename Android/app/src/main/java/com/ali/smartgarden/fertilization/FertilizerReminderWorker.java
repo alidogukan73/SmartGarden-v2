@@ -1,26 +1,16 @@
 package com.ali.smartgarden.fertilization;
 
-import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
+import com.ali.smartgarden.notifications.NotificationPolicy;
 import com.ali.smartgarden.notifications.NotificationSettingsStore;
-import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.activities.FertilizationCalendarActivity;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerApplicationSchedule;
@@ -46,10 +36,10 @@ import java.util.Map;
 public class FertilizerReminderWorker extends Worker {
 
     private static final String DEVICE_ID = "smartgarden-001";
-    private static final String CHANNEL_ID =
-            "fertilizer_reminders";
     private static final String PREFS =
             "fertilizer_reminder_state";
+    private static final String AI_STATE_PREFS =
+            "fertilizer_ai_notification_state";
 
     public FertilizerReminderWorker(
             @NonNull Context context,
@@ -62,7 +52,6 @@ public class FertilizerReminderWorker extends Worker {
     @Override
     public Result doWork() {
         Context context = getApplicationContext();
-        createChannel(context);
         NotificationSettingsStore notificationSettings =
                 new NotificationSettingsStore(context);
         if (!(notificationSettings.isCategoryEnabled("fertilization")
@@ -104,6 +93,10 @@ public class FertilizerReminderWorker extends Worker {
                         FertilizerProduct.class
                 );
                 if (product != null) {
+                    if (product.getProduct_id() == null
+                            || product.getProduct_id().isBlank()) {
+                        product.setProduct_id(child.getKey());
+                    }
                     products.put(
                             safe(product.getProduct_id(), child.getKey()),
                             product
@@ -118,14 +111,34 @@ public class FertilizerReminderWorker extends Worker {
                     "",
                     ""
             );
+            List<FertilizerApplication> history = new ArrayList<>();
+            collectHistory(historySnapshot, history);
+            notifyLowStockProducts(context, products);
             for (DataSnapshot child : snapshot.getChildren()) {
                 GardenZone zone = child.getValue(GardenZone.class);
+                if (zone != null && (zone.getZone_id() == null
+                        || zone.getZone_id().isBlank())) {
+                    zone.setZone_id(child.getKey());
+                }
+                FertilizerAdvice advice = zone == null
+                        ? null
+                        : FertilizerDecisionEngine.advise(
+                        zone,
+                        new ArrayList<>(products.values()),
+                        null,
+                        history,
+                        Instant.now().getEpochSecond(),
+                        new FertilizationPreferenceStore(context)
+                                .preferOrganicInputs()
+                );
                 notifyIfDue(
                         context,
                         zone,
                         products,
-                        recommendations
+                        recommendations,
+                        advice
                 );
+                notifyAiAdvice(context, zone, history, advice);
             }
             notifyOutcomeFollowUps(context, historySnapshot, snapshot);
             return Result.success();
@@ -134,8 +147,47 @@ public class FertilizerReminderWorker extends Worker {
         }
     }
 
-    private void notifyOutcomeFollowUps(
+    /**
+     * Inventory safety is independent from a zone schedule. A product may fall
+     * below its threshold after a manual or bulk application even when no next
+     * application date exists, so check every enabled product once per worker run.
+     */
+    private void notifyLowStockProducts(
             Context context,
+            Map<String, FertilizerProduct> products
+    ) {
+        NotificationSettingsStore settings = new NotificationSettingsStore(context);
+        if (!settings.isCategoryEnabled("stock") || products == null) return;
+
+        GardenNotificationManager manager = new GardenNotificationManager(context);
+        for (Map.Entry<String, FertilizerProduct> entry : products.entrySet()) {
+            FertilizerProduct product = entry.getValue();
+            if (product == null || !product.isEnabled()
+                    || product.getLow_stock_threshold() <= 0.0
+                    || product.getStock_amount() > product.getLow_stock_threshold()) {
+                continue;
+            }
+            String productId = safe(product.getProduct_id(), safe(entry.getKey(), "unknown"));
+            manager.publishOnce(
+                    "STOCK",
+                    "HIGH",
+                    "",
+                    context.getString(
+                            R.string.notification_fertilizer_low_stock_title,
+                            safe(product.getName(), productId)
+                    ),
+                    context.getString(
+                            R.string.notification_fertilizer_low_stock_description,
+                            format(product.getStock_amount()),
+                            safe(product.getStock_unit(), ""),
+                            format(product.getLow_stock_threshold())
+                    ),
+                    "low_stock:" + productId + ":" + LocalDate.now()
+            );
+        }
+    }
+
+    private void notifyOutcomeFollowUps(            Context context,
             DataSnapshot historySnapshot,
             DataSnapshot zonesSnapshot
     ) {
@@ -181,37 +233,65 @@ public class FertilizerReminderWorker extends Worker {
             Context context,
             GardenZone zone,
             Map<String, FertilizerProduct> products,
-            List<FertilizerRecommendation> recommendations
+            List<FertilizerRecommendation> recommendations,
+            FertilizerAdvice advice
     ) {
         if (zone == null || !zone.isEnabled()) {
             return;
         }
         FertilizationProfile profile = zone.getFertilization();
-        if (profile == null || !profile.isEnabled() || !profile.isReminder_enabled()) {
+        if (profile == null || !profile.isEnabled() || !profile.isReminder_enabled()
+                || FertilizerStagePolicy.SEASON_END.equals(
+                        FertilizerStagePolicy.normalize(profile.getGrowth_stage())
+                )) {
             return;
         }
 
-        if (profile.getApplication_schedules() != null
-                && !profile.getApplication_schedules().isEmpty()) {
-            for (Map.Entry<String, FertilizerApplicationSchedule> entry
-                    : profile.getApplication_schedules().entrySet()) {
-                FertilizerApplicationSchedule schedule = entry.getValue();
-                if (schedule == null) continue;
-                String productId = safe(schedule.getProduct_id(), "");
-                if (productId.isBlank() && "NUTRITION".equals(entry.getKey())) {
-                    productId = safe(profile.getActive_product_id(), "");
-                }
-                if (productId.isBlank()) {
-                    productId = productIdByName(products, schedule.getProduct_name());
-                }
-                notifySchedule(context, zone, profile, products, recommendations,
-                        entry.getKey(), productId, schedule.getNext_application_at_epoch());
-            }
+        FertilizerAdvice.Recommendation next = advice == null
+                ? FertilizerAdvice.Recommendation.none()
+                : advice.getRecommendation();
+        if (!next.isAvailable()) {
             return;
         }
-        notifySchedule(context, zone, profile, products, recommendations,
-                "NUTRITION", safe(profile.getActive_product_id(), ""),
-                profile.getNext_application_at_epoch());
+        boolean applicationDecisionReady = "BUGÜNKÜ ÖNERİ".equals(
+                advice.getStatus()
+        ) && next.isApplicationReady();
+        if (next.getWaitDays() <= 0L && !applicationDecisionReady) {
+            return;
+        }
+
+        String applicationType = safe(
+                next.getApplicationType(),
+                "NUTRITION"
+        );
+        long nextApplicationEpoch = 0L;
+        FertilizerApplicationSchedule schedule =
+                profile.getApplication_schedules() == null
+                        ? null
+                        : profile.getApplication_schedules().get(applicationType);
+        if (schedule != null) {
+            nextApplicationEpoch = schedule.getNext_application_at_epoch();
+        } else if ("NUTRITION".equals(applicationType)) {
+            nextApplicationEpoch = profile.getNext_application_at_epoch();
+        }
+        if (nextApplicationEpoch <= 0L && applicationDecisionReady) {
+            nextApplicationEpoch = Instant.now().getEpochSecond();
+        }
+        if (nextApplicationEpoch <= 0L) {
+            return;
+        }
+
+        notifySchedule(
+                context,
+                zone,
+                profile,
+                products,
+                recommendations,
+                applicationType,
+                next.getNeed(),
+                next.getProductId(),
+                nextApplicationEpoch
+        );
     }
 
     private void notifySchedule(
@@ -221,6 +301,7 @@ public class FertilizerReminderWorker extends Worker {
             Map<String, FertilizerProduct> products,
             List<FertilizerRecommendation> recommendations,
             String applicationType,
+            String need,
             String productId,
             long nextApplicationEpoch
     ) {
@@ -244,11 +325,16 @@ public class FertilizerReminderWorker extends Worker {
         }
 
         String zoneName = safe(zone.getName(), zoneId);
-        String title = days == 0L ? "Gübre uygulaması bugün"
-                : days == -1L ? "Nazik gübre hatırlatması"
-                : "Son gübre hatırlatması";
-        String message = zoneName + " için " + applicationTypeLabel(applicationType)
-                + " uygulaması kaydı bekleniyor.";
+        String title = days == 0L
+                ? context.getString(R.string.notification_fertilizer_due_today_title)
+                : days == -1L
+                ? context.getString(R.string.notification_fertilizer_gentle_title)
+                : context.getString(R.string.notification_fertilizer_final_title);
+        String message = context.getString(
+                R.string.notification_fertilizer_waiting_description,
+                zoneName,
+                safe(need, applicationTypeLabel(context, applicationType))
+        );
         FertilizerProduct product = products.get(productId);
         if (product != null) {
             FertilizerApplicationSafety.Dose dose = calculateDose(
@@ -297,16 +383,6 @@ public class FertilizerReminderWorker extends Worker {
 
         NotificationSettingsStore notificationSettings =
                 new NotificationSettingsStore(context);
-        if (notificationSettings.isCategoryEnabled("stock")
-                && product != null && product.getLow_stock_threshold() > 0.0
-                && product.getStock_amount() <= product.getLow_stock_threshold()) {
-            new GardenNotificationManager(context).publishOnce(
-                    "STOCK", "HIGH", zoneId, "Düşük gübre stoğu: " + product.getName(),
-                    "Mevcut stok " + format(product.getStock_amount()) + " " + safe(product.getStock_unit(), "")
-                            + ". Uyarı sınırı " + format(product.getLow_stock_threshold()) + ".",
-                    "low_stock:" + product.getProduct_id() + ":" + LocalDate.now()
-            );
-        }
 
         if (notificationSettings.isCategoryEnabled("fertilization")
                 && notificationSettings.isReminderEnabled("fertilization")) {
@@ -329,11 +405,17 @@ public class FertilizerReminderWorker extends Worker {
         return days == -7L ? "final" : null;
     }
 
-    private static String applicationTypeLabel(String type) {
-        if ("ORGANIC".equals(type)) return "organik gübre";
-        if ("CONDITIONER".equals(type)) return "toprak düzenleyici";
-        if ("BIOSTIMULANT".equals(type)) return "biyostimülant desteği";
-        return "besleme gübresi";
+    private static String applicationTypeLabel(Context context, String type) {
+        if ("ORGANIC".equals(type)) {
+            return context.getString(R.string.notification_fertilizer_type_organic);
+        }
+        if ("CONDITIONER".equals(type)) {
+            return context.getString(R.string.notification_fertilizer_type_conditioner);
+        }
+        if ("BIOSTIMULANT".equals(type)) {
+            return context.getString(R.string.notification_fertilizer_type_biostimulant);
+        }
+        return context.getString(R.string.notification_fertilizer_type_nutrition);
     }
 
     private static String productIdByName(Map<String, FertilizerProduct> products,
@@ -417,32 +499,125 @@ public class FertilizerReminderWorker extends Worker {
         }
     }
 
+    private static void collectHistory(
+            DataSnapshot snapshot,
+            List<FertilizerApplication> output
+    ) {
+        if (snapshot == null || !snapshot.exists()) return;
+        if (snapshot.hasChild("applied_at_epoch")
+                || snapshot.hasChild("product_id")) {
+            FertilizerApplication application = snapshot.getValue(
+                    FertilizerApplication.class
+            );
+            if (application != null) {
+                if (application.getApplication_id() == null
+                        || application.getApplication_id().isBlank()) {
+                    application.setApplication_id(snapshot.getKey());
+                }
+                output.add(application);
+            }
+            return;
+        }
+        for (DataSnapshot child : snapshot.getChildren()) {
+            collectHistory(child, output);
+        }
+    }
+
+    private void notifyAiAdvice(
+            Context context,
+            GardenZone zone,
+            List<FertilizerApplication> history,
+            FertilizerAdvice advice
+    ) {
+        if (zone == null || !zone.isEnabled() || advice == null) return;
+        NotificationSettingsStore settings = new NotificationSettingsStore(context);
+        if (!settings.isCategoryEnabled("fertilization")
+                || !settings.isReminderEnabled("fertilization")) {
+            return;
+        }
+
+
+        String zoneId = safe(zone.getZone_id(), "unknown");
+        String stateKey = "fertilizer_ai:" + zoneId;
+        SharedPreferences state = context.getSharedPreferences(
+                AI_STATE_PREFS,
+                Context.MODE_PRIVATE
+        );
+        if (!NotificationPolicy.isActionableFertilizerAdvice(advice.getStatus())) {
+            state.edit().remove(stateKey).apply();
+            return;
+        }
+
+        String stage = zone.getFertilization() == null
+                ? ""
+                : safe(zone.getFertilization().getGrowth_stage(), "");
+        String leadingCandidate = advice.getCandidates().isEmpty()
+                ? ""
+                : safe(advice.getCandidates().get(0), "");
+        String legacyFingerprint = stage + "|" + advice.getStatus() + "|" + leadingCandidate;
+        long latestApplicationEpoch = latestApplicationEpoch(history, zoneId);
+        String fingerprint = legacyFingerprint + "|" + latestApplicationEpoch;
+        String previousFingerprint = state.getString(stateKey, "");
+        if (fingerprint.equals(previousFingerprint)) return;
+        // Existing installations used a fingerprint without the latest application time.
+        // Upgrade it silently so updating the app does not replay an old AI suggestion.
+        if (legacyFingerprint.equals(previousFingerprint)) {
+            state.edit().putString(stateKey, fingerprint).apply();
+            return;
+        }
+
+        String title;
+        String priority = "NORMAL";
+        switch (advice.getStatus()) {
+            case "ORGANİK ÜRÜN GEREKİYOR":
+                title = context.getString(R.string.notification_fertilizer_ai_organic_title);
+                priority = "HIGH";
+                break;
+            case "ÖNCE SULAMA":
+                title = context.getString(R.string.notification_fertilizer_ai_water_first_title);
+                priority = "HIGH";
+                break;
+            case "HAZIRLIK GEREKİYOR":
+                title = context.getString(R.string.notification_fertilizer_ai_preparation_title);
+                break;
+            default:
+                title = context.getString(R.string.notification_fertilizer_ai_ready_title);
+                break;
+        }
+        String zoneName = safe(zone.getName(), zoneId);
+        new GardenNotificationManager(context).publishOnce(
+                "FERTILIZATION",
+                priority,
+                zoneId,
+                title,
+                context.getString(
+                        R.string.notification_fertilizer_ai_description,
+                        zoneName,
+                        safe(advice.getReason(), advice.getStatus())
+                ),
+                "fertilizer_ai:" + zoneId + ":"
+                        + Integer.toHexString(fingerprint.hashCode())
+        );
+        state.edit().putString(stateKey, fingerprint).apply();
+    }
+
+    private static long latestApplicationEpoch(
+            List<FertilizerApplication> history,
+            String zoneId
+    ) {
+        long latest = 0L;
+        if (history == null || zoneId == null || zoneId.isBlank()) return latest;
+        for (FertilizerApplication application : history) {
+            if (application == null || !zoneId.equals(application.getZone_id())) continue;
+            latest = Math.max(latest, application.getApplied_at_epoch());
+        }
+        return latest;
+    }
+
     private static String format(double value) {
         return value == Math.rint(value)
                 ? String.format(Locale.getDefault(), "%.0f", value)
                 : String.format(Locale.getDefault(), "%.1f", value);
-    }
-
-    private static void createChannel(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return;
-        }
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                context.getString(
-                        R.string.fertilizer_notification_channel
-                ),
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        channel.setDescription(
-                context.getString(
-                        R.string.fertilizer_notification_channel_description
-                )
-        );
-        NotificationManager manager = context.getSystemService(
-                NotificationManager.class
-        );
-        manager.createNotificationChannel(channel);
     }
 
     private static String safe(String value, String fallback) {

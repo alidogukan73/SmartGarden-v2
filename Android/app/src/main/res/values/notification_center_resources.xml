@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_center_title">Bildirimler</string>
+    <string name="notification_center_back">Geri</string>
+    <string name="notification_center_clear_cd">Bildirimleri temizle</string>
+    <string name="notification_center_settings_cd">Bildirim ayarları</string>
+    <string name="notification_center_filter_all">Tümü</string>
+    <string name="notification_center_filter_saved">Kaydedilenler</string>
+    <string name="notification_center_filter_read">Okundu</string>
+    <string name="notification_center_filter_unread">Okunmadı</string>
+    <string name="notification_center_filter_category">Kategori</string>
+    <string name="notification_center_filter_category_count">Kategori (%1$d)  ▾</string>
+    <string name="notification_center_filter_category_menu">Kategori  ▾</string>
+    <string name="notification_center_empty">Henüz bildirim yok. Bahçenizde önemli bir gelişme olduğunda burada göreceksiniz.</string>
+    <string name="notification_center_filtered_empty">Bu filtreye uygun bildirim bulunamadı.</string>
+    <string name="notification_center_summary_all_read">%1$d bildirim gösteriliyor. Tümü okundu.</string>
+    <string name="notification_center_summary_unread">%1$d bildirim gösteriliyor · %2$d okunmamış.</string>
+    <string name="notification_center_clear_title">Bildirimleri temizle</string>
+    <string name="notification_center_clear_none">Silinebilecek bildirim yok.\n\nKaydedilmiş bildirimler korunuyor.</string>
+    <string name="notification_center_clear_confirmation">%1$d bildirim kalıcı olarak silinecek.\n\nKaydedilmiş bildirimler korunacak.</string>
+    <string name="notification_center_clear_failed_title">Silinemedi</string>
+    <string name="notification_center_clear_failed_message">Bildirimler silinirken Firebase bağlantı hatası oluştu.</string>
+    <string name="notification_center_clear_success_title">Bildirimler temizlendi</string>
+    <string name="notification_center_clear_success_message">%1$d bildirim silindi.\n\nKaydedilmiş bildirimler korundu.</string>
+    <string name="notification_center_delete_title">Bildirimi sil</string>
+    <string name="notification_center_delete_message">Bu bildirimi kalıcı olarak silmek istiyor musunuz?</string>
+    <string name="notification_center_delete_failed_message">Bildirim silinirken Firebase bağlantı hatası oluştu.</string>
+    <string name="notification_center_action_ok">Tamam</string>
+    <string name="notification_center_action_cancel">İptal</string>
+    <string name="notification_center_action_clear">Temizle</string>
+    <string name="notification_center_action_delete">Sil</string>
+    <string name="notification_center_category_irrigation">Sulama</string>
+    <string name="notification_center_category_fertilization">Gübreleme</string>
+    <string name="notification_center_category_plant_assistant">Bitki Asistanı</string>
+    <string name="notification_center_category_weather">Hava durumu</string>
+    <string name="notification_center_category_device">Cihaz ve sistem</string>
+    <string name="notification_center_category_stock">Stok</string>
+    <string name="notification_center_today">Bugün</string>
+    <string name="notification_center_yesterday">Dün</string>
+</resources>

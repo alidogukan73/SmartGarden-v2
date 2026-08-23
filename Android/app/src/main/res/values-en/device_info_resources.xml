@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_info_title">Device Information</string>
+    <string name="device_info_intro_title">AVORA device summary</string>
+    <string name="device_info_intro_message">Identity, connection and attached hardware information is shown live.</string>
+    <string name="device_info_status_waiting">Checking connection</string>
+    <string name="device_info_status_online">Device connected</string>
+    <string name="device_info_status_offline">Device connection is not current</string>
+    <string name="device_info_summary_online">Raspberry Pi connection is current.</string>
+    <string name="device_info_summary_offline">Waiting for a live connection.</string>
+    <string name="device_info_read_error">Device information is currently unavailable.</string>
+    <string name="device_info_identity_section">Device Identity</string>
+    <string name="device_info_device_id">Device ID</string>
+    <string name="device_info_backend_version">Raspberry Pi backend version</string>
+    <string name="device_info_esp_firmware">ESP32 sensor firmware</string>
+    <string name="device_info_connection_section">Connection</string>
+    <string name="device_info_ip_address">Local IP address</string>
+    <string name="device_info_last_connection">Last connection</string>
+    <string name="device_info_uptime">Uptime</string>
+    <string name="device_info_hardware_section">Connected Hardware</string>
+    <string name="device_info_zone_count">Active zones</string>
+    <string name="device_info_sensor_count">Active sensors</string>
+    <string name="device_info_valve_count">Physical valves</string>
+    <string name="device_info_zone_count_value">%1$d zones</string>
+    <string name="device_info_sensor_count_value">%1$d sensors</string>
+    <string name="device_info_valve_count_value">%1$d valves</string>
+    <string name="device_info_details_section">Detailed View</string>
+    <string name="device_info_open_health">View Device Health</string>
+    <string name="device_info_open_health_subtitle">Temperature, memory, disk and power alerts</string>
+    <string name="device_info_open_sensors">View Sensor Points</string>
+    <string name="device_info_open_sensors_subtitle">Zone sensor connections and measurements</string>
+    <string name="device_info_waiting">Waiting</string>
+    <string name="device_info_unavailable">No information</string>
+    <string name="device_info_sensor_firmware_waiting">Waiting for firmware version from sensors</string>
+    <string name="device_info_duration_days">%1$d d %2$d h</string>
+    <string name="device_info_duration_hours">%1$d h %2$d min</string>
+    <string name="device_info_duration_minutes">%1$d min</string>
+    <string name="device_info_chevron">&#8250;</string>
+</resources>

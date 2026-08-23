@@ -463,23 +463,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:gravity="center_vertical"
+                    android:gravity="center"
                     android:orientation="horizontal"
                     android:paddingStart="15dp"
                     tools:ignore="RtlSymmetry">
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="44dp"
-                        android:layout_height="44dp"
+                        android:layout_height="42dp"
                         android:contentDescription="@null"
                         android:scaleType="centerInside"
                         android:scaleX="2.05"
                         android:scaleY="2.05"
-                        android:translationY="7dp"
+                        android:translationY="2dp"
                         android:src="@mipmap/ic_launcher_foreground" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
+                        android:gravity="center_vertical"
                         android:orientation="vertical">
                         <TextView
                             android:layout_width="wrap_content"
@@ -493,6 +494,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:includeFontPadding="false"
                             android:maxLines="1"
                             android:text="@string/app_subtitle"
                             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />

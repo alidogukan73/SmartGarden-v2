@@ -21,7 +21,6 @@ import com.ali.smartgarden.activities.PlantListActivity;
 import com.ali.smartgarden.activities.SeasonReportActivity;
 import com.ali.smartgarden.activities.SettingsHubActivity;
 import com.ali.smartgarden.activities.StatisticsActivity;
-import com.ali.smartgarden.activities.WateringControlActivity;
 import com.ali.smartgarden.activities.WateringHistoryActivity;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -46,7 +45,6 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         bind(view, R.id.menuCardPlantAssistant, PlantAssistantActivity.class);
         bind(view, R.id.menuCardAIAssistant, AIAssistantActivity.class);
         bind(view, R.id.menuCardFertilization, FertilizationCalendarActivity.class);
-        bind(view, R.id.menuCardWateringControl, WateringControlActivity.class);
         bind(view, R.id.menuCardStatistics, StatisticsActivity.class);
         bind(view, R.id.menuCardHistory, WateringHistoryActivity.class);
         bind(view, R.id.menuCardPlantJournal, PlantListActivity.class);

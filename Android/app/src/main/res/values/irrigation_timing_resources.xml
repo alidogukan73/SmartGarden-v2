@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="irrigation_timing_title">Akıllı sulama zamanı</string>
+    <string name="irrigation_timing_description">Açık alanda güneş, sıcaklık, rüzgâr ve yağış tahminine göre daha güvenli sulama saatini seçer.</string>
+    <string name="irrigation_timing_enabled">Uygun zamanı AVORA seçsin</string>
+    <string name="irrigation_timing_enabled_description">Kritik kurulukta beklemez; diğer durumlarda serin saatleri planlar.</string>
+    <string name="irrigation_timing_environment">Yetiştirme ortamı</string>
+    <string name="irrigation_timing_environment_open_field">Açık alan</string>
+    <string name="irrigation_timing_environment_greenhouse">Sera</string>
+    <string name="irrigation_timing_environment_indoor">Kapalı alan</string>
+    <string name="irrigation_timing_strategy">Zamanlama biçimi</string>
+    <string name="irrigation_timing_strategy_smart">Akıllı — hava ve güneşe göre</string>
+    <string name="irrigation_timing_strategy_morning">Yalnız sabah</string>
+    <string name="irrigation_timing_strategy_custom">Kullanıcı saat aralığı</string>
+    <string name="irrigation_timing_strategy_immediate">Bekletmeden sula</string>
+    <string name="irrigation_timing_max_defer">En fazla erteleme</string>
+    <string name="irrigation_timing_max_defer_description">Normal kurulukta uygun saat için en fazla ne kadar bekleneceği.</string>
+    <string name="irrigation_timing_minutes_format">%1$d dk</string>
+    <string name="irrigation_timing_hours_format">%1$d sa</string>
+    <string name="irrigation_timing_hours_minutes_format">%1$d sa %2$d dk</string>
+    <string name="irrigation_timing_critical_deficit">Kritik kuruluk farkı</string>
+    <string name="irrigation_timing_critical_deficit_description">Nem hedefin bu kadar altına düşerse zaman beklenmeden güvenlik kontrolü yapılır.</string>
+    <string name="irrigation_timing_evening_allowed">Akşam sulamasına izin ver</string>
+    <string name="irrigation_timing_evening_description">Sabah uygun değilse gün batımı sonrasındaki serin pencere kullanılabilir.</string>
+    <string name="irrigation_timing_recheck">Zorunlu güvenlik kontrolü</string>
+    <string name="irrigation_timing_recheck_description">Nem, yağış, sensör, vana ve pompa güvenliği tekrar doğrulanır.</string>
+    <string name="irrigation_timing_start_hour">Başlangıç saati</string>
+    <string name="irrigation_timing_end_hour">Bitiş saati</string>
+    <string name="irrigation_timing_hour_format">%1$02d:00</string>
+    <string name="irrigation_timing_saved">Akıllı sulama zamanı ayarları kaydedildi.</string>
+
+    <string name="ai_timing_scheduled">En uygun sulama zamanı: %1$s</string>
+    <string name="ai_timing_scheduled_reason">Açık alan için daha serin, düşük güneşli ve güvenli saat seçildi. Sulama öncesinde nem ve donanım yeniden kontrol edilecek.</string>
+    <string name="ai_timing_critical_immediate">Nem kritik seviyede; uygun saat beklenmeden güvenlik kontrolüne geçildi.</string>
+    <string name="ai_timing_ready_recheck">Planlanan saat geldi. Nem, yağış, sensör, vana ve pompa yeniden kontrol ediliyor.</string>
+    <string name="ai_timing_weather_postponed">Hava koşulları nedeniyle sulama ertelendi. Toprak nemi izlenmeye devam ediyor.</string>
+    <string name="ai_timing_immediate">Zamanlama engeli yok; sulama kararı güvenlik kontrollerine göre uygulanacak.</string>
+    <string name="ai_timing_recheck_note">Sulama başlamadan hemen önce nem, yağış, sensör, vana ve pompa güvenliği zorunlu olarak yeniden doğrulanır.</string>
+    <string name="ai_timing_today_format">bugün %1$s</string>
+    <string name="ai_timing_tomorrow_format">yarın %1$s</string>
+    <string name="ai_timing_date_format">%1$s %2$s</string>
+</resources>

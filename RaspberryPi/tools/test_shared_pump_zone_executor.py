@@ -14,14 +14,24 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-try:
-    import RPi.GPIO  # noqa: F401
-except ModuleNotFoundError:
-    rpi = types.ModuleType("RPi")
-    gpio = types.ModuleType("RPi.GPIO")
-    rpi.GPIO = gpio
-    sys.modules["RPi"] = rpi
-    sys.modules["RPi.GPIO"] = gpio
+# Never allow a regression test to touch the Raspberry Pi GPIO pins. The
+# executor still sees a physical-valve configuration, but every GPIO call is
+# captured by this in-memory module.
+rpi = types.ModuleType("RPi")
+gpio = types.ModuleType("RPi.GPIO")
+gpio.BCM = 11
+gpio.OUT = 1
+gpio.HIGH = 1
+gpio.LOW = 0
+gpio.pin_values = {}
+gpio.setmode = lambda _mode: None
+gpio.setwarnings = lambda _enabled: None
+gpio.setup = lambda pin, _mode: gpio.pin_values.setdefault(pin, gpio.HIGH)
+gpio.output = lambda pin, value: gpio.pin_values.__setitem__(pin, value)
+gpio.cleanup = lambda *_args: gpio.pin_values.clear()
+rpi.GPIO = gpio
+sys.modules["RPi"] = rpi
+sys.modules["RPi.GPIO"] = gpio
 
 from controllers.shared_pump_zone_executor import (
     SharedPumpZoneExecutor,

@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.AppCompatImageView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.GardenNotification;
@@ -176,9 +177,9 @@ public class NotificationCenterAdapter
 
             header.setPadding(
                     0,
-                    dp(14),
+                    dp(2),
                     0,
-                    dp(7)
+                    dp(6)
             );
 
             return new HeaderHolder(header);
@@ -250,7 +251,7 @@ public class NotificationCenterAdapter
         MaterialButton deleteButton =
                 new MaterialButton(context);
 
-        deleteButton.setText("Sil");
+        deleteButton.setText(R.string.notification_center_action_delete);
         deleteButton.setTextSize(12);
         deleteButton.setAllCaps(false);
 
@@ -327,15 +328,19 @@ public class NotificationCenterAdapter
                 dp(12)
         );
 
-        TextView icon =
-                text(
-                        "",
-                        23,
-                        R.color.primary
-                );
+        AppCompatImageView icon =
+                new AppCompatImageView(context);
 
-        icon.setGravity(
-                Gravity.CENTER
+        icon.setScaleType(
+                AppCompatImageView.ScaleType.CENTER_INSIDE
+        );
+
+        icon.setImageTintList(
+                ColorStateList.valueOf(
+                        context.getColor(
+                                R.color.primary
+                        )
+                )
         );
 
         row.addView(
@@ -448,8 +453,16 @@ public class NotificationCenterAdapter
                 )
         );
 
-        h.icon.setText(
-                icon(value.getType())
+        h.icon.setImageResource(
+                iconResource(value)
+        );
+
+        h.icon.setImageTintList(
+                ColorStateList.valueOf(
+                        context.getColor(
+                                iconColor(value)
+                        )
+                )
         );
 
         h.title.setText(
@@ -463,9 +476,7 @@ public class NotificationCenterAdapter
         h.time.setText(
                 new SimpleDateFormat(
                         "HH:mm",
-                        Locale.forLanguageTag(
-                                "tr-TR"
-                        )
+                        Locale.getDefault()
                 ).format(
                         new Date(
                                 value.getCreated_at_epoch()
@@ -476,8 +487,8 @@ public class NotificationCenterAdapter
 
         h.saveButton.setText(
                 value.isSaved()
-                        ? "Kaydı kaldır"
-                        : "Kaydet"
+                        ? context.getString(R.string.notification_action_remove_saved)
+                        : context.getString(R.string.notification_action_save)
         );
 
         /*
@@ -579,7 +590,7 @@ public class NotificationCenterAdapter
                 && now.get(java.util.Calendar.DAY_OF_YEAR)
                 == notification.get(java.util.Calendar.DAY_OF_YEAR)) {
 
-            return "Bugün";
+            return context.getString(R.string.notification_center_today);
         }
 
         now.add(
@@ -592,50 +603,67 @@ public class NotificationCenterAdapter
                 && now.get(java.util.Calendar.DAY_OF_YEAR)
                 == notification.get(java.util.Calendar.DAY_OF_YEAR)) {
 
-            return "Dün";
+            return context.getString(R.string.notification_center_yesterday);
         }
 
         return new SimpleDateFormat(
                 "dd MMMM yyyy",
-                Locale.forLanguageTag("tr-TR")
+                Locale.getDefault()
         ).format(
                 new Date(epoch * 1000L)
         );
     }
 
-    private String icon(String type) {
-
-        if ("IRRIGATION".equals(type)) {
-            return "💧";
-        }
-
-        if ("FERTILIZATION".equals(type)) {
-            return "🌱";
-        }
-
-        if ("STOCK".equals(type)) {
-            return "⚠";
-        }
-
-        if ("PHOTO_FOLLOW_UP".equals(type)) {
-            return "📷";
-        }
-
-        if ("PLANT_ASSISTANT".equals(type)) {
-            return "✦";
-        }
-
-        if ("WEATHER".equals(type)) {
-            return "☀";
-        }
+    private int iconResource(GardenNotification value) {
+        if (value == null) return R.drawable.ic_notification_generic_24;
+        String type = normalized(value.getType());
+        String sourceKey = normalized(value.getSource_key());
 
         if ("DEVICE".equals(type)) {
-            return "▣";
+            if (sourceKey.startsWith("DEVICE-RECOVERED:")) {
+                return R.drawable.ic_device_connected_24;
+            }
+            if (sourceKey.startsWith("DEVICE-OFFLINE:")) {
+                return R.drawable.ic_device_disconnected_24;
+            }
+            if (sourceKey.startsWith("DEVICE-ERROR:SENSOR:")) {
+                return R.drawable.ic_sensor_warning_24;
+            }
+            return R.drawable.ic_device_24;
         }
-
-        return "•";
+        if ("IRRIGATION".equals(type)) return R.drawable.ic_water_drop_24;
+        if ("FERTILIZATION".equals(type)) return R.drawable.ic_fertilization_24;
+        if ("STOCK".equals(type)) return R.drawable.ic_stock_warning_24;
+        if ("PHOTO_FOLLOW_UP".equals(type)) return R.drawable.ic_photo_follow_up_24;
+        if ("PLANT".equals(type) || "PLANT_ASSISTANT".equals(type)) return R.drawable.ic_plant_assistant_24;
+        if ("WEATHER".equals(type)) {
+            return sourceKey.startsWith("WEATHER:HEAT:")
+                    ? R.drawable.ic_weather_sunny_24
+                    : R.drawable.ic_weather_cloud_24;
+        }
+        return R.drawable.ic_notification_generic_24;
     }
 
+    private int iconColor(GardenNotification value) {
+        if (value == null) return R.color.primary;
+        String type = normalized(value.getType());
+        String sourceKey = normalized(value.getSource_key());
+
+        if ("DEVICE".equals(type)) {
+            if (sourceKey.startsWith("DEVICE-RECOVERED:")) return R.color.primary;
+            if (sourceKey.startsWith("DEVICE-OFFLINE:")) return R.color.error;
+            if (sourceKey.startsWith("DEVICE-ERROR:")) return R.color.warning;
+        }
+        if ("STOCK".equals(type)) return R.color.warning;
+        if ("WEATHER".equals(type) && sourceKey.startsWith("WEATHER:RAIN:")) {
+            return R.color.warning;
+        }
+        return R.color.primary;
+    }
+
+    private static String normalized(String value) {
+        return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+    }
     private int dp(int value) {
 
         return Math.round(
@@ -702,19 +730,17 @@ public class NotificationCenterAdapter
             extends RecyclerView.ViewHolder {
 
         final MaterialCardView foreground;
-
-        final TextView icon;
+        final AppCompatImageView icon;
         final TextView title;
         final TextView description;
         final TextView time;
-
         final MaterialButton saveButton;
         final MaterialButton deleteButton;
 
         NotificationHolder(
                 View root,
                 MaterialCardView foreground,
-                TextView icon,
+                AppCompatImageView icon,
                 TextView title,
                 TextView description,
                 TextView time,

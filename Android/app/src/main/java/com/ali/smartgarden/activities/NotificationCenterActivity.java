@@ -8,6 +8,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.widget.TextView;
+import android.graphics.drawable.ColorDrawable;
+import android.widget.CheckBox;
+import android.widget.PopupWindow;
+import android.widget.LinearLayout;
 
 import androidx.core.content.ContextCompat;
 import androidx.annotation.Nullable;
@@ -70,6 +74,23 @@ public class NotificationCenterActivity extends AppCompatActivity {
                     manager.applyCloudSnapshot(values);
                     render(manager.localNotifications());
                 });
+        new FirebaseRepository()
+                .observeGardenNotificationDeletions()
+                .observe(this, deletions -> {
+
+                    if (deletions == null
+                            || deletions.isEmpty()) {
+                        return;
+                    }
+
+                    manager.applyCloudDeletions(
+                            deletions
+                    );
+
+                    render(
+                            manager.localNotifications()
+                    );
+                });
         list = findViewById(R.id.listNotifications);
 
         adapter = new NotificationCenterAdapter(
@@ -126,9 +147,6 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 swipeCallback
         ).attachToRecyclerView(list);
 
-        new ItemTouchHelper(
-                swipeCallback
-        ).attachToRecyclerView(list);
         summary = findViewById(R.id.txtNotificationSummary);
         empty = findViewById(R.id.txtNotificationEmpty);
         findViewById(R.id.btnNotificationBack)
@@ -179,20 +197,10 @@ public class NotificationCenterActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
         render(manager.localNotifications());
-
-        manager.restoreCloudBackup(imported ->
-                runOnUiThread(() -> {
-
-                    render(manager.localNotifications());
-
-                    // Önce cloud state alındıktan sonra
-                    // local-only kayıtları yedekle.
-                    manager.syncLocalBackup();
-                })
-        );
     }
 
     private void render(List<GardenNotification> values) {
@@ -227,15 +235,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
         int shown = visible.size();
 
         summary.setText(
-                shown
-                        + " bildirim gösteriliyor"
-                        + (
-                        unreadCount == 0
-                                ? ". Tümü okundu."
-                                : " · "
-                                  + unreadCount
-                                  + " okunmamış."
-                )
+                unreadCount == 0
+                        ? getString(R.string.notification_center_summary_all_read, shown)
+                        : getString(R.string.notification_center_summary_unread, shown, unreadCount)
         );
 
         empty.setVisibility(
@@ -246,8 +248,8 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
         empty.setText(
                 values == null || values.isEmpty()
-                        ? "Henüz bildirim yok."
-                        : "Bu filtreye uygun bildirim bulunamadı."
+                        ? getString(R.string.notification_center_empty)
+                        : getString(R.string.notification_center_filtered_empty)
         );
 
         updateFilterButtons();
@@ -280,12 +282,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
         if (removableCount == 0) {
             new AlertDialog.Builder(this)
-                    .setTitle("Bildirimleri temizle")
-                    .setMessage(
-                            "Silinebilecek bildirim yok.\n\n" +
-                                    "Kaydedilmiş bildirimler korunuyor."
-                    )
-                    .setPositiveButton("Tamam", null)
+                    .setTitle(R.string.notification_center_clear_title)
+                    .setMessage(R.string.notification_center_clear_none)
+                    .setPositiveButton(R.string.notification_center_action_ok, null)
                     .show();
 
             return;
@@ -294,14 +293,10 @@ public class NotificationCenterActivity extends AppCompatActivity {
         int finalRemovableCount = removableCount;
 
         new AlertDialog.Builder(this)
-                .setTitle("Bildirimleri temizle")
-                .setMessage(
-                        finalRemovableCount +
-                                " bildirim kalıcı olarak silinecek.\n\n" +
-                                "Kaydedilmiş bildirimler korunacak."
-                )
-                .setNegativeButton("İptal", null)
-                .setPositiveButton("Temizle", (dialog, which) -> {
+                .setTitle(R.string.notification_center_clear_title)
+                .setMessage(getString(R.string.notification_center_clear_confirmation, finalRemovableCount))
+                .setNegativeButton(R.string.notification_center_action_cancel, null)
+                .setPositiveButton(R.string.notification_center_action_clear, (dialog, which) -> {
 
                     manager.clearUnsavedNotifications(result ->
 
@@ -310,12 +305,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                 if (result < 0) {
 
                                     new AlertDialog.Builder(this)
-                                            .setTitle("Silinemedi")
-                                            .setMessage(
-                                                    "Bildirimler silinirken " +
-                                                            "Firebase bağlantı hatası oluştu."
-                                            )
-                                            .setPositiveButton("Tamam", null)
+                                            .setTitle(R.string.notification_center_clear_failed_title)
+                                            .setMessage(R.string.notification_center_clear_failed_message)
+                                            .setPositiveButton(R.string.notification_center_action_ok, null)
                                             .show();
 
                                     return;
@@ -324,13 +316,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                 render(manager.localNotifications());
 
                                 new AlertDialog.Builder(this)
-                                        .setTitle("Bildirimler temizlendi")
-                                        .setMessage(
-                                                result +
-                                                        " bildirim silindi.\n\n" +
-                                                        "Kaydedilmiş bildirimler korundu."
-                                        )
-                                        .setPositiveButton("Tamam", null)
+                                        .setTitle(R.string.notification_center_clear_success_title)
+                                        .setMessage(getString(R.string.notification_center_clear_success_message, result))
+                                        .setPositiveButton(R.string.notification_center_action_ok, null)
                                         .show();
                             })
                     );
@@ -338,16 +326,196 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 .show();
     }
     private void showCategoryFilter() {
-        String[] labels = {"Sulama", "G\u00fcbreleme", "Bitki Asistan\u0131", "Hava durumu", "Cihaz ve sistem", "Stok"};
-        String[] keys = {"irrigation", "fertilization", "plant", "weather", "device", "stock"};
-        boolean[] checked = new boolean[keys.length];
-        for (int i = 0; i < keys.length; i++) checked[i] = categoryFilters.contains(keys[i]);
-        new AlertDialog.Builder(this).setTitle("Kategorileri filtrele")
-                .setMultiChoiceItems(labels, checked, (dialog, which, isChecked) -> {
-                    if (isChecked) categoryFilters.add(keys[which]); else categoryFilters.remove(keys[which]);
-                })
-                .setNegativeButton("Temizle", (dialog, which) -> { categoryFilters.clear(); render(manager.localNotifications()); })
-                .setPositiveButton("Uygula", (dialog, which) -> render(manager.localNotifications())).show();
+
+        final int popupWidth = dp(240);
+
+        LinearLayout container =
+                new LinearLayout(this);
+
+        container.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        container.setPadding(
+                dp(8),
+                dp(8),
+                dp(8),
+                dp(8)
+        );
+
+        container.setBackgroundColor(
+                getColor(R.color.card)
+        );
+
+        PopupWindow popup =
+                new PopupWindow(
+                        container,
+                        popupWidth,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        true
+                );
+
+        popup.setBackgroundDrawable(
+                new ColorDrawable(
+                        getColor(R.color.card)
+                )
+        );
+
+        popup.setOutsideTouchable(true);
+        popup.setElevation(dp(8));
+
+        /*
+         * Tümü:
+         * seçildiğinde kategori filtresini tamamen temizler.
+         */
+        CheckBox all =
+                createCategoryCheckBox(
+                        getString(R.string.notification_center_filter_all),
+                        categoryFilters.isEmpty()
+                );
+
+        container.addView(all);
+
+        String[] labels = {
+                getString(R.string.notification_center_category_irrigation),
+                getString(R.string.notification_center_category_fertilization),
+                getString(R.string.notification_center_category_plant_assistant),
+                getString(R.string.notification_center_category_weather),
+                getString(R.string.notification_center_category_device),
+                getString(R.string.notification_center_category_stock)
+        };
+
+        String[] keys = {
+                "irrigation",
+                "fertilization",
+                "plant",
+                "weather",
+                "device",
+                "stock"
+        };
+
+        CheckBox[] boxes =
+                new CheckBox[keys.length];
+
+        for (int i = 0; i < keys.length; i++) {
+
+            final String key =
+                    keys[i];
+
+            CheckBox box =
+                    createCategoryCheckBox(
+                            labels[i],
+                            categoryFilters.contains(key)
+                    );
+
+            boxes[i] = box;
+
+            box.setOnClickListener(view -> {
+
+                if (box.isChecked()) {
+
+                    categoryFilters.add(key);
+
+                } else {
+
+                    categoryFilters.remove(key);
+                }
+
+                /*
+                 * Herhangi bir özel kategori seçiliyse
+                 * Tümü işaretli olamaz.
+                 */
+                all.setChecked(
+                        categoryFilters.isEmpty()
+                );
+
+                render(
+                        manager.localNotifications()
+                );
+            });
+
+            container.addView(box);
+        }
+
+        all.setOnClickListener(view -> {
+
+            /*
+             * Tümü = kategori sınırlaması yok.
+             */
+            categoryFilters.clear();
+
+            for (CheckBox box : boxes) {
+                box.setChecked(false);
+            }
+
+            all.setChecked(true);
+
+            render(
+                    manager.localNotifications()
+            );
+        });
+
+        /*
+         * Popup'ın sağ kenarı Kategori butonunun
+         * sağ kenarıyla aynı hizada olsun.
+         */
+        int xOffset =
+                category.getWidth()
+                        - popupWidth;
+
+        popup.showAsDropDown(
+                category,
+                xOffset,
+                dp(4)
+        );
+    }
+
+    private CheckBox createCategoryCheckBox(
+            String text,
+            boolean checked
+    ) {
+
+        CheckBox box =
+                new CheckBox(this);
+
+        box.setText(text);
+        box.setChecked(checked);
+
+        box.setTextColor(
+                getColor(R.color.textPrimary)
+        );
+
+        box.setTextSize(14);
+
+        box.setGravity(
+                android.view.Gravity.CENTER_VERTICAL
+        );
+
+        box.setButtonTintList(
+                android.content.res.ColorStateList.valueOf(
+                        getColor(R.color.primary)
+                )
+        );
+
+        box.setPadding(
+                dp(10),
+                0,
+                dp(10),
+                0
+        );
+
+        box.setMinHeight(
+                dp(44)
+        );
+
+        box.setLayoutParams(
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        dp(44)
+                )
+        );
+
+        return box;
     }
 
     private void updateFilterButtons() {
@@ -355,7 +523,11 @@ public class NotificationCenterActivity extends AppCompatActivity {
         decorate(saved, SAVED.equals(statusFilter));
         decorate(read, READ.equals(statusFilter));
         decorate(unread, UNREAD.equals(statusFilter));
-        category.setText(categoryFilters.isEmpty() ? "Filtrele" : "Kategori (" + categoryFilters.size() + ")");
+        category.setText(
+                categoryFilters.isEmpty()
+                        ? getString(R.string.notification_center_filter_category_menu)
+                        : getString(R.string.notification_center_filter_category_count, categoryFilters.size())
+        );
         decorate(category, !categoryFilters.isEmpty());
     }
 
@@ -387,9 +559,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
     private String dayLabel(long epoch) {
         long today = System.currentTimeMillis() / 86400000L;
         long day = epoch * 1000L / 86400000L;
-        if (day == today) return "Bug\u00fcn";
-        if (day == today - 1) return "D\u00fcn";
-        return new SimpleDateFormat("dd MMMM yyyy", Locale.forLanguageTag("tr-TR")).format(new Date(epoch * 1000L));
+        if (day == today) return getString(R.string.notification_center_today);
+        if (day == today - 1) return getString(R.string.notification_center_yesterday);
+        return new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(new Date(epoch * 1000L));
     }
     private String icon(String type) {
         if ("IRRIGATION".equals(type)) return "\uD83D\uDCA7";
@@ -407,16 +579,14 @@ public class NotificationCenterActivity extends AppCompatActivity {
     ) {
 
         new AlertDialog.Builder(this)
-                .setTitle("Bildirimi sil")
-                .setMessage(
-                        "Bu bildirimi kalıcı olarak silmek istiyor musunuz?"
-                )
+                .setTitle(R.string.notification_center_delete_title)
+                .setMessage(R.string.notification_center_delete_message)
                 .setNegativeButton(
-                        "İptal",
+                        getString(R.string.notification_center_action_cancel),
                         null
                 )
                 .setPositiveButton(
-                        "Sil",
+                        getString(R.string.notification_center_action_delete),
                         (dialog, which) ->
 
                                 manager.deleteNotification(
@@ -428,12 +598,10 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                                     if (!success) {
 
                                                         new AlertDialog.Builder(this)
-                                                                .setTitle("Silinemedi")
-                                                                .setMessage(
-                                                                        "Bildirim silinirken Firebase bağlantı hatası oluştu."
-                                                                )
+                                                                .setTitle(R.string.notification_center_clear_failed_title)
+                                                                .setMessage(R.string.notification_center_delete_failed_message)
                                                                 .setPositiveButton(
-                                                                        "Tamam",
+                                                                        getString(R.string.notification_center_action_ok),
                                                                         null
                                                                 )
                                                                 .show();
@@ -448,5 +616,14 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                 )
                 )
                 .show();
+    }
+    private int dp(int value) {
+
+        return Math.round(
+                value
+                        * getResources()
+                        .getDisplayMetrics()
+                        .density
+        );
     }
 }

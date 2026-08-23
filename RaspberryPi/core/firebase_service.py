@@ -30,6 +30,7 @@ from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from models.watering_record import WateringRecord
 from models.watering_result import WateringResult
+from models.pending_watering_measurement import PendingWateringMeasurement
 from models.watering_statistics import WateringStatistics
 from models.health_status import HealthStatus
 from models.irrigation_decision import IrrigationDecision
@@ -187,6 +188,11 @@ class FirebaseService:
                 "cooldown_seconds": IrrigationConfig.DEFAULT_COOLDOWN_SECONDS,
 
                 # Device restart command
+
+                # One-shot selected-zone assistant reset command.
+                "irrigation_assistant_reset": {
+                    "requested": False,
+                },
                 "restart_device": False,
             },
         )
@@ -848,6 +854,33 @@ class FirebaseService:
 
         self._device_ref().update(updates)
 
+    def update_zone_ai_states(
+        self,
+        states: dict[str, dict],
+        garden_summary: dict,
+    ) -> None:
+        """Publish every zone AI state and the separate garden summary."""
+
+        if not states and not garden_summary:
+            return
+
+        updates: dict[str, object] = {}
+        updated_at = datetime.now().isoformat()
+
+        for zone_id, state in states.items():
+            prefix = f"zones/{zone_id}/ai"
+            for field, value in state.items():
+                updates[f"{prefix}/{field}"] = value
+            updates[f"{prefix}/updated_at"] = updated_at
+
+        if garden_summary:
+            prefix = "ai/garden_summary"
+            for field, value in garden_summary.items():
+                updates[f"{prefix}/{field}"] = value
+            updates[f"{prefix}/updated_at"] = updated_at
+
+        self._device_ref().update(updates)
+
     def update_zone_cooldown(
         self,
         *,
@@ -982,6 +1015,64 @@ class FirebaseService:
     # Watering
     # -------------------------------------------------
 
+    def save_pending_watering(
+        self,
+        pending: PendingWateringMeasurement,
+    ) -> None:
+        self._device_ref().child(
+            f"irrigation_runtime/pending_waterings/{pending.pending_key}"
+        ).set(pending.to_payload())
+
+    def load_pending_waterings(self) -> list[PendingWateringMeasurement]:
+        raw = self._device_ref().child(
+            "irrigation_runtime/pending_waterings"
+        ).get() or {}
+        if not isinstance(raw, dict):
+            return []
+
+        pending_items = []
+        for pending_key, payload in raw.items():
+            if not isinstance(payload, dict):
+                continue
+            normalized = dict(payload)
+            normalized.setdefault("pending_key", str(pending_key))
+            pending = PendingWateringMeasurement.from_payload(normalized)
+            if pending is not None:
+                pending_items.append(pending)
+
+        return sorted(
+            pending_items,
+            key=lambda item: item.finalize_after_epoch,
+        )
+
+    def delete_pending_watering(self, pending_key: str) -> None:
+        if pending_key:
+            self._device_ref().child(
+                f"irrigation_runtime/pending_waterings/{pending_key}"
+            ).delete()
+
+    def update_zone_irrigation_safety_state(
+        self,
+        *,
+        zone_id: str,
+        completed_watering_cycles: int,
+        waiting_for_moisture_recovery: bool,
+    ) -> None:
+        if not zone_id:
+            return
+        self._device_ref().child(
+            f"zones/{zone_id}/irrigation_status"
+        ).update({
+            "completed_watering_cycles": max(
+                0,
+                int(completed_watering_cycles),
+            ),
+            "waiting_for_moisture_recovery": bool(
+                waiting_for_moisture_recovery
+            ),
+            "safety_state_updated_at_epoch": int(time.time()),
+        })
+
     def save_watering(
         self,
         result: WateringResult,
@@ -990,6 +1081,16 @@ class FirebaseService:
         """
         Save all watering related data.
         """
+        history_ref = self._device_ref().child(
+            f"watering_history/{record.firebase_key}"
+        )
+        if history_ref.get() is not None:
+            self._logger.info(
+                "Duplicate watering save skipped. key=%s",
+                record.firebase_key,
+            )
+            return
+
 
         statistics = self.get_statistics()
 
@@ -1161,6 +1262,48 @@ class FirebaseService:
                 ),
                 source_key=f"watering:{record.zone_id}:{record.firebase_key}",
             )
+        elif (
+            record.duration > 0
+            and str(record.stop_reason or "").strip().upper()
+            not in {"VALVE_SIMULATION", "SHARED_PUMP_BUSY", "ZERO_DURATION"}
+        ):
+            zone_name = self._zone_display_name(record.zone_id)
+            self._send_push_notification(
+                notification_type="IRRIGATION",
+                priority="HIGH",
+                zone_id=record.zone_id,
+                title=f"{zone_name} sulaması beklenmeden durdu",
+                description=(
+                    f"Sulama {record.duration} sn sonra kesildi. "
+                    "Pompa, vana ve cihaz durumunu kontrol edin."
+                ),
+                source_key=(
+                    f"watering-interrupted:{record.zone_id}:"
+                    f"{record.firebase_key}"
+                ),
+            )
+
+    def notify_watering_started(
+        self,
+        *,
+        zone_id: str,
+        duration: int,
+        moisture_before: int,
+        started_at: str,
+    ) -> None:
+        """Notify only after the physical relay has actually switched on."""
+        zone_name = self._zone_display_name(zone_id)
+        self._send_push_notification(
+            notification_type="IRRIGATION",
+            priority="NORMAL",
+            zone_id=zone_id,
+            title=f"{zone_name} sulaması başladı",
+            description=(
+                f"Pompa {duration} sn için açıldı. "
+                f"Başlangıç nemi: %{moisture_before}."
+            ),
+            source_key=f"watering-started:{zone_id}:{started_at}",
+        )
 
     def _zone_display_name(self, zone_id: str) -> str:
         """Return a human-friendly zone name without making pushes critical."""
@@ -1342,9 +1485,10 @@ class FirebaseService:
         *,
         limit: int = 20,
         sensor_id: str = "",
+        zone_id: str = "",
     ) -> list[WateringRecord]:
         """
-        Read recent watering history records, optionally for one sensor.
+        Read recent watering history records for one zone and/or sensor.
 
         AI learning must never combine watering results from different
         garden zones. A wider source window is read first so an active zone
@@ -1481,6 +1625,12 @@ class FirebaseService:
                 if (
                     sensor_id
                     and record.sensor_id != sensor_id
+                ):
+                    continue
+
+                if (
+                    zone_id
+                    and record.zone_id != zone_id
                 ):
                     continue
 
@@ -1639,6 +1789,13 @@ class FirebaseService:
                 "Firebase commands must be a JSON object.",
             )
 
+        assistant_reset = commands.get(
+            "irrigation_assistant_reset",
+            {},
+        )
+        if not isinstance(assistant_reset, dict):
+            assistant_reset = {}
+
         zone_test = commands.get("zone_test", {})
         if not isinstance(zone_test, dict):
             zone_test = {}
@@ -1724,6 +1881,22 @@ class FirebaseService:
             zone_test_requested_at_ms=int(
                 zone_test.get("requested_at", 0) or 0
             ),
+            irrigation_assistant_reset_requested=(
+                self._boolean_command(
+                    commands=assistant_reset,
+                    field="requested",
+                    default=False,
+                )
+            ),
+            irrigation_assistant_reset_request_id=str(
+                assistant_reset.get("request_id", ""),
+            ),
+            irrigation_assistant_reset_zone_id=str(
+                assistant_reset.get("zone_id", ""),
+            ),
+            irrigation_assistant_reset_requested_at_ms=int(
+                assistant_reset.get("requested_at", 0) or 0
+            ),
         )
 
     def acknowledge_zone_test(
@@ -1748,6 +1921,28 @@ class FirebaseService:
                 "remaining_seconds": max(0, remaining_seconds),
                 "result": result,
                 "completed_request_id": request_id,
+                "completed_at": datetime.now().isoformat(),
+            },
+        )
+
+
+    def acknowledge_irrigation_assistant_reset(
+        self,
+        *,
+        request_id: str,
+        zone_id: str,
+        result: str,
+    ) -> None:
+        """Complete a one-shot selected-zone assistant reset command."""
+
+        self._device_ref().child("commands").child(
+            "irrigation_assistant_reset",
+        ).update(
+            {
+                "requested": False,
+                "result": result,
+                "completed_request_id": request_id,
+                "completed_zone_id": zone_id,
                 "completed_at": datetime.now().isoformat(),
             },
         )
@@ -2463,6 +2658,24 @@ class FirebaseService:
                 "prediction_accuracy":
                     round(
                         confidence.prediction_accuracy,
+                        2,
+                    ),
+
+                "connection_confidence":
+                    round(
+                        confidence.connection_confidence,
+                        2,
+                    ),
+
+                "measurement_confidence":
+                    round(
+                        confidence.measurement_confidence,
+                        2,
+                    ),
+
+                "decision_confidence":
+                    round(
+                        confidence.decision_confidence,
                         2,
                     ),
 

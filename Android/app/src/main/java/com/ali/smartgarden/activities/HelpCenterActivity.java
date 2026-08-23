@@ -77,7 +77,6 @@ public class HelpCenterActivity extends AppCompatActivity {
 
         bindCategories();
         bindSearch();
-        bindQuickAccess();
         renderFaqs();
     }
 
@@ -107,16 +106,6 @@ public class HelpCenterActivity extends AppCompatActivity {
         });
     }
 
-    private void bindQuickAccess() {
-        findViewById(R.id.btnHelpIrrigation).setOnClickListener(
-                view -> open(IrrigationSettingsActivity.class));
-        findViewById(R.id.btnHelpJournal).setOnClickListener(
-                view -> open(PlantListActivity.class));
-        findViewById(R.id.btnHelpAssistant).setOnClickListener(
-                view -> open(AIAssistantActivity.class));
-        findViewById(R.id.btnHelpDevice).setOnClickListener(
-                view -> open(DeviceHealthActivity.class));
-    }
 
     private void renderFaqs() {
         faqContainer.removeAllViews();

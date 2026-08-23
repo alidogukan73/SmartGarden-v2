@@ -1,5 +1,7 @@
 package com.ali.smartgarden.notifications;
 
+import com.ali.smartgarden.R;
+
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -16,8 +18,9 @@ public final class AvoraFirebaseMessagingService extends FirebaseMessagingServic
         String type = value(message, "type", "SYSTEM");
         String priority = value(message, "priority", "NORMAL");
         String zoneId = value(message, "zone_id", "");
-        String title = value(message, "title", "AVORA bildirimi");
-        String description = value(message, "description", "Bahçenizde yeni bir gelişme var.");
+        String title = value(message, "title", getString(R.string.notification_remote_fallback_title));
+        String description = value(message, "description",
+                getString(R.string.notification_remote_fallback_description));
         String sourceKey = value(message, "source_key", message.getMessageId() == null ? "" : message.getMessageId());
         new GardenNotificationManager(getApplicationContext())
                 .receiveRemote(type, priority, zoneId, title, description, sourceKey);

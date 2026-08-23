@@ -181,7 +181,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
         String digits = zoneId.replaceAll("\\D+", "");
         if (!digits.isBlank()) {
             try {
-                return "Bölge " + Integer.parseInt(digits);
+                return getString(R.string.notification_detail_zone_number, Integer.parseInt(digits));
             } catch (NumberFormatException ignored) {
                 // Use the general label below when a legacy id cannot be parsed.
             }
@@ -201,8 +201,8 @@ public class NotificationDetailActivity extends AppCompatActivity {
         PopupMenu popupMenu = new PopupMenu(this, anchor);
 
         String title = value.isSaved()
-                ? "Kaydı kaldır"
-                : "Kaydet";
+                ? getString(R.string.notification_action_remove_saved)
+                : getString(R.string.notification_action_save);
 
         popupMenu.getMenu().add(title);
 
@@ -228,36 +228,36 @@ public class NotificationDetailActivity extends AppCompatActivity {
     }
 
     private String categoryLabel(String type) {
-        if ("IRRIGATION".equals(type)) return getString(R.string.notification_category_irrigation);
-        if ("FERTILIZATION".equals(type)) return getString(R.string.notification_category_fertilization);
-        if ("STOCK".equals(type)) return getString(R.string.notification_category_stock);
-        if ("PHOTO_FOLLOW_UP".equals(type)) return getString(R.string.notification_category_photo);
-        if ("PLANT_ASSISTANT".equals(type)) return getString(R.string.notification_category_plant_assistant);
-        if ("WEATHER".equals(type)) return getString(R.string.notification_category_weather);
-        if ("DEVICE".equals(type)) return getString(R.string.notification_category_device);
+        if ("IRRIGATION".equalsIgnoreCase(type)) return getString(R.string.notification_category_irrigation);
+        if ("FERTILIZATION".equalsIgnoreCase(type)) return getString(R.string.notification_category_fertilization);
+        if ("STOCK".equalsIgnoreCase(type)) return getString(R.string.notification_category_stock);
+        if ("PHOTO_FOLLOW_UP".equalsIgnoreCase(type)) return getString(R.string.notification_category_photo);
+        if ("PLANT".equalsIgnoreCase(type) || "PLANT_ASSISTANT".equalsIgnoreCase(type)) return getString(R.string.notification_category_plant_assistant);
+        if ("WEATHER".equalsIgnoreCase(type)) return getString(R.string.notification_category_weather);
+        if ("DEVICE".equalsIgnoreCase(type)) return getString(R.string.notification_category_device);
         return getString(R.string.notification_category_system);
     }
 
     private String priorityLabel(String priority) {
-        if ("HIGH".equals(priority)) return getString(R.string.notification_priority_high);
-        if ("LOW".equals(priority)) return getString(R.string.notification_priority_low);
+        if ("HIGH".equalsIgnoreCase(priority)) return getString(R.string.notification_priority_high);
+        if ("LOW".equalsIgnoreCase(priority)) return getString(R.string.notification_priority_low);
         return getString(R.string.notification_priority_normal);
     }
 
     private int priorityColor(String priority) {
-        if ("HIGH".equals(priority)) return R.color.error;
-        if ("LOW".equals(priority)) return R.color.primary;
+        if ("HIGH".equalsIgnoreCase(priority)) return R.color.error;
+        if ("LOW".equalsIgnoreCase(priority)) return R.color.primary;
         return R.color.warning;
     }
 
     private String icon(String type) {
-        if ("IRRIGATION".equals(type)) return getString(R.string.symbol_water_drop);
-        if ("FERTILIZATION".equals(type)) return getString(R.string.symbol_plant);
-        if ("STOCK".equals(type)) return getString(R.string.symbol_warning);
-        if ("PHOTO_FOLLOW_UP".equals(type)) return getString(R.string.symbol_camera);
-        if ("PLANT_ASSISTANT".equals(type)) return getString(R.string.symbol_sparkle);
-        if ("WEATHER".equals(type)) return getString(R.string.symbol_sun);
-        if ("DEVICE".equals(type)) return getString(R.string.symbol_notification);
+        if ("IRRIGATION".equalsIgnoreCase(type)) return getString(R.string.symbol_water_drop);
+        if ("FERTILIZATION".equalsIgnoreCase(type)) return getString(R.string.symbol_plant);
+        if ("STOCK".equalsIgnoreCase(type)) return getString(R.string.symbol_warning);
+        if ("PHOTO_FOLLOW_UP".equalsIgnoreCase(type)) return getString(R.string.symbol_camera);
+        if ("PLANT".equalsIgnoreCase(type) || "PLANT_ASSISTANT".equalsIgnoreCase(type)) return getString(R.string.symbol_sparkle);
+        if ("WEATHER".equalsIgnoreCase(type)) return getString(R.string.symbol_sun);
+        if ("DEVICE".equalsIgnoreCase(type)) return getString(R.string.symbol_notification);
         return getString(R.string.symbol_bullet);
     }
 }

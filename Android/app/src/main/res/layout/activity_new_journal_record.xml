@@ -17,13 +17,9 @@
             android:layout_height="48dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView
-                android:id="@+id/btnNewRecordBack"
-                android:layout_width="38dp"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/symbol_back_arrow"
-                android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.AVORA.BackButton"
+                android:id="@+id/btnNewRecordBack" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

@@ -23,6 +23,12 @@ class UnifiedConfidence:
 
     prediction_accuracy: float
 
+    connection_confidence: float
+
+    measurement_confidence: float
+
+    decision_confidence: float
+
     sensor_confidence: float
 
     trend_confidence: float

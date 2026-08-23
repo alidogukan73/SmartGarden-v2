@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel;
 
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.Command;
+import com.ali.smartgarden.models.IrrigationTimingSettings;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -18,6 +20,7 @@ import java.util.Map;
 public class SettingsViewModel extends ViewModel {
 
     private final FirebaseRepository repository;
+    private final LiveData<IrrigationTimingSettings> irrigationTimingSettings;
 
     private final MutableLiveData<Command> command =
             new MutableLiveData<>();
@@ -40,6 +43,7 @@ public class SettingsViewModel extends ViewModel {
     public SettingsViewModel() {
 
         repository = new FirebaseRepository();
+        irrigationTimingSettings = repository.observeIrrigationTimingSettings();
 
         observeCommands();
     }
@@ -103,7 +107,8 @@ public class SettingsViewModel extends ViewModel {
             long cooldownSeconds,
             long restartDelta,
             boolean enabled,
-            boolean autoMode
+            boolean autoMode,
+            IrrigationTimingSettings timingSettings
     ) {
 
         if (Boolean.TRUE.equals(saving.getValue())) {
@@ -113,7 +118,7 @@ public class SettingsViewModel extends ViewModel {
         saving.setValue(true);
         saveSuccess.setValue(false);
 
-        Task<Void> saveTask =
+        Task<Void> globalSettingsTask =
                 repository
                         .saveGlobalSettingsAndSyncZones(
                                 moistureLimit,
@@ -123,6 +128,9 @@ public class SettingsViewModel extends ViewModel {
                                 enabled,
                                 autoMode
                         );
+        Task<Void> timingSettingsTask =
+                repository.saveIrrigationTimingSettings(timingSettings);
+        Task<Void> saveTask = Tasks.whenAll(globalSettingsTask, timingSettingsTask);
 
         saveTask
                 .addOnSuccessListener(
@@ -163,10 +171,15 @@ public class SettingsViewModel extends ViewModel {
                 600,
                 10,
                 true,
-                true
+                true,
+                IrrigationTimingSettings.defaults()
         );
     }
 
+
+    public LiveData<IrrigationTimingSettings> getIrrigationTimingSettings() {
+        return irrigationTimingSettings;
+    }
 
     public LiveData<Command> getCommand() {
 

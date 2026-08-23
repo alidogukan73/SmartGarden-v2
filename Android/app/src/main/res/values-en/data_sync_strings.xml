@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_sync_title">Data Synchronization</string>
+    <string name="data_sync_intro_title">AVORA data connection</string>
+    <string name="data_sync_intro_waiting">Checking connection</string>
+    <string name="data_sync_intro_connected">Firebase connection ready</string>
+    <string name="data_sync_intro_offline">No internet or Firebase connection</string>
+    <string name="data_sync_intro_message">Monitor Firebase synchronization of garden data and the latest validation result here.</string>
+    <string name="data_sync_status_section">Synchronization status</string>
+    <string name="data_sync_connection_label">Firebase connection</string>
+    <string name="data_sync_last_success_label">Last successful sync</string>
+    <string name="data_sync_device_data_label">Latest Raspberry Pi data</string>
+    <string name="data_sync_scope_label">Validated data</string>
+    <string name="data_sync_connected">Connected</string>
+    <string name="data_sync_disconnected">No connection</string>
+    <string name="data_sync_never">Not synced yet</string>
+    <string name="data_sync_no_device_data">No device data found</string>
+    <string name="data_sync_scope_waiting">Not validated yet</string>
+    <string name="data_sync_scope_value">%1$d zones · %2$s</string>
+    <string name="data_sync_scope_status_health_weather">status, health and weather</string>
+    <string name="data_sync_scope_status_health">status and health</string>
+    <string name="data_sync_scope_partial">basic device data</string>
+    <string name="data_sync_automatic_section">Automatic refresh</string>
+    <string name="data_sync_automatic_title">Keep device summary current</string>
+    <string name="data_sync_automatic_message">When enabled, AVORA keeps status, health, zone and weather summaries current through Firebase.</string>
+    <string name="data_sync_transfer_section">Data transfer</string>
+    <string name="data_sync_transfer_title">Records are sent directly to Firebase</string>
+    <string name="data_sync_transfer_message">Irrigation, fertilization, journal and settings records are saved on their related screens. If Firebase fails, AVORA shows an error there; this page does not show a fake pending-record count.</string>
+    <string name="data_sync_now">Synchronize Now</string>
+    <string name="data_sync_syncing">Validating data…</string>
+    <string name="data_sync_success">Synchronization complete. %1$d zones and device summaries validated.</string>
+    <string name="data_sync_offline_error">Could not connect. Check the internet and try again.</string>
+    <string name="data_sync_read_error">Could not read Firebase data: %1$s</string>
+    <string name="data_sync_empty_error">No data for this device was found in Firebase.</string>
+    <string name="data_sync_auto_enabled">Automatic refresh enabled.</string>
+    <string name="data_sync_auto_disabled">Automatic refresh disabled. Screens will continue normal live data reads when opened.</string>
+</resources>

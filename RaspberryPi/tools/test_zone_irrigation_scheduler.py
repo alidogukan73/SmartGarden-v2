@@ -27,6 +27,7 @@ def candidate(
     enabled: bool = True,
     should_water: bool = True,
     valve_id: str = "valve-001",
+    hardware_ready: bool = True,
 ) -> ZoneIrrigationCandidate:
     return ZoneIrrigationCandidate(
         zone_id=zone_id,
@@ -38,6 +39,7 @@ def candidate(
         irrigation_enabled=enabled,
         should_water=should_water,
         reason="MOISTURE_BELOW_LIMIT",
+        hardware_ready=hardware_ready,
     )
 
 
@@ -51,6 +53,28 @@ def main() -> None:
     assert scheduler.select([
         candidate("zone-001", moisture=20, valve_id=""),
     ]) is None
+    assert scheduler.select([
+        candidate(
+            "zone-001",
+            moisture=20,
+            hardware_ready=False,
+        ),
+    ]) is None
+
+    physical_selected = scheduler.select([
+        candidate(
+            "zone-001",
+            moisture=10,
+            hardware_ready=False,
+        ),
+        candidate(
+            "zone-002",
+            moisture=30,
+            hardware_ready=True,
+        ),
+    ])
+    assert physical_selected is not None
+    assert physical_selected.zone_id == "zone-002"
 
     selected = scheduler.select([
         candidate("zone-001", moisture=35, order=1),
@@ -66,6 +90,19 @@ def main() -> None:
     ])
     assert tie is not None
     assert tie.zone_id == "zone-001"
+
+    # A persistently eligible zone must eventually move ahead of a zone
+    # that has just completed multiple cycles.
+    fair_scheduler = ZoneIrrigationScheduler()
+    queue = [
+        candidate("zone-001", moisture=32, order=1),
+        candidate("zone-002", moisture=25, order=2),
+    ]
+    assert fair_scheduler.select(queue).zone_id == "zone-002"
+    fair_scheduler.mark_served("zone-002")
+    assert fair_scheduler.select(queue).zone_id == "zone-002"
+    fair_scheduler.mark_served("zone-002")
+    assert fair_scheduler.select(queue).zone_id == "zone-001"
 
     print(
         "[PASS] Shared-pump zone scheduling scenarios.",

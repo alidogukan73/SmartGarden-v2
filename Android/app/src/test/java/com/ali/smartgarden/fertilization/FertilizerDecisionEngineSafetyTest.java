@@ -82,6 +82,9 @@ public class FertilizerDecisionEngineSafetyTest {
 
         assertEquals("HENÜZ ERKEN", advice.getStatus());
         assertTrue(advice.getReason().contains("bekleme aralığı"));
+        assertTrue(advice.getRecommendation().isAvailable());
+        assertTrue(advice.getRecommendation().getWaitDays() > 0L);
+        assertFalse(advice.getRecommendation().isApplicationReady());
     }
 
     @Test
@@ -136,6 +139,10 @@ public class FertilizerDecisionEngineSafetyTest {
         assertEquals("BUGÜNKÜ ÖNERİ", advice.getStatus());
         assertEquals(1, advice.getCandidates().size());
         assertTrue(advice.getCandidates().get(0).contains("100 g"));
+        assertTrue(advice.getRecommendation().isAvailable());
+        assertTrue(advice.getRecommendation().isApplicationReady());
+        assertEquals("fertilizer-001", advice.getRecommendation().getProductId());
+        assertEquals("NUTRITION", advice.getRecommendation().getApplicationType());
     }
 
     @Test
@@ -192,6 +199,7 @@ public class FertilizerDecisionEngineSafetyTest {
 
         assertEquals("SEZON TAMAMLANDI", advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
+        assertTrue(advice.getRisks().isEmpty());
     }
 
     @Test

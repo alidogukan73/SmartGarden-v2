@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theme_intro_title">AVORA appearance</string>
+    <string name="theme_intro_message">Choose a comfortable appearance. The change is applied to every screen immediately.</string>
+    <string name="theme_selection_section">Theme selection</string>
+    <string name="theme_option_system">Use system setting</string>
+    <string name="theme_option_system_detail">AVORA changes automatically when your phone switches between light and dark mode.</string>
+    <string name="theme_option_light">Light</string>
+    <string name="theme_option_light_detail">A light background and strong readability for daytime use.</string>
+    <string name="theme_option_dark">Dark</string>
+    <string name="theme_option_dark_detail">Dark surfaces and reduced brightness for nighttime use.</string>
+    <string name="theme_preview_section">Live preview</string>
+    <string name="theme_preview_title">Overall garden status</string>
+    <string name="theme_preview_message">Cards, text, borders, and buttons adapt to your selected theme.</string>
+    <string name="theme_preview_button">View sample action</string>
+    <string name="theme_active_format">Active appearance: %1$s</string>
+    <string name="theme_backup_note">The theme is specific to this phone. Your preference is also included when you create an AVORA backup.</string>
+</resources>

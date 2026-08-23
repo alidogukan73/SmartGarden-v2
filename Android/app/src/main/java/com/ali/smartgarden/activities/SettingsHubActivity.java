@@ -314,7 +314,7 @@ public class SettingsHubActivity extends AppCompatActivity {
             case "plants":
                 return new QuickAction(R.drawable.ic_leaf_24,
                         R.string.settings_quick_plants,
-                        () -> open(PlantListActivity.class));
+                        () -> open(SensorPointsActivity.class));
             case "notifications":
                 return new QuickAction(R.drawable.ic_header_notification,
                         R.string.settings_quick_notifications,
@@ -347,7 +347,7 @@ public class SettingsHubActivity extends AppCompatActivity {
                         () -> open(GardenInfoActivity.class)),
                 item(R.drawable.ic_nav_plants, R.string.settings_plants_regions_title,
                         R.string.settings_plants_regions_subtitle,
-                        () -> open(PlantListActivity.class)),
+                        () -> open(SensorPointsActivity.class)),
                 item(R.drawable.ic_settings_24, R.string.settings_units_title,
                         R.string.settings_units_subtitle,
                         () -> open(UnitsSettingsActivity.class)));

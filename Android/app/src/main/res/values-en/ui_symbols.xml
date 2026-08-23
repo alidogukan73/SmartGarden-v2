@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="symbol_camera">📷</string>
+    <string name="symbol_plant">🌱</string>
+    <string name="symbol_water_drop">💧</string>
+    <string name="symbol_warning">⚠</string>
+    <string name="symbol_sun">☀</string>
+    <string name="symbol_notification">🔔</string>
+    <string name="symbol_flower">🌼</string>
+    <string name="symbol_heart">❤</string>
+    <string name="ui_photo_add_step">📷  1. Add Photo</string>
+    <string name="ui_take_photo">📷  Take Photo</string>
+    <string name="ui_photo_add_limit">📷\nAdd photo\nUp to 5 photos</string>
+    <string name="ui_setting_irrigation">💧 Irrigation</string>
+    <string name="ui_setting_fertilization">🌱 Fertilization</string>
+    <string name="ui_setting_weather">☀ Weather</string>
+    <string name="ui_setting_stock_warning">⚠ Stock alerts</string>
+    <string name="ui_symptom_wilting">🌱  Wilting</string>
+    <string name="ui_symptom_flower_drop">🌼  Flower Drop</string>
+    <string name="ui_assistant_soil_moisture">💧\nSoil moisture</string>
+    <string name="ui_assistant_sunlight">☀\nSunlight</string>
+    <string name="ui_assistant_air_humidity">💧\nAir humidity</string>
+    <string name="ui_garden_plants_title">🌱  Plants in My Garden</string>
+    <string name="ui_timeline_irrigation">💧  Irrigation</string>
+    <string name="ui_timeline_fertilization">🌱  Fertilizer</string>
+    <string name="ui_rain_probability_empty">💧  —% rain</string>
+    <string name="format_rain_probability">💧  %1$s rain</string>
+    <string name="format_assistant_soil_data">💧\nSoil moisture\n%1$s</string>
+    <string name="format_assistant_sun_data">☀\nSunlight\n%1$s</string>
+    <string name="format_assistant_humidity_data">💧\nAir humidity\n%1$s</string>
+    <string name="symbol_rain">☂</string>
+    <string name="symbol_wind">≋</string>
+    <string name="symbol_pressure">⌁</string>
+    <string name="symbol_tomato">🍅</string>
+    <string name="ui_symptom_fruit_cracking">🍅  Fruit Cracking</string>
+    <string name="symbol_leaf">🌿</string>
+    <string name="symbol_sparkle">✦</string>
+    <string name="symbol_bullet">•</string>
+    <string name="symbol_event">▲</string>
+    <string name="ui_wind_empty">≋  ~ — km/h</string>
+    <string name="ui_assistant_wind">≋\nWind</string>
+    <string name="symbol_weather_cloud">☁</string>
+    <string name="symbol_chevron_right">›</string>
+</resources>

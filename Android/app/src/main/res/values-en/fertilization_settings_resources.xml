@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fertilization_settings_title">Fertilization Settings</string>
+    <string name="fertilization_settings_safety_title">Safe guidance</string>
+    <string name="fertilization_settings_safety_message">AVORA never applies fertilizer automatically. It evaluates growth stage, history, weather, stock and manufacturer dosage to provide an explained recommendation and plan.</string>
+    <string name="fertilization_settings_live_section">Live status</string>
+    <string name="fertilization_settings_plan_title">Zone plans</string>
+    <string name="fertilization_settings_plan_loading">Loading plan information…</string>
+    <string name="fertilization_settings_plan_summary">%1$d / %2$d active plans · reminders enabled for %3$d zones</string>
+    <string name="fertilization_settings_product_title">Fertilizer inventory</string>
+    <string name="fertilization_settings_product_loading">Loading product information…</string>
+    <string name="fertilization_settings_product_summary">%1$d active products · stock information available for %2$d products</string>
+    <string name="fertilization_settings_stock_title">Stock status</string>
+    <string name="fertilization_settings_stock_loading">Loading stock status…</string>
+    <string name="fertilization_settings_stock_normal">No low stock within the configured warning limits</string>
+    <plurals name="fertilization_settings_low_stock_count">
+        <item quantity="one">%d product has a low-stock warning</item>
+        <item quantity="other">%d products have low-stock warnings</item>
+    </plurals>
+    <string name="fertilization_settings_reminder_section">Reminders and alerts</string>
+    <string name="fertilization_settings_reminder_title">Fertilizer application reminders</string>
+    <string name="fertilization_settings_reminder_message">Creates notifications on the planned application day and follow-up days.</string>
+    <string name="fertilization_settings_stock_warning_title">Low-stock alerts</string>
+    <string name="fertilization_settings_stock_warning_message">Warns you when a product reaches its configured stock limit.</string>
+    <string name="fertilization_settings_zone_note">Zone-specific product, stage, area, tank and application interval are managed from the zone plan in AI Fertilizer Assistant.</string>
+    <string name="fertilization_settings_management_section">Plan and inventory management</string>
+    <string name="fertilization_settings_open_assistant">Open AI Fertilizer Assistant</string>
+    <string name="fertilization_settings_manage_products">Manage fertilizer products</string>
+    <string name="fertilization_settings_open_history">Open application history</string>
+    <string name="fertilization_settings_notification_details">Open notification details</string>
+    <string name="fertilization_settings_save">Save fertilization settings</string>
+    <string name="fertilization_settings_saved">Fertilization settings saved.</string>
+    <string name="fertilization_settings_local_only">Settings were saved on this phone; the cloud backup could not be updated.</string>
+    <string name="fertilization_settings_cloud_loaded">Current fertilization settings loaded from the cloud.</string>
+    <string name="fertilization_settings_defaults_ready">Default reminder settings are ready; remember to save.</string>
+</resources>

@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -23,6 +24,7 @@ import com.ali.smartgarden.models.MoisturePrediction;
 import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
+import com.ali.smartgarden.models.GardenAISummary;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.models.WateringHistory;
@@ -71,6 +73,7 @@ public class MainViewModel extends ViewModel {
 
     private final LiveData<SoilLearningProfile> soilLearningProfile;
     private final LiveData<List<GardenZone>> gardenZones;
+    private final LiveData<GardenAISummary> gardenAISummary;
     private final LiveData<WeatherForecast> weatherForecast;
     private final LiveData<List<WateringHistory>> wateringHistory;
 
@@ -101,6 +104,7 @@ public class MainViewModel extends ViewModel {
                 repository.observeSoilLearningProfile();
 
         gardenZones = repository.observeGardenZones();
+        gardenAISummary = repository.observeGardenAISummary();
         weatherForecast = repository.observeWeatherForecast();
         wateringHistory = repository.observeWateringHistory();
     }
@@ -167,6 +171,10 @@ public class MainViewModel extends ViewModel {
         return gardenZones;
     }
 
+    public LiveData<GardenAISummary> getGardenAISummary() {
+        return gardenAISummary;
+    }
+
     public LiveData<WeatherForecast> getWeatherForecast() {
         return weatherForecast;
     }
@@ -200,6 +208,10 @@ public class MainViewModel extends ViewModel {
 
         repository.restartDevice();
 
+    }
+
+    public Task<Void> restartIrrigationAssistant(String zoneId) {
+        return repository.requestIrrigationAssistantRestart(zoneId);
     }
 
     /*

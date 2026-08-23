@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="symbol_restart_process" translatable="false">↻</string>
+    <string name="ai_restart_process_title">Sulama sürecini baştan başlat</string>
+    <string name="ai_restart_process_description">Seçili veya tüm bölgelerin takılan karar oturumunu güvenle yeniler</string>
+    <string name="ai_restart_scope_title">Hangi süreç baştan başlatılsın?</string>
+    <string name="ai_restart_scope_selected">Seçili bölge · %1$s</string>
+    <string name="ai_restart_scope_all">Tüm bölgeler</string>
+    <string name="ai_restart_dialog_title">%1$s süreci baştan başlatılsın mı?</string>
+    <string name="ai_restart_dialog_message">Sulama geçmişi, öğrenilmiş sonuçlar ve güvenlik bekleme süresi korunur. Yalnız geçici ölçüm penceresi, çevrim kilidi ve bekleyen tahmin doğrulaması temizlenir. Pompa ve vanalar çalıştırılmaz.</string>
+    <string name="ai_restart_cancel">Vazgeç</string>
+    <string name="ai_restart_confirm">Baştan başlat</string>
+    <string name="ai_restart_no_zone">Önce bir bölge seçin.</string>
+    <string name="ai_restart_watering_active">Sulama devam ederken asistan süreci başlatılamaz.</string>
+    <string name="ai_restart_request_sent">Yeniden başlatma isteği gönderildi. Bölge için yeni ve güvenli ölçümler toplanacak.</string>
+    <string name="ai_restart_all_dialog_title">Tüm bölge süreçleri baştan başlatılsın mı?</string>
+    <string name="ai_restart_all_dialog_message">Önce sensörlerin güncel ve doğru ölçüm gönderdiğini, nem sınırlarını ve pompa sürelerini kontrol edin. Bu işlem tüm bölgelerin geçici karar penceresini ve çevrim kilidini temizler; sulama geçmişini, öğrenilmiş süreleri ve güvenlik beklemelerini korur. Pompa ve vanalar hemen çalıştırılmaz.</string>
+    <string name="ai_restart_all_confirm">Tümünü baştan başlat</string>
+    <string name="ai_restart_all_watering_active">Bir bölgede sulama devam ederken tüm süreçler başlatılamaz.</string>
+    <string name="ai_restart_all_request_sent">Tüm bölgeler için yeniden başlatma isteği gönderildi. Sistem güncel sensör ölçümlerini yeniden değerlendirecek.</string>
+    <string name="ai_restart_request_failed">Yeniden başlatma isteği gönderilemedi. Bağlantıyı kontrol edip yeniden deneyin.</string>
+</resources>

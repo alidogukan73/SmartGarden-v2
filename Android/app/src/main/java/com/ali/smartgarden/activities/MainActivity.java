@@ -28,11 +28,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
 import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
-import com.ali.smartgarden.notifications.NotificationSignalScheduler;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.GardenZone;
@@ -46,11 +43,13 @@ import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.models.GardenNotification;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -59,28 +58,16 @@ import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
-
     private long lastStatusReceivedElapsedMillis = 0L;
     private long connectionStartedElapsedMillis;
-
-    // Header
     private MaterialCardView cardOnlineStatus;
     private TextView txtOnline;
     private TextView txtDevice;
-
-    // Sensor
-
-    // Pump
-
-    // Automatic mode
-
-    // Manual control
-
-
     private MaterialButton btnMainMenu;
     private TextView txtMainNotificationBadge;
     private final android.content.BroadcastReceiver notificationChangedReceiver =
@@ -127,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean homeZonePagerPositioned = false;
     private List<GardenZone> latestZones;
     private WeatherForecast latestWeather;
-
 
     private static final long ONLINE_TIMEOUT_MILLIS = 30_000L;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
@@ -212,8 +198,6 @@ public class MainActivity extends AppCompatActivity {
         initializeViewModel();
         observeViewModel();
         initializeButtons();
-        FertilizerReminderScheduler.schedule(this);
-        NotificationSignalScheduler.schedule(this);
         new GardenNotificationManager(this).restoreCloudBackup(imported -> { });
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
                 token -> new FirebaseRepository().savePushToken(this, token)
@@ -252,8 +236,11 @@ public class MainActivity extends AppCompatActivity {
     private void updateNotificationBadge() {
         if (txtMainNotificationBadge == null) return;
         int unread = 0;
-        for (com.ali.smartgarden.models.GardenNotification item : new GardenNotificationManager(this).localNotifications()) {
-            if (!item.isRead()) unread++;
+        for (GardenNotification item :
+                new GardenNotificationManager(this).localNotifications()) {
+            if (!item.isRead()) {
+                unread++;
+            }
         }
         if (unread <= 0) {
             txtMainNotificationBadge.setVisibility(View.GONE);
@@ -390,7 +377,8 @@ public class MainActivity extends AppCompatActivity {
         if (forecast != null) {
             NotificationSignalCoordinator.evaluateWeather(this, forecast.getTomorrowTemperatureMax(),
                     forecast.getTomorrowRainProbability(), forecast.getTomorrowWindMax(),
-                    java.time.LocalDate.now().plusDays(1).toString());
+                    java.time.LocalDate.now().plusDays(1).toString(),
+                    forecast.getUpdatedAtEpoch());
         }
         renderHomePlantAssistantRecommendation();
         if (forecast == null || forecast.getTomorrowTemperatureMax() == null) {
@@ -495,12 +483,6 @@ public class MainActivity extends AppCompatActivity {
         windView.setText(getString(R.string.symbol_wind) + "  " + (wind == null ? "~ —" : "~ " + Math.round(wind)) + " km/sa");
     }
 
-    private int weatherIconResource(Long code) {
-        if (code != null && code >= 51) return R.drawable.ic_water_drop_24;
-        if (code != null && code >= 2) return R.drawable.ic_weather_cloud_24;
-        return R.drawable.ic_weather_sunny_24;
-    }
-
     private String weatherIcon(Long code) {
         if (code == null) return getString(R.string.symbol_sun);
         if (code >= 95) return getString(R.string.symbol_warning);
@@ -510,28 +492,24 @@ public class MainActivity extends AppCompatActivity {
         return getString(R.string.symbol_sun);
     }
 
-
-    private void renderStatus(
-            Status status
-    ) {
+    private void renderStatus(Status status) {
 
         if (status == null) {
             return;
         }
 
         latestStatus = status;
-        NotificationSignalCoordinator.evaluateDevice(this, status, null);
 
         lastStatusReceivedElapsedMillis =
                 SystemClock.elapsedRealtime();
 
         renderEffectiveOnlineStatus();
-
     }
 
 
     private void renderGardenZones(List<GardenZone> zones) {
         latestZones = zones;
+        NotificationSignalCoordinator.evaluateIrrigationAi(this, zones);
 
         if (zones == null) {
             homeZonePagerAdapter.submitList(null);
@@ -856,16 +834,15 @@ public class MainActivity extends AppCompatActivity {
         return age <= 90L;
     }
 
-
     private void renderEffectiveOnlineStatus() {
 
-        // onStart may run while the anonymous Firebase session is still being
-        // created.  Do not render the dashboard until its views are ready.
         if (txtOnline == null || cardOnlineStatus == null) {
             return;
         }
 
-        updateOnlineUi(getConnectionState());
+        ConnectionState state = getConnectionState();
+
+        updateOnlineUi(state);
         renderHomeAlerts();
     }
 
@@ -910,7 +887,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        java.util.ArrayList<String> alerts = new java.util.ArrayList<>();
+        ArrayList<String> alerts = new ArrayList<>();
         if (getConnectionState() == ConnectionState.OFFLINE) {
             alerts.add(getString(R.string.home_alert_device_offline));
         }

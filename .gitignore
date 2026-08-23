@@ -13,6 +13,7 @@ Arduino/ESP32/**/secrets*.h
 .gradle-cache/
 .gradle-user-home/
 Android/*.xml
+Android/avora_notifications_debug.txt
 
 # Python
 __pycache__/

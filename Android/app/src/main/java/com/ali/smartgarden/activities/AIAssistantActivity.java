@@ -7,8 +7,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -25,6 +25,8 @@ import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.ui.DecisionFlowFactory;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.ui.irrigationassistant.IrrigationAssistantFormatter;
+import com.ali.smartgarden.ui.irrigationassistant.SelectedZoneSummaryRenderer;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.models.PredictionValidationStatus;
 import com.ali.smartgarden.models.MoisturePrediction;
@@ -32,11 +34,13 @@ import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.ZoneAIState;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.models.WeatherForecast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
@@ -45,9 +49,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import static com.ali.smartgarden.ui.irrigationassistant.IrrigationAssistantCodes.*;
+
 public class AIAssistantActivity extends AppCompatActivity {
 
     private static final String TAG = "AIAssistantActivity";
+    private static final String ALL_ZONES_RESET_SCOPE = "ALL";
 
     private RecyclerView recyclerAIDecisionFlow;
     private DecisionStepAdapter decisionStepAdapter;
@@ -66,6 +73,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialButton btnAIAdvancedDetails;
     private MaterialCardView cardAIWateringSettings;
     private MaterialCardView cardAISensorPoints;
+    private MaterialCardView cardAIRestartProcess;
     private MaterialCardView cardPredictionValidationStatusBadge;
     private MaterialCardView cardPredictionValidation;
     private MaterialCardView cardMoisturePrediction;
@@ -74,7 +82,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardPredictionAccuracyStatusBadge;
     private MaterialCardView cardUnifiedConfidence;
     private MaterialCardView cardUnifiedConfidenceStatusBadge;
-    private LinearLayout layoutAIZoneSummary;
+    private SelectedZoneSummaryRenderer selectedZoneSummaryRenderer;
 
     private TextView txtPredictionValidationStatus;
     private TextView txtPredictionValidationRemaining;
@@ -166,6 +174,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     private final View[] progressSegments = new View[5];
 
     private MainViewModel viewModel;
+    private IrrigationAssistantFormatter assistantFormatter;
 
     private ValueAnimator progressAnimator;
     private int currentLearningProgress = 0;
@@ -173,8 +182,17 @@ public class AIAssistantActivity extends AppCompatActivity {
     private boolean learningDataCollectionCompleted = false;
     private int profileLearningStage = 0;
     private final List<GardenZone> predictionZones = new ArrayList<>();
+    private final List<GardenZone> latestGardenZones = new ArrayList<>();
     private int selectedPredictionZoneIndex = 0;
     private MoisturePrediction latestMoisturePrediction;
+    private AIDecision fallbackAIDecision;
+    private AdaptiveRecommendation fallbackAdaptiveRecommendation;
+    private AIExplanation fallbackAIExplanation;
+    private PredictionValidationStatus fallbackPredictionValidationStatus;
+    private PredictionAccuracy fallbackPredictionAccuracy;
+    private UnifiedConfidence fallbackUnifiedConfidence;
+    private SoilLearningProfile fallbackSoilLearningProfile;
+    private String requestedZoneId;
     private WeatherForecast latestWeatherForecast;
     private float predictionSwipeStartX;
     private float predictionSwipeStartY;
@@ -187,7 +205,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_ai_assistant);
+        assistantFormatter = new IrrigationAssistantFormatter(this);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
+        requestedZoneId = getIntent() == null ? null : getIntent().getStringExtra("zone_id");
 
         initializeViews();
         initializeRecyclerView();
@@ -247,8 +267,11 @@ public class AIAssistantActivity extends AppCompatActivity {
                         R.id.cardUnifiedConfidenceStatusBadge
                 );
 
-        layoutAIZoneSummary =
-                findViewById(R.id.layoutAIZoneSummary);
+        selectedZoneSummaryRenderer = new SelectedZoneSummaryRenderer(
+                this,
+                findViewById(R.id.layoutAIZoneSummary),
+                assistantFormatter
+        );
 
 
         btnBack =
@@ -260,6 +283,8 @@ public class AIAssistantActivity extends AppCompatActivity {
                 findViewById(R.id.cardAIWateringSettings);
         cardAISensorPoints =
                 findViewById(R.id.cardAISensorPoints);
+        cardAIRestartProcess =
+                findViewById(R.id.cardAIRestartProcess);
 
         txtAIDecisionTitle =
                 findViewById(R.id.txtAIDecisionTitle);
@@ -580,7 +605,6 @@ public class AIAssistantActivity extends AppCompatActivity {
                 );
 
         initializeProgressSegments();
-        organizeScreenForDailyUse();
     }
 
     /**
@@ -627,6 +651,10 @@ public class AIAssistantActivity extends AppCompatActivity {
                 decisionStepAdapter
         );
 
+        // Karar verileri sık güncellenebilir. Satır değişim animasyonları
+        // teknik kartın yanıp sönüyormuş gibi görünmesine neden olmamalı.
+        recyclerAIDecisionFlow.setItemAnimator(null);
+
         /*
          * RecyclerView, NestedScrollView içinde bulunduğu için
          * kendi kaydırma davranışı kapatılır.
@@ -666,7 +694,21 @@ public class AIAssistantActivity extends AppCompatActivity {
                         IrrigationSettingsActivity.class))
         );
 
-        cardMoisturePrediction.setOnTouchListener(
+        cardAISensorPoints.setOnClickListener(view ->
+                startActivity(new Intent(this,
+                        SensorPointsActivity.class))
+        );
+
+        cardAIRestartProcess.setOnClickListener(
+                view -> showRestartScopeDialog()
+        );
+
+        attachZoneSwipeListener(cardAIZoneSummary);
+        attachZoneSwipeListener(cardMoisturePrediction);
+    }
+
+    private void attachZoneSwipeListener(View target) {
+        target.setOnTouchListener(
                 (view, event) -> {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         predictionSwipeStartX = event.getX();
@@ -698,11 +740,16 @@ public class AIAssistantActivity extends AppCompatActivity {
 
                     if (event.getAction() == MotionEvent.ACTION_UP) {
                         float distance = event.getX() - predictionSwipeStartX;
+                        view.getParent().requestDisallowInterceptTouchEvent(false);
                         if (predictionHorizontalSwipe && Math.abs(distance) >= 44f) {
                             movePredictionZone(distance < 0 ? 1 : -1);
                             view.performClick();
                             return true;
                         }
+                        return false;
+                    }
+
+                    if (event.getAction() == MotionEvent.ACTION_CANCEL) {
                         view.getParent().requestDisallowInterceptTouchEvent(false);
                         return false;
                     }
@@ -714,74 +761,196 @@ public class AIAssistantActivity extends AppCompatActivity {
     /**
      * Firebase verilerini taşıyan LiveData nesnelerini gözlemler.
      */
-    private void organizeScreenForDailyUse() {
-        ViewGroup parent = (ViewGroup) cardAIDecision.getParent();
-
-        View[] movableViews = {
-                cardAIZoneSummary,
-                cardAIReasons,
-                cardAIDecisionFlow,
-                cardAIProgress,
-                cardMoisturePrediction,
-                cardPredictionAccuracy,
-                cardUnifiedConfidence,
-                cardPredictionValidation,
-                cardAINextStep,
-                cardAIWeatherGuidance,
-                cardAIAdaptiveRecommendation,
-                cardAIWateringSettings,
-                cardAITechnicalSummary,
-                btnAIAdvancedDetails
-        };
-
-        for (View view : movableViews) {
-            parent.removeView(view);
-        }
-
-        int insertIndex = parent.indexOfChild(cardAIDecision) + 1;
-        parent.addView(cardAIZoneSummary, insertIndex++);
-        parent.addView(cardAINextStep, insertIndex++);
-        parent.addView(cardAIWeatherGuidance, insertIndex++);
-        parent.addView(cardAIAdaptiveRecommendation, insertIndex++);
-        parent.addView(cardAIProgress, insertIndex++);
-        parent.addView(cardAIWateringSettings, insertIndex++);
-        parent.addView(btnAIAdvancedDetails, insertIndex++);
-        parent.addView(cardAIReasons, insertIndex++);
-        parent.addView(cardAIDecisionFlow, insertIndex++);
-        parent.addView(cardMoisturePrediction, insertIndex++);
-        parent.addView(cardPredictionAccuracy, insertIndex++);
-        parent.addView(cardUnifiedConfidence, insertIndex++);
-        parent.addView(cardPredictionValidation, insertIndex++);
-        parent.addView(cardAITechnicalSummary, insertIndex);
-
-        setAdvancedDetailsVisible(false);
-    }
-
     private void setAdvancedDetailsVisible(
             boolean visible
     ) {
         advancedDetailsVisible = visible;
 
-        View[] technicalCards = {
-                cardAIReasons,
-                cardAIDecisionFlow,
-                cardMoisturePrediction,
-                cardPredictionAccuracy,
-                cardUnifiedConfidence,
-                cardPredictionValidation,
-                cardAITechnicalSummary
-        };
-
-        for (View card : technicalCards) {
-            card.setVisibility(
-                    visible ? View.VISIBLE : View.GONE
-            );
-        }
+        boolean hasZoneAI = hasSelectedZoneAIData();
+        cardAIWateringSettings.setVisibility(visible ? View.VISIBLE : View.GONE);
+        cardAISensorPoints.setVisibility(visible ? View.VISIBLE : View.GONE);
+        cardAIRestartProcess.setVisibility(
+                visible && getSelectedPredictionZone() != null
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+        cardAIProgress.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardAIReasons.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardAIDecisionFlow.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardMoisturePrediction.setVisibility(
+                visible && hasReadyPredictionForSelectedZone()
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+        cardPredictionAccuracy.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardUnifiedConfidence.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardPredictionValidation.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        cardAITechnicalSummary.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
 
         btnAIAdvancedDetails.setText(
                 visible
-                        ? "Teknik detayları gizle"
-                        : "Asistan detaylarını gör"
+                        ? R.string.ai_technical_details_hide
+                        : R.string.ai_technical_details_show
+        );
+    }
+
+    private boolean hasSelectedZoneAIData() {
+        if (predictionZones.isEmpty()) {
+            return false;
+        }
+        GardenZone zone = predictionZones.get(selectedPredictionZoneIndex);
+        return zone != null && zone.getAi() != null;
+    }
+
+    private void showRestartScopeDialog() {
+        GardenZone zone = getSelectedPredictionZone();
+        if (zone == null) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_no_zone,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        String zoneName = assistantFormatter.safeText(
+                zone.getName(),
+                zone.getZone_id()
+        );
+        CharSequence[] scopes = {
+                getString(R.string.ai_restart_scope_selected, zoneName),
+                getString(R.string.ai_restart_scope_all)
+        };
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ai_restart_scope_title)
+                .setItems(scopes, (dialog, which) -> {
+                    if (which == 0) {
+                        confirmRestartSelectedAssistantProcess();
+                    } else {
+                        confirmRestartAllAssistantProcesses();
+                    }
+                })
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .show();
+    }
+    @Nullable
+    private GardenZone getSelectedPredictionZone() {
+        if (predictionZones.isEmpty()
+                || selectedPredictionZoneIndex < 0
+                || selectedPredictionZoneIndex >= predictionZones.size()) {
+            return null;
+        }
+        return predictionZones.get(selectedPredictionZoneIndex);
+    }
+
+    private void confirmRestartSelectedAssistantProcess() {
+        GardenZone zone = getSelectedPredictionZone();
+        if (zone == null) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_no_zone,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        ZoneIrrigationStatus irrigationStatus = zone.getIrrigation_status();
+        if (irrigationStatus != null && irrigationStatus.isWatering_active()) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_watering_active,
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        String zoneName = assistantFormatter.safeText(
+                zone.getName(),
+                zone.getZone_id()
+        );
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.ai_restart_dialog_title, zoneName))
+                .setMessage(R.string.ai_restart_dialog_message)
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .setPositiveButton(
+                        R.string.ai_restart_confirm,
+                        (dialog, which) -> restartSelectedAssistantProcess(zone)
+                )
+                .show();
+    }
+
+    private void confirmRestartAllAssistantProcesses() {
+        for (GardenZone zone : predictionZones) {
+            ZoneIrrigationStatus status = zone == null
+                    ? null
+                    : zone.getIrrigation_status();
+            if (status != null && status.isWatering_active()) {
+                Toast.makeText(
+                        this,
+                        R.string.ai_restart_all_watering_active,
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ai_restart_all_dialog_title)
+                .setMessage(R.string.ai_restart_all_dialog_message)
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .setPositiveButton(
+                        R.string.ai_restart_all_confirm,
+                        (dialog, which) -> restartAssistantProcess(
+                                ALL_ZONES_RESET_SCOPE,
+                                R.string.ai_restart_all_request_sent
+                        )
+                )
+                .show();
+    }
+
+    private void restartSelectedAssistantProcess(GardenZone zone) {
+        restartAssistantProcess(
+                zone.getZone_id(),
+                R.string.ai_restart_request_sent
+        );
+    }
+
+    private void restartAssistantProcess(
+            String scope,
+            int successMessage
+    ) {
+        cardAIRestartProcess.setEnabled(false);
+        viewModel.restartIrrigationAssistant(scope)
+                .addOnSuccessListener(unused -> {
+                    cardAIRestartProcess.setEnabled(true);
+                    Toast.makeText(
+                            this,
+                            successMessage,
+                            Toast.LENGTH_LONG
+                    ).show();
+                })
+                .addOnFailureListener(error -> {
+                    cardAIRestartProcess.setEnabled(true);
+                    Toast.makeText(
+                            this,
+                            R.string.ai_restart_request_failed,
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+    private boolean hasReadyPredictionForSelectedZone() {
+        if (!hasSelectedZoneAIData()) {
+            return false;
+        }
+        MoisturePrediction prediction = predictionZones
+                .get(selectedPredictionZoneIndex)
+                .getAi()
+                .getMoisturePrediction();
+        return prediction != null
+                && READY.equalsIgnoreCase(
+                assistantFormatter.safeText(prediction.getPrediction_status(), "")
         );
     }
 
@@ -789,22 +958,34 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         viewModel.getAIDecision().observe(
                 this,
-                this::renderAIDecision
+                decision -> {
+                    fallbackAIDecision = decision;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getAdaptiveRecommendation().observe(
                 this,
-                this::renderAdaptiveRecommendation
+                recommendation -> {
+                    fallbackAdaptiveRecommendation = recommendation;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getAIExplanation().observe(
                 this,
-                this::renderAIExplanation
+                explanation -> {
+                    fallbackAIExplanation = explanation;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getPredictionValidationStatus().observe(
                 this,
-                this::renderPredictionValidationStatus
+                status -> {
+                    fallbackPredictionValidationStatus = status;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getMoisturePrediction().observe(
@@ -814,23 +995,33 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         viewModel.getPredictionAccuracy().observe(
                 this,
-                this::renderPredictionAccuracy
+                accuracy -> {
+                    fallbackPredictionAccuracy = accuracy;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getUnifiedConfidence().observe(
                 this,
-                this::renderUnifiedConfidence
+                confidence -> {
+                    fallbackUnifiedConfidence = confidence;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getSoilLearningProfile().observe(
                 this,
-                this::renderSoilLearningProfile
+                profile -> {
+                    fallbackSoilLearningProfile = profile;
+                    renderSelectedZoneAI();
+                }
         );
 
         viewModel.getGardenZones().observe(
                 this,
                 this::renderZoneDecisionSummary
         );
+
 
         viewModel.getWeatherForecast().observe(
                 this,
@@ -844,246 +1035,161 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderZoneDecisionSummary(
             List<GardenZone> zones
     ) {
-        updatePredictionZones(zones);
-        layoutAIZoneSummary.removeAllViews();
-
-        if (zones == null || zones.isEmpty()) {
-            addZoneDecisionRow(
-                    getString(R.string.symbol_plant),
-                    getString(R.string.ai_zone_waiting),
-                    R.color.textSecondary
-            );
-            return;
-        }
-
-        for (GardenZone zone : zones) {
-            String emoji = zone.getEmoji() == null
-                    ? getString(R.string.symbol_plant)
-                    : zone.getEmoji();
-            String name = zone.getName() == null
-                    ? zone.getZone_id()
-                    : zone.getName();
-            ZoneIrrigationStatus status =
-                    zone.getIrrigation_status();
-
-            String detail;
-            int detailColor = R.color.textSecondary;
-
-            if (!zone.isIrrigation_enabled()) {
-                detail = getString(R.string.ai_zone_disabled);
-            } else if (!isZoneFresh(zone)) {
-                detail = getString(R.string.ai_zone_waiting);
-            } else if (
-                    status != null
-                            && status.isWatering_active()
-            ) {
-                detail = getString(R.string.ai_zone_watering);
-                detailColor = R.color.info;
-            } else if (
-                    status != null
-                            && status.isCooldown_active()
-            ) {
-                detail = getString(
-                        R.string.ai_zone_cooldown,
-                        formatZoneDuration(
-                                status.getCooldown_remaining()
-                        )
-                );
-                detailColor = R.color.warning;
-            } else if (
-                    status != null
-                            && status.getQueue_position() > 0
-            ) {
-                detail = getString(
-                        R.string.ai_zone_queued,
-                        status.getQueue_position()
-                );
-                detailColor = R.color.accentOrange;
-            } else {
-                detail = formatZoneDecision(zone, status);
-                if (
-                        status != null
-                                && status.getMoisture_deficit() > 0
-                ) {
-                    detailColor = R.color.warning;
-                } else {
-                    detailColor = R.color.online;
-                }
-            }
-
-            addZoneDecisionRow(
-                    emoji + " " + name,
-                    detail,
-                    detailColor
-            );
-        }
-
+        List<GardenZone> incomingZones = zones == null
+                ? new ArrayList<>()
+                : new ArrayList<>(zones);
+        latestGardenZones.clear();
+        latestGardenZones.addAll(incomingZones);
+        updatePredictionZones(incomingZones);
         renderWeatherGuidance();
     }
 
-    /**
-     * Hava verisini sulama için anlaşılır bir öneriye dönüştürür.
-     * Bu bölüm yalnızca kullanıcıya bilgi verir; otomatik sulama
-     * kararını veya pompa komutlarını değiştirmez.
-     */
+    /** Raspberry Pi'nin güvenli hava politikasını kullanıcıya açıklar. */
     private void renderWeatherGuidance() {
         if (latestWeatherForecast == null) {
             cardAIWeatherGuidance.setVisibility(View.GONE);
             return;
         }
 
-        Double temperature = latestWeatherForecast.getTomorrowTemperatureMax();
-        Double rain = latestWeatherForecast.getTomorrowRainProbability();
-        Double wind = latestWeatherForecast.getTomorrowWindMax();
-        int dryZoneCount = 0;
-        for (GardenZone zone : predictionZones) {
-            if (zone.isIrrigation_enabled()
-                    && zone.hasSensorData()
-                    && zone.getMoisture() <= zone.getMoisture_limit()) {
-                dryZoneCount++;
-            }
+        if (!assistantFormatter.isWeatherForecastFresh(latestWeatherForecast)) {
+            txtAIWeatherGuidanceTitle.setText(R.string.ai_weather_stale_title);
+            txtAIWeatherGuidanceSummary.setText(R.string.ai_weather_stale_summary);
+            txtAIWeatherGuidanceSafety.setText(R.string.ai_weather_stale_safety);
+            cardAIWeatherGuidance.setVisibility(View.VISIBLE);
+            return;
         }
 
-        String weatherLine = "Yarın"
-                + (temperature == null ? " sıcaklık verisi yok" : " " + Math.round(temperature) + "°C")
-                + (rain == null ? "" : " · yağış %" + Math.round(rain))
-                + (wind == null ? "" : " · rüzgâr " + Math.round(wind) + " km/sa");
+        Double temperature = latestWeatherForecast.getCurrentTemperature();
+        Double todayMaximum = latestWeatherForecast.getTodayTemperatureMax();
+        if (todayMaximum != null
+                && (temperature == null || todayMaximum > temperature)) {
+            temperature = todayMaximum;
+        }
+        Double rain = latestWeatherForecast.getTodayRainProbability();
+        Double rainMm = latestWeatherForecast.getTodayRainMm();
+        Double wind = latestWeatherForecast.getTodayWindMax();
 
-        if (rain != null && rain >= 60d) {
-            txtAIWeatherGuidanceTitle.setText("Yağış ihtimali yüksek");
+        GardenZone selectedZone = predictionZones.isEmpty()
+                ? null
+                : predictionZones.get(selectedPredictionZoneIndex);
+        boolean selectedZoneDry = selectedZone != null
+                && selectedZone.isIrrigation_enabled()
+                && selectedZone.isSensor_enabled()
+                && assistantFormatter.isZoneFresh(selectedZone)
+                && selectedZone.getMoisture() <= selectedZone.getMoisture_limit();
+        String selectedZoneName = selectedZone == null
+                ? getString(R.string.ai_selected_zone_fallback)
+                : assistantFormatter.safeText(selectedZone.getName(), selectedZone.getZone_id());
+
+        String temperatureText = temperature == null
+                ? getString(R.string.ai_weather_temperature_missing)
+                : getString(
+                        R.string.ai_weather_temperature_value,
+                        Math.round(temperature)
+                );
+        String rainText = rain == null
+                ? ""
+                : getString(R.string.ai_weather_rain_suffix, Math.round(rain));
+        String windText = wind == null
+                ? ""
+                : getString(R.string.ai_weather_wind_suffix, Math.round(wind));
+        String weatherLine = getString(
+                R.string.ai_weather_today_line,
+                temperatureText,
+                rainText,
+                windText
+        );
+
+        boolean rainDelay = rain != null
+                && rainMm != null
+                && rain >= 80d
+                && rainMm >= 2d;
+        boolean windDelay = wind != null && wind >= 35d;
+        boolean heatAdjustment = temperature != null && temperature >= 35d;
+
+        if (rainDelay) {
+            txtAIWeatherGuidanceTitle.setText(R.string.ai_weather_rain_delay_title);
             txtAIWeatherGuidanceSummary.setText(
-                    weatherLine + ". Sulama gereksinimi oluşursa uygulamadan önce sabah yeniden kontrol edin."
+                    getString(R.string.ai_weather_rain_delay_summary, weatherLine)
             );
-            txtAIWeatherGuidanceSafety.setText(
-                    "Güvenlik: Sistem sulamayı otomatik iptal etmez; nem, vana ve pompa korumaları çalışmaya devam eder."
-            );
-        } else if (temperature != null && temperature >= 35d) {
-            txtAIWeatherGuidanceTitle.setText("Sıcaklık stresi riski");
+            txtAIWeatherGuidanceSafety.setText(R.string.ai_weather_rain_delay_safety);
+        } else if (windDelay) {
+            txtAIWeatherGuidanceTitle.setText(R.string.ai_weather_wind_delay_title);
             txtAIWeatherGuidanceSummary.setText(
-                    weatherLine + ". "
-                            + (dryZoneCount > 0
-                            ? dryZoneCount + " bölge nem sınırında; sabah erken kısa sulama daha uygun olabilir."
-                            : "Bölgelerin nemi şu anda yeterli; sensör değerlerini izleyin.")
+                    getString(R.string.ai_weather_wind_delay_summary, weatherLine)
             );
-            txtAIWeatherGuidanceSafety.setText(
-                    "Güvenlik: Öneri niteliğindedir. Otomatik karar nem sensörü, bekleme süresi ve güvenlik kurallarına göre verilir."
-            );
-        } else if (wind != null && wind >= 25d) {
-            txtAIWeatherGuidanceTitle.setText("Rüzgâr etkisi izleniyor");
-            txtAIWeatherGuidanceSummary.setText(
-                    weatherLine + ". Yüksek rüzgâr yüzeyden su kaybını artırabilir; nem sınırındaki bölgeleri kontrol edin."
-            );
-            txtAIWeatherGuidanceSafety.setText(
-                    "Güvenlik: Pompa ve vana davranışı değişmez; bu bilgi yalnızca sulama zamanını planlamaya yardım eder."
-            );
+            txtAIWeatherGuidanceSafety.setText(R.string.ai_weather_wind_delay_safety);
+        } else if (heatAdjustment) {
+            txtAIWeatherGuidanceTitle.setText(R.string.ai_weather_heat_title);
+            txtAIWeatherGuidanceSummary.setText(selectedZoneDry
+                    ? getString(
+                    R.string.ai_weather_selected_heat_dry_summary,
+                    weatherLine,
+                    selectedZoneName
+            )
+                    : getString(R.string.ai_weather_heat_normal_summary, weatherLine));
+            txtAIWeatherGuidanceSafety.setText(R.string.ai_weather_heat_safety);
         } else {
-            txtAIWeatherGuidanceTitle.setText("Hava sulama için uygun görünüyor");
-            txtAIWeatherGuidanceSummary.setText(
-                    weatherLine + ". "
-                            + (dryZoneCount > 0
-                            ? dryZoneCount + " bölge nem sınırında; asistanın bölgesel önerisini takip edin."
-                            : "Belirgin yağış veya sıcaklık riski yok.")
-            );
-            txtAIWeatherGuidanceSafety.setText(
-                    "Güvenlik: Sulama yalnızca nem ihtiyacı ve mevcut pompa-vana korumaları uygunsa yapılır."
-            );
+            txtAIWeatherGuidanceTitle.setText(R.string.ai_weather_neutral_title);
+            txtAIWeatherGuidanceSummary.setText(selectedZoneDry
+                    ? getString(
+                    R.string.ai_weather_selected_neutral_dry_summary,
+                    weatherLine,
+                    selectedZoneName
+            )
+                    : getString(R.string.ai_weather_neutral_summary, weatherLine));
+            txtAIWeatherGuidanceSafety.setText(R.string.ai_weather_neutral_safety);
         }
 
         cardAIWeatherGuidance.setVisibility(View.VISIBLE);
     }
-
-    private String formatZoneDecision(
-            GardenZone zone,
+    private String appendRuntimeDurationExplanation(
+            String detail,
             ZoneIrrigationStatus status
     ) {
-        if (status == null) {
-            return getString(R.string.ai_zone_learning);
+        if (
+                status == null
+                        || status.getConfigured_duration_seconds() <= 0
+                        || status.getEffective_duration_seconds() <= 0
+                        || status.getConfigured_duration_seconds()
+                        == status.getEffective_duration_seconds()
+        ) {
+            return detail;
         }
 
-        String reason = status.getDecision_reason();
-        if ("MOISTURE_SUFFICIENT".equals(reason)) {
-            return getString(
-                    R.string.ai_zone_moisture_sufficient,
-                    zone.getMoisture()
+        String source = status.getDuration_source();
+        String durationLine;
+        if (
+                status.isAdaptive_applied()
+                        && LEARNED_AND_WEATHER.equals(source)
+        ) {
+            durationLine = getString(
+                    R.string.ai_zone_duration_learned_weather,
+                    assistantFormatter.formatZoneDuration(
+                            status.getConfigured_duration_seconds()
+                    ),
+                    assistantFormatter.formatZoneDuration(
+                            status.getEffective_duration_seconds()
+                    ),
+                    status.getAdaptive_watering_count(),
+                    Math.round(status.getAdaptive_confidence() * 100.0)
+            );
+        } else if (status.isAdaptive_applied()) {
+            durationLine = getString(
+                    R.string.ai_zone_duration_learned,
+                    assistantFormatter.formatZoneDuration(status.getConfigured_duration_seconds()),
+                    assistantFormatter.formatZoneDuration(status.getEffective_duration_seconds()),
+                    status.getAdaptive_watering_count(),
+                    Math.round(status.getAdaptive_confidence() * 100.0)
+            );
+        } else {
+            durationLine = getString(
+                    R.string.ai_zone_duration_weather,
+                    assistantFormatter.formatZoneDuration(status.getConfigured_duration_seconds()),
+                    assistantFormatter.formatZoneDuration(status.getEffective_duration_seconds())
             );
         }
-        if ("MOISTURE_BELOW_LIMIT".equals(reason)) {
-            return getString(
-                    R.string.ai_zone_moisture_low,
-                    status.getMoisture_deficit()
-            );
-        }
-        if ("WAITING_FOR_MOISTURE_RECOVERY".equals(reason)) {
-            return getString(R.string.ai_zone_recovery_waiting);
-        }
-        if ("WEATHER_RAIN_DELAY".equals(reason)) {
-            return "Yağış beklendiği için kısa süreli ertelendi";
-        }
-        if ("WEATHER_WIND_DELAY".equals(reason)) {
-            return "Yüksek rüzgâr nedeniyle kısa süreli ertelendi";
-        }
-        if ("SENSOR_UNSTABLE".equals(reason)) {
-            return getString(R.string.ai_zone_unstable);
-        }
-        return getString(R.string.ai_zone_learning);
-    }
-
-    private void addZoneDecisionRow(
-            String title,
-            String detail,
-            int detailColor
-    ) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.VERTICAL);
-        row.setPadding(0, 12, 0, 12);
-
-        TextView titleView = new TextView(this);
-        titleView.setText(title);
-        titleView.setTextColor(
-                ContextCompat.getColor(this, R.color.textPrimary)
-        );
-        titleView.setTextSize(15f);
-        titleView.setTypeface(
-                titleView.getTypeface(),
-                android.graphics.Typeface.BOLD
-        );
-
-        TextView detailView = new TextView(this);
-        detailView.setText(detail);
-        detailView.setTextColor(
-                ContextCompat.getColor(this, detailColor)
-        );
-        detailView.setTextSize(13f);
-        detailView.setPadding(0, 3, 0, 0);
-
-        row.addView(titleView);
-        row.addView(detailView);
-        layoutAIZoneSummary.addView(row);
-    }
-
-    private boolean isZoneFresh(GardenZone zone) {
-        if (zone == null || zone.getUpdated_at_epoch() <= 0L) {
-            return false;
-        }
-        long age = Math.max(
-                0L,
-                System.currentTimeMillis() / 1000L
-                        - zone.getUpdated_at_epoch()
-        );
-        return age <= 90L;
-    }
-
-    private String formatZoneDuration(int seconds) {
-        int safeSeconds = Math.max(0, seconds);
-        if (safeSeconds < 60) {
-            return safeSeconds + " sn";
-        }
-        int minutes = safeSeconds / 60;
-        int remainingSeconds = safeSeconds % 60;
-        if (remainingSeconds == 0) {
-            return minutes + " dk";
-        }
-        return minutes + " dk " + remainingSeconds + " sn";
+        return detail + "\n" + durationLine;
     }
 
     private void renderSoilLearningProfile(
@@ -1133,8 +1239,8 @@ public class AIAssistantActivity extends AppCompatActivity {
                 );
 
         learningDataCollectionCompleted =
-                "TAMAMLANDI".equals(sensorStatus)
-                        && "TAMAMLANDI".equals(wateringStatus);
+                getString(R.string.ai_runtime_completed_upper).equals(sensorStatus)
+                        && getString(R.string.ai_runtime_completed_upper).equals(wateringStatus);
         profileLearningStage = profile.getLearning_stage();
         updateLearningStage(currentLearningProgress);
 
@@ -1213,9 +1319,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtAILearningStage.setText(
-                "Öğrenme Aşaması "
-                        + profile.getLearning_stage()
-                        + " / 5"
+                getString(R.string.ai_runtime_learning_stage, profile.getLearning_stage())
         );
 
         txtAILearningDescription.setText(
@@ -1236,7 +1340,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 txtAISoilRetention.setText(
                         String.format(
                                 Locale.getDefault(),
-                                "%.1f saat",
+                                getString(R.string.ai_runtime_decimal_hours),
                                 hours
                         )
                 );
@@ -1246,7 +1350,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 txtAISoilRetention.setText(
                         String.format(
                                 Locale.getDefault(),
-                                "%.0f dk",
+                                getString(R.string.ai_runtime_minutes),
                                 retention
                         )
                 );
@@ -1256,7 +1360,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         else {
 
             txtAISoilRetention.setText(
-                    "Bekleniyor"
+                    getString(R.string.ai_runtime_waiting)
             );
 
         }
@@ -1271,13 +1375,13 @@ public class AIAssistantActivity extends AppCompatActivity {
             txtAIAverageDrying.setText(
                     String.format(
                             Locale.getDefault(),
-                            "%.3f %%/dk",
+                            getString(R.string.ai_runtime_drying_rate_minute),
                             dryingRate
                     )
             );
 
             txtAIDryingStatus.setText(
-                    "Hızlı kuruma"
+                    getString(R.string.ai_runtime_fast_drying)
             );
 
         }
@@ -1286,24 +1390,24 @@ public class AIAssistantActivity extends AppCompatActivity {
             txtAIAverageDrying.setText(
                     String.format(
                             Locale.getDefault(),
-                            "%.3f %%/dk",
+                            getString(R.string.ai_runtime_drying_rate_minute),
                             dryingRate
                     )
             );
 
             txtAIDryingStatus.setText(
-                    "Nem artıyor"
+                    getString(R.string.ai_runtime_moisture_rising)
             );
 
         }
         else {
 
             txtAIAverageDrying.setText(
-                    "0.000 %/dk"
+                    getString(R.string.ai_runtime_zero_drying_rate)
             );
 
             txtAIDryingStatus.setText(
-                    "Stabil"
+                    getString(R.string.ai_runtime_stabil)
             );
         }
 
@@ -1342,25 +1446,25 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         if (total <= 0) {
-            return "BEKLENİYOR";
+            return getString(R.string.ai_runtime_waiting_upper);
         }
 
 
         if (completed >= total) {
 
-            return "TAMAMLANDI";
+            return getString(R.string.ai_runtime_completed_upper);
 
         }
 
 
         if (completed > 0) {
 
-            return "ÖĞRENİYOR";
+            return getString(R.string.ai_runtime_learning_upper);
 
         }
 
 
-        return "BAŞLAMADI";
+        return getString(R.string.ai_runtime_not_started_upper);
     }
 
     private void renderLearningItemStatus(
@@ -1369,7 +1473,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
         statusView.setText(status);
 
-        int color = "TAMAMLANDI".equals(status)
+        int color = getString(R.string.ai_runtime_completed_upper).equals(status)
                 ? R.color.primary
                 : R.color.textSecondary;
         statusView.setTextColor(ContextCompat.getColor(this, color));
@@ -1384,13 +1488,13 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(efficiency)
                         || efficiency <= 0
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
 
         return String.format(
                 Locale.getDefault(),
-                "%.3f %%/sn",
+                getString(R.string.ai_runtime_drying_rate_second),
                 efficiency
         );
     }
@@ -1404,19 +1508,19 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         String status =
-                safeText(
+                assistantFormatter.safeText(
                         confidence.getStatus(),
-                        "INSUFFICIENT_DATA"
+                        INSUFFICIENT_DATA
                 )
                         .trim()
                         .toUpperCase(Locale.ROOT);
 
         double overallConfidence =
-                normalizePercent(
+                assistantFormatter.normalizePercent(
                         confidence.getOverall_confidence()
                 );
 
-        if ("INSUFFICIENT_DATA".equals(status)) {
+        if (INSUFFICIENT_DATA.equals(status)) {
 
             renderUnifiedConfidenceLearning(
                     confidence
@@ -1472,7 +1576,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtUnifiedConfidenceUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         confidence.getGenerated_at()
                 )
@@ -1494,23 +1598,23 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         txtUnifiedConfidenceStatus.setText(
-                "ÖĞRENİYOR"
+                getString(R.string.ai_runtime_learning_upper)
         );
 
         txtUnifiedOverallConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedConfidenceLevel.setText(
-                "Veri bekleniyor"
+                getString(R.string.ai_runtime_data_waiting)
         );
 
         txtUnifiedSoilConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedPredictionAccuracy.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedSensorConfidence.setText(
@@ -1526,11 +1630,11 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtUnifiedWeightedScore.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedConfidenceUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         confidence.getGenerated_at()
                 )
@@ -1551,39 +1655,39 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderUnifiedConfidenceEmpty() {
 
         txtUnifiedConfidenceStatus.setText(
-                "BEKLENİYOR"
+                getString(R.string.ai_runtime_waiting_upper)
         );
 
         txtUnifiedOverallConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedConfidenceLevel.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedSoilConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedPredictionAccuracy.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedSensorConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedTrendConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedWeightedScore.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtUnifiedConfidenceUpdatedAt.setText(
-                "Son güncelleme: —"
+                getString(R.string.ai_runtime_last_updated_unavailable)
         );
 
         progressUnifiedConfidence.setProgressCompat(
@@ -1606,7 +1710,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 confidenceLevel == null
                         || confidenceLevel.trim().isEmpty()
         ) {
-            return "Bekleniyor";
+            return getString(R.string.ai_runtime_waiting);
         }
 
         switch (
@@ -1615,26 +1719,26 @@ public class AIAssistantActivity extends AppCompatActivity {
                         .toUpperCase(Locale.ROOT)
         ) {
 
-            case "VERY_HIGH":
-                return "Çok yüksek";
+            case VERY_HIGH:
+                return getString(R.string.ai_runtime_very_high);
 
-            case "HIGH":
-                return "Yüksek";
+            case HIGH:
+                return getString(R.string.ai_runtime_high);
 
-            case "MEDIUM":
-                return "Orta";
+            case MEDIUM:
+                return getString(R.string.ai_runtime_medium);
 
-            case "LOW":
-                return "Düşük";
+            case LOW:
+                return getString(R.string.ai_runtime_low);
 
-            case "VERY_LOW":
-                return "Çok düşük";
+            case VERY_LOW:
+                return getString(R.string.ai_runtime_very_low);
 
-            case "INSUFFICIENT_DATA":
-                return "Veri bekleniyor";
+            case INSUFFICIENT_DATA:
+                return getString(R.string.ai_runtime_data_waiting);
 
             default:
-                return "Bekleniyor";
+                return getString(R.string.ai_runtime_waiting);
         }
     }
 
@@ -1644,43 +1748,43 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         if (
-                "READY".equals(status)
+                READY.equals(status)
                         && overallConfidence >= 70.0
         ) {
 
             txtUnifiedConfidenceStatus.setText(
-                    "YÜKSEK"
+                    getString(R.string.ai_runtime_high_upper)
             );
 
             applyUnifiedConfidenceReadyStyle();
 
         } else if (
-                "READY".equals(status)
+                READY.equals(status)
                         && overallConfidence >= 40.0
         ) {
 
             txtUnifiedConfidenceStatus.setText(
-                    "ORTA"
+                    getString(R.string.ai_runtime_medium_upper)
             );
 
             applyUnifiedConfidenceMediumStyle();
 
         } else if (
-                "READY".equals(status)
+                READY.equals(status)
         ) {
 
             txtUnifiedConfidenceStatus.setText(
-                    "DÜŞÜK"
+                    getString(R.string.ai_runtime_low_upper)
             );
 
             applyUnifiedConfidenceLowStyle();
 
         } else if (
-                "INSUFFICIENT_DATA".equals(status)
+                INSUFFICIENT_DATA.equals(status)
         ) {
 
             txtUnifiedConfidenceStatus.setText(
-                    "ÖĞRENİYOR"
+                    getString(R.string.ai_runtime_learning_upper)
             );
 
             applyUnifiedConfidenceWaitingStyle();
@@ -1688,7 +1792,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         } else {
 
             txtUnifiedConfidenceStatus.setText(
-                    "BEKLENİYOR"
+                    getString(R.string.ai_runtime_waiting_upper)
             );
 
             applyUnifiedConfidenceWaitingStyle();
@@ -1824,18 +1928,18 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         txtAIDecisionTitle.setText(
-                safeText(
+                assistantFormatter.safeText(
                         decision.getDecisionTitle(),
-                        "AI kararı hazırlanıyor"
+                        getString(R.string.ai_runtime_decision_preparing)
                 )
         );
 
-        String sensorId = safeText(
+        String sensorId = assistantFormatter.safeText(
                 decision.getAnalysisSensorId(),
-                "ana sensör"
+                getString(R.string.ai_runtime_main_sensor)
         );
         txtAIAnalysisScope.setText(
-                "Bu analiz " + sensorId + " verisine dayanır"
+                getString(R.string.ai_runtime_analysis_sensor, sensorId)
         );
 
         txtAIConfidence.setText(
@@ -1880,29 +1984,28 @@ public class AIAssistantActivity extends AppCompatActivity {
             return;
         }
 
-        boolean increase = "INCREASE_PUMP_DURATION".equals(
+        boolean increase = INCREASE_PUMP_DURATION.equals(
                 recommendation.getRecommendationType()
         );
 
         txtAIAdaptiveRecommendationTitle.setText(
                 increase
-                        ? "Pompa süresi artırılabilir"
-                        : "Pompa süresi azaltılabilir"
+                        ? R.string.ai_adaptive_runtime_increase
+                        : R.string.ai_adaptive_runtime_decrease
         );
 
         txtAIAdaptiveRecommendationDetail.setText(
-                "Öneri: "
-                        + formatZoneDuration(
+                getString(
+                        R.string.ai_adaptive_runtime_detail,
+                        assistantFormatter.formatZoneDuration(
                         (int) recommendation.getCurrentPumpDurationSeconds()
-                )
-                        + " → "
-                        + formatZoneDuration(
+                        ),
+                        assistantFormatter.formatZoneDuration(
                         (int) recommendation.getRecommendedPumpDurationSeconds()
+                        ),
+                        recommendation.getWateringCountAnalyzed(),
+                        Math.round(recommendation.getConfidence() * 100.0)
                 )
-                        + " · "
-                        + recommendation.getWateringCountAnalyzed()
-                        + " sulama kaydı incelendi. "
-                        + "Ayarlar otomatik değiştirilmez."
         );
 
         cardAIAdaptiveRecommendation.setVisibility(View.VISIBLE);
@@ -1920,9 +2023,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         txtAIDecisionSummary.setText(
-                safeText(
+                assistantFormatter.safeText(
                         explanation.getSummary(),
-                        "AI açıklaması hazırlanıyor."
+                        getString(R.string.ai_runtime_explanation_preparing)
                 )
         );
 
@@ -1948,7 +2051,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         int targetProgress =
-                clampProgress(
+                assistantFormatter.clampProgress(
                         explanation.getProgressPercent()
                 );
 
@@ -1957,9 +2060,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtAINextStep.setText(
-                safeText(
+                assistantFormatter.safeText(
                         explanation.getNextStep(),
-                        "Yeni veriler bekleniyor."
+                        getString(R.string.ai_runtime_new_data_waiting)
                 )
         );
 
@@ -2016,7 +2119,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         targetProgress =
-                clampProgress(targetProgress);
+                assistantFormatter.clampProgress(targetProgress);
 
         if (progressAnimator != null) {
             progressAnimator.cancel();
@@ -2063,7 +2166,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         int safeProgress =
-                clampProgress(progress);
+                assistantFormatter.clampProgress(progress);
 
         currentLearningProgress =
                 safeProgress;
@@ -2170,22 +2273,22 @@ public class AIAssistantActivity extends AppCompatActivity {
         } else if (progress <= 20) {
 
             learningStage = 1;
-            description = "Yeni sensör verileri toplanıyor";
+            description = getString(R.string.ai_runtime_collecting_sensor_data);
 
         } else if (progress <= 40) {
 
             learningStage = 2;
-            description = "Sensör davranışları öğreniliyor";
+            description = getString(R.string.ai_runtime_learning_sensor_behavior);
 
         } else if (progress <= 60) {
 
             learningStage = 3;
-            description = "Toprak nem modeli oluşturuluyor";
+            description = getString(R.string.ai_runtime_building_soil_model);
 
         } else if (progress <= 80) {
 
             learningStage = 4;
-            description = "Sulama geçmişi analiz ediliyor";
+            description = getString(R.string.ai_runtime_analyzing_watering_history);
 
         } else {
 
@@ -2193,18 +2296,16 @@ public class AIAssistantActivity extends AppCompatActivity {
 
             if (progress >= 100) {
 
-                description = "Öğrenme aşaması tamamlandı";
+                description = getString(R.string.ai_runtime_learning_completed);
 
             } else {
 
-                description = "AI modeli doğrulanıyor";
+                description = getString(R.string.ai_runtime_validating_model);
             }
         }
 
         txtAILearningStage.setText(
-                "Öğrenme Aşaması "
-                        + learningStage
-                        + " / 5"
+                getString(R.string.ai_runtime_learning_stage, learningStage)
         );
 
         txtAILearningDescription.setText(
@@ -2222,36 +2323,22 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
         switch (stage) {
             case 1:
-                return "Yeni sens\u00F6r verileri toplan\u0131yor";
+                return getString(R.string.ai_runtime_collecting_sensor_data);
             case 2:
                 return basicRecordsCompleted
-                        ? "\u00D6l\u00E7\u00FCm ve sulama kay\u0131tlar\u0131 tamamland\u0131 \u00B7 "
-                                + "Nem de\u011Fi\u015Fimi zaman i\u00E7inde do\u011Frulan\u0131yor"
-                        : "Topra\u011F\u0131n nem de\u011Fi\u015Fimi zaman i\u00E7inde g\u00F6zlemleniyor";
+                        ? getString(R.string.ai_runtime_records_complete_validating)
+                        : getString(R.string.ai_runtime_observing_soil_change);
             case 3:
-                return "Otomatik sulama sonu\u00E7lar\u0131 toplan\u0131yor";
+                return getString(R.string.ai_runtime_collecting_watering_results);
             case 4:
-                return "Toprak davran\u0131\u015F\u0131 analiz ediliyor";
+                return getString(R.string.ai_runtime_analyzing_soil_behavior);
             case 5:
                 return progress >= 100
-                        ? "Toprak \u00F6\u011Frenme profili haz\u0131r"
-                        : "\u00D6\u011Frenme g\u00FCveni art\u0131r\u0131l\u0131yor";
+                        ? getString(R.string.ai_runtime_soil_profile_ready)
+                        : getString(R.string.ai_runtime_increasing_learning_confidence);
             default:
-                return "\u00D6\u011Frenme s\u00FCreci devam ediyor";
+                return getString(R.string.ai_runtime_learning_continues);
         }
-    }
-
-    private int clampProgress(
-            double progress
-    ) {
-
-        return (int) Math.max(
-                0,
-                Math.min(
-                        Math.round(progress),
-                        100
-                )
-        );
     }
 
     /**
@@ -2264,17 +2351,17 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         String level;
 
-        if ("HIGH".equals(confidenceLevel)) {
+        if (HIGH.equals(confidenceLevel)) {
 
-            level = "YÜKSEK";
+            level = getString(R.string.ai_runtime_high_upper);
 
-        } else if ("MEDIUM".equals(confidenceLevel)) {
+        } else if (MEDIUM.equals(confidenceLevel)) {
 
-            level = "ORTA";
+            level = getString(R.string.ai_runtime_medium_upper);
 
         } else {
 
-            level = "DÜŞÜK";
+            level = getString(R.string.ai_runtime_low_upper);
         }
 
         long percent =
@@ -2315,28 +2402,28 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         if (classification == null) {
-            return "Bilinmiyor";
+            return getString(R.string.ai_runtime_unknown);
         }
 
         switch (classification) {
 
-            case "HIGH_WATER_RETENTION":
-                return "Suyu iyi tutuyor";
+            case HIGH_WATER_RETENTION:
+                return getString(R.string.ai_runtime_retains_water_well);
 
-            case "SLOW_DRYING":
-                return "Yavaş kuruyor";
+            case SLOW_DRYING:
+                return getString(R.string.ai_runtime_dries_slowly);
 
-            case "BALANCED":
-                return "Dengeli";
+            case BALANCED:
+                return getString(R.string.ai_runtime_balanced);
 
-            case "FAST_DRYING":
-                return "Hızlı kuruyor";
+            case FAST_DRYING:
+                return getString(R.string.ai_runtime_dries_fast);
 
-            case "VERY_FAST_DRYING":
-                return "Çok hızlı kuruyor";
+            case VERY_FAST_DRYING:
+                return getString(R.string.ai_runtime_dries_very_fast);
 
             default:
-                return "Bilinmiyor";
+                return getString(R.string.ai_runtime_unknown);
         }
     }
 
@@ -2348,34 +2435,34 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         if (classification == null) {
-            return "Bekleniyor";
+            return getString(R.string.ai_runtime_waiting);
         }
 
         switch (classification) {
 
-            case "STABLE":
-                return "Kararlı";
+            case STABLE:
+                return getString(R.string.ai_runtime_stable);
 
-            case "RISING":
-                return "Yükseliyor";
+            case RISING:
+                return getString(R.string.ai_runtime_rising);
 
-            case "SLOW_DRYING":
-                return "Yavaş kuruma";
+            case SLOW_DRYING:
+                return getString(R.string.ai_runtime_slow_drying);
 
-            case "NORMAL_DRYING":
-                return "Normal kuruma";
+            case NORMAL_DRYING:
+                return getString(R.string.ai_runtime_normal_drying);
 
-            case "FAST_DRYING":
-                return "Hızlı kuruma";
+            case FAST_DRYING:
+                return getString(R.string.ai_runtime_fast_drying);
 
-            case "VERY_FAST_DRYING":
-                return "Çok hızlı kuruma";
+            case VERY_FAST_DRYING:
+                return getString(R.string.ai_runtime_very_fast_drying);
 
-            case "INSUFFICIENT_DATA":
-                return "Veri toplanıyor";
+            case INSUFFICIENT_DATA:
+                return getString(R.string.ai_runtime_collecting_data);
 
             default:
-                return "Bekleniyor";
+                return getString(R.string.ai_runtime_waiting);
         }
     }
 
@@ -2395,7 +2482,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || updatedAt.trim().isEmpty()
         ) {
 
-            return "Bekleniyor";
+            return getString(R.string.ai_runtime_waiting);
         }
 
         try {
@@ -2409,7 +2496,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                             < separatorIndex + 6
             ) {
 
-                return "Bekleniyor";
+                return getString(R.string.ai_runtime_waiting);
             }
 
             return updatedAt.substring(
@@ -2419,7 +2506,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         } catch (RuntimeException exception) {
 
-            return "Son güncelleme bekleniyor";
+            return getString(R.string.ai_runtime_update_waiting);
         }
     }
 
@@ -2435,65 +2522,65 @@ public class AIAssistantActivity extends AppCompatActivity {
         int backgroundColorRes;
         String badgeText;
 
-        if ("LEARNING".equals(decisionCode)) {
+        if (LEARNING.equals(decisionCode)) {
 
             textColorRes = R.color.primary;
             backgroundColorRes = R.color.primaryLight;
-            badgeText = "ÖĞRENİYOR";
+            badgeText = getString(R.string.ai_runtime_learning_upper);
 
-        } else if ("SENSOR_UNSTABLE".equals(decisionCode)) {
-
-            textColorRes = R.color.warning;
-            backgroundColorRes = R.color.warningBackground;
-            badgeText = "SENSÖR";
-
-        } else if ("WATERING_RECOMMENDED".equals(decisionCode)) {
+        } else if (SENSOR_UNSTABLE.equals(decisionCode)) {
 
             textColorRes = R.color.warning;
             backgroundColorRes = R.color.warningBackground;
-            badgeText = "SULAMA";
+            badgeText = getString(R.string.ai_runtime_badge_sensor);
 
-        } else if ("NO_ACTION_REQUIRED".equals(decisionCode)) {
+        } else if (WATERING_RECOMMENDED.equals(decisionCode)) {
+
+            textColorRes = R.color.warning;
+            backgroundColorRes = R.color.warningBackground;
+            badgeText = getString(R.string.ai_runtime_badge_watering);
+
+        } else if (NO_ACTION_REQUIRED.equals(decisionCode)) {
 
             textColorRes = R.color.online;
             backgroundColorRes = R.color.onlineBackground;
-            badgeText = "UYGUN";
+            badgeText = getString(R.string.ai_runtime_badge_suitable);
 
-        } else if ("SYSTEM_DISABLED".equals(decisionCode)) {
+        } else if (SYSTEM_DISABLED.equals(decisionCode)) {
 
             textColorRes = R.color.offline;
             backgroundColorRes = R.color.offlineBackground;
-            badgeText = "KAPALI";
+            badgeText = getString(R.string.ai_runtime_badge_closed);
 
-        } else if ("MANUAL_MODE".equals(decisionCode)) {
+        } else if (MANUAL_MODE.equals(decisionCode)) {
 
             textColorRes = R.color.info;
             backgroundColorRes = R.color.infoBackground;
-            badgeText = "MANUEL";
+            badgeText = getString(R.string.ai_runtime_badge_manual);
 
-        } else if ("INCREASE_PUMP_DURATION".equals(decisionCode)) {
+        } else if (INCREASE_PUMP_DURATION.equals(decisionCode)) {
 
             textColorRes = R.color.warning;
             backgroundColorRes = R.color.warningBackground;
-            badgeText = "ARTIR";
+            badgeText = getString(R.string.ai_runtime_badge_increase);
 
-        } else if ("DECREASE_PUMP_DURATION".equals(decisionCode)) {
+        } else if (DECREASE_PUMP_DURATION.equals(decisionCode)) {
 
             textColorRes = R.color.info;
             backgroundColorRes = R.color.infoBackground;
-            badgeText = "AZALT";
+            badgeText = getString(R.string.ai_runtime_badge_decrease);
 
-        } else if ("CRITICAL".equals(severity)) {
+        } else if (CRITICAL.equals(severity)) {
 
             textColorRes = R.color.offline;
             backgroundColorRes = R.color.offlineBackground;
-            badgeText = "KRİTİK";
+            badgeText = getString(R.string.ai_runtime_badge_critical);
 
         } else {
 
             textColorRes = R.color.primary;
             backgroundColorRes = R.color.primaryLight;
-            badgeText = "BİLGİ";
+            badgeText = getString(R.string.ai_runtime_badge_info);
         }
 
         int textColor =
@@ -2566,24 +2653,10 @@ public class AIAssistantActivity extends AppCompatActivity {
     /**
      * Boş Firebase metinlerine karşı güvenli değer döndürür.
      */
-    private String safeText(
-            String value,
-            String fallback
-    ) {
-
-        if (
-                value == null
-                        || value.trim().isEmpty()
-        ) {
-
-            return fallback;
-        }
-
-        return value.trim();
-    }
-
     private void updatePredictionZones(List<GardenZone> zones) {
-        String selectedZoneId = predictionZones.isEmpty()
+        String selectedZoneId = requestedZoneId != null && !requestedZoneId.trim().isEmpty()
+                ? requestedZoneId.trim()
+                : predictionZones.isEmpty()
                 ? ""
                 : predictionZones.get(selectedPredictionZoneIndex).getZone_id();
         predictionZones.clear();
@@ -2594,13 +2667,18 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         selectedPredictionZoneIndex = 0;
+        boolean requestedZoneFound = false;
         for (int index = 0; index < predictionZones.size(); index++) {
             if (selectedZoneId.equals(predictionZones.get(index).getZone_id())) {
                 selectedPredictionZoneIndex = index;
+                requestedZoneFound = true;
                 break;
             }
         }
-        renderSelectedMoisturePrediction();
+        if (requestedZoneFound) {
+            requestedZoneId = null;
+        }
+        renderSelectedZoneAI();
     }
 
     private void movePredictionZone(int direction) {
@@ -2609,43 +2687,98 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
         selectedPredictionZoneIndex = (selectedPredictionZoneIndex + direction
                 + predictionZones.size()) % predictionZones.size();
-        renderSelectedMoisturePrediction();
+        renderSelectedZoneAI();
     }
 
-    private void renderSelectedMoisturePrediction() {
+    private void renderSelectedZoneAI() {
+        selectedZoneSummaryRenderer.render(
+                predictionZones,
+                selectedPredictionZoneIndex
+        );
+
         if (predictionZones.isEmpty()) {
-            txtMoisturePredictionTitle.setText("Nem Tahmini");
-            txtMoisturePredictionZone.setText("Bölge verisi bekleniyor");
+            txtMoisturePredictionTitle.setText(R.string.ai_moisture_prediction_default_title);
+            txtMoisturePredictionZone.setText(R.string.ai_zone_data_waiting);
+            renderAIDecision(fallbackAIDecision);
+            renderAdaptiveRecommendation(fallbackAdaptiveRecommendation);
+            renderAIExplanation(fallbackAIExplanation);
             renderMoisturePredictionData(latestMoisturePrediction);
+            renderPredictionAccuracy(fallbackPredictionAccuracy);
+            renderUnifiedConfidence(fallbackUnifiedConfidence);
+            renderPredictionValidationStatus(fallbackPredictionValidationStatus);
+            renderSoilLearningProfile(fallbackSoilLearningProfile);
+            setAdvancedDetailsVisible(advancedDetailsVisible);
+            renderWeatherGuidance();
             return;
         }
 
         GardenZone zone = predictionZones.get(selectedPredictionZoneIndex);
-        String emoji = safeText(zone.getEmoji(), "ğŸŒ±");
-        String name = safeText(zone.getName(), zone.getZone_id());
-        txtMoisturePredictionTitle.setText("Nem Tahmini · " + emoji + " " + name);
-        txtMoisturePredictionZone.setText((selectedPredictionZoneIndex + 1)
-                + " / " + predictionZones.size() + " · Sağa/sola kaydırın");
+        String emoji = assistantFormatter.safeText(zone.getEmoji(), getString(R.string.symbol_plant));
+        String name = assistantFormatter.safeText(zone.getName(), zone.getZone_id());
+        txtMoisturePredictionTitle.setText(getString(
+                R.string.ai_moisture_prediction_zone_title,
+                emoji,
+                name
+        ));
+        txtMoisturePredictionZone.setText(getString(
+                R.string.ai_zone_swipe_position,
+                selectedPredictionZoneIndex + 1,
+                predictionZones.size()
+        ));
 
-        if (selectedPredictionZoneIndex == 0) {
-            renderMoisturePredictionData(latestMoisturePrediction);
+        ZoneAIState zoneAI = zone.getAi();
+        if (zoneAI == null) {
+            renderZoneAIWaiting(zone);
+            setAdvancedDetailsVisible(advancedDetailsVisible);
+            renderWeatherGuidance();
             return;
         }
 
+        cardAINextStep.setVisibility(View.VISIBLE);
+        renderAIDecision(zoneAI.getDecision());
+        renderAdaptiveRecommendation(zoneAI.getAdaptiveRecommendation());
+        renderAIExplanation(zoneAI.getExplanation());
+        renderMoisturePredictionData(zoneAI.getMoisturePrediction());
+        renderPredictionAccuracy(zoneAI.getPredictionAccuracy());
+        renderUnifiedConfidence(zoneAI.getConfidence());
+        renderPredictionValidationStatus(zoneAI.getPredictionValidation());
+        renderSoilLearningProfile(zoneAI.getLearningProfile());
+        setAdvancedDetailsVisible(advancedDetailsVisible);
+        renderWeatherGuidance();
+    }
+    private void renderZoneAIWaiting(GardenZone zone) {
+        String sensorId = assistantFormatter.safeText(
+                zone.getSensor_id(),
+                getString(R.string.ai_zone_data_waiting)
+        );
+        txtAIDecisionTitle.setText(R.string.ai_zone_decision_preparing);
+        txtAIAnalysisScope.setText(getString(R.string.ai_zone_analysis_scope, sensorId));
+        txtAIDecisionSummary.setText(R.string.ai_zone_data_waiting);
+        txtAINextStep.setText(R.string.ai_zone_prediction_preparing);
+        txtAIConfidence.setText(formatConfidence(LOW, 0.0));
+        txtAIReasonOne.setVisibility(View.GONE);
+        txtAIReasonTwo.setVisibility(View.GONE);
+        txtAIReasonThree.setVisibility(View.GONE);
+        cardAIAdaptiveRecommendation.setVisibility(View.GONE);
+        cardAIReasons.setVisibility(View.GONE);
+        cardAIProgress.setVisibility(View.GONE);
         renderZonePredictionWaiting(zone);
+        renderPredictionAccuracy(null);
+        renderUnifiedConfidence(null);
+        renderPredictionValidationStatus(null);
     }
 
     private void renderZonePredictionWaiting(GardenZone zone) {
-        txtMoisturePredictionStatus.setText("ÖĞRENİYOR");
+        txtMoisturePredictionStatus.setText(R.string.ai_zone_learning_status);
         txtPredictionCurrentMoisture.setText(formatMoistureValue(zone.getMoisture()));
         txtPredictionMoistureLimit.setText(formatMoistureValue(zone.getMoisture_limit()));
-        txtPredictionOneHour.setText("—");
-        txtPredictionThreeHours.setText("—");
-        txtPredictionSixHours.setText("—");
-        txtPredictionTimeUntilLimit.setText("Bu bölge için veri hazırlanıyor");
-        txtMoisturePredictionConfidence.setText("DÜŞÜK · %0");
-        txtPredictionLimitReachedAt.setText("Tahmini sınır zamanı: —");
-        txtMoisturePredictionUpdatedAt.setText("Bu bölgenin tahmini henüz oluşmadı");
+        txtPredictionOneHour.setText(assistantFormatter.unavailableValue());
+        txtPredictionThreeHours.setText(assistantFormatter.unavailableValue());
+        txtPredictionSixHours.setText(assistantFormatter.unavailableValue());
+        txtPredictionTimeUntilLimit.setText(R.string.ai_zone_prediction_preparing);
+        txtMoisturePredictionConfidence.setText(R.string.ai_zone_low_confidence);
+        txtPredictionLimitReachedAt.setText(R.string.ai_zone_limit_time_waiting);
+        txtMoisturePredictionUpdatedAt.setText(R.string.ai_zone_prediction_not_ready);
         applyMoisturePredictionWaitingStyle();
     }
 
@@ -2653,7 +2786,7 @@ public class AIAssistantActivity extends AppCompatActivity {
             MoisturePrediction prediction
     ) {
         latestMoisturePrediction = prediction;
-        renderSelectedMoisturePrediction();
+        renderSelectedZoneAI();
     }
 
     private void renderMoisturePredictionData(
@@ -2666,14 +2799,14 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         String predictionStatus =
-                safeText(
+                assistantFormatter.safeText(
                         prediction.getPrediction_status(),
-                        "INSUFFICIENT_DATA"
+                        INSUFFICIENT_DATA
                 )
                         .trim()
                         .toUpperCase(Locale.ROOT);
 
-        if ("INSUFFICIENT_DATA".equals(predictionStatus)) {
+        if (INSUFFICIENT_DATA.equals(predictionStatus)) {
 
             renderMoisturePredictionLearning(
                     prediction
@@ -2726,14 +2859,14 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionLimitReachedAt.setText(
-                "Tahmini sınır zamanı: "
+                getString(R.string.ai_runtime_prediction_limit_prefix)
                         + formatPredictionDateTime(
                         prediction.getEstimated_limit_reached_at()
                 )
         );
 
         txtMoisturePredictionUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         prediction.getGenerated_at()
                 )
@@ -2754,9 +2887,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         String status =
-                safeText(
+                assistantFormatter.safeText(
                         accuracy.getStatus(),
-                        "INSUFFICIENT_DATA"
+                        INSUFFICIENT_DATA
                 )
                         .trim()
                         .toUpperCase(Locale.ROOT);
@@ -2774,7 +2907,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 );
 
         if (
-                "INSUFFICIENT_DATA".equals(status)
+                INSUFFICIENT_DATA.equals(status)
                         || predictionCount == 0
         ) {
 
@@ -2786,7 +2919,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         double accuracyPercent =
-                normalizePercent(
+                assistantFormatter.normalizePercent(
                         accuracy.getAccuracy_percent()
                 );
 
@@ -2833,7 +2966,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionAccuracyUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         accuracy.getGenerated_at()
                 )
@@ -2868,11 +3001,11 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         txtPredictionAccuracyStatus.setText(
-                "ÖĞRENİYOR"
+                getString(R.string.ai_runtime_learning_upper)
         );
 
         txtPredictionAccuracyPercent.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionConfidenceMultiplier.setText(
@@ -2900,19 +3033,19 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionAverageError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionMinimumError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionMaximumError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionAccuracyUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         accuracy.getGenerated_at()
                 )
@@ -2931,15 +3064,15 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderPredictionAccuracyEmpty() {
 
         txtPredictionAccuracyStatus.setText(
-                "BEKLENİYOR"
+                getString(R.string.ai_runtime_waiting_upper)
         );
 
         txtPredictionAccuracyPercent.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionConfidenceMultiplier.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionCount.setText(
@@ -2951,19 +3084,19 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionAverageError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionMinimumError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionMaximumError.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionAccuracyUpdatedAt.setText(
-                "Son güncelleme: —"
+                getString(R.string.ai_runtime_last_updated_unavailable)
         );
 
         progressPredictionAccuracy.setProgressCompat(
@@ -2978,44 +3111,14 @@ public class AIAssistantActivity extends AppCompatActivity {
         applyPredictionAccuracyWaitingStyle();
     }
 
-    private double normalizePercent(
-            double value
-    ) {
-
-        if (
-                Double.isNaN(value)
-                        || Double.isInfinite(value)
-        ) {
-            return 0.0;
-        }
-
-        double normalizedValue =
-                value;
-
-        if (
-                normalizedValue >= 0.0
-                        && normalizedValue <= 1.0
-        ) {
-            normalizedValue *= 100.0;
-        }
-
-        return Math.max(
-                0.0,
-                Math.min(
-                        normalizedValue,
-                        100.0
-                )
-        );
-    }
-
     private String formatPercent(
             double percent
     ) {
 
         return String.format(
                 Locale.getDefault(),
-                "%%%.1f",
-                normalizePercent(percent)
+                getString(R.string.ai_runtime_moisture_percent),
+                assistantFormatter.normalizePercent(percent)
         );
     }
 
@@ -3028,7 +3131,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(minutes)
                         || minutes <= 0
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
 
@@ -3045,7 +3148,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         return String.format(
                 Locale.getDefault(),
-                "%.0f dk",
+                getString(R.string.ai_runtime_minutes),
                 minutes
         );
     }
@@ -3059,13 +3162,13 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(rate)
                         || rate <= 0
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
 
         return String.format(
                 Locale.getDefault(),
-                "%.3f/dk",
+                getString(R.string.ai_runtime_decimal_rate_per_minute),
                 rate
         );
     }
@@ -3076,33 +3179,33 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         if (efficiency <= 0) {
 
-            return "Öğreniliyor";
+            return getString(R.string.ai_runtime_learning);
 
         }
 
 
         if (efficiency < 0.02) {
 
-            return "Düşük";
+            return getString(R.string.ai_runtime_low);
 
         }
 
 
         if (efficiency < 0.05) {
 
-            return "Normal";
+            return getString(R.string.ai_runtime_normal);
 
         }
 
 
-        return "İyi";
+        return getString(R.string.ai_runtime_good);
     }
 
     private void applyEfficiencyStatusStyle(
             String status
     ) {
 
-        if ("İyi".equals(status)) {
+        if (getString(R.string.ai_runtime_good).equals(status)) {
 
             txtAIWateringEfficiencyStatus
                     .setTextColor(
@@ -3113,7 +3216,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                     );
 
 
-        } else if ("Normal".equals(status)) {
+        } else if (getString(R.string.ai_runtime_normal).equals(status)) {
 
             txtAIWateringEfficiencyStatus
                     .setTextColor(
@@ -3124,7 +3227,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                     );
 
 
-        } else if ("Düşük".equals(status)) {
+        } else if (getString(R.string.ai_runtime_low).equals(status)) {
 
             txtAIWateringEfficiencyStatus
                     .setTextColor(
@@ -3162,7 +3265,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         return String.format(
                 Locale.getDefault(),
-                "%.2f",
+                getString(R.string.ai_runtime_decimal_value),
                 value
         );
     }
@@ -3176,12 +3279,12 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(error)
                         || error < 0
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
         return String.format(
                 Locale.getDefault(),
-                "%%%.2f",
+                getString(R.string.ai_runtime_error_percent),
                 error
         );
     }
@@ -3195,12 +3298,12 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(multiplier)
                         || multiplier < 0
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
         return String.format(
                 Locale.getDefault(),
-                "×%.2f",
+                getString(R.string.ai_runtime_multiplier),
                 multiplier
         );
     }
@@ -3211,23 +3314,23 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         if (
-                "READY".equals(status)
+                READY.equals(status)
                         && predictionCount > 0
         ) {
 
             txtPredictionAccuracyStatus.setText(
-                    "HAZIR"
+                    getString(R.string.ai_runtime_ready_upper)
             );
 
             applyPredictionAccuracyReadyStyle();
 
         } else if (
-                "INSUFFICIENT_DATA".equals(status)
+                INSUFFICIENT_DATA.equals(status)
                         || predictionCount == 0
         ) {
 
             txtPredictionAccuracyStatus.setText(
-                    "ÖĞRENİYOR"
+                    getString(R.string.ai_runtime_learning_upper)
             );
 
             applyPredictionAccuracyWaitingStyle();
@@ -3235,7 +3338,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         } else {
 
             txtPredictionAccuracyStatus.setText(
-                    "BEKLENİYOR"
+                    getString(R.string.ai_runtime_waiting_upper)
             );
 
             applyPredictionAccuracyWaitingStyle();
@@ -3307,7 +3410,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     ) {
 
         txtMoisturePredictionStatus.setText(
-                "ÖĞRENİYOR"
+                getString(R.string.ai_runtime_learning_upper)
         );
 
         txtPredictionCurrentMoisture.setText(
@@ -3322,12 +3425,12 @@ public class AIAssistantActivity extends AppCompatActivity {
                 )
         );
 
-        txtPredictionOneHour.setText("—");
-        txtPredictionThreeHours.setText("—");
-        txtPredictionSixHours.setText("—");
+        txtPredictionOneHour.setText(assistantFormatter.unavailableValue());
+        txtPredictionThreeHours.setText(assistantFormatter.unavailableValue());
+        txtPredictionSixHours.setText(assistantFormatter.unavailableValue());
 
         txtPredictionTimeUntilLimit.setText(
-                "Yeterli veri bekleniyor"
+                getString(R.string.ai_runtime_sufficient_data_waiting)
         );
 
         txtMoisturePredictionConfidence.setText(
@@ -3338,11 +3441,11 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionLimitReachedAt.setText(
-                "Tahmini sınır zamanı: —"
+                getString(R.string.ai_runtime_prediction_limit_unavailable)
         );
 
         txtMoisturePredictionUpdatedAt.setText(
-                "Son güncelleme: "
+                getString(R.string.ai_runtime_last_updated_prefix)
                         + formatPredictionDateTime(
                         prediction.getGenerated_at()
                 )
@@ -3354,43 +3457,43 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderMoisturePredictionEmpty() {
 
         txtMoisturePredictionStatus.setText(
-                "BEKLENİYOR"
+                getString(R.string.ai_runtime_waiting_upper)
         );
 
         txtPredictionCurrentMoisture.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionMoistureLimit.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionOneHour.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionThreeHours.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionSixHours.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionTimeUntilLimit.setText(
-                "Hesaplanıyor"
+                getString(R.string.ai_runtime_calculating)
         );
 
         txtMoisturePredictionConfidence.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionLimitReachedAt.setText(
-                "Tahmini sınır zamanı: —"
+                getString(R.string.ai_runtime_prediction_limit_unavailable)
         );
 
         txtMoisturePredictionUpdatedAt.setText(
-                "Son güncelleme: —"
+                getString(R.string.ai_runtime_last_updated_unavailable)
         );
 
         applyMoisturePredictionWaitingStyle();
@@ -3411,7 +3514,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         return String.format(
                 Locale.getDefault(),
-                "%%%.1f",
+                getString(R.string.ai_runtime_moisture_percent),
                 safeMoisture
         );
     }
@@ -3425,7 +3528,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                         || Double.isInfinite(estimatedMinutes)
                         || estimatedMinutes <= 0
         ) {
-            return "Hesaplanamıyor";
+            return getString(R.string.ai_runtime_cannot_calculate);
         }
 
         long totalMinutes =
@@ -3448,7 +3551,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
             return String.format(
                     Locale.getDefault(),
-                    "%d gün %d sa",
+                    getString(R.string.ai_runtime_days_hours),
                     days,
                     hours
             );
@@ -3458,7 +3561,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
             return String.format(
                     Locale.getDefault(),
-                    "%d sa %d dk",
+                    getString(R.string.ai_runtime_hours_minutes),
                     hours,
                     minutes
             );
@@ -3466,7 +3569,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         return String.format(
                 Locale.getDefault(),
-                "%d dk",
+                getString(R.string.ai_runtime_minutes_only),
                 minutes
         );
     }
@@ -3479,7 +3582,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 isoDateTime == null
                         || isoDateTime.trim().isEmpty()
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
         try {
@@ -3505,7 +3608,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                     exception
             );
 
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
     }
 
@@ -3513,22 +3616,22 @@ public class AIAssistantActivity extends AppCompatActivity {
             String predictionStatus
     ) {
 
-        if ("READY".equals(predictionStatus)) {
+        if (READY.equals(predictionStatus)) {
 
             txtMoisturePredictionStatus.setText(
-                    "HAZIR"
+                    getString(R.string.ai_runtime_ready_upper)
             );
 
             applyMoisturePredictionReadyStyle();
 
         } else if (
-                "INSUFFICIENT_DATA".equals(
+                INSUFFICIENT_DATA.equals(
                         predictionStatus
                 )
         ) {
 
             txtMoisturePredictionStatus.setText(
-                    "ÖĞRENİYOR"
+                    getString(R.string.ai_runtime_learning_upper)
             );
 
             applyMoisturePredictionWaitingStyle();
@@ -3536,7 +3639,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         } else {
 
             txtMoisturePredictionStatus.setText(
-                    "BEKLENİYOR"
+                    getString(R.string.ai_runtime_waiting_upper)
             );
 
             applyMoisturePredictionWaitingStyle();
@@ -3610,9 +3713,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         String validationStatus =
-                safeText(
+                assistantFormatter.safeText(
                         status.getValidation_status(),
-                        "IDLE"
+                        IDLE
                 )
                         .trim()
                         .toUpperCase(Locale.ROOT);
@@ -3636,7 +3739,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 );
 
         boolean waiting =
-                "WAITING".equals(validationStatus)
+                WAITING.equals(validationStatus)
                         && pendingCount > 0;
 
         if (!waiting) {
@@ -3652,7 +3755,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         }
 
         txtPredictionValidationStatus.setText(
-                "BEKLİYOR"
+                getString(R.string.ai_runtime_validation_waiting)
         );
 
         txtPredictionValidationRemaining.setText(
@@ -3704,19 +3807,19 @@ public class AIAssistantActivity extends AppCompatActivity {
     private void renderPredictionValidationIdle() {
 
         txtPredictionValidationStatus.setText(
-                "BOŞTA"
+                getString(R.string.ai_runtime_idle_upper)
         );
 
         txtPredictionValidationRemaining.setText(
-                "Bekleyen doğrulama yok"
+                getString(R.string.ai_runtime_no_pending_validation)
         );
 
         txtPredictionValidationPercent.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionValidationTarget.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionValidationPending.setText(
@@ -3724,11 +3827,11 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionValidationNextTime.setText(
-                "—"
+                assistantFormatter.unavailableValue()
         );
 
         txtPredictionValidationUpdatedAt.setText(
-                "Bekleniyor"
+                getString(R.string.ai_runtime_waiting)
         );
 
         progressPredictionValidation.setProgressCompat(
@@ -3794,7 +3897,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         if (hours > 0) {
             return String.format(
                     Locale.getDefault(),
-                    "%d sa %02d dk %02d sn",
+                    getString(R.string.ai_runtime_hours_minutes_seconds),
                     hours,
                     minutes,
                     seconds
@@ -3803,7 +3906,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         return String.format(
                 Locale.getDefault(),
-                "%d dk %02d sn",
+                getString(R.string.ai_runtime_minutes_seconds),
                 minutes,
                 seconds
         );
@@ -3817,7 +3920,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 isoDateTime == null
                         || isoDateTime.trim().isEmpty()
         ) {
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
 
         try {
@@ -3843,7 +3946,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                     exception
             );
 
-            return "—";
+            return assistantFormatter.unavailableValue();
         }
     }
 
@@ -3855,7 +3958,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                 isoDateTime == null
                         || isoDateTime.trim().isEmpty()
         ) {
-            return "Bekleniyor";
+            return getString(R.string.ai_runtime_waiting);
         }
 
         try {
@@ -3882,7 +3985,7 @@ public class AIAssistantActivity extends AppCompatActivity {
                     exception
             );
 
-            return "Bekleniyor";
+            return getString(R.string.ai_runtime_waiting);
         }
     }
 

@@ -113,20 +113,11 @@ public final class NotificationSettingsStore {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         int start = quietStartHour();
         int end = quietEndHour();
-        boolean quiet = start == end
-                || (start < end ? hour >= start && hour < end : hour >= start || hour < end);
-        return !quiet;
+        return !NotificationPolicy.isQuietHour(true, hour, start, end);
     }
 
     public static String categoryFor(String type) {
-        if ("irrigation".equals(type) || "fertilization".equals(type)
-                || "plant".equals(type) || "weather".equals(type)
-                || "device".equals(type) || "stock".equals(type)) return type;
-        if ("IRRIGATION".equals(type)) return "irrigation";
-        if ("FERTILIZATION".equals(type)) return "fertilization";
-        if ("STOCK".equals(type)) return "stock";
-        if ("WEATHER".equals(type)) return "weather";
-        if ("DEVICE".equals(type)) return "device";
-        return "plant";
+        return NotificationPolicy.categoryFor(type);
+
     }
 }

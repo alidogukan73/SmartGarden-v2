@@ -1079,7 +1079,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             if (waiting && hasMinimumIntervalRisk(advice)) {
                 visibleRiskCount = Math.max(0, visibleRiskCount - 1);
             }
-            if (visibleRiskCount == 0) {
+            boolean seasonCompleted = "SEZON TAMAMLANDI".equals(advice.getStatus());
+            if (visibleRiskCount == 0 || seasonCompleted) {
                 risks.setVisibility(View.GONE);
             } else {
                 risks.setVisibility(View.VISIBLE);

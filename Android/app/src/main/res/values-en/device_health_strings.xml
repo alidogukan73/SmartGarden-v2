@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="health_esp32_sensor_network">ESP32 sensor network</string>
+    <string name="health_wireless_soil_sensor_connection">Wireless soil moisture sensor connection</string>
+    <string name="health_device_management_title">🔄 Device Management</string>
+    <string name="health_remote_restart_description">You can remotely restart the Raspberry Pi device.</string>
+    <string name="health_restart_device_button">Restart Device</string>
+</resources>

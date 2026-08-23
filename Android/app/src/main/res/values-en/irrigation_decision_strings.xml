@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_zone_valve_not_physical">Watering was safely blocked because no physical valve is installed</string>
+    <string name="ai_zone_cycle_limit_reached">%1$d watering cycles completed · Waiting for moisture recovery</string>
+    <string name="ai_zone_system_disabled">The irrigation system is disabled in general settings</string>
+    <string name="ai_zone_auto_mode_disabled">Automatic watering is off · Manual control is available</string>
+    <string name="ai_zone_samples_collecting">Collecting enough sensor readings for a decision</string>
+    <string name="ai_zone_cooldown_without_duration">Post-watering cooldown is active</string>
+    <string name="ai_zone_weather_rain_delay">Low-priority watering was delayed due to expected rain</string>
+    <string name="ai_zone_weather_wind_delay">Low-priority watering was delayed due to strong wind</string>
+    <string name="ai_moisture_prediction_default_title">Moisture Forecast</string>
+    <string name="ai_moisture_prediction_zone_title">Moisture Forecast · %1$s %2$s</string>
+    <string name="ai_zone_swipe_position">%1$d / %2$d · Swipe left or right</string>
+    <string name="ai_zone_data_waiting">Waiting for zone AI data</string>
+    <string name="ai_zone_prediction_preparing">Preparing data for this zone</string>
+    <string name="ai_zone_prediction_not_ready">A forecast is not ready for this zone yet</string>
+    <string name="ai_zone_decision_preparing">Preparing the zone decision</string>
+    <string name="ai_zone_analysis_scope">This analysis uses regional data from sensor %1$s</string>
+    <string name="ai_garden_summary_title">Garden overview</string>
+    <string name="ai_garden_summary_detail">%1$d/%2$d zones analyzed · %3$d watering recommendations · %4$d warnings · %5$d%% confidence</string>
+    <string name="ai_zone_learning_status">LEARNING</string>
+    <string name="ai_zone_low_confidence" formatted="false">LOW · %0</string>
+    <string name="ai_zone_limit_time_waiting">Estimated threshold time: —</string>
+
+    <string name="ai_weather_stale_title">Weather data is not current</string>
+    <string name="ai_weather_stale_summary">Weather will not affect automatic watering until a current forecast is received.</string>
+    <string name="ai_weather_stale_safety">Safety: Sensor, cooldown, cycle-limit, valve and pump protections remain active.</string>
+    <string name="ai_weather_today_line">Today %1$s%2$s%3$s</string>
+    <string name="ai_weather_temperature_missing">temperature unavailable</string>
+    <string name="ai_weather_temperature_value">%1$d°C</string>
+    <string name="ai_weather_rain_suffix"> · rain %1$d%%</string>
+    <string name="ai_weather_wind_suffix"> · wind %1$d km/h</string>
+
+    <string name="ai_weather_rain_delay_title">Rain delay may apply</string>
+    <string name="ai_weather_rain_delay_summary">%1$s. At least 2 mm and an 80%% chance of rain can briefly delay only zones with a small moisture deficit.</string>
+    <string name="ai_weather_rain_delay_safety">Weather never replaces a serious moisture need, a current sensor reading or hardware safety checks.</string>
+    <string name="ai_weather_wind_delay_title">Strong wind adjustment</string>
+    <string name="ai_weather_wind_delay_summary">%1$s. Wind at or above 35 km/h can briefly delay only zones with a small moisture deficit.</string>
+    <string name="ai_weather_wind_delay_safety">When the moisture deficit grows, watering is evaluated again if sensor and hardware protections pass.</string>
+    <string name="ai_weather_heat_title">Heat adjustment is active</string>
+    <string name="ai_weather_heat_dry_summary">%1$s. %2$d zones are at their moisture limit; required watering duration may increase by 15%% within safety limits.</string>
+    <string name="ai_weather_heat_normal_summary">%1$s. If moisture need occurs, required watering duration may increase by 15%% within safety limits.</string>
+    <string name="ai_weather_heat_safety">Weather never starts watering by itself; a current and stable sensor reading makes the decision.</string>
+    <string name="ai_weather_neutral_title">No additional weather action</string>
+    <string name="ai_weather_neutral_dry_summary">%1$s. %2$d zones are at their moisture limit; regional sensor decisions are being monitored.</string>
+    <string name="ai_weather_neutral_summary">%1$s. No rain, strong-wind or extreme-heat adjustment is required.</string>
+    <string name="ai_weather_neutral_safety">Watering occurs only when moisture need and cycle, cooldown, pump and valve protections allow it.</string>
+    <string name="ai_zone_duration_learned">Learned cycle duration: %1$s → %2$s · %3$d records, %4$d%% confidence</string>
+    <string name="ai_zone_duration_learned_weather">Learning and weather: %1$s → %2$s · %3$d records, %4$d%% confidence</string>
+    <string name="ai_zone_duration_weather">Cycle duration with weather adjustment: %1$s → %2$s</string>
+    <string name="ai_adaptive_card_label">Learned duration</string>
+    <string name="ai_adaptive_runtime_increase">Watering duration can be increased safely</string>
+    <string name="ai_adaptive_runtime_decrease">Watering duration can be reduced safely</string>
+    <string name="ai_adaptive_runtime_detail">%1$s → %2$s · %3$d watering records · %4$d%% confidence. Used only in safe automatic cycles; your saved setting is unchanged.</string>
+</resources>

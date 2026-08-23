@@ -30,20 +30,9 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnNotificationDetailBack"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:contentDescription="@string/notification_detail_back"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:text="@string/symbol_back_arrow"
-                    android:textAppearance="@style/TextAppearance.AVORA.BackButton"
-                    app:backgroundTint="@android:color/transparent"
-                    app:cornerRadius="22dp"
-                    app:rippleColor="@color/accentLight" />
+                    android:contentDescription="@string/notification_detail_back" />
 
                 <TextView
                     android:layout_width="0dp"

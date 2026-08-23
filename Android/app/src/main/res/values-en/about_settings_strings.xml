@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_settings_brand_subtitle">Smart Plant Assistant</string>
+    <string name="about_settings_app_icon_description">AVORA app logo</string>
+    <string name="about_settings_overview_category">About AVORA</string>
+    <string name="about_settings_overview_title">Your garden’s digital assistant</string>
+    <string name="about_settings_overview_message">AVORA brings together wireless sensors, the Raspberry Pi control system, Firebase infrastructure, and the Android app. It monitors soil moisture, makes safe irrigation decisions, tracks fertilization plans, records plant development in a journal, and evaluates photos together with garden data.</string>
+    <string name="about_settings_feature_irrigation">AI-assisted, safety-controlled zone irrigation</string>
+    <string name="about_settings_feature_plant">AI Plant Assistant using photo, sensor, and weather data</string>
+    <string name="about_settings_feature_fertilizer">Fertilizer recommendations, stock, calendar, and application tracking</string>
+    <string name="about_settings_feature_journal">Plant Journal combining season, irrigation, fertilization, and development history</string>
+    <string name="about_settings_system_category">App and system</string>
+    <string name="about_settings_app_version_label">App version</string>
+    <string name="about_settings_version_format">v%1$s</string>
+    <string name="about_settings_backend_version_label">Raspberry Pi backend version</string>
+    <string name="about_settings_device_label">Connected device</string>
+    <string name="about_settings_backend_waiting">Waiting for connection</string>
+    <string name="about_settings_backend_unavailable">Information unavailable</string>
+    <string name="about_settings_developer_category">Developer</string>
+    <string name="about_settings_github_message">View the source code and project development on GitHub.</string>
+    <string name="about_settings_github_content_description">Open the AVORA GitHub page</string>
+    <string name="about_settings_footer">AVORA · Developed for smart agriculture</string>
+</resources>

@@ -29,6 +29,9 @@ from controllers.multi_zone_decision_engine import (
 from controllers.zone_irrigation_scheduler import (
     ZoneIrrigationScheduler,
 )
+from controllers.weather_irrigation_policy import (
+    WeatherIrrigationPolicy,
+)
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from services.irrigation_service import IrrigationService
@@ -37,6 +40,9 @@ from services.irrigation_service import IrrigationService
 class FakeFirebase:
     def __init__(self) -> None:
         self.states = {}
+        self.ai_states = {}
+        self.garden_summary = {}
+        self.history_requests = []
         self.configs = {
             "soil-001": self._zone(
                 "zone-001",
@@ -71,11 +77,28 @@ class FakeFirebase:
     def get_all_zone_configs_by_sensor(self) -> dict:
         return self.configs
 
+    def get_recent_watering_records(
+        self,
+        limit: int = 30,
+        sensor_id: str | None = None,
+        zone_id: str | None = None,
+    ) -> list:
+        self.history_requests.append((sensor_id, zone_id))
+        return []
+
     def update_zone_irrigation_decisions(
         self,
         states: dict,
     ) -> None:
         self.states = states
+
+    def update_zone_ai_states(
+        self,
+        states: dict,
+        garden_summary: dict,
+    ) -> None:
+        self.ai_states = states
+        self.garden_summary = garden_summary
 
 
 class FakeExecutor:
@@ -87,6 +110,12 @@ class FakeExecutor:
 
     def cooldown_until_epoch_for(self, _zone_id: str) -> int:
         return 0
+
+
+class FakeValves:
+    @staticmethod
+    def is_physical_valve(_valve_id: str) -> bool:
+        return True
 
 
 def reading(sensor_id: str, moisture: int) -> SensorReading:
@@ -107,6 +136,16 @@ def main() -> None:
     service._multi_zone_engine = MultiZoneDecisionEngine()
     service._zone_scheduler = ZoneIrrigationScheduler()
     service._zone_executor = FakeExecutor()
+    service._valves = FakeValves()
+    service._weather_policy = WeatherIrrigationPolicy()
+    service._latest_weather_forecast = None
+    service._weather_adjustments_by_zone = {}
+    service._zone_ai_pipelines = {}
+    service._zone_prediction_validation_queues = {}
+    service._zone_prediction_histories = {}
+    service._last_zone_ai_update = 0.0
+    service._ai_decision_interval_seconds = 30
+    service._prediction_history_limit = 100
     service._last_multi_zone_status_signature = None
     service._last_zone_config_signature = None
     service._logger = logging.getLogger("zone-selection-test")
@@ -140,6 +179,32 @@ def main() -> None:
         "queue_position"
     ] == 1
 
+    zone_one_ai = service._firebase.ai_states["zone-001"]
+    zone_two_ai = service._firebase.ai_states["zone-002"]
+    assert zone_one_ai["sensor_id"] == "soil-001"
+    assert zone_two_ai["sensor_id"] == "soil-002"
+    assert zone_one_ai["moisture_prediction"][
+        "current_moisture"
+    ] == 32
+    assert zone_two_ai["moisture_prediction"][
+        "current_moisture"
+    ] == 24
+    for zone_ai in (zone_one_ai, zone_two_ai):
+        assert {
+            "decision",
+            "explanation",
+            "moisture_prediction",
+            "prediction_accuracy",
+            "confidence",
+            "learning_profile",
+        }.issubset(zone_ai)
+    assert service._firebase.garden_summary["total_zones"] == 2
+    assert service._firebase.garden_summary["analyzed_zones"] == 2
+
+    assert ("soil-001", "zone-001") in service._firebase.history_requests
+    assert ("soil-002", "zone-002") in service._firebase.history_requests
+    assert all(zone_id for _, zone_id in service._firebase.history_requests)
+
     repeated = service._update_multi_zone_decisions(
         readings=readings,
         global_commands=commands,
@@ -150,6 +215,7 @@ def main() -> None:
     print(
         "[PASS] Service selected the driest eligible zone.",
     )
+    print("[PASS] Zone AI states stayed independent.")
 
 
 if __name__ == "__main__":

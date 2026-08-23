@@ -2,10 +2,11 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/settingsScreenRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    tools:ignore="MergeRootFrame">
     <androidx.core.widget.NestedScrollView
         android:id="@+id/settingsRoot"
         android:layout_width="match_parent"
@@ -28,21 +29,10 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnBack"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
                     android:layout_marginEnd="10dp"
-                    android:contentDescription="@string/back_to_main"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:backgroundTint="@android:color/transparent"
-                    app:cornerRadius="22dp"
-                    app:rippleColor="@color/accentLight"
-                    android:text="@string/symbol_back_arrow"
-                    android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+                    android:contentDescription="@string/back_to_main" />
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -62,38 +52,63 @@
                         android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 </LinearLayout>
             </LinearLayout>
-            <!-- KAYDEDİLMEMİŞ DEĞİŞİKLİKLER UYARISI -->
+            <!-- SULAMA KONTROLÜ HIZLI ERİŞİMİ -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardUnsavedChanges"
+                android:id="@+id/cardWateringControlShortcut"
+                style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:visibility="gone"
-                app:cardBackgroundColor="@color/warningBackground"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/warning"
-                app:strokeWidth="1dp">
+                android:layout_height="76dp"
+                android:layout_marginTop="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="14dp">
-                    <TextView
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_ai_icon"
+                        android:contentDescription="@string/title_watering_control"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_water_drop_24"
+                        app:tint="@color/info" />
+
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="@string/settings_unsaved_changes"
-                        android:textColor="@color/warning"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_watering_control"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="@string/menu_watering_control_description"
+                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    </LinearLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/symbol_status_dot"
-                        android:textColor="@color/warning"
-                        android:textSize="18sp" />
+                        android:text="@string/symbol_menu_arrow"
+                        android:textColor="@color/textTertiary"
+                        android:textSize="24sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             <!-- SULAMA AYARLARI -->
@@ -368,6 +383,9 @@
                         app:trackColorInactive="@color/divider" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <include layout="@layout/view_irrigation_timing_settings" />
+
             <!-- SİSTEM AYARLARI -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.SmartGarden.Card.Main"
@@ -396,6 +414,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
+                            android:paddingStart="0dp"
                             android:paddingEnd="12dp">
 
                             <TextView
@@ -440,6 +459,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
+                            android:paddingStart="0dp"
                             android:paddingEnd="12dp">
 
                             <TextView
@@ -468,21 +488,13 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <!-- İŞLEM BUTONLARI -->
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveSettings"
-                style="@style/Widget.SmartGarden.Button.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginTop="18dp"
-                android:text="@string/settings_save" />
+            <!-- VARSAYILANLAR VE OTOMATİK KAYIT DURUMU -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnResetSettings"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/settings_reset_defaults"
                 android:textAllCaps="false"
                 android:textColor="@color/textSecondary"

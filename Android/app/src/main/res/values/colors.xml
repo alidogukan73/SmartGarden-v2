@@ -189,4 +189,8 @@
     <color name="homeGardenPlanIconBorder">#D3E8D5</color>
     <color name="homeGardenPlanIcon">#2E7D32</color>
     <color name="homeGardenPlanIconDetail">#DDF1DF</color>
+    <!-- Ortak geri düğmesi -->
+    <color name="backButtonSurface">#EEF1F0</color>
+    <color name="backButtonIcon">#52605A</color>
+    <color name="backButtonRipple">#3352605A</color>
 </resources>

@@ -13,6 +13,7 @@ import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.GardenEvent;
+import com.ali.smartgarden.models.GardenAISummary;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.GardenZone;
@@ -27,6 +28,7 @@ import com.ali.smartgarden.models.WeatherDay;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.models.WeatherLocation;
 import com.ali.smartgarden.models.RainSettings;
+import com.ali.smartgarden.models.IrrigationTimingSettings;
 import com.ali.smartgarden.models.GardenProfile;
 import com.ali.smartgarden.models.DisplayUnitSettings;
 import com.google.android.gms.tasks.Task;
@@ -65,6 +67,7 @@ public class FirebaseRepository {
    private final DatabaseReference adaptiveRecommendationRef;
    private final DatabaseReference aiDecisionRef;
    private final DatabaseReference aiExplanationRef;
+   private final DatabaseReference gardenAISummaryRef;
    private final DatabaseReference predictionValidationRef;
    private final DatabaseReference moisturePredictionRef;
    private final DatabaseReference predictionAccuracyRef;
@@ -76,6 +79,7 @@ public class FirebaseRepository {
    private final DatabaseReference seasonOutcomesRef;
    private final DatabaseReference journalPhotoMetadataRef;
    private final DatabaseReference notificationsRef;
+   private final DatabaseReference notificationDeletionsRef;
    private final DatabaseReference notificationSettingsRef;
    private final DatabaseReference pushTokensRef;
 
@@ -94,6 +98,7 @@ public class FirebaseRepository {
       this.predictionAccuracyRef = this.deviceRef.child("prediction_accuracy");
       this.unifiedConfidenceRef = this.deviceRef.child("unified_confidence");
       this.soilLearningProfileRef = this.deviceRef.child("soil_learning_profile");
+      this.gardenAISummaryRef = this.deviceRef.child("ai").child("garden_summary");
       this.predictionValidationRef = this.deviceRef.child("ai").child("prediction_validation");
       this.zonesRef = zonesRef;
       this.fertilizerProductsRef = this.deviceRef.child("fertilizer_products");
@@ -101,6 +106,7 @@ public class FirebaseRepository {
       this.seasonOutcomesRef = this.deviceRef.child("garden_journal").child("season_outcomes");
       this.journalPhotoMetadataRef = this.deviceRef.child("garden_journal").child("photo_metadata");
       this.notificationsRef = this.deviceRef.child("notifications");
+      this.notificationDeletionsRef = this.deviceRef.child("notification_deletions");
       this.notificationSettingsRef = this.deviceRef.child("notification_settings");
       this.pushTokensRef = this.deviceRef.child("push_tokens");
    }
@@ -164,6 +170,20 @@ public class FirebaseRepository {
 
          public void onCancelled(@NonNull DatabaseError error) {
             Log.e("FirebaseRepository", "Garden zones read failed", error.toException());
+         }
+      });
+      return liveData;
+   }
+
+   public LiveData<GardenAISummary> observeGardenAISummary() {
+      final MutableLiveData<GardenAISummary> liveData = new MutableLiveData<>();
+      this.gardenAISummaryRef.addValueEventListener(new ValueEventListener() {
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            liveData.setValue(snapshot.getValue(GardenAISummary.class));
+         }
+
+         public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, "Garden AI summary read failed", error.toException());
          }
       });
       return liveData;
@@ -293,6 +313,67 @@ public class FirebaseRepository {
                @Override
                public void onCancelled(@NonNull DatabaseError error) {
                   Log.w(TAG, "Rain settings could not be read", error.toException());
+               }
+            });
+      return liveData;
+   }
+
+   public Task<Void> saveIrrigationTimingSettings(IrrigationTimingSettings settings) {
+      Map<String, Object> values = new HashMap<>();
+      values.put("weather/irrigation_settings/smart_timing_enabled", settings.isSmartTimingEnabled());
+      values.put("weather/irrigation_settings/garden_environment", settings.getGardenEnvironment());
+      values.put("weather/irrigation_settings/irrigation_timing_strategy", settings.getTimingStrategy());
+      values.put("weather/irrigation_settings/evening_irrigation_allowed", settings.isEveningIrrigationAllowed());
+      values.put("weather/irrigation_settings/max_irrigation_defer_minutes", settings.getMaxIrrigationDeferMinutes());
+      values.put("weather/irrigation_settings/critical_moisture_deficit", settings.getCriticalMoistureDeficit());
+      values.put("weather/irrigation_settings/timing_recheck_enabled", settings.isTimingRecheckEnabled());
+      values.put("weather/irrigation_settings/preferred_start_hour", settings.getPreferredStartHour());
+      values.put("weather/irrigation_settings/preferred_end_hour", settings.getPreferredEndHour());
+      values.put("weather/irrigation_settings/updated_at_epoch", System.currentTimeMillis() / 1000L);
+      return deviceRef.updateChildren(values);
+   }
+
+   public LiveData<IrrigationTimingSettings> observeIrrigationTimingSettings() {
+      MutableLiveData<IrrigationTimingSettings> liveData = new MutableLiveData<>();
+      deviceRef.child("weather").child("irrigation_settings")
+            .addValueEventListener(new ValueEventListener() {
+               @Override
+               public void onDataChange(@NonNull DataSnapshot snapshot) {
+                  IrrigationTimingSettings value = IrrigationTimingSettings.defaults();
+                  Boolean smartEnabled = snapshot.child("smart_timing_enabled").getValue(Boolean.class);
+                  Boolean eveningAllowed = snapshot.child("evening_irrigation_allowed").getValue(Boolean.class);
+                  Boolean recheckEnabled = snapshot.child("timing_recheck_enabled").getValue(Boolean.class);
+                  String environment = snapshot.child("garden_environment").getValue(String.class);
+                  String strategy = snapshot.child("irrigation_timing_strategy").getValue(String.class);
+
+                  value.setSmartTimingEnabled(smartEnabled == null
+                        ? IrrigationTimingSettings.DEFAULT_SMART_TIMING_ENABLED : smartEnabled);
+                  value.setGardenEnvironment(environment);
+                  value.setTimingStrategy(strategy);
+                  value.setEveningIrrigationAllowed(eveningAllowed == null
+                        ? IrrigationTimingSettings.DEFAULT_EVENING_ALLOWED : eveningAllowed);
+                  value.setMaxIrrigationDeferMinutes((int) Math.round(snapshotNumber(
+                        snapshot.child("max_irrigation_defer_minutes"),
+                        IrrigationTimingSettings.DEFAULT_MAX_DEFER_MINUTES)));
+                  value.setCriticalMoistureDeficit((int) Math.round(snapshotNumber(
+                        snapshot.child("critical_moisture_deficit"),
+                        IrrigationTimingSettings.DEFAULT_CRITICAL_DEFICIT)));
+                  value.setTimingRecheckEnabled(recheckEnabled == null
+                        ? IrrigationTimingSettings.DEFAULT_RECHECK_ENABLED : recheckEnabled);
+                  value.setPreferredStartHour((int) Math.round(snapshotNumber(
+                        snapshot.child("preferred_start_hour"),
+                        IrrigationTimingSettings.DEFAULT_START_HOUR)));
+                  value.setPreferredEndHour((int) Math.round(snapshotNumber(
+                        snapshot.child("preferred_end_hour"),
+                        IrrigationTimingSettings.DEFAULT_END_HOUR)));
+                  value.setUpdatedAtEpoch(Math.round(snapshotNumber(
+                        snapshot.child("updated_at_epoch"), 0d)));
+                  liveData.setValue(value);
+               }
+
+               @Override
+               public void onCancelled(@NonNull DatabaseError error) {
+                  Log.w(TAG, "Irrigation timing settings could not be read", error.toException());
                }
             });
       return liveData;
@@ -966,6 +1047,15 @@ public class FirebaseRepository {
       return this.commandsRef.child("zone_test").child("cancel_requested").setValue(true);
    }
 
+   public Task<Void> requestIrrigationAssistantRestart(String zoneId) {
+      Map<String, Object> command = new HashMap();
+      command.put("requested", true);
+      command.put("request_id", UUID.randomUUID().toString());
+      command.put("zone_id", zoneId == null ? "" : zoneId.trim());
+      command.put("requested_at", ServerValue.TIMESTAMP);
+      return this.commandsRef.child("irrigation_assistant_reset").setValue(command);
+   }
+
    public void observeStatus(ValueEventListener listener) {
       this.statusRef.addValueEventListener(listener);
    }
@@ -1151,25 +1241,118 @@ public class FirebaseRepository {
       return notification != null && !notification.getId().isBlank() ? this.notificationsRef.child(notification.getId()).setValue(notification) : Tasks.forException(new IllegalArgumentException("Notification id is required"));
    }
 
-   public Task<Void> deleteGardenNotifications(List<String> ids) {
-      if (ids == null || ids.isEmpty()) {
+   public Task<Void> deleteGardenNotificationsWithTombstones(
+           List<GardenNotification> values
+   ) {
+      if (values == null || values.isEmpty()) {
          return Tasks.forResult(null);
       }
 
       Map<String, Object> updates = new HashMap<>();
 
-      for (String id : ids) {
-         if (id != null && !id.isBlank()) {
-            updates.put(id, null);
+      long deletedAtEpoch =
+              System.currentTimeMillis() / 1000L;
+
+      for (GardenNotification value : values) {
+
+         if (value == null
+                 || value.getId() == null
+                 || value.getId().isBlank()) {
+            continue;
          }
+
+         String id = value.getId();
+         String sourceKey =
+                 value.getSource_key() == null
+                         ? ""
+                         : value.getSource_key();
+
+         // Gerçek notification kaydını sil.
+         updates.put(
+                 "notifications/" + id,
+                 null
+         );
+
+         // Aynı işlem içinde açık silme kaydı oluştur.
+         updates.put(
+                 "notification_deletions/"
+                         + id
+                         + "/source_key",
+                 sourceKey
+         );
+
+         updates.put(
+                 "notification_deletions/"
+                         + id
+                         + "/deleted_at_epoch",
+                 deletedAtEpoch
+         );
       }
 
       if (updates.isEmpty()) {
          return Tasks.forResult(null);
       }
 
-      return this.notificationsRef.updateChildren(updates);
+      return deviceRef.updateChildren(updates);
    }
+
+   public LiveData<Map<String, String>>
+   observeGardenNotificationDeletions() {
+
+      MutableLiveData<Map<String, String>> live =
+              new MutableLiveData<>();
+
+      notificationDeletionsRef.addValueEventListener(
+              new ValueEventListener() {
+
+                 @Override
+                 public void onDataChange(
+                         @NonNull DataSnapshot snapshot
+                 ) {
+
+                    Map<String, String> values =
+                            new HashMap<>();
+
+                    for (DataSnapshot child
+                            : snapshot.getChildren()) {
+
+                       String id = child.getKey();
+
+                       if (id == null || id.isBlank()) {
+                          continue;
+                       }
+
+                       String sourceKey =
+                               child.child("source_key")
+                                       .getValue(String.class);
+
+                       values.put(
+                               id,
+                               sourceKey == null
+                                       ? ""
+                                       : sourceKey
+                       );
+                    }
+
+                    live.postValue(values);
+                 }
+
+                 @Override
+                 public void onCancelled(
+                         @NonNull DatabaseError error
+                 ) {
+                    Log.w(
+                            TAG,
+                            "Notification deletion observation failed",
+                            error.toException()
+                    );
+                 }
+              }
+      );
+
+      return live;
+   }
+
    public Task<Void> updateGardenNotificationState(String id, boolean read, boolean saved) {
       if (id != null && !id.isBlank()) {
          Map<String, Object> values = new HashMap();

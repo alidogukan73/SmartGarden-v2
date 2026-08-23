@@ -184,9 +184,21 @@ class ValveController:
 
         try:
             self.close_all()
+            # Keep installed valve relays at their inactive output level.
+            # GPIO.cleanup() would return the pins to high-impedance inputs,
+            # allowing external relay-board pull resistors to determine their
+            # state while the backend service is stopped or restarted.
             if self._configured_gpio_pins:
+                inactive_level = (
+                    GPIO.HIGH
+                    if ValveConfig.ACTIVE_LOW
+                    else GPIO.LOW
+                )
                 for pin in self._configured_gpio_pins:
-                    GPIO.cleanup(pin)
+                    GPIO.output(pin, inactive_level)
+                self._logger.info(
+                    "Zone valve GPIO pins held at safe CLOSED level.",
+                )
         finally:
             self._initialized = False
             self._active_valve_id = None

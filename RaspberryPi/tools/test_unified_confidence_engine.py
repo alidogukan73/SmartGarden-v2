@@ -1,6 +1,7 @@
 """Scenario tests for unified AI confidence."""
 
 from controllers.ai_pipeline import AIPipeline
+from controllers.moisture_prediction_engine import MoisturePredictionEngine
 from controllers.unified_confidence_engine import (
     UnifiedConfidenceEngine,
 )
@@ -95,8 +96,35 @@ def test_learning_status() -> None:
     )
     assert ready.status == "READY"
 
+    separated = engine.analyze(
+        soil_profile=_soil_profile("READY"),
+        prediction_accuracy=_accuracy("READY"),
+        connection_confidence=0.2,
+        measurement_confidence=1.0,
+        decision_confidence=0.8,
+        trend_confidence=0.75,
+    )
+    assert separated.connection_confidence == 0.2
+    assert separated.measurement_confidence == 1.0
+    assert separated.decision_confidence == 0.8
+    assert separated.sensor_confidence == 1.0
+
+
+def test_post_watering_prediction_guard() -> None:
+    engine = MoisturePredictionEngine()
+    prediction = engine.analyze(
+        trend=_trend(20, 600),
+        moisture=55,
+        moisture_limit=40,
+        transition_blocked=True,
+    )
+    assert prediction.prediction_status == "POST_WATERING_TRANSITION"
+    assert prediction.drying_rate_per_minute == 0.0
+    assert prediction.confidence == 0.0
+
 
 if __name__ == "__main__":
     test_input_confidence()
     test_learning_status()
+    test_post_watering_prediction_guard()
     print("[PASS] Unified confidence scenarios.")

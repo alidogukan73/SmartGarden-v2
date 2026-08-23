@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_save">Kaydet</string>
+    <string name="notification_action_remove_saved">Kaydı kaldır</string>
+    <string name="notification_detail_zone_number">Bölge %1$d</string>
+
+    <string name="notification_weather_rain_title">Yağış riski yüksek</string>
+    <string name="notification_weather_rain_description">Tahminde %%%1$d yağış olasılığı var. Sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="notification_weather_heat_title">Yüksek sıcaklık uyarısı</string>
+    <string name="notification_weather_heat_description">Tahminde %1$d°C görülüyor. Toprak nemini ve yapraklarda solmayı takip edin.</string>
+    <string name="notification_weather_wind_title">Kuvvetli rüzgâr uyarısı</string>
+    <string name="notification_weather_wind_description">Rüzgâr yaklaşık %1$d km/sa. Toprak nemi daha hızlı düşebilir.</string>
+
+    <string name="notification_device_offline_title">Raspberry Pi bağlantısı kesildi</string>
+    <string name="notification_device_offline_unknown">Raspberry Pi’den bağlantı bilgisi alınamıyor. Enerji ve ağ bağlantısını kontrol edin.</string>
+    <string name="notification_device_offline_minutes">Raspberry Pi yaklaşık %1$d dakikadır yanıt vermiyor. Enerji ve ağ bağlantısını kontrol edin.</string>
+    <string name="notification_device_recovered_title">Raspberry Pi bağlantısı yeniden kuruldu</string>
+    <string name="notification_device_recovered_description">Bahçe cihazı yeniden çevrimiçi. Bağlantı saat %1$s itibarıyla yeniden kuruldu.</string>
+    <string name="notification_sensor_unavailable_title">Sensör verisi alınamıyor</string>
+    <string name="notification_device_warning_title">Bahçe cihazı uyarısı</string>
+    <string name="notification_sensor_unavailable_description">Kablosuz sensörlerden güncel ölçüm alınamıyor. Enerji ve bağlantıyı kontrol edin.</string>
+    <string name="notification_device_health_title">Raspberry Pi kaynak uyarısı</string>
+    <string name="notification_device_health_description">Cihazda güç, sıcaklık veya kaynak sınırı algılandı. Cihaz Sağlığı ekranından ayrıntıları inceleyin.</string>
+
+    <string name="notification_watering_completed_title">Sulama tamamlandı</string>
+    <string name="notification_watering_completed_description">Sulama süresi: %1$d sn.</string>
+    <string name="notification_watering_interrupted_title">Sulama beklenmeden durdu</string>
+    <string name="notification_watering_interrupted_description">Sulama %1$d saniye sonra kesildi. Pompa, vana ve cihaz durumunu kontrol edin.</string>
+    <string name="notification_photo_follow_up_title">Fotoğraf takip zamanı</string>
+    <string name="notification_photo_follow_up_description">Bitki Asistanı değerlendirmesi için aynı bölgeden yeni bir fotoğraf ekleyin.</string>
+
+    <string name="notification_channel_normal_name">AVORA bahçe bildirimleri</string>
+    <string name="notification_channel_normal_description">Sulama, gübreleme, Bitki Asistanı, stok ve sistem bildirimleri</string>
+    <string name="notification_channel_urgent_name">AVORA kritik uyarıları</string>
+    <string name="notification_channel_urgent_description">Acil cihaz, kritik stok ve gecikmiş işlem uyarıları</string>
+    <string name="notification_remote_fallback_title">AVORA bildirimi</string>
+    <string name="notification_remote_fallback_description">Bahçenizde yeni bir gelişme var.</string>
+    <string name="notification_fertilizer_due_today_title">Gübre uygulaması bugün</string>
+    <string name="notification_fertilizer_gentle_title">Nazik gübre hatırlatması</string>
+    <string name="notification_fertilizer_final_title">Son gübre hatırlatması</string>
+    <string name="notification_fertilizer_waiting_description">%1$s için %2$s uygulaması kaydı bekleniyor.</string>
+    <string name="notification_fertilizer_low_stock_title">Düşük gübre stoğu: %1$s</string>
+    <string name="notification_fertilizer_low_stock_description">Mevcut stok %1$s %2$s. Uyarı sınırı %3$s.</string>
+    <string name="notification_fertilizer_type_organic">organik gübre</string>
+    <string name="notification_fertilizer_type_conditioner">toprak düzenleyici</string>
+    <string name="notification_fertilizer_type_biostimulant">biyostimülant desteği</string>
+    <string name="notification_fertilizer_type_nutrition">besleme gübresi</string>
+    <string name="notification_plant_analysis_saved_description">Bitki Asistanı analizi kaydedildi. Önerileri inceleyin.</string>
+    <string name="notification_plant_follow_up_ready_title">Takip değerlendirmesi hazır</string>
+    <string name="notification_plant_follow_up_ready_description">Yeni analiz önceki Bitki Asistanı analiziyle ilişkilendirildi.</string>
+    <string name="notification_irrigation_ai_title">Sulama AI önerisi: %1$s</string>
+    <string name="notification_irrigation_ai_description">%1$s bölgesi için sulama öneriliyor. Sulama Asistanı’ndan gerekçeyi inceleyin.</string>
+    <string name="notification_fertilizer_ai_ready_title">Gübre AI önerisi hazır</string>
+    <string name="notification_fertilizer_ai_organic_title">Organik ürün gerekiyor</string>
+    <string name="notification_fertilizer_ai_water_first_title">Gübreleme öncesi sulama gerekiyor</string>
+    <string name="notification_fertilizer_ai_preparation_title">Gübreleme hazırlığı gerekiyor</string>
+    <string name="notification_fertilizer_ai_description">%1$s: %2$s</string></resources>

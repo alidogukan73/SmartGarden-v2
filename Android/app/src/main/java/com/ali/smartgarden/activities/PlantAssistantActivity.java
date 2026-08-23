@@ -362,7 +362,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 repository.saveGardenPhotoMetadata(updated);
                 GardenNotificationManager notifications = new GardenNotificationManager(this);
                 notifications.publishOnce("PLANT_ASSISTANT", "HIGH", snapshot.zoneId, snapshot.title,
-                        "Bitki Asistanı analizi kaydedildi. Önerileri inceleyin.", "plant_analysis:" + archivedPhotoId);
+                        getString(R.string.notification_plant_analysis_saved_description),
+                        "plant_analysis:" + archivedPhotoId);
                 GardenEvent event;
                 if ("SCHEDULED".equals(followUp.type)) {
                     event = gardenEventStore.addAutomaticOncePerDay(snapshot.zoneId, "Takip fotoğrafı önerisi", "Bitki Asistanı analizinden 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.", "follow_up_" + archivedPhotoId);
@@ -370,8 +371,10 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 } else if ("COMPLETED".equals(followUp.type)) {
                     event = gardenEventStore.addAutomaticOncePerDay(snapshot.zoneId, "Takip değerlendirmesi", "Yeni analiz, önceki Bitki Asistanı analiziyle karşılaştırılmak üzere kaydedildi.", "follow_up_" + archivedPhotoId);
                     if (event != null) repository.saveGardenEvent(event);
-                    notifications.publishOnce("PLANT_ASSISTANT", "NORMAL", snapshot.zoneId, "Takip değerlendirmesi hazır",
-                            "Yeni analiz önceki Bitki Asistanı analiziyle ilişkilendirildi.", "follow_up_complete:" + archivedPhotoId);
+                    notifications.publishOnce("PLANT_ASSISTANT", "NORMAL", snapshot.zoneId,
+                            getString(R.string.notification_plant_follow_up_ready_title),
+                            getString(R.string.notification_plant_follow_up_ready_description),
+                            "follow_up_complete:" + archivedPhotoId);
                 }
             }
         }).start();

@@ -12,6 +12,12 @@ public class UnifiedConfidence {
 
     private double prediction_accuracy;
 
+    private double connection_confidence;
+
+    private double measurement_confidence;
+
+    private double decision_confidence;
+
     private double sensor_confidence;
 
     private double trend_confidence;
@@ -76,6 +82,39 @@ public class UnifiedConfidence {
     ) {
         this.prediction_accuracy =
                 prediction_accuracy;
+    }
+
+    public double getConnection_confidence() {
+        return connection_confidence;
+    }
+
+    public void setConnection_confidence(
+            double connection_confidence
+    ) {
+        this.connection_confidence =
+                connection_confidence;
+    }
+
+    public double getMeasurement_confidence() {
+        return measurement_confidence;
+    }
+
+    public void setMeasurement_confidence(
+            double measurement_confidence
+    ) {
+        this.measurement_confidence =
+                measurement_confidence;
+    }
+
+    public double getDecision_confidence() {
+        return decision_confidence;
+    }
+
+    public void setDecision_confidence(
+            double decision_confidence
+    ) {
+        this.decision_confidence =
+                decision_confidence;
     }
 
 

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_zone_valve_not_physical">Fiziksel vana kurulmadığı için sulama güvenle engellendi</string>
+    <string name="ai_zone_cycle_limit_reached">%1$d sulama çevrimi tamamlandı · Nem toparlanması bekleniyor</string>
+    <string name="ai_zone_system_disabled">Sulama sistemi genel ayarlardan kapalı</string>
+    <string name="ai_zone_auto_mode_disabled">Otomatik sulama kapalı · Manuel kontrol kullanılabilir</string>
+    <string name="ai_zone_samples_collecting">Karar için yeterli sensör ölçümü birikiyor</string>
+    <string name="ai_zone_cooldown_without_duration">Sulama sonrası bekleme süresi aktif</string>
+    <string name="ai_zone_weather_rain_delay">Yağış beklentisi nedeniyle düşük öncelikli sulama ertelendi</string>
+    <string name="ai_zone_weather_wind_delay">Kuvvetli rüzgâr nedeniyle düşük öncelikli sulama ertelendi</string>
+    <string name="ai_moisture_prediction_default_title">Nem Tahmini</string>
+    <string name="ai_moisture_prediction_zone_title">Nem Tahmini · %1$s %2$s</string>
+    <string name="ai_zone_swipe_position">%1$d / %2$d · Sağa/sola kaydırın</string>
+    <string name="ai_zone_data_waiting">Bölge AI verisi bekleniyor</string>
+    <string name="ai_zone_prediction_preparing">Bu bölge için veri hazırlanıyor</string>
+    <string name="ai_zone_prediction_not_ready">Bu bölgenin tahmini henüz oluşmadı</string>
+    <string name="ai_zone_decision_preparing">Bölgesel karar hazırlanıyor</string>
+    <string name="ai_zone_analysis_scope">Bu analiz %1$s sensörünün bölgesel verisine dayanır</string>
+    <string name="ai_garden_summary_title">Bahçe geneli</string>
+    <string name="ai_garden_summary_detail">%1$d/%2$d bölge analiz edildi · %3$d sulama önerisi · %4$d uyarı · güven %5$d%%</string>
+    <string name="ai_zone_learning_status">ÖĞRENİYOR</string>
+    <string name="ai_zone_low_confidence" formatted="false">DÜŞÜK · %0</string>
+    <string name="ai_zone_limit_time_waiting">Tahmini sınır zamanı: —</string>
+
+    <string name="ai_weather_stale_title">Hava verisi güncel değil</string>
+    <string name="ai_weather_stale_summary">Güncel tahmin alınana kadar hava, otomatik sulama kararını etkilemeyecek.</string>
+    <string name="ai_weather_stale_safety">Güvenlik: Nem sensörü, bekleme süresi, çevrim sınırı, vana ve pompa korumaları çalışmaya devam eder.</string>
+    <string name="ai_weather_today_line">Bugün %1$s%2$s%3$s</string>
+    <string name="ai_weather_temperature_missing">sıcaklık verisi yok</string>
+    <string name="ai_weather_temperature_value">%1$d°C</string>
+    <string name="ai_weather_rain_suffix"> · yağış %1$d%%</string>
+    <string name="ai_weather_wind_suffix"> · rüzgâr %1$d km/sa</string>
+
+    <string name="ai_weather_rain_delay_title">Yağış ertelemesi uygulanabilir</string>
+    <string name="ai_weather_rain_delay_summary">%1$s. En az 2 mm ve %%80 yağış olasılığında yalnızca küçük nem açığı olan bölgeler kısa süre ertelenir.</string>
+    <string name="ai_weather_rain_delay_safety">Ciddi nem açığı, güncel olmayan tahmin veya sensör güvenlik sorunu varsa hava verisi sulamanın yerine geçmez.</string>
+    <string name="ai_weather_wind_delay_title">Kuvvetli rüzgâr etkisi</string>
+    <string name="ai_weather_wind_delay_summary">%1$s. 35 km/sa ve üzerindeki rüzgârda yalnızca küçük nem açığı olan bölgeler kısa süre ertelenebilir.</string>
+    <string name="ai_weather_wind_delay_safety">Nem açığı büyüdüğünde sulama, sensör ve donanım korumaları uygunsa yeniden değerlendirilir.</string>
+    <string name="ai_weather_heat_title">Sıcaklık ayarlaması etkin</string>
+    <string name="ai_weather_heat_dry_summary">%1$s. %2$d bölge nem sınırında; gerekli sulamanın süresi güvenli sınırlar içinde %%15 artırılabilir.</string>
+    <string name="ai_weather_heat_normal_summary">%1$s. Nem ihtiyacı oluşursa gerekli sulamanın süresi güvenli sınırlar içinde %%15 artırılabilir.</string>
+    <string name="ai_weather_heat_safety">Hava tek başına sulama başlatmaz; kararı güncel ve kararlı sensör ölçümü verir.</string>
+    <string name="ai_weather_neutral_title">Hava kaynaklı ek işlem yok</string>
+    <string name="ai_weather_neutral_dry_summary">%1$s. %2$d bölge nem sınırında; bölgesel sensör kararı izleniyor.</string>
+    <string name="ai_weather_neutral_summary">%1$s. Belirgin yağış, kuvvetli rüzgâr veya aşırı sıcaklık ayarlaması gerekmiyor.</string>
+    <string name="ai_weather_neutral_safety">Sulama yalnızca nem ihtiyacı ve mevcut çevrim, bekleme, pompa ve vana korumaları uygunsa yapılır.</string>
+    <string name="ai_zone_duration_learned">Öğrenilmiş çevrim süresi: %1$s → %2$s · %3$d kayıt, güven %4$d%%</string>
+    <string name="ai_zone_duration_learned_weather">Öğrenme ve hava etkisi: %1$s → %2$s · %3$d kayıt, güven %4$d%%</string>
+    <string name="ai_zone_duration_weather">Hava etkisiyle çevrim süresi: %1$s → %2$s</string>
+    <string name="ai_adaptive_card_label">Öğrenilmiş süre</string>
+    <string name="ai_adaptive_runtime_increase">Sulama süresi güvenle artırılabilir</string>
+    <string name="ai_adaptive_runtime_decrease">Sulama süresi güvenle azaltılabilir</string>
+    <string name="ai_adaptive_runtime_detail">%1$s → %2$s · %3$d sulama kaydı · güven %4$d%%. Yalnız güvenli otomatik çevrimlerde uygulanır; kayıtlı ayarınız değişmez.</string>
+</resources>

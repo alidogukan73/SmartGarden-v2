@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="health_esp32_sensor_network">ESP32 sensör ağı</string>
+    <string name="health_wireless_soil_sensor_connection">Kablosuz toprak nemi sensörlerinin bağlantısı</string>
+    <string name="health_device_management_title">🔄 Cihaz Yönetimi</string>
+    <string name="health_remote_restart_description">Raspberry Pi cihazını uzaktan yeniden başlatabilirsiniz.</string>
+    <string name="health_restart_device_button">Cihazı Yeniden Başlat</string>
+</resources>

@@ -30,10 +30,21 @@ class MoisturePredictionEngine:
         trend: MoistureTrend,
         moisture: float,
         moisture_limit: float,
+        transition_blocked: bool = False,
     ) -> MoisturePrediction:
         """
         Predict future moisture values.
         """
+
+        if transition_blocked:
+
+            return self._prediction(
+                prediction_status="POST_WATERING_TRANSITION",
+                prediction_method="LINEAR_TREND_V1",
+                moisture=moisture,
+                moisture_limit=moisture_limit,
+                drying_rate=0.0,
+            )
 
         if (
             trend.sample_count < self.MINIMUM_REQUIRED_SAMPLES

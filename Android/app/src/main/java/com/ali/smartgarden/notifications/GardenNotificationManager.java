@@ -23,6 +23,8 @@ import com.ali.smartgarden.activities.MainActivity;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.function.Consumer;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 /** Single entry point for all future AVORA notification sources. */
 public final class GardenNotificationManager {
@@ -30,7 +32,7 @@ public final class GardenNotificationManager {
     private static final String PHONE_CHANNEL_URGENT = "avora_garden_alerts_urgent";
     private static final String INCIDENT_PREFS = "avora_notification_incidents";
     public static final String ACTION_NOTIFICATIONS_CHANGED = "com.ali.smartgarden.NOTIFICATIONS_CHANGED";
-    static final long DEVICE_INCIDENT_REMINDER_MILLIS = 6L * 60L * 60L * 1000L;
+    public static final long DEVICE_INCIDENT_REMINDER_MILLIS = 6L * 60L * 60L * 1000L;
     private static final Object INCIDENT_LOCK = new Object();
     private final Context context;
     private final LocalGardenNotificationStore store;
@@ -85,17 +87,25 @@ public final class GardenNotificationManager {
             long lastSentAt = preferences.getLong("last:" + incidentKey, 0L);
             boolean active = preferences.getBoolean("active:" + incidentKey, false);
             String previousSource = preferences.getString("source:" + incidentKey, "");
-            boolean sameIncident = sourceKey == null || sourceKey.isBlank()
-                    || sourceKey.equals(previousSource);
-            if (active && sameIncident && lastSentAt > 0L
+
+            // A continuing incident is rate-limited by its logical incident key.
+            // Backend-generated source ids may change on every loop and must not
+            // bypass the reminder interval.
+            if (active && lastSentAt > 0L
                     && now - lastSentAt < reminderIntervalMillis) return null;
 
-            GardenNotification value = publish(type, priority, zoneId, title, description, sourceKey);
+            String sourceBase = sourceKey == null || sourceKey.isBlank()
+                    ? "incident:" + incidentKey : sourceKey;
+            String effectiveSource = active && !previousSource.isBlank()
+                    ? previousSource : sourceBase + ":started:" + now;
+
+            GardenNotification value = publish(
+                    type, priority, zoneId, title, description, effectiveSource);
             if (value != null) {
                 preferences.edit()
                         .putBoolean("active:" + incidentKey, true)
                         .putLong("last:" + incidentKey, now)
-                        .putString("source:" + incidentKey, sourceKey == null ? "" : sourceKey)
+                        .putString("source:" + incidentKey, effectiveSource)
                         .apply();
             }
             return value;
@@ -114,13 +124,24 @@ public final class GardenNotificationManager {
         }
     }
 
+    public boolean isIncidentActive(String incidentKey) {
+        if (incidentKey == null || incidentKey.isBlank()) {
+            return false;
+        }
+
+        synchronized (INCIDENT_LOCK) {
+            return context
+                    .getSharedPreferences(INCIDENT_PREFS, Context.MODE_PRIVATE)
+                    .getBoolean("active:" + incidentKey, false);
+        }
+    }
+
+
     /** Called by FCM so remote events share the same durable AVORA notification flow. */
     public GardenNotification receiveRemote(String type, String priority, String zoneId, String title, String description, String sourceKey) {
         if (sourceKey != null && sourceKey.startsWith("device-error:")) {
-            String stableSource = sourceKey.startsWith("device-error:incident:")
-                    ? sourceKey : "device-error:legacy";
             return publishIncident("device_error", type, priority, zoneId, title, description,
-                    stableSource, DEVICE_INCIDENT_REMINDER_MILLIS);
+                    sourceKey, DEVICE_INCIDENT_REMINDER_MILLIS);
         }
         return publishOnce(type, priority, zoneId, title, description, sourceKey);
     }
@@ -176,70 +197,37 @@ public final class GardenNotificationManager {
             GardenNotification value,
             Consumer<Boolean> completed
     ) {
-        if (value == null
-                || value.getId() == null
-                || value.getId().isBlank()) {
-
-            if (completed != null) {
-                completed.accept(false);
-            }
-
+        if (value == null || value.getId() == null || value.getId().isBlank()) {
+            if (completed != null) completed.accept(false);
             return;
         }
 
+        List<GardenNotification> removable = new ArrayList<>();
+        removable.add(value);
         List<String> ids = new ArrayList<>();
         ids.add(value.getId());
 
-        List<GardenNotification> removable = new ArrayList<>();
-        removable.add(value);
+        // The UI is offline-first. A cloud failure must never make a deleted alert reappear.
+        store.rememberDeleted(removable);
+        store.queuePendingCloudDeletion(removable);
+        store.removeAll(ids);
+        NotificationManagerCompat.from(context).cancel(value.getId().hashCode());
+        notifyNotificationsChanged();
+        if (completed != null) completed.accept(true);
 
-        repository.deleteGardenNotifications(ids)
-                .addOnSuccessListener(unused -> {
-
-                    // Aynı olay tekrar üretilmesin.
-                    store.rememberDismissed(removable);
-
-                    /*
-                     * Firebase listener bildirimi bizden önce
-                     * local store'dan kaldırmış olabilir.
-                     * Bu nedenle removed == 0 hata değildir.
-                     */
-                    store.removeAll(ids);
-
-                    NotificationManagerCompat
-                            .from(context)
-                            .cancel(value.getId().hashCode());
-
-                    notifyNotificationsChanged();
-
-                    /*
-                     * Firebase silme işlemi başarılıysa
-                     * operasyon başarılı kabul edilir.
-                     */
-                    if (completed != null) {
-                        completed.accept(true);
-                    }
-                })
-                .addOnFailureListener(error -> {
-
-                    if (completed != null) {
-                        completed.accept(false);
-                    }
-                });
+        repository.deleteGardenNotificationsWithTombstones(removable)
+                .addOnSuccessListener(unused ->
+                        store.completePendingCloudDeletions(removable));
     }
-    public void clearUnsavedNotifications(Consumer<Integer> completed) {
 
+    public void clearUnsavedNotifications(Consumer<Integer> completed) {
         List<GardenNotification> current = store.load();
         List<GardenNotification> removable = new ArrayList<>();
         List<String> ids = new ArrayList<>();
 
         for (GardenNotification value : current) {
-            if (value == null) continue;
-
-            if (!value.isSaved()
-                    && value.getId() != null
-                    && !value.getId().isBlank()) {
-
+            if (value != null && !value.isSaved()
+                    && value.getId() != null && !value.getId().isBlank()) {
                 removable.add(value);
                 ids.add(value.getId());
             }
@@ -250,36 +238,29 @@ public final class GardenNotificationManager {
             return;
         }
 
-        repository.deleteGardenNotifications(ids)
-                .addOnSuccessListener(unused -> {
+        store.rememberDeleted(removable);
+        store.queuePendingCloudDeletion(removable);
+        int removed = store.removeAll(ids);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        for (GardenNotification value : removable) {
+            notificationManager.cancel(value.getId().hashCode());
+        }
+        notifyNotificationsChanged();
+        if (completed != null) completed.accept(removed);
 
-                    // Kullanıcının sildiği olayları hatırla.
-                    store.rememberDismissed(removable);
-
-                    int removed = store.removeAll(ids);
-
-                    NotificationManagerCompat notificationManager =
-                            NotificationManagerCompat.from(context);
-
-                    for (GardenNotification value : removable) {
-                        notificationManager.cancel(
-                                value.getId().hashCode()
-                        );
-                    }
-
-                    notifyNotificationsChanged();
-
-                    if (completed != null) {
-                        completed.accept(removed);
-                    }
-                })
-                .addOnFailureListener(error -> {
-                    if (completed != null) {
-                        completed.accept(-1);
-                    }
-                });
+        repository.deleteGardenNotificationsWithTombstones(removable)
+                .addOnSuccessListener(unused ->
+                        store.completePendingCloudDeletions(removable));
     }
-    public void syncLocalBackup() { for (GardenNotification value : store.load()) repository.saveGardenNotification(value); }
+
+    public Task<Void> syncPendingCloudDeletions() {
+        List<GardenNotification> pending = store.pendingCloudDeletions();
+        if (pending.isEmpty()) return Tasks.forResult(null);
+        return repository.deleteGardenNotificationsWithTombstones(pending)
+                .addOnSuccessListener(unused ->
+                        store.completePendingCloudDeletions(pending));
+    }
+
     /** Restores backed-up history on another phone, then keeps any local-only alerts. */
     public void restoreCloudBackup(Consumer<Integer> completed) {
         repository.loadGardenNotifications(values -> {
@@ -378,26 +359,24 @@ public final class GardenNotificationManager {
         NotificationChannel normal =
                 new NotificationChannel(
                         PHONE_CHANNEL,
-                        "AVORA bahçe bildirimleri",
+                        context.getString(R.string.notification_channel_normal_name),
                         NotificationManager.IMPORTANCE_DEFAULT
                 );
 
-        normal.setDescription(
-                "Sulama, gübreleme, Bitki Asistanı, stok ve sistem bildirimleri"
-        );
+        normal.setDescription(context.getString(
+                R.string.notification_channel_normal_description));
 
         manager.createNotificationChannel(normal);
 
         NotificationChannel urgent =
                 new NotificationChannel(
                         PHONE_CHANNEL_URGENT,
-                        "AVORA kritik uyarıları",
+                        context.getString(R.string.notification_channel_urgent_name),
                         NotificationManager.IMPORTANCE_HIGH
                 );
 
-        urgent.setDescription(
-                "Acil cihaz, kritik stok ve gecikmiş işlem uyarıları"
-        );
+        urgent.setDescription(context.getString(
+                R.string.notification_channel_urgent_description));
 
         urgent.enableVibration(true);
 
@@ -413,7 +392,37 @@ public final class GardenNotificationManager {
     public void applyCloudSnapshot(
             List<GardenNotification> values
     ) {
-        store.reconcileCloudSnapshot(values);
-        notifyNotificationsChanged();
+        int imported = store.mergeFromCloud(values);
+
+        if (imported > 0) {
+            notifyNotificationsChanged();
+        }
+    }
+
+    public void applyCloudDeletions(
+            java.util.Map<String, String> deletions
+    ) {
+        if (deletions == null || deletions.isEmpty()) {
+            return;
+        }
+
+        int removed =
+                store.applyRemoteDeletions(deletions);
+
+        NotificationManagerCompat notificationManager =
+                NotificationManagerCompat.from(context);
+
+        for (String id : deletions.keySet()) {
+
+            if (id != null && !id.isBlank()) {
+                notificationManager.cancel(
+                        id.hashCode()
+                );
+            }
+        }
+
+        if (removed > 0) {
+            notifyNotificationsChanged();
+        }
     }
 }

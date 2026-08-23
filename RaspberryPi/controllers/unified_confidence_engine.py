@@ -26,31 +26,53 @@ class UnifiedConfidenceEngine:
     Observation mode only.
     """
 
-    SOIL_WEIGHT = 0.35
+    SOIL_WEIGHT = 0.25
 
-    PREDICTION_WEIGHT = 0.30
+    PREDICTION_WEIGHT = 0.20
 
-    SENSOR_WEIGHT = 0.20
+    CONNECTION_WEIGHT = 0.10
 
-    TREND_WEIGHT = 0.15
+    MEASUREMENT_WEIGHT = 0.20
+
+    DECISION_WEIGHT = 0.15
+
+    TREND_WEIGHT = 0.10
 
     def analyze(
         self,
         *,
         soil_profile: SoilLearningProfile,
         prediction_accuracy: PredictionAccuracy,
-        sensor_confidence: float,
         trend_confidence: float,
+        sensor_confidence: float | None = None,
+        connection_confidence: float | None = None,
+        measurement_confidence: float | None = None,
+        decision_confidence: float | None = None,
     ) -> UnifiedConfidence:
         """
         Produce one unified AI confidence score.
         """
 
-        sensor_confidence = self._bounded(
-            sensor_confidence,
+        legacy_sensor = self._bounded(
+            sensor_confidence if sensor_confidence is not None else 0.0,
+        )
+        connection_confidence = self._bounded(
+            legacy_sensor
+            if connection_confidence is None
+            else connection_confidence,
+        )
+        measurement_confidence = self._bounded(
+            legacy_sensor
+            if measurement_confidence is None
+            else measurement_confidence,
         )
         trend_confidence = self._bounded(
             trend_confidence,
+        )
+        decision_confidence = self._bounded(
+            min(measurement_confidence, trend_confidence)
+            if decision_confidence is None
+            else decision_confidence,
         )
 
         prediction_score = (
@@ -73,8 +95,18 @@ class UnifiedConfidenceEngine:
 
             +
 
-            sensor_confidence
-            * self.SENSOR_WEIGHT
+            connection_confidence
+            * self.CONNECTION_WEIGHT
+
+            +
+
+            measurement_confidence
+            * self.MEASUREMENT_WEIGHT
+
+            +
+
+            decision_confidence
+            * self.DECISION_WEIGHT
 
             +
 
@@ -112,8 +144,24 @@ class UnifiedConfidenceEngine:
                 2,
             ),
 
+            connection_confidence=round(
+                connection_confidence,
+                2,
+            ),
+
+            measurement_confidence=round(
+                measurement_confidence,
+                2,
+            ),
+
+            decision_confidence=round(
+                decision_confidence,
+                2,
+            ),
+
+            # Backward-compatible alias for existing Android installations.
             sensor_confidence=round(
-                sensor_confidence,
+                measurement_confidence,
                 2,
             ),
 

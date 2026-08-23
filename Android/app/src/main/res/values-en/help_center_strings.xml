@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="help_intro_title">AVORA is here for you</string>
+    <string name="help_intro_message">Search for a topic, open the answer or go directly to the related screen.</string>
+    <string name="help_search_hint">Search help</string>
+    <string name="help_category_all">All</string>
+    <string name="help_category_start">Getting started</string>
+    <string name="help_category_irrigation">Irrigation</string>
+    <string name="help_category_ai">AI tools</string>
+    <string name="help_category_records">Journal and fertilizer</string>
+    <string name="help_category_device">Device</string>
+<string name="help_faq_title">Frequently asked questions</string>
+    <string name="help_no_results">No help topic matches this search.</string>
+    <string name="help_safety_note">AVORA recommendations provide decision support. Disconnect power before risky work involving electricity, pumps, valves or plant health, and consult a specialist when necessary.</string>
+    <string name="help_q_first_setup">What should I do when using AVORA for the first time?</string>
+    <string name="help_a_first_setup">First verify garden information and units in Settings. Then check the sensor and season status of each zone in My Plants. A current Raspberry Pi, ESP32 and sensor status in Device Health is enough for a safe start.</string>
+    <string name="help_q_status_meaning">What do healthy, attention and no-data statuses mean?</string>
+    <string name="help_a_status_meaning">Healthy means sensor data is current and moisture is within range. Attention means moisture or another condition needs follow-up. No data means the sensor is off, has not measured yet or its data is stale.</string>
+    <string name="help_q_auto_irrigation">Why does automatic irrigation not start?</string>
+    <string name="help_a_auto_irrigation">The system and automatic irrigation must be enabled, as must zone irrigation for the relevant zone. Sensor data must be current and stable, cooldown must be complete and a physical valve must be ready. AVORA never runs the pump when a safety condition is missing.</string>
+    <string name="help_q_low_moisture_wait">Why is it waiting even though moisture is low?</string>
+    <string name="help_a_low_moisture_wait">After irrigation, AVORA waits for water to spread through the root zone. If moisture remains low, it checks the restart difference and cycle limit. This protection prevents unnecessary consecutive irrigation.</string>
+    <string name="help_q_manual_valve">How do I test the pump or a valve manually?</string>
+    <string name="help_a_manual_valve">Open Irrigation Control from Settings > Irrigation Settings. Open a physical valve first, then start the pump. The safety interlock blocks the pump when no physical valve is open.</string>
+    <string name="help_q_ai_tools">What is the difference between the three AI tools?</string>
+    <string name="help_a_ai_tools">AI Plant Assistant evaluates photos, symptoms, sensor and weather data together. AI Irrigation Assistant monitors moisture behavior and irrigation history. AI Fertilizer Assistant creates recommendations and plans based on growth stage, application history, stock and product labels.</string>
+    <string name="help_q_ai_remote">Does AI Plant Assistant work remotely?</string>
+    <string name="help_a_ai_remote">Yes. Your phone and Raspberry Pi do not need the same Wi-Fi when both are connected to Tailscale. The analysis service must be running on the Raspberry Pi; visual analysis is temporarily unavailable if Tailscale disconnects.</string>
+    <string name="help_q_ai_diagnosis">Does AI Plant Assistant provide a definitive disease diagnosis?</string>
+    <string name="help_a_ai_diagnosis">No. Results provide probability and observation support. Better photos, symptoms and garden data improve confidence; consult an agronomist for serious or progressing conditions.</string>
+    <string name="help_q_journal_auto">Which records are added to Plant Journal automatically?</string>
+    <string name="help_a_journal_auto">Irrigation, recorded fertilizer applications, AI analyses and certain system events are linked automatically to the relevant zone timeline. You can also add observations, events and growth photos.</string>
+    <string name="help_q_season_history">How do I view information from a previous season?</string>
+    <string name="help_a_season_history">Open the zone from My Plants and use the season selector in the journal header. After season closure, irrigation, fertilizer, photo, issue and result summaries remain under the previous year.</string>
+    <string name="help_q_fertilizer_record">Does a fertilizer recommendation mean it was applied?</string>
+    <string name="help_a_fertilizer_record">No. AVORA never applies fertilizer automatically. Review the recommendation and use Mark as Applied only after the application was actually completed. The next date and stock are calculated from this real record.</string>
+    <string name="help_q_device_offline">What happens if Raspberry Pi is on but sensors are offline?</string>
+    <string name="help_a_device_offline">Raspberry Pi and ESP32/sensor connections are monitored separately. The ESP32 can lose power while Raspberry Pi keeps running. The system then remains online but waits for sensor data and blocks automatic irrigation for safety.</string>
+    <string name="help_q_backup">Will I lose my records when I change phones?</string>
+    <string name="help_a_backup">Garden data saved in Firebase can be loaded again with your account. Use Backup in Settings to move local preferences. After restoring on the new phone, theme, language and supported settings are reapplied.</string>
+</resources>

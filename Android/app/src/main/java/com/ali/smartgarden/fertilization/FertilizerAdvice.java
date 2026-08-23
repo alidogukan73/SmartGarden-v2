@@ -7,17 +7,26 @@ public class FertilizerAdvice {
     private final List<String> candidates;
     private final List<String> risks;
     private final Experience experience;
+    private final Recommendation recommendation;
 
     public FertilizerAdvice(String zoneTitle, String status, String reason,
                             String context, List<String> candidates,
                             List<String> risks) {
         this(zoneTitle, status, reason, context, candidates, risks,
-                Experience.none());
+                Experience.none(), Recommendation.none());
     }
 
     public FertilizerAdvice(String zoneTitle, String status, String reason,
                             String context, List<String> candidates,
                             List<String> risks, Experience experience) {
+        this(zoneTitle, status, reason, context, candidates, risks,
+                experience, Recommendation.none());
+    }
+
+    public FertilizerAdvice(String zoneTitle, String status, String reason,
+                            String context, List<String> candidates,
+                            List<String> risks, Experience experience,
+                            Recommendation recommendation) {
         this.zoneTitle = zoneTitle;
         this.status = status;
         this.reason = reason;
@@ -25,6 +34,8 @@ public class FertilizerAdvice {
         this.candidates = candidates;
         this.risks = risks;
         this.experience = experience == null ? Experience.none() : experience;
+        this.recommendation = recommendation == null
+                ? Recommendation.none() : recommendation;
     }
 
     public String getZoneTitle() { return zoneTitle; }
@@ -34,6 +45,40 @@ public class FertilizerAdvice {
     public List<String> getCandidates() { return candidates; }
     public List<String> getRisks() { return risks; }
     public Experience getExperience() { return experience; }
+    public Recommendation getRecommendation() { return recommendation; }
+
+    /** The single next need selected by the advisor after all safety gates. */
+    public static final class Recommendation {
+        private final String productId;
+        private final String productName;
+        private final String applicationType;
+        private final String need;
+        private final long waitDays;
+        private final boolean applicationReady;
+
+        public Recommendation(String productId, String productName,
+                              String applicationType, String need,
+                              long waitDays, boolean applicationReady) {
+            this.productId = productId == null ? "" : productId;
+            this.productName = productName == null ? "" : productName;
+            this.applicationType = applicationType == null ? "" : applicationType;
+            this.need = need == null ? "" : need;
+            this.waitDays = Math.max(0L, waitDays);
+            this.applicationReady = applicationReady;
+        }
+
+        public static Recommendation none() {
+            return new Recommendation("", "", "", "", 0L, false);
+        }
+
+        public boolean isAvailable() { return !productName.isBlank(); }
+        public String getProductId() { return productId; }
+        public String getProductName() { return productName; }
+        public String getApplicationType() { return applicationType; }
+        public String getNeed() { return need; }
+        public long getWaitDays() { return waitDays; }
+        public boolean isApplicationReady() { return applicationReady; }
+    }
 
     /** Structured, UI-neutral summary of outcomes for the top recommendation. */
     public static final class Experience {

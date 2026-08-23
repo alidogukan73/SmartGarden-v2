@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rain_settings_title">Rain Settings</string>
+    <string name="rain_settings_safety_title">Sensor-first safe decision</string>
+    <string name="rain_settings_safety_message">AVORA never uses the rain forecast alone. It first checks live soil moisture, sensor stability, cooldown and valve safety.</string>
+    <string name="rain_settings_live_section">Location and live forecast</string>
+    <string name="rain_settings_location_loading">Loading garden location…</string>
+    <string name="rain_settings_location_missing">Garden location has not been set yet</string>
+    <string name="rain_settings_location_format">%1$s / %2$s</string>
+    <string name="rain_settings_source_loading">Loading forecast source…</string>
+    <string name="rain_settings_source_missing">Set the garden location before requesting a forecast</string>
+    <string name="rain_settings_source_format">Preferred source: %1$s</string>
+    <string name="rain_settings_live_source_format">Latest forecast source: %1$s</string>
+    <string name="rain_settings_source_auto">Automatic with fallback</string>
+    <string name="rain_settings_forecast_waiting">Waiting for today\'s rain forecast</string>
+    <string name="rain_settings_forecast_format">Today: %%%1$d rain probability · %2$s mm expected rainfall</string>
+    <string name="rain_settings_open_location">Location and source</string>
+    <string name="rain_settings_open_forecast">View forecast</string>
+    <string name="rain_settings_policy_section">Effect on automatic irrigation</string>
+    <string name="rain_settings_delay_title">Delay irrigation when rain is expected</string>
+    <string name="rain_settings_delay_message">The cycle is delayed only when both thresholds below are met and the soil is only slightly dry.</string>
+    <string name="rain_settings_probability_title">Minimum rain probability</string>
+    <string name="rain_settings_probability_message">Irrigation is not delayed when the forecast probability is below this value.</string>
+    <string name="rain_settings_probability_default">80%</string>
+    <string name="rain_settings_amount_title">Minimum expected rainfall</string>
+    <string name="rain_settings_amount_message">Irrigation is not delayed when the expected total rainfall is below this amount.</string>
+    <string name="rain_settings_amount_default">2 mm</string>
+    <string name="rain_settings_mm_format">%1$s mm</string>
+    <string name="rain_settings_hard_safety_message">Fixed safety rule: When the moisture deficit is critical, rain never blocks irrigation regardless of the forecast.</string>
+    <string name="rain_settings_notification_section">Weather notifications</string>
+    <string name="rain_settings_notifications_title">Rain and weather alerts</string>
+    <string name="rain_settings_notifications_message">Sends significant rain, temperature and wind changes to Notification Center and, when permitted, to the phone.</string>
+    <string name="rain_settings_save">Save rain settings</string>
+    <string name="rain_settings_saved">Rain settings saved and sent to the irrigation system.</string>
+    <string name="rain_settings_save_failed">Rain settings could not be saved. Check the connection and try again.</string>
+    <string name="rain_settings_defaults_ready">Safe defaults are ready; remember to save.</string>
+    <string name="rain_settings_unsaved_message">There are unsaved rain settings. These settings affect automatic irrigation decisions for all zones.</string>
+</resources>

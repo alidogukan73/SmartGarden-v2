@@ -36,6 +36,7 @@ class MultiZoneDecisionEngine:
         valve_id: str,
         order: int,
         irrigation_enabled: bool,
+        hardware_ready: bool = True,
         reading: SensorReading,
         commands: CommandState,
         cooldown_active: bool,
@@ -62,6 +63,7 @@ class MultiZoneDecisionEngine:
                 irrigation_enabled=irrigation_enabled,
                 should_water=decision.should_water,
                 reason=decision.reason,
+                hardware_ready=hardware_ready,
             ),
             decision=decision,
         )
@@ -73,3 +75,48 @@ class MultiZoneDecisionEngine:
         engine = self._engines.get(sensor_id)
         if engine is not None:
             engine.mark_watering_completed()
+
+    def get_safety_state(self, sensor_id: str) -> dict:
+        engine = self._engines.get(sensor_id)
+        if engine is None:
+            return {
+                "completed_watering_cycles": 0,
+                "waiting_for_moisture_recovery": False,
+            }
+        return engine.get_safety_state()
+
+    def get_current_trend(self, sensor_id: str):
+        """Return the independent moisture trend for one sensor."""
+        engine = self._engines.setdefault(sensor_id, SmartIrrigationEngine())
+        return engine.get_current_trend()
+
+    def restore_safety_state(
+        self,
+        sensor_id: str,
+        *,
+        completed_watering_cycles: object,
+        waiting_for_moisture_recovery: object,
+    ) -> None:
+        if not sensor_id:
+            return
+        engine = self._engines.setdefault(
+            sensor_id,
+            SmartIrrigationEngine(),
+        )
+        engine.restore_safety_state(
+            completed_watering_cycles=completed_watering_cycles,
+            waiting_for_moisture_recovery=waiting_for_moisture_recovery,
+        )
+
+    def reset(self, sensor_id: str) -> bool:
+        """Reset only one sensor's transient decision window."""
+
+        if not sensor_id:
+            return False
+
+        engine = self._engines.setdefault(
+            sensor_id,
+            SmartIrrigationEngine(),
+        )
+        engine.reset()
+        return True

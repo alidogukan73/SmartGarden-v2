@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_technical_details_show">Show technical details</string>
+    <string name="ai_technical_details_hide">Hide technical details</string>
+    <string name="ai_analysis_scope_waiting">Preparing analysis sensor</string>
+    <string name="ai_weather_effect_label">WEATHER EFFECT</string>
+    <string name="ai_sensor_points_shortcut_description">View wireless sensors in the garden</string>
+    <string name="ai_selected_zone_title">%1$s %2$s · %3$d / %4$d</string>
+    <string name="ai_selected_zone_sensor">Sensor: %1$s</string>
+    <string name="ai_selected_zone_moisture_title">Current moisture and target</string>
+    <string name="ai_selected_zone_moisture_value">%%%1$d</string>
+    <string name="ai_selected_zone_moisture_detail">Current: %1$s · Target: %%%2$d</string>
+    <string name="ai_selected_zone_decision_title">Watering decision</string>
+    <string name="ai_selected_zone_configured_duration">Cycle duration to use: %1$s · Collecting data for a learned duration</string>
+    <string name="ai_selected_zone_learned_duration">Learned: %1$s · This cycle: %2$s · %3$d waterings, %4$d%% confidence</string>
+    <string name="ai_selected_zone_fallback">Selected zone</string>
+    <string name="ai_weather_selected_heat_dry_summary">%1$s. %2$s is at the moisture limit; the required watering duration may be safely increased by 15%%.</string>
+    <string name="ai_weather_selected_neutral_dry_summary">%1$s. %2$s is at the moisture limit; the zone sensor decision is being monitored.</string>
+</resources>

@@ -24,7 +24,6 @@ import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.photos.LocalGardenPhotoStore;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
@@ -51,7 +50,6 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private List<FertilizerApplication> fertilizerApplications = new ArrayList<>();
     private List<WateringHistory> wateringHistory = new ArrayList<>();
     private WeatherForecast weatherForecast;
-    private GardenNotificationManager notifications;
     private String activeFilter = "all";
     private String activeTab = "timeline";
     private TextView tabTimeline, tabPhotos, tabNotes, tabCompare;
@@ -61,7 +59,6 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state); setContentView(R.layout.activity_plant_timeline);
-        notifications = new GardenNotificationManager(this);
         zoneId = getIntent().getStringExtra("zone_id"); if (zoneId == null) zoneId = "";
         title = findViewById(R.id.txtTimelineTitle); season = findViewById(R.id.txtTimelineSeason); planting = findViewById(R.id.txtTimelinePlanting); status = findViewById(R.id.txtTimelineStatus); emoji = findViewById(R.id.txtTimelineEmoji); month = findViewById(R.id.txtTimelineMonth); empty = findViewById(R.id.txtTimelineEmpty); entries = findViewById(R.id.layoutTimelineEvents);
         tabTimeline = findViewById(R.id.tabTimeline); tabPhotos = findViewById(R.id.tabPhotos); tabNotes = findViewById(R.id.tabNotes); tabCompare = findViewById(R.id.tabCompare);
@@ -96,15 +93,6 @@ public class PlantTimelineActivity extends AppCompatActivity {
         items.sort(Comparator.comparingLong(TimelineItem::time).reversed());
     }
 
-    private void publishWateringNotifications() {
-        for (WateringHistory watering : wateringHistory) {
-            if (!zoneId.equals(watering.getZoneId()) || !watering.isCompleted()) continue;
-            String id = watering.getRecordId() == null ? "" : watering.getRecordId();
-            if (id.isBlank()) id = watering.getFinishedAt() == null ? String.valueOf(watering.getDuration()) : watering.getFinishedAt();
-            notifications.publishOnce("IRRIGATION", "NORMAL", zoneId, "Sulama tamamlandı",
-                    "Sulama süresi: " + watering.getDuration() + " sn.", "watering:" + zoneId + ":" + id);
-        }
-    }
     private void render() {
         addAutomaticSignals();
         String name = zone == null || zone.getName() == null || zone.getName().isBlank() ? "Bitki" : zone.getName();

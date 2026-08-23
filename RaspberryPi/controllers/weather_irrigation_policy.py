@@ -7,6 +7,7 @@ replaces sensor stability, cooldown, valve or shared-pump safety checks.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import time
 
 
 @dataclass(frozen=True)
@@ -25,8 +26,10 @@ class WeatherIrrigationPolicy:
     MAX_DEFICIT_FOR_RAIN_DELAY = 8
     HEAT_TEMPERATURE_C = 35.0
     HEAT_DURATION_MULTIPLIER = 1.15
+    DRIP_HEAT_DURATION_MULTIPLIER = 1.05
     HIGH_WIND_KMH = 35.0
     MAX_DEFICIT_FOR_WIND_DELAY = 5
+    MAX_FORECAST_AGE_SECONDS = 3 * 60 * 60
 
     def __init__(self) -> None:
         self.rain_delay_enabled = True
@@ -55,9 +58,17 @@ class WeatherIrrigationPolicy:
         *,
         forecast: dict | None,
         moisture_deficit: int,
+        now_epoch: float | None = None,
+        irrigation_method: str = "DRIP",
     ) -> WeatherIrrigationAdjustment:
         if not isinstance(forecast, dict) or moisture_deficit <= 0:
             return WeatherIrrigationAdjustment()
+
+        if not self.is_forecast_fresh(forecast, now_epoch=now_epoch):
+            return WeatherIrrigationAdjustment(
+                reason="WEATHER_FORECAST_STALE",
+                detail="Weather forecast is stale or has no valid timestamp.",
+            )
 
         rain_probability = self._number(forecast.get("today_rain_probability"))
         rain_mm = self._number(forecast.get("today_rain_mm"))
@@ -69,6 +80,8 @@ class WeatherIrrigationPolicy:
             if value is not None
         ]
         temperature = max(temperatures) if temperatures else None
+        method = str(irrigation_method or "DRIP").strip().upper()
+        is_drip = method in {"DRIP", "DRIP_IRRIGATION", "DAMLAMA"}
 
         # Rain can postpone only a small moisture deficit. This hard limit is
         # intentionally not user-configurable.
@@ -90,6 +103,8 @@ class WeatherIrrigationPolicy:
             )
 
         if (
+            not is_drip
+            and
             wind is not None
             and wind >= self.HIGH_WIND_KMH
             and moisture_deficit <= self.MAX_DEFICIT_FOR_WIND_DELAY
@@ -102,12 +117,37 @@ class WeatherIrrigationPolicy:
 
         if temperature is not None and temperature >= self.HEAT_TEMPERATURE_C:
             return WeatherIrrigationAdjustment(
-                duration_multiplier=self.HEAT_DURATION_MULTIPLIER,
-                reason="WEATHER_HEAT_DURATION",
+                duration_multiplier=(
+                    self.DRIP_HEAT_DURATION_MULTIPLIER
+                    if is_drip
+                    else self.HEAT_DURATION_MULTIPLIER
+                ),
+                reason=(
+                    "WEATHER_DRIP_HEAT_DURATION"
+                    if is_drip
+                    else "WEATHER_HEAT_DURATION"
+                ),
                 detail=f"Today temperature is {round(temperature)} C.",
             )
 
         return WeatherIrrigationAdjustment()
+
+    def is_forecast_fresh(
+        self,
+        forecast: dict | None,
+        *,
+        now_epoch: float | None = None,
+    ) -> bool:
+        if not isinstance(forecast, dict):
+            return False
+        updated_at = self._number(forecast.get("updated_at_epoch"))
+        if updated_at is None or updated_at <= 0:
+            return False
+        now = time.time() if now_epoch is None else float(now_epoch)
+        age_seconds = now - updated_at
+        return (
+            -60 <= age_seconds <= self.MAX_FORECAST_AGE_SECONDS
+        )
 
     @staticmethod
     def _clamp(value, minimum: float, maximum: float, fallback: float) -> float:

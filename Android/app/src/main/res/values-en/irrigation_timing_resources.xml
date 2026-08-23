@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="irrigation_timing_title">Smart irrigation timing</string>
+    <string name="irrigation_timing_description">Chooses a safer irrigation time for open fields using sunlight, temperature, wind and rain forecasts.</string>
+    <string name="irrigation_timing_enabled">Let AVORA choose the right time</string>
+    <string name="irrigation_timing_enabled_description">Critical dryness is not delayed; other cases are scheduled for cooler hours.</string>
+    <string name="irrigation_timing_environment">Growing environment</string>
+    <string name="irrigation_timing_environment_open_field">Open field</string>
+    <string name="irrigation_timing_environment_greenhouse">Greenhouse</string>
+    <string name="irrigation_timing_environment_indoor">Indoor</string>
+    <string name="irrigation_timing_strategy">Timing mode</string>
+    <string name="irrigation_timing_strategy_smart">Smart — weather and sunlight</string>
+    <string name="irrigation_timing_strategy_morning">Morning only</string>
+    <string name="irrigation_timing_strategy_custom">Custom time window</string>
+    <string name="irrigation_timing_strategy_immediate">Irrigate without delay</string>
+    <string name="irrigation_timing_max_defer">Maximum delay</string>
+    <string name="irrigation_timing_max_defer_description">Maximum wait for a suitable time under normal dryness.</string>
+    <string name="irrigation_timing_minutes_format">%1$d min</string>
+    <string name="irrigation_timing_hours_format">%1$d hr</string>
+    <string name="irrigation_timing_hours_minutes_format">%1$d hr %2$d min</string>
+    <string name="irrigation_timing_critical_deficit">Critical moisture deficit</string>
+    <string name="irrigation_timing_critical_deficit_description">If moisture falls this far below the target, safety checks start without waiting for a time window.</string>
+    <string name="irrigation_timing_evening_allowed">Allow evening irrigation</string>
+    <string name="irrigation_timing_evening_description">A cool post-sunset window may be used when morning is unsuitable.</string>
+    <string name="irrigation_timing_recheck">Mandatory safety check</string>
+    <string name="irrigation_timing_recheck_description">Moisture, rain, sensor, valve and pump safety are verified again.</string>
+    <string name="irrigation_timing_start_hour">Start hour</string>
+    <string name="irrigation_timing_end_hour">End hour</string>
+    <string name="irrigation_timing_hour_format">%1$02d:00</string>
+    <string name="irrigation_timing_saved">Smart irrigation timing settings saved.</string>
+
+    <string name="ai_timing_scheduled">Best irrigation time: %1$s</string>
+    <string name="ai_timing_scheduled_reason">A cooler, lower-sun and safer open-field window was selected. Moisture and hardware will be checked again before irrigation.</string>
+    <string name="ai_timing_critical_immediate">Moisture is critical; safety checks started without waiting for a preferred time.</string>
+    <string name="ai_timing_ready_recheck">The planned time has arrived. Moisture, rain, sensor, valve and pump are being checked again.</string>
+    <string name="ai_timing_weather_postponed">Irrigation was delayed by weather conditions. Soil moisture monitoring continues.</string>
+    <string name="ai_timing_immediate">There is no timing delay; the irrigation decision will follow safety checks.</string>
+    <string name="ai_timing_recheck_note">Moisture, rain, sensor, valve and pump safety are always checked again immediately before irrigation starts.</string>
+    <string name="ai_timing_today_format">today %1$s</string>
+    <string name="ai_timing_tomorrow_format">tomorrow %1$s</string>
+    <string name="ai_timing_date_format">%1$s %2$s</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_center_title">Notifications</string>
+    <string name="notification_center_back">Back</string>
+    <string name="notification_center_clear_cd">Clear notifications</string>
+    <string name="notification_center_settings_cd">Notification settings</string>
+    <string name="notification_center_filter_all">All</string>
+    <string name="notification_center_filter_saved">Saved</string>
+    <string name="notification_center_filter_read">Read</string>
+    <string name="notification_center_filter_unread">Unread</string>
+    <string name="notification_center_filter_category">Category</string>
+    <string name="notification_center_filter_category_count">Category (%1$d)  ▾</string>
+    <string name="notification_center_filter_category_menu">Category  ▾</string>
+    <string name="notification_center_empty">No notifications yet. Important garden updates will appear here.</string>
+    <string name="notification_center_filtered_empty">No notifications match this filter.</string>
+    <string name="notification_center_summary_all_read">%1$d notifications shown. All are read.</string>
+    <string name="notification_center_summary_unread">%1$d notifications shown · %2$d unread.</string>
+    <string name="notification_center_clear_title">Clear notifications</string>
+    <string name="notification_center_clear_none">There are no notifications to delete.\n\nSaved notifications are protected.</string>
+    <string name="notification_center_clear_confirmation">%1$d notifications will be permanently deleted.\n\nSaved notifications will be protected.</string>
+    <string name="notification_center_clear_failed_title">Could not delete</string>
+    <string name="notification_center_clear_failed_message">A Firebase connection error occurred while deleting notifications.</string>
+    <string name="notification_center_clear_success_title">Notifications cleared</string>
+    <string name="notification_center_clear_success_message">%1$d notifications deleted.\n\nSaved notifications were protected.</string>
+    <string name="notification_center_delete_title">Delete notification</string>
+    <string name="notification_center_delete_message">Do you want to permanently delete this notification?</string>
+    <string name="notification_center_delete_failed_message">A Firebase connection error occurred while deleting the notification.</string>
+    <string name="notification_center_action_ok">OK</string>
+    <string name="notification_center_action_cancel">Cancel</string>
+    <string name="notification_center_action_clear">Clear</string>
+    <string name="notification_center_action_delete">Delete</string>
+    <string name="notification_center_category_irrigation">Watering</string>
+    <string name="notification_center_category_fertilization">Fertilization</string>
+    <string name="notification_center_category_plant_assistant">Plant Assistant</string>
+    <string name="notification_center_category_weather">Weather</string>
+    <string name="notification_center_category_device">Device and system</string>
+    <string name="notification_center_category_stock">Stock</string>
+    <string name="notification_center_today">Today</string>
+    <string name="notification_center_yesterday">Yesterday</string>
+</resources>

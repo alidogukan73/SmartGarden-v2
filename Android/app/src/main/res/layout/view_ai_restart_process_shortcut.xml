@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView android:id="@+id/cardAIRestartProcess" style="@style/Widget.SmartGarden.Card.Inner" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="12dp" android:clickable="true" android:focusable="true" android:visibility="gone" app:rippleColor="@color/accentLight" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="40dp" android:layout_height="40dp" app:cardBackgroundColor="@color/warningBackground" app:cardCornerRadius="13dp" app:cardElevation="0dp" app:strokeWidth="0dp">
+            <TextView android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="@string/symbol_restart_process" android:textColor="@color/warning" android:textSize="22sp" />
+        </com.google.android.material.card.MaterialCardView>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="14dp" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/ai_restart_process_title" android:textColor="@color/textPrimary" android:textSize="15sp" android:textStyle="bold" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/ai_restart_process_description" android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/symbol_menu_arrow" android:textColor="@color/textTertiary" android:textSize="26sp" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

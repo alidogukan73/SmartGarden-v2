@@ -20,17 +20,10 @@
                 android:layout_height="46dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnTimelineBack"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="center"
-                    android:contentDescription="Geri"
-                    android:text="@string/symbol_back_arrow"
-                    android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+                    android:contentDescription="Geri" />
                 <TextView
                     android:id="@+id/txtTimelineTitle"
                     android:layout_width="0dp"

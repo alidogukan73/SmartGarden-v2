@@ -141,6 +141,9 @@ class AIPipeline:
             trend=trend,
             moisture=reading.moisture,
             moisture_limit=irrigation_decision.moisture_limit,
+            transition_blocked=(
+                self._post_watering_transition(irrigation_decision)
+            ),
         )
 
         prediction_accuracy = (
@@ -153,8 +156,16 @@ class AIPipeline:
             self._confidence.analyze(
                 soil_profile=soil_profile,
                 prediction_accuracy=prediction_accuracy,
-                sensor_confidence=self._sensor_confidence(
+                connection_confidence=self._connection_confidence(
                     reading,
+                ),
+                measurement_confidence=self._measurement_confidence(
+                    reading,
+                    irrigation_decision,
+                ),
+                decision_confidence=self._decision_confidence(
+                    irrigation_decision,
+                    self._trend_confidence(trend),
                 ),
                 trend_confidence=self._trend_confidence(
                     trend,
@@ -187,11 +198,11 @@ class AIPipeline:
         )
 
     @staticmethod
-    def _sensor_confidence(
+    def _connection_confidence(
         reading: SensorReading,
     ) -> float:
         """
-        Convert Wi-Fi signal strength to a bounded confidence.
+        Convert Wi-Fi signal strength to connection confidence only.
 
         An RSSI of zero means that signal quality was not supplied.
         """
@@ -208,6 +219,79 @@ class AIPipeline:
         return round(
             0.2 + ((reading.rssi + 90) / 40.0) * 0.8,
             2,
+        )
+
+    @staticmethod
+    def _sensor_confidence(reading: SensorReading) -> float:
+        """Backward-compatible alias for older tests and callers."""
+
+        return AIPipeline._connection_confidence(reading)
+
+    @staticmethod
+    def _measurement_confidence(
+        reading: SensorReading,
+        decision: IrrigationDecision,
+    ) -> float:
+        """Score electrical validity separately from Wi-Fi connectivity."""
+
+        if (
+            reading.raw < 0
+            or reading.voltage < 0.0
+            or reading.voltage > 3.6
+            or reading.moisture < 0
+            or reading.moisture > 100
+        ):
+            return 0.0
+
+        if decision.sensor_stable:
+            return 1.0
+        if decision.reason == "INSUFFICIENT_SENSOR_SAMPLES":
+            return 0.55
+        if decision.reason == "SENSOR_UNSTABLE":
+            return 0.20
+        return 0.45
+
+    @staticmethod
+    def _decision_confidence(
+        decision: IrrigationDecision,
+        trend_confidence: float,
+    ) -> float:
+        """Score how much valid evidence supports the current decision."""
+
+        if decision.reason == "SENSOR_UNSTABLE":
+            return 0.15
+        if decision.reason == "INSUFFICIENT_SENSOR_SAMPLES":
+            return 0.30
+        if not decision.sensor_stable:
+            return 0.25
+
+        evidence = max(0.50, min(1.0, trend_confidence))
+        if decision.reason in {
+            "MOISTURE_BELOW_LIMIT",
+            "MOISTURE_SUFFICIENT",
+            "COOLDOWN_ACTIVE",
+            "WAITING_FOR_MOISTURE_RECOVERY",
+        }:
+            return round(0.70 + evidence * 0.30, 2)
+        if decision.reason in {
+            "SYSTEM_DISABLED",
+            "AUTO_MODE_DISABLED",
+        }:
+            return 0.90
+        return round(0.50 + evidence * 0.30, 2)
+
+    @staticmethod
+    def _post_watering_transition(
+        decision: IrrigationDecision,
+    ) -> bool:
+        """Block forecasts while post-watering moisture is still settling."""
+
+        return (
+            decision.cooldown_active
+            or decision.reason in {
+                "COOLDOWN_ACTIVE",
+                "WAITING_FOR_MOISTURE_RECOVERY",
+            }
         )
 
     @staticmethod

@@ -21,23 +21,17 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnNotificationBack"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:clickable="true"
-                    android:contentDescription="Geri"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:text="@string/symbol_back_arrow"
-                    android:textAppearance="@style/TextAppearance.AVORA.BackButton" />
+                    android:contentDescription="@string/notification_center_back" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Bildirimler"
+                    android:text="@string/notification_center_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
 
                 <androidx.appcompat.widget.AppCompatImageView
@@ -45,7 +39,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:clickable="true"
-                    android:contentDescription="Bildirimleri temizle"
+                    android:contentDescription="@string/notification_center_clear_cd"
                     android:focusable="true"
                     android:padding="8dp"
                     android:src="@drawable/ic_delete_24" />
@@ -55,7 +49,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:clickable="true"
-                    android:contentDescription="Bildirim ayarları"
+                    android:contentDescription="@string/notification_center_settings_cd"
                     android:focusable="true"
                     android:padding="8dp"
                     android:src="@drawable/ic_settings_24" />
@@ -67,56 +61,119 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
-            <HorizontalScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:scrollbars="none">
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <!-- 1. SATIR -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNotificationFilterAll"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
-                        android:text="Tümü" />
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/notification_center_filter_all"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNotificationFilterSaved"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="8dp"
-                        android:text="Kaydedilenler" />
+                        android:layout_weight="1"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/notification_center_filter_saved"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp" />
+
+                </LinearLayout>
+
+                <!-- 2. SATIR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNotificationFilterRead"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
-                        android:layout_marginStart="8dp"
-                        android:text="Okundu" />
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/notification_center_filter_read"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNotificationFilterUnread"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="8dp"
-                        android:text="Okunmadı" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnNotificationFilterCategory"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
-                        android:layout_marginStart="8dp"
-                        android:text="Filtrele" />
+                        android:layout_weight="1"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/notification_center_filter_unread"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp" />
+
                 </LinearLayout>
-            </HorizontalScrollView>
+
+                <!-- KATEGORİ FİLTRESİ -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotificationFilterCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/notification_center_filter_category"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    app:backgroundTint="@color/surfaceGreen"
+                    app:cornerRadius="18dp"
+                    app:icon="@drawable/ic_sort_18"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/primary"
+                    app:strokeWidth="0dp" />
+
+            </LinearLayout>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listNotifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="2dp"
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never" />
             <TextView
@@ -125,7 +182,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="36dp"
                 android:gravity="center"
-                android:text="Henüz bildirim yok. Bahçenizde önemli bir gelişme olduğunda burada göreceksiniz."
+                android:text="@string/notification_center_empty"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

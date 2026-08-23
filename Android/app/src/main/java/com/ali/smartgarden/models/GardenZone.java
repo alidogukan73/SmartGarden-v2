@@ -31,6 +31,7 @@ public class GardenZone {
     private long updated_at_epoch;
     private ZoneIrrigationStatus irrigation_status;
     private FertilizationProfile fertilization;
+    private ZoneAIState ai;
 
     public GardenZone() {
         // Firebase için boş constructor
@@ -276,5 +277,13 @@ public class GardenZone {
             FertilizationProfile fertilization
     ) {
         this.fertilization = fertilization;
+    }
+
+    public ZoneAIState getAi() {
+        return ai;
+    }
+
+    public void setAi(ZoneAIState ai) {
+        this.ai = ai;
     }
 }

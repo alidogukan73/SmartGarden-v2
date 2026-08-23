@@ -50,7 +50,7 @@ public final class FertilizerDecisionEngine {
             return new FertilizerAdvice(title, "SEZON TAMAMLANDI",
                     "Besleme gübresi önerilmez. Gelecek sezon için toprak analizi, organik madde ve taban gübresi planını hazırlayın.",
                     context, new ArrayList<>(),
-                    combinedRisks(zone, products, weather, history, now));
+                    new ArrayList<>());
         }
         if (!profile.isEnabled()) {
             return new FertilizerAdvice(title, "PLAN PASİF",
@@ -86,7 +86,12 @@ public final class FertilizerDecisionEngine {
         }
 
         List<Candidate> displayed = ready.isEmpty() ? stageSuitable : ready;
+        Candidate primaryCandidate = displayed.isEmpty()
+                ? (candidates.isEmpty() ? null : candidates.get(0))
+                : displayed.get(0);
         FertilizerAdvice.Experience experience = primaryExperience(displayed);
+        FertilizerAdvice.Recommendation recommendation =
+                primaryRecommendation(primaryCandidate);
         List<String> result = new ArrayList<>();
         for (int i = 0; i < Math.min(3, displayed.size()); i++) {
             result.add(displayed.get(i).display());
@@ -112,13 +117,14 @@ public final class FertilizerDecisionEngine {
                     + " gün sonra değerlendirilebilir.";
             return new FertilizerAdvice(title, "HENÜZ ERKEN", reason, context,
                     new ArrayList<>(),
-                    combinedRisks(zone, products, weather, history, now));
+                    combinedRisks(zone, products, weather, history, now),
+                    primaryExperience(candidates), recommendation);
         }
         if (ready.isEmpty()) {
             return new FertilizerAdvice(title, "HAZIRLIK GEREKİYOR",
                     preparationReason(stageSuitable.get(0)), context, result,
                     combinedRisks(zone, products, weather, history, now),
-                    experience);
+                    experience, recommendation);
         }
         if (FertilizerDataFreshnessPolicy.requiresLiveSensor(zone)
                 && !FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)) {
@@ -127,7 +133,7 @@ public final class FertilizerDecisionEngine {
                             + "Sensör verisi yenilendiğinde öneriyi tekrar değerlendirin.",
                     context, result,
                     combinedRisks(zone, products, weather, history, now),
-                    experience);
+                    experience, recommendation);
         }
         if (FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)
                 && zone.getMoisture() < zone.getMoisture_limit()) {
@@ -136,7 +142,7 @@ public final class FertilizerDecisionEngine {
                             + "kök bölgesi dengelendikten sonra gübreleme planını yeniden değerlendirin.",
                     context, result,
                     combinedRisks(zone, products, weather, history, now),
-                    experience);
+                    experience, recommendation);
         }
 
         String reason;
@@ -156,7 +162,7 @@ public final class FertilizerDecisionEngine {
         }
         return new FertilizerAdvice(title, "BUGÜNKÜ ÖNERİ", reason, context, result,
                 combinedRisks(zone, products, weather, history, now),
-                experience);
+                experience, recommendation);
     }
 
     private static boolean hasStageCompatibleConventionalProduct(
@@ -172,6 +178,20 @@ public final class FertilizerDecisionEngine {
             }
         }
         return false;
+    }
+
+    private static FertilizerAdvice.Recommendation primaryRecommendation(
+            Candidate candidate
+    ) {
+        if (candidate == null) return FertilizerAdvice.Recommendation.none();
+        return new FertilizerAdvice.Recommendation(
+                candidate.productId,
+                candidate.name,
+                candidate.applicationType,
+                candidate.role,
+                candidate.waitDays,
+                candidate.isReady()
+        );
     }
 
     private static FertilizerAdvice.Experience primaryExperience(
@@ -307,6 +327,7 @@ public final class FertilizerDecisionEngine {
         else if (readiness == StockReadiness.DOSE_UNKNOWN) score -= 10;
         score += performance.getRankingAdjustment();
         return new Candidate(product.getProduct_id(), product.getName(),
+                applicationType(product),
                 Math.max(0, Math.min(100, score)), role, stock,
                 doseSummary(product), zoneDoseSummary(product, profile), waitDays,
                 readiness, performance);
@@ -506,17 +527,19 @@ public final class FertilizerDecisionEngine {
     }
 
     private static class Candidate {
-        final String productId, name, role, stock, dose, zoneDose;
+        final String productId, name, applicationType, role, stock, dose, zoneDose;
         final int score;
         final long waitDays;
         final StockReadiness readiness;
         final FertilizerPerformanceAdvisor.Result performance;
 
-        Candidate(String productId, String name, int score, String role, String stock, String dose,
+        Candidate(String productId, String name, String applicationType,
+                  int score, String role, String stock, String dose,
                   String zoneDose, long waitDays, StockReadiness readiness,
                   FertilizerPerformanceAdvisor.Result performance) {
             this.productId = productId == null ? "" : productId;
             this.name = name;
+            this.applicationType = applicationType == null ? "NUTRITION" : applicationType;
             this.score = score;
             this.role = role;
             this.stock = stock;

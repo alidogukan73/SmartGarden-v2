@@ -16,10 +16,9 @@ class AdaptiveIrrigationEngine:
     """
     Produces safe irrigation-setting recommendations.
 
-    Observation mode only:
-    - Reads completed automatic watering records.
-    - Produces recommendations.
-    - Never changes Firebase commands automatically.
+    Learns only from completed automatic watering records. A recommendation
+    becomes runtime-applicable only at high confidence; saved Firebase/user
+    settings are never changed by this engine.
     """
 
     MINIMUM_COMPLETED_WATERINGS = 5
@@ -371,14 +370,25 @@ class AdaptiveIrrigationEngine:
         average_watering_duration_seconds: float,
     ) -> AdaptiveIrrigationRecommendation:
         """
-        Build an observation-mode recommendation.
+        Build a recommendation with a conservative runtime-application flag.
         """
+
+        should_apply = (
+            confidence >= self.HIGH_CONFIDENCE
+            and recommendation_type
+            in {
+                "INCREASE_PUMP_DURATION",
+                "DECREASE_PUMP_DURATION",
+            }
+            and recommended_pump_duration_seconds
+            != current_pump_duration_seconds
+        )
 
         return AdaptiveIrrigationRecommendation(
             recommendation_type=(
                 recommendation_type
             ),
-            should_apply=False,
+            should_apply=should_apply,
             reason=reason,
             confidence=confidence,
             confidence_level=(

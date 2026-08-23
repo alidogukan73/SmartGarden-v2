@@ -24,6 +24,9 @@
         name="fertilization_safe_badge">OTOMASYON KAPALI</string>
     <string
         name="fertilization_advisory_description">Sistem şimdilik yalnızca hatırlatma ve öneri verir. Gübre uygulamasını otomatik olarak başlatmaz.</string>
+
+
+
     <string
         name="fertilization_summary_empty">Gübre planları yükleniyor</string>
     <string
@@ -1216,9 +1219,9 @@
     <string
         name="ai_confidence_label">GÜVEN</string>
     <string
-        name="ai_zone_summary_title">Bölgesel karar özeti</string>
+        name="ai_zone_summary_title">Seçili bölge</string>
     <string
-        name="ai_zone_summary_subtitle">Her bölge bağımsız sensör verisi ve sulama ayarıyla değerlendirilir.</string>
+        name="ai_zone_summary_subtitle">Bölgeler arasında sağa veya sola kaydırın; nem, hedef ve sulama kararı birlikte güncellenir.</string>
     <string
         name="ai_zone_waiting">Sensör verisi bekleniyor</string>
     <string

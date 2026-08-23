@@ -141,23 +141,27 @@ class RelayController:
 
     def cleanup(self) -> None:
         """
-        Release GPIO resources.
+        Leave the relay output at its inactive electrical level.
+
+        Do not call ``GPIO.cleanup`` here. Cleanup changes the pin back to a
+        high-impedance input and some relay boards then pull an active-high
+        input HIGH. Holding the configured output at the inactive level keeps
+        the pump safely off while the service is stopped or restarted.
         """
 
         if not self._initialized:
             return
 
         try:
-
-            if self._state:
-                self.off()
-
-            GPIO.cleanup(
-                self._pin,
+            inactive_level = (
+                GPIO.HIGH
+                if RelayConfig.ACTIVE_LOW
+                else GPIO.LOW
             )
+            GPIO.output(self._pin, inactive_level)
 
             self._logger.info(
-                "Relay GPIO cleaned up.",
+                "Relay GPIO held at safe OFF level.",
             )
 
         finally:

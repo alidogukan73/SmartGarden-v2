@@ -233,6 +233,10 @@ class SmartIrrigationEngine:
         after the configured number of automatic watering cycles.
         """
 
+        # Pre-watering and post-watering samples must never share one trend.
+        # Fresh observations are collected before another automatic decision.
+        self._history.clear()
+
         self._completed_watering_cycles += 1
         self._waiting_for_moisture_recovery = (
             self._completed_watering_cycles
@@ -245,6 +249,42 @@ class SmartIrrigationEngine:
             self._completed_watering_cycles,
             self._max_automatic_watering_cycles,
             self._waiting_for_moisture_recovery,
+        )
+
+    def get_safety_state(self) -> dict:
+        """Return the restart-safe automatic-watering guard state."""
+
+        return {
+            "completed_watering_cycles": self._completed_watering_cycles,
+            "waiting_for_moisture_recovery": (
+                self._waiting_for_moisture_recovery
+            ),
+        }
+
+    def restore_safety_state(
+        self,
+        *,
+        completed_watering_cycles: object,
+        waiting_for_moisture_recovery: object,
+    ) -> None:
+        """Restore a bounded guard state after a backend restart."""
+
+        try:
+            cycles = int(completed_watering_cycles)
+        except (TypeError, ValueError):
+            cycles = 0
+
+        cycles = max(
+            0,
+            min(self._max_automatic_watering_cycles, cycles),
+        )
+        waiting = waiting_for_moisture_recovery is True
+        if waiting:
+            cycles = self._max_automatic_watering_cycles
+
+        self._completed_watering_cycles = cycles
+        self._waiting_for_moisture_recovery = (
+            waiting or cycles >= self._max_automatic_watering_cycles
         )
 
     def restore_observation_history(
@@ -288,6 +328,7 @@ class SmartIrrigationEngine:
 
         self._history.clear()
         self._waiting_for_moisture_recovery = False
+        self._completed_watering_cycles = 0
 
     def _has_enough_samples(
         self,

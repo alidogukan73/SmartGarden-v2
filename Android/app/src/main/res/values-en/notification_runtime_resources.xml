@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_save">Save</string>
+    <string name="notification_action_remove_saved">Remove saved</string>
+    <string name="notification_detail_zone_number">Zone %1$d</string>
+
+    <string name="notification_weather_rain_title">High rain risk</string>
+    <string name="notification_weather_rain_description">The forecast shows a %%%1$d chance of rain. Check soil moisture again before watering.</string>
+    <string name="notification_weather_heat_title">High temperature warning</string>
+    <string name="notification_weather_heat_description">The forecast shows %1$d°C. Monitor soil moisture and leaf wilting.</string>
+    <string name="notification_weather_wind_title">Strong wind warning</string>
+    <string name="notification_weather_wind_description">Wind is around %1$d km/h. Soil moisture may drop faster.</string>
+
+    <string name="notification_device_offline_title">Raspberry Pi connection lost</string>
+    <string name="notification_device_offline_unknown">No connection status was received from the Raspberry Pi. Check power and network connectivity.</string>
+    <string name="notification_device_offline_minutes">The Raspberry Pi has not responded for about %1$d minutes. Check power and network connectivity.</string>
+    <string name="notification_device_recovered_title">Raspberry Pi connection restored</string>
+    <string name="notification_device_recovered_description">The garden device is online again. The connection was restored at %1$s.</string>
+    <string name="notification_sensor_unavailable_title">Sensor data unavailable</string>
+    <string name="notification_device_warning_title">Garden device warning</string>
+    <string name="notification_sensor_unavailable_description">No recent reading was received from the wireless sensors. Check their power and connection.</string>
+    <string name="notification_device_health_title">Raspberry Pi resource warning</string>
+    <string name="notification_device_health_description">A power, temperature, or resource limit was detected. Review the Device Health screen for details.</string>
+
+    <string name="notification_watering_completed_title">Watering completed</string>
+    <string name="notification_watering_completed_description">Watering duration: %1$d sec.</string>
+    <string name="notification_watering_interrupted_title">Watering stopped unexpectedly</string>
+    <string name="notification_watering_interrupted_description">Watering stopped after %1$d seconds. Check the pump, valve, and device status.</string>
+    <string name="notification_photo_follow_up_title">Photo follow-up due</string>
+    <string name="notification_photo_follow_up_description">Add a new photo from the same zone for Plant Assistant follow-up.</string>
+
+    <string name="notification_channel_normal_name">AVORA garden notifications</string>
+    <string name="notification_channel_normal_description">Watering, fertilization, Plant Assistant, stock, and system notifications</string>
+    <string name="notification_channel_urgent_name">AVORA critical alerts</string>
+    <string name="notification_channel_urgent_description">Urgent device, critical stock, and overdue task alerts</string>
+    <string name="notification_remote_fallback_title">AVORA notification</string>
+    <string name="notification_remote_fallback_description">There is a new update in your garden.</string>
+    <string name="notification_fertilizer_due_today_title">Fertilizer application is due today</string>
+    <string name="notification_fertilizer_gentle_title">Gentle fertilizer reminder</string>
+    <string name="notification_fertilizer_final_title">Final fertilizer reminder</string>
+    <string name="notification_fertilizer_waiting_description">An application record for %2$s is pending in %1$s.</string>
+    <string name="notification_fertilizer_low_stock_title">Low fertilizer stock: %1$s</string>
+    <string name="notification_fertilizer_low_stock_description">Current stock is %1$s %2$s. Alert threshold is %3$s.</string>
+    <string name="notification_fertilizer_type_organic">organic fertilizer</string>
+    <string name="notification_fertilizer_type_conditioner">soil conditioner</string>
+    <string name="notification_fertilizer_type_biostimulant">biostimulant support</string>
+    <string name="notification_fertilizer_type_nutrition">nutrition fertilizer</string>
+    <string name="notification_plant_analysis_saved_description">The Plant Assistant analysis was saved. Review its recommendations.</string>
+    <string name="notification_plant_follow_up_ready_title">Follow-up assessment is ready</string>
+    <string name="notification_plant_follow_up_ready_description">The new analysis was linked to the previous Plant Assistant analysis.</string>
+    <string name="notification_irrigation_ai_title">Irrigation AI recommendation: %1$s</string>
+    <string name="notification_irrigation_ai_description">Watering is recommended for %1$s. Review the reason in the Irrigation Assistant.</string>
+    <string name="notification_fertilizer_ai_ready_title">Fertilizer AI recommendation is ready</string>
+    <string name="notification_fertilizer_ai_organic_title">An organic product is required</string>
+    <string name="notification_fertilizer_ai_water_first_title">Watering is required before fertilizing</string>
+    <string name="notification_fertilizer_ai_preparation_title">Fertilization preparation is required</string>
+    <string name="notification_fertilizer_ai_description">%1$s: %2$s</string></resources>
