@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zone_management_title">Zone Management</string>
+    <string name="zone_management_subtitle">Safely map crops, sensors and valves</string>
+    <string name="zone_management_capacity_initial">Zone capacity</string>
+    <string name="zone_management_capacity">%1$d / %2$d zones in use</string>
+    <string name="zone_management_info">The system supports up to 8 zones. A sensor and valve can be assigned only once among active zones. A zone with missing hardware can be monitored but cannot water automatically.</string>
+    <string name="zone_management_add">Add zone</string>
+    <string name="zone_management_open_catalog">Crop catalog</string>
+    <string name="zone_management_regions_heading">Zones and hardware channels</string>
+    <string name="zone_management_capacity_full">All 8 zones are in use. Deactivate a zone before adding another.</string>
+    <string name="zone_management_empty_slot_title">Zone %1$d · Empty slot</string>
+    <string name="zone_management_empty_slot_detail">Assign a crop, sensor and valve to this channel.</string>
+    <string name="zone_management_status_available">AVAILABLE</string>
+    <string name="zone_management_status_active">ACTIVE</string>
+    <string name="zone_management_status_hardware_pending">WAITING FOR HARDWARE</string>
+    <string name="zone_management_status_inactive">INACTIVE</string>
+    <string name="zone_management_mapping">Sensor: %1$s · Valve: %2$s</string>
+    <string name="zone_management_channel">Channel ID: %1$s</string>
+    <string name="zone_management_add_this">Add this zone</string>
+    <string name="zone_management_reuse">Reuse</string>
+    <string name="zone_management_edit">Edit</string>
+    <string name="zone_management_deactivate">Deactivate</string>
+    <string name="zone_management_product">Crop</string>
+    <string name="zone_management_name">Zone name</string>
+    <string name="zone_management_name_hint">Example: Back garden</string>
+    <string name="zone_management_sensor">Soil moisture sensor</string>
+    <string name="zone_management_valve">Irrigation valve</string>
+    <string name="zone_management_auto_irrigation">Allow automatic irrigation</string>
+    <string name="zone_management_hardware_note">If no sensor or valve is selected, the zone is saved as “Waiting for hardware” and automatic irrigation stays off.</string>
+    <string name="zone_management_add_dialog">New zone</string>
+    <string name="zone_management_edit_dialog">Edit zone</string>
+    <string name="zone_management_dialog_channel">You are configuring hardware channel %1$s.</string>
+    <string name="zone_management_unassigned">Unassigned</string>
+    <string name="zone_management_saved">Zone saved and its hardware mapping is active.</string>
+    <string name="zone_management_saved_pending">Zone saved. Automatic irrigation stays off until hardware is complete.</string>
+    <string name="zone_management_deactivate_title">Deactivate this zone?</string>
+    <string name="zone_management_deactivate_message">%1$s is removed from active lists while its seasons and history are preserved. The action is blocked during an active season or irrigation.</string>
+    <string name="zone_management_deactivated">Zone deactivated. Its history is preserved.</string>
+    <string name="zone_management_error_sensor_used">This sensor is already assigned to another active zone.</string>
+    <string name="zone_management_error_valve_used">This valve is already assigned to another active zone.</string>
+    <string name="zone_management_error_irrigation_busy">A zone cannot be deactivated while irrigation, pump, valve or the irrigation queue is active.</string>
+    <string name="zone_management_error_active_season">Close this zone’s active season in Season Management first.</string>
+    <string name="zone_management_error_invalid_channel">Only zone-001…008, soil-001…008 and valve-001…008 channels are supported.</string>
+    <string name="zone_management_error_save">The action could not be completed: %1$s</string>
+    <string name="zone_management_default_name">Zone %1$d</string>
+</resources>

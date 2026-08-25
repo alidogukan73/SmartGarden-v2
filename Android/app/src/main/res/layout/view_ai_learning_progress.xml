@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/cardAIProgress"
+    android:id="@+id/cardAIProgress"
                 style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -188,7 +188,8 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginStart="10dp"
                                         android:layout_weight="1"
-                                        android:orientation="vertical">
+                                        android:orientation="vertical"
+                                        tools:ignore="NestedWeights">
                                         <TextView
                                             android:id="@+id/txtAILearningSensorCount"
                                             android:layout_width="wrap_content"
@@ -205,7 +206,7 @@
                                             android:layout_marginTop="4dp"
                                             android:text="@string/ai_tech_waiting_upper"
                                             android:textColor="@color/textSecondary"
-                                            android:textSize="10sp"
+                                            android:textSize="11sp"
                                             android:textStyle="bold" />
                                         <TextView
                                             android:layout_width="wrap_content"
@@ -270,7 +271,8 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginStart="10dp"
                                         android:layout_weight="1"
-                                        android:orientation="vertical">
+                                        android:orientation="vertical"
+                                        tools:ignore="NestedWeights">
                                         <TextView
                                             android:id="@+id/txtAILearningWateringCount"
                                             android:layout_width="wrap_content"
@@ -287,7 +289,7 @@
                                             android:layout_marginTop="4dp"
                                             android:text="@string/ai_tech_waiting_upper"
                                             android:textColor="@color/textSecondary"
-                                            android:textSize="10sp"
+                                            android:textSize="11sp"
                                             android:textStyle="bold" />
                                         <TextView
                                             android:layout_width="wrap_content"

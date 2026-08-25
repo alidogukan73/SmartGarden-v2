@@ -1,0 +1,36 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+@@ -69,13 +69,27 @@
+     public LiveData<List<GardenSeason>> observeZoneSeasons(String zoneId) {
+         MutableLiveData<List<GardenSeason>> liveData = new MutableLiveData<>();
+-        observeAllSeasons().observeForever(values -> {
+-            List<GardenSeason> filtered = new ArrayList<>();
+-            if (values != null) {
+-                for (GardenSeason value : values) {
+-                    if (safe(zoneId).equals(value.getZone_id())) filtered.add(value);
++        seasonsRef.orderByChild("zone_id").equalTo(safe(zoneId))
++                .addValueEventListener(new ValueEventListener() {
++            @Override
++            public void onDataChange(@NonNull DataSnapshot snapshot) {
++                List<GardenSeason> values = new ArrayList<>();
++                for (DataSnapshot child : snapshot.getChildren()) {
++                    GardenSeason value = child.getValue(GardenSeason.class);
++                    if (value == null) continue;
++                    if (value.getSeason_id().isBlank()) value.setSeason_id(child.getKey());
++                    values.add(value);
+                 }
++                values.sort(Comparator.comparingLong(GardenSeason::getStarted_at_epoch).reversed());
++                liveData.setValue(values);
++            }
++
++            @Override
++            public void onCancelled(@NonNull DatabaseError error) {
++                liveData.setValue(new ArrayList<>());
+             }
+-            liveData.setValue(filtered);
+         });
+         return liveData;
+     }
+@@ -88,1 +102,0 @@
+-        String proposedId = SeasonScope.createSeasonId(zone.getZone_id(), now);

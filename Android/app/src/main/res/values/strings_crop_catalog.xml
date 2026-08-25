@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crop_catalog_title">Ürün Kataloğu</string>
+    <string name="crop_catalog_subtitle">Sezonlarda kullanacağınız bitkileri yönetin</string>
+    <string name="crop_catalog_info">Sistem ürünleri AVORA ile gelir ve silinmez. Kendi ürününüzü bir kez eklediğinizde sonraki sezonlarda listeden seçebilirsiniz. Eski sezonların adı ve simgesi değişmeden korunur.</string>
+    <string name="crop_catalog_add">Yeni ürün ekle</string>
+    <string name="crop_catalog_system_heading">Sistem ürünleri</string>
+    <string name="crop_catalog_user_heading">Eklediğim ürünler</string>
+    <string name="crop_catalog_user_empty">Henüz kendi ürününüzü eklemediniz.</string>
+    <string name="crop_catalog_system_badge">Sistem ürünü</string>
+    <string name="crop_catalog_user_badge">Kullanıcı ürünü</string>
+    <string name="crop_catalog_card_detail">İdeal nem: %1$d–%2$d</string>
+    <string name="crop_catalog_edit">Düzenle</string>
+    <string name="crop_catalog_add_dialog_title">Yeni ürün ekle</string>
+    <string name="crop_catalog_edit_dialog_title">Ürünü düzenle</string>
+    <string name="crop_catalog_name_hint">Ürün adı</string>
+    <string name="crop_catalog_emoji_hint">Simge (boş bırakılırsa AVORA seçer)</string>
+    <string name="crop_catalog_min_hint">İdeal nem alt sınırı (%)</string>
+    <string name="crop_catalog_max_hint">İdeal nem üst sınırı (%)</string>
+    <string name="crop_catalog_name_required">Ürün adı gereklidir.</string>
+    <string name="crop_catalog_range_invalid">Nem aralığı 0–100 arasında ve alt sınır üst sınırdan küçük olmalıdır.</string>
+    <string name="crop_catalog_saved">Ürün kataloğa kaydedildi.</string>
+    <string name="crop_catalog_save_failed">Ürün kaydedilemedi: %1$s</string>
+    <string name="crop_catalog_deactivate">Pasifleştir</string>
+    <string name="crop_catalog_deactivate_title">Ürünü pasifleştir</string>
+    <string name="crop_catalog_deactivate_message">%1$s yeni sezon seçimlerinden kaldırılacak. Eski sezon kayıtları korunacak.</string>
+    <string name="crop_catalog_deactivate_failed">Ürün pasifleştirilemedi.</string>
+    <string name="settings_crop_catalog_title">Ürün Kataloğu</string>
+    <string name="settings_crop_catalog_subtitle">Sistem ve kullanıcı ürünlerini yönetin</string>
+</resources>

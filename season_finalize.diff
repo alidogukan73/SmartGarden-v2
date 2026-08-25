@@ -1,0 +1,108 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+@@ -174,10 +174,21 @@ public final class SeasonRepository {
+         return runAtomic("Sezon kapatılamadı.", root -> {
+             MutableData zoneData = root.child("zones").child(zoneId);
+             ZoneSeasonState state = readSeasonState(zoneData.child("season"));
++            boolean pendingFinalMeasurement = hasPendingWateringForSeason(
++                    root,
++                    zoneId,
++                    state.getActive_season_id()
++            );
+             boolean wateringActive = booleanValue(zoneData.child("irrigation_status").child("watering_active"))
+                     || booleanValue(zoneData.child("irrigation_status").child("selected_for_watering"))
+                     || booleanValue(root.child("status").child("relay"))
+-                    || booleanValue(root.child("irrigation_hardware").child("valve_open"));
++                    || booleanValue(root.child("irrigation_hardware").child("valve_open"))
++                    || pendingFinalMeasurement;
+             if (!SeasonScope.canClose(state, wateringActive)) {
++                if (pendingFinalMeasurement) {
++                    throw new IllegalStateException(
++                            "Sulama sonrası nem ölçümü bekleniyor. Kayıt tamamlandıktan sonra sezonu kapatın."
++                    );
++                }
+                 if (wateringActive) {
+                     throw new IllegalStateException("Sulama veya vana açıkken sezon kapatılamaz.");
+                 }
+@@ -417,6 +428,22 @@ public final class SeasonRepository {
+         return state.isInclude_legacy_records();
+     }
+ 
++    private static boolean hasPendingWateringForSeason(
++            MutableData root,
++            String zoneId,
++            String seasonId
++    ) {
++        for (MutableData pending : root.child("irrigation_runtime")
++                .child("pending_waterings").getChildren()) {
++            MutableData record = pending.child("record");
++            if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
++            String pendingSeasonId = stringValue(record.child("season_id"));
++            if (pendingSeasonId.isBlank() || pendingSeasonId.equals(seasonId)) return true;
++        }
++        return false;
++    }
++
+     private static long inferLegacySeasonStart(MutableData root, String zoneId, long fallback) {
+         long earliest = fallback;
+         for (MutableData record : root.child("fertilizer_history").getChildren()) {
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
+@@ -1,5 +1,6 @@
+ package com.ali.smartgarden.activities;
+ 
++import android.content.Intent;
+ import android.graphics.Typeface;
+ import android.os.Bundle;
+ import android.text.InputType;
+@@ -162,9 +163,38 @@ public final class SeasonManagementActivity extends AppCompatActivity {
+             else showStartDialog(zone, action);
+         });
+         content.addView(action);
++
++        MaterialButton archive = new MaterialButton(
++                this,
++                null,
++                com.google.android.material.R.attr.materialButtonOutlinedStyle
++        );
++        archive.setText(R.string.season_archive_action);
++        archive.setAllCaps(false);
++        archive.setTextSize(14);
++        archive.setTypeface(archive.getTypeface(), Typeface.BOLD);
++        LinearLayout.LayoutParams archiveParams = new LinearLayout.LayoutParams(
++                LinearLayout.LayoutParams.MATCH_PARENT,
++                dp(48)
++        );
++        archiveParams.topMargin = dp(8);
++        archive.setLayoutParams(archiveParams);
++        archive.setOnClickListener(view -> openSeasonArchive(zone, history));
++        content.addView(archive);
+         return card;
+     }
+ 
++    private void openSeasonArchive(GardenZone zone, List<GardenSeason> history) {
++        Intent intent = new Intent(this, SeasonReportActivity.class);
++        intent.putExtra("zone_id", zone.getZone_id());
++        GardenSeason latest = history.isEmpty() ? null : history.get(0);
++        if (latest != null && !blank(latest.getSeason_id())) {
++            intent.putExtra("season_id", latest.getSeason_id());
++        }
++        startActivity(intent);
++    }
++
+     private String currentSeasonSummary(GardenZone zone) {
+         ZoneSeasonState state = zone.getSeason();
+         if (state == null || blank(state.getStatus())) {
+diff --git a/Android/app/src/main/res/values/strings_season.xml b/Android/app/src/main/res/values/strings_season.xml
+--- a/Android/app/src/main/res/values/strings_season.xml
++++ b/Android/app/src/main/res/values/strings_season.xml
+@@ -44,6 +44,7 @@
+     <string name="season_operation_wait">İşlem yapılıyor…</string>
+     <string name="season_operation_done">Güncelleniyor…</string>
+     <string name="season_manage_from_report">Sezonları yönet</string>
++    <string name="season_archive_action">Sezon arşivini ve karşılaştırmayı aç</string>
+ 
+     <string-array name="season_growth_stage_labels">
+         <item>Toprak hazırlığı</item>

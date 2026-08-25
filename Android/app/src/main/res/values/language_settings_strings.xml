@@ -10,8 +10,7 @@
     <string name="language_option_turkish_detail">AVORA’nın eksiksiz ve etkin uygulama dili.</string>
     <string name="language_code_english">EN</string>
     <string name="language_option_english">English</string>
-    <string name="language_option_english_detail">Tam çeviri kontrolü tamamlandığında kullanıma açılacak.</string>
-    <string name="language_coming_soon">HAZIRLANIYOR</string>
+    <string name="language_option_english_detail">AVORA’nın eksiksiz ve etkin İngilizce uygulama dili.</string>
     <string name="language_preview_section">Metin önizlemesi</string>
     <string name="language_preview_title">Bahçenin genel durumu</string>
     <string name="language_preview_message">Toprak nemi ideal aralıkta. Şu anda sulama gerekmiyor.</string>

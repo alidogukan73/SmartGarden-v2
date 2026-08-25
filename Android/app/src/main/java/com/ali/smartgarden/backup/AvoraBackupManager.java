@@ -42,7 +42,9 @@ public final class AvoraBackupManager {
             "sensor_config_updated_at_epoch", "valve_id", "valve_type", "valve_mode",
             "valve_mode_updated_at_epoch", "valve_gpio_bcm", "valve_gpio_physical_pin",
             "enabled", "irrigation_enabled", "order", "moisture_limit", "pump_duration",
-            "cooldown_seconds", "restart_delta", "fertilization"
+            "cooldown_seconds", "restart_delta", "fertilization",
+            "lifecycle_status", "created_at_epoch", "archived_at_epoch",
+            "previous_sensor_id", "previous_valve_id"
     ));
 
     private static final Set<String> GLOBAL_IRRIGATION_FIELDS = new LinkedHashSet<>(Arrays.asList(

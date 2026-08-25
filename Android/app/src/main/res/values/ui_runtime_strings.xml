@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="runtime_location_permission_denied">Konum izni verilmedi. İl ve ilçe ile devam edebilirsiniz.</string>
+    <string name="runtime_weather_source_auto">Otomatik (önerilen)</string>
+    <string name="runtime_weather_source_open_meteo">Yalnız Open-Meteo</string>
+    <string name="runtime_weather_source_open_weather">Yalnız OpenWeather</string>
+    <string name="runtime_location_unavailable">Konum alınamadı. Bahçedeyken GPS’i açıp tekrar deneyin.</string>
+    <string name="runtime_location_precise_saved">Hassas bahçe konumu ve kaynak tercihi kaydedildi.</string>
+    <string name="runtime_location_save_failed">Konum kaydedilemedi. Bağlantıyı kontrol edin.</string>
+    <string name="runtime_location_city_required">İl ve ilçe girin.</string>
+    <string name="runtime_location_manual_saved">İlçe merkezi konumu ve kaynak tercihi kaydedildi.</string>
+    <string name="runtime_location_precise_coordinates">Hassas GPS konumu kaydedildi: %1$.5f, %2$.5f</string>
+    <string name="runtime_location_save_failed_short">Konum kaydedilemedi.</string>
+    <string name="runtime_weather_source_save_failed">Kaynak tercihi kaydedilemedi.</string>
+    <string name="runtime_location_capture_first">Önce bahçe konumunu kaydedin.</string>
+    <string name="runtime_weather_source_updated">Hava tahmini kaynağı güncellendi.</string>
+
+    <string name="runtime_gallery_select_for_analysis">Analize eklemek için bir fotoğrafa dokunun.</string>
+    <plurals name="runtime_photo_count"><item quantity="one">%1$d fotoğraf</item><item quantity="other">%1$d fotoğraf</item></plurals>
+    <plurals name="runtime_photo_selected"><item quantity="one">%1$d fotoğraf seçildi</item><item quantity="other">%1$d fotoğraf seçildi</item></plurals>
+    <string name="runtime_gallery_clear_selection">Seçimi kaldır</string>
+    <string name="runtime_gallery_delete_title">Seçilen fotoğraflar silinsin mi?</string>
+    <plurals name="runtime_gallery_delete_message"><item quantity="one">%1$d fotoğraf Bitki Günlüğü’nden ve bu telefondan kalıcı olarak silinir.</item><item quantity="other">%1$d fotoğraf Bitki Günlüğü’nden ve bu telefondan kalıcı olarak silinir.</item></plurals>
+    <plurals name="runtime_gallery_deleted"><item quantity="one">%1$d fotoğraf silindi.</item><item quantity="other">%1$d fotoğraf silindi.</item></plurals>
+
+    <string name="runtime_zone_unnamed">İsimsiz bölge</string>
+    <string name="runtime_sensor_unassigned">Sensör atanmamış</string>
+    <string name="runtime_moisture_low">Düşük nem</string>
+    <string name="runtime_moisture_high">Yüksek nem</string>
+    <string name="runtime_moisture_ideal">İdeal nem</string>
+    <string name="runtime_cannot_evaluate">Değerlendirilemedi</string>
+    <string name="runtime_sensor_no_data">Sensör verisi yok</string>
+    <string name="runtime_sensor_off">Sensör kapalı</string>
+    <string name="runtime_moisture_low_short">Nem düşük</string>
+    <string name="runtime_moisture_high_short">Nem yüksek</string>
+    <string name="runtime_ideal_range">İdeal aralık</string>
+    <string name="runtime_irrigation_running">Sulama yapılıyor</string>
+    <string name="runtime_moisture_will_remeasure">Nem yeniden ölçülecek</string>
+    <string name="runtime_irrigation_preparing">Sulamaya hazırlanıyor</string>
+    <string name="runtime_automatic_monitoring">Otomatik mod izliyor</string>
+    <string name="runtime_automatic_on">Otomatik mod açık</string>
+    <string name="runtime_automatic_off">Otomatik mod kapalı</string>
+    <string name="runtime_pump_valve_active">Pompa ve vana aktif</string>
+    <string name="runtime_wait_minutes">%1$d dk bekleme</string>
+    <string name="runtime_irrigation_not_needed">Sulama gerekmiyor</string>
+
+    <string name="runtime_sort_smart">⭐  Akıllı sıralama</string>
+    <string name="runtime_sort_moisture">💧  Nem: düşükten yükseğe</string>
+    <string name="runtime_sort_recent">🕐  Son güncellenen</string>
+    <string name="runtime_sort_plant_name">🌱  Bitki adına göre</string>
+    <string name="runtime_plant_sort_title">Bitkileri sırala</string>
+    <string name="runtime_garden_zone">Bahçe bölgesi</string>
+    <string name="runtime_sensor_stale">Sensör verisi güncel değil</string>
+    <string name="runtime_not_current">Güncel değil</string>
+    <string name="runtime_attention">Dikkat</string>
+
+    <string name="runtime_photo_limit">Bir kayda en fazla 5 fotoğraf eklenebilir.</string>
+    <string name="runtime_add_photo">Fotoğraf ekle</string>
+    <string name="runtime_take_photo">Fotoğraf çek</string>
+    <string name="runtime_sort_needs_attention">⚠  Dikkat gerektirenler</string>
+    <string name="runtime_plant_moisture_meta">💧 Nem: %%%1$d  ·  %2$s</string>
+    <string name="runtime_moisture_tracking_needed">Nem takibi gerekli</string>
+    <string name="runtime_season_tracking_active">Sezon takibi aktif</string>
+    <string name="runtime_no_data">Veri yok</string>
+    <string name="runtime_choose_gallery">Galeriden seç</string>
+    <string name="runtime_choose_journal">Bitki Günlüğünden seç</string>
+    <plurals name="runtime_photos_selected_limit"><item quantity="one">%1$d fotoğraf seçildi
+En fazla 5 fotoğraf · değiştirmek için dokunun</item><item quantity="other">%1$d fotoğraf seçildi
+En fazla 5 fotoğraf · değiştirmek için dokunun</item></plurals>
+    <string name="runtime_zone_not_found">Bölge bilgisi bulunamadı.</string>
+    <string name="runtime_photo_required">Fotoğraf kaydı için en az bir fotoğraf seçin.</string>
+    <string name="runtime_season_inactive">Bu sezon artık aktif değil. Kayıt eklenmedi.</string>
+    <string name="runtime_journal_added">Günlük kaydı eklendi.</string>
+    <string name="runtime_cloud_save_failed">Kayıt buluta kaydedilemedi.</string>
+    <string name="runtime_start_season_first">Önce bu bölge için yeni sezon başlatın.</string>
+
+    <string name="runtime_select_zone_first">Önce bir bölge seçin.</string>
+    <string name="runtime_select_symptom">En az bir belirti seçin.</string>
+    <string name="runtime_probability_urgency">Olasılık: %1$s · Aciliyet: %2$s</string>
+    <string name="runtime_evaluated_context">Değerlendirilen bahçe verisi: %1$s</string>
+    <string name="runtime_visual_ai_preparing">Görsel AI analizi hazırlanıyor…</string>
+    <string name="runtime_visual_ai_unavailable">Görsel AI servisine ulaşılamadı: %1$s</string>
+    <string name="runtime_photo_quality_title">Fotoğraf bitkiyi yeterince göstermiyor</string>
+    <string name="runtime_visual_confidence_urgency">Görsel güven: %%%1$d · Aciliyet: %2$s</string>
+    <string name="runtime_urgency_low">Düşük</string>
+    <string name="runtime_symptom_yellowing">Alt yapraklarda sararma</string>
+    <string name="runtime_symptom_wilt">Solma</string>
+    <string name="runtime_red_flags">Dikkat edilmesi gerekenler</string>
+    <string name="runtime_photo_quality_detail">Yaprak veya belirtili bölge net seçilemedi. Yakın plan, gün ışığında ve tek yaprağa odaklı yeni bir fotoğraf ekleyin.</string>
+    <string name="runtime_photo_quality_advice">Bu fotoğraf için hastalık değerlendirmesi yapılmadı. Bitkiyi tekrar fotoğraflayıp analizi yenileyin.</string>
+    <string name="runtime_no_visual_findings">Görsel bulgu üretilemedi.</string>
+    <string name="runtime_visual_preassessment">Görsel ön değerlendirme</string>
+    <string name="runtime_possible_causes">Olası nedenler</string>
+    <string name="runtime_recommended_observation">Önerilen gözlem</string>
+    <string name="runtime_not_diagnosis">Bu sonuç kesin teşhis değildir.</string>
+    <string name="runtime_symptom_drying">Yaprak kuruması</string>
+    <string name="runtime_symptom_spot">Yaprakta leke / yanıklık</string>
+    <string name="runtime_symptom_fruit_crack">Meyve çatlaması</string>
+    <string name="runtime_symptom_flower_drop">Çiçek dökümü</string>
+    <string name="runtime_other_observation">Diğer gözlem</string>
+    <string name="runtime_firebase_connection_failed">Güvenli Firebase bağlantısı kurulamadı. İnternet bağlantısını kontrol edin.</string>
+    <string name="runtime_wind_format">💨
+Rüzgâr
+%1$s</string>
+    <string name="runtime_assistant_archive_note">Bitki Asistanı · %1$s</string>
+    <string name="runtime_photo_analysis_archived">Fotoğraf ve analiz kaydı Bitki Günlüğü’ne eklendi.</string>
+    <string name="runtime_photo_archive_failed">Fotoğraf analize eklendi, ancak arşive kaydedilemedi.</string>
+
+    <string name="runtime_weather_updated">↻ Güncellendi: %1$s</string>
+    <string name="runtime_weather_raining">Şu an yağış görünüyor — sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="runtime_weather_rain_high">Yağış olasılığı yüksek — sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="runtime_weather_rain_possible">Yağış ihtimali var — sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="runtime_weather_hot">Yüksek sıcaklık — toprak nemini ve yapraklarda solmayı takip edin.</string>
+    <string name="runtime_weather_windy">Rüzgâr kuvvetli — toprak nemi daha hızlı düşebilir.</string>
+    <string name="runtime_weather_hot_dry">Sulama açısından sıcak ve kurak bir dönem. Toprak nemini takip etmeyi unutmayın.</string>
+    <string name="runtime_weather_balanced">Bahçe için hava koşulları dengeli görünüyor.</string>
+
+    <string name="runtime_offline_auto_mode">Cihaz çevrimdışıyken otomatik mod değiştirilemez.</string>
+    <string name="runtime_open_valve_first">Pompa açılamadı: önce bir vana açın.</string>
+    <string name="runtime_pump_simulation_protection">Pompa koruma altında: vanalar simülasyon modunda.</string>
+    <string name="runtime_offline_pump_start">Pompa başlatılamadı: cihaz çevrimdışı.</string>
+    <string name="runtime_physical_suffix"> · Fiziksel</string>
+    <string name="runtime_gpio_pin">GPIO %1$d · Fiziksel Pin %2$d</string>
+    <string name="runtime_stop_pump">Pompayı durdur</string>
+    <string name="runtime_simulation_suffix"> · Simülasyon</string>
+    <string name="runtime_close_valve_first">Önce açık vanayı kapatın.</string>
+    <string name="runtime_device_offline_short">Cihaz çevrimdışı.</string>
+    <string name="runtime_valve_command_sent">Vana açma komutu gönderildi.</string>
+    <string name="runtime_valve_mode_locked">Pompa veya vana açıkken vana modu değiştirilemez.</string>
+    <string name="runtime_connection_loading">Bağlantı bilgisi yükleniyor</string>
+
+    <string name="runtime_weather_weekly_place">Haftalık hava tahmini · %1$s</string>
+    <string name="runtime_weather_source_detail">Kaynak: %1$s · Bahçe çevresi tahmini</string>
+    <string name="runtime_weather_humidity">💧
+Nem %%%1$s</string>
+    <string name="runtime_weather_day_card">%1$s\n%2$s\n%3$s°\n%4$s°\n💧 %%%5$s\n💨 %6$s km/sa</string>
+    <string name="runtime_weather_wind">💨
+Rüzgâr %1$s km/sa</string>
+    <string name="runtime_weather_rain">🌧
+Yağış %%%1$s</string>
+    <string name="runtime_weather_pressure">◉
+%1$s hPa</string>
+    <string name="runtime_rain_chance">Yağış ihtimali</string>
+    <string name="runtime_wettest_day">En yağışlı gün</string>
+    <string name="runtime_hottest_day">En sıcak gün</string>
+    <string name="runtime_tomorrow_rain_advice">Yarın yağış olasılığı yüksek. Sulama planını uygulamadan önce yeniden kontrol edin.</string>
+    <string name="runtime_tomorrow_clear_advice">Yarın için belirgin yağış riski görünmüyor. Sulama Asistanı nem verisine göre öneri sunmaya devam eder.</string>
+    <string name="runtime_condition_rainy">Yağışlı</string>
+    <string name="runtime_condition_cloudy">Bulutlu</string>
+    <string name="runtime_condition_sunny">Güneşli</string>
+
+    <string name="runtime_record_default">Kayıt</string>
+    <string name="runtime_no_description">Açıklama eklenmedi.</string>
+    <plurals name="runtime_record_photos_title"><item quantity="one">Fotoğraflar · %1$d fotoğraf</item><item quantity="other">Fotoğraflar · %1$d fotoğraf</item></plurals>
+    <string name="runtime_add_photo_tile">＋
+Fotoğraf ekle</string>
+    <string name="runtime_record_photo_limit">Bu kayıtta en fazla 5 fotoğraf olabilir.</string>
+    <string name="runtime_photo_added">Fotoğraf kayda eklendi.</string>
+    <string name="runtime_photo_add_failed">Fotoğraf eklenemedi.</string>
+    <string name="runtime_growth_photo">Gelişim fotoğrafı</string>
+    <string name="runtime_close">Kapat</string>
+    <string name="runtime_plant_default">Bitki</string>
+    <string name="runtime_planned_season">Planlanan sezon</string>
+    <string name="runtime_season_ongoing">Sezon devam ediyor</string>
+    <string name="runtime_garden_record">Bahçe kaydı</string>
+    <string name="runtime_growth_photo_added">Bitki gelişim fotoğrafı eklendi.</string>
+    <string name="runtime_duration_seconds">Süre: %1$d sn</string>
+    <string name="runtime_health_plan_good">Nem, sulama ve gübreleme planı uygun görünüyor</string>
+    <string name="runtime_health_moisture_low">Toprak nemi sınırın altında</string>
+    <string name="runtime_health_sensor_unstable">Sensör ölçümü kararsız</string>
+    <string name="runtime_health_fertilizer_waiting">Gübreleme uygulama kaydı bekleniyor</string>
+    <string name="runtime_restart_title">Cihaz yeniden başlatılsın mı?</string>
+    <string name="runtime_restart_message">Raspberry Pi yeniden başlatılacak. Bu sırada sulama ve sensör bağlantısı kısa süreliğine kesilecektir.</string>
+    <string name="runtime_restart_action">Yeniden Başlat</string>
+    <string name="runtime_restart_sent">Yeniden başlatma komutu gönderildi.</string>
+    <string name="runtime_monitoring_off_badge">İZLEME KAPALI</string>
+    <string name="runtime_monitoring_off">Sensör izleme kapalı</string>
+    <string name="runtime_monitoring_no_sensor">Bu bölgeler için etkin kablosuz sensör yok.</string>
+    <string name="runtime_no_esp32_data">Henüz ESP32 verisi alınmadı</string>
+    <string name="runtime_last_esp32_data">Son ESP32 verisi: %1$s%2$s</string>
+    <string name="runtime_wifi_suffix"> · Wi‑Fi %1$d dBm</string>
+    <string name="runtime_no_connection_badge">BAĞLANTI YOK</string>
+    <string name="runtime_partial_connection_badge">KISMİ BAĞLI</string>
+    <string name="runtime_connected_badge">BAĞLI</string>
+    <string name="runtime_live_sensor_count">%1$d / %2$d sensör canlı</string>
+    <string name="runtime_esp32_waiting">ESP32 kapalı olabilir veya Wi‑Fi / MQTT bağlantısı bekleniyor.</string>
+    <string name="runtime_esp32_partial">Bazı ESP32 sensörlerinden güncel veri bekleniyor.</string>
+    <string name="runtime_esp32_healthy">ESP32 kablosuz sensör ağı düzenli veri gönderiyor.</string>
+    <string name="runtime_just_now">Az önce</string>
+    <string name="runtime_seconds_ago">%1$d sn önce</string>
+    <string name="runtime_minutes_ago">%1$d dk önce</string>
+    <string name="runtime_connection_connected">● Bağlı</string>
+    <string name="runtime_connection_waiting">● Beklemede</string>
+    <string name="runtime_connection_none">● Bağlantı Yok</string>
+    <string name="runtime_rssi_excellent">Mükemmel (%1$d dBm)</string>
+    <string name="runtime_rssi_good">İyi (%1$d dBm)</string>
+    <string name="runtime_rssi_weak">Zayıf (%1$d dBm)</string>
+    <string name="runtime_rssi_very_weak">Çok zayıf (%1$d dBm)</string>
+    <string name="runtime_product_unnamed">Adsız ürün</string>
+    <string name="runtime_zone_data_preparing">Bölge verileri hazırlanıyor.</string>
+    <string name="runtime_status_organic_required">ORGANİK ÜRÜN GEREKİYOR</string>
+    <string name="runtime_status_preparation_required">HAZIRLIK GEREKİYOR</string>
+    <string name="runtime_status_too_early">HENÜZ ERKEN</string>
+    <string name="runtime_status_season_completed">SEZON TAMAMLANDI</string>
+    <string name="runtime_form_liquid">Sıvı</string>
+    <string name="runtime_form_powder">Toz</string>
+    <string name="runtime_form_granular">Granül</string>
+    <string name="runtime_npk_missing">NPK belirtilmedi</string>
+    <string name="runtime_product_suitability">Ürün uygunluğu: %1$s</string>
+    <string name="runtime_fruit_stage">Meyve döneminde: %1$s</string>
+    <string name="runtime_safety_label">Güvenlik: %1$s</string>
+    <string name="runtime_ph_hint">pH (örnek: 6,5)</string>
+    <string name="runtime_ec_hint">EC mS/cm (örnek: 1,80)</string>
+    <string name="runtime_soil_values_message">Bu değerler öneri ve risk uyarıları içindir; otomatik gübreleme başlatmaz.</string>
+    <string name="runtime_soil_values_invalid">pH 0–14, EC 0–20 aralığında olmalıdır.</string>
+    <string name="runtime_active_harvest_note">Aktif hasatta: Yalnız ürün etiketinde hasada kadar kullanım açıkça belirtiliyorsa ve hasat öncesi kısıt yoksa değerlendirin.</string>
+    <string name="runtime_application_wait_days">Uygulama zamanı: Tekrar uygulama için %1$d gün bekleyin.</string>
+    <string name="runtime_days_ago">%1$d gün önce.</string>
+    <string name="runtime_history_photo_prompt">İsterseniz bu gözleme ait bir bitki fotoğrafını da yerel arşive ekleyebilirsiniz.</string>
+    <string name="runtime_not_now">Şimdi değil</string>
+    <string name="runtime_valid_date_amount">Geçerli tarih ve miktar girin.</string>
+    <string name="runtime_csv_header">Uygulama tarihi,Bölge,Ürün,Miktar,Birim,Yöntem,Alan m2,Tank L,Not,Sonuç,Canlılık puanı,Sonuç notu\n</string>
+    <string name="runtime_outcome_improved">İyileşme gözlendi</string>
+    <string name="runtime_outcome_unchanged">Belirgin değişiklik yok</string>
+    <string name="runtime_outcome_issue">Sorun gözlendi</string>
+    <string name="runtime_outcome_label">Sonuç: %1$s</string>
+    <string name="runtime_vitality_suffix"> · Canlılık %1$d/5</string>
+    <string name="runtime_application_outcome_saved">Uygulama sonucu kaydedildi</string>
+    <string name="runtime_no_linked_records">Bu kayıtla ilişkili sulama veya gübreleme kaydı yok.</string>
+    <string name="runtime_reason_label">Neden: %1$s</string>
+    <string name="runtime_water_analysis_save_failed">Su analizi kaydedilemedi.</string>
+    <string name="runtime_last_application_days">Son uygulama: %1$d gün önce.</string>
+    <string name="runtime_stock_value">Stok: %1$s %2$s</string>
+    <string name="runtime_follow_up_task">Takip görevi: 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.</string>
+    <string name="runtime_follow_up_comparison">Takip değerlendirmesi: Önceki analiz (‘%1$s’) ile yeni fotoğraf karşılaştırılmak üzere kaydedildi.</string>
+    <string name="runtime_follow_up_photo_title">Takip fotoğrafı önerisi</string>
+    <string name="runtime_follow_up_photo_note">Bitki Asistanı analizinden 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.</string>
+    <string name="runtime_follow_up_assessment_title">Takip değerlendirmesi</string>
+    <string name="runtime_follow_up_assessment_note">Yeni analiz, önceki Bitki Asistanı analiziyle karşılaştırılmak üzere kaydedildi.</string>
+    <string name="runtime_sun_strong">Kuvvetli</string>
+    <string name="runtime_sun_medium">Orta</string>
+    <string name="runtime_sun_low">Düşük</string>
+    <string name="runtime_signal_moisture_title">Nem riski</string>
+    <string name="runtime_signal_moisture_note">Toprak nemi bölge sınırının altında.</string>
+    <string name="runtime_signal_hot_title">Sıcak hava uyarısı</string>
+    <string name="runtime_signal_hot_note">Yüksek sıcaklık bekleniyor. Toprak nemini ve yapraklarda solmayı takip edin.</string>
+    <string name="runtime_signal_rain_title">Yağış uyarısı</string>
+    <string name="runtime_signal_rain_note">Yağış olasılığı yüksek. Sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="runtime_signal_wind_title">Kuvvetli rüzgâr</string>
+    <string name="runtime_signal_wind_note">Rüzgâr kuvvetli. Toprak nemi daha hızlı düşebilir.</string>
+    <string name="runtime_delete_ellipsis">Sil…</string>
+    <string name="runtime_delete_record_title">Kaydı sil?</string>
+    <string name="runtime_delete_user_record_message">Bu kullanıcı kaydı silinecek. Otomatik sulama ve gübreleme geçmişi etkilenmez.</string>
+    <string name="runtime_delete_photo_record_message">Bu kullanıcı fotoğraf kaydı ve telefonunuzdaki kopyası silinecek.</string>
+
+    <string name="runtime_timeline_named_title">%1$s Günlüğü</string>
+    <string name="runtime_compare_empty">Karşılaştırmak için bu sezondan en az iki fotoğraf ekleyin.</string>
+    <string name="runtime_view_empty">Bu görünüm için henüz kayıt yok.</string>
+    <string name="runtime_growth_photos">Gelişim fotoğrafları</string>
+    <string name="runtime_notes_observations">Notlar ve gözlemler</string>
+    <string name="runtime_photo_comparison">Fotoğraf karşılaştırması</string>
+    <string name="runtime_planting_done">%1$s dikim yapıldı</string>
+    <string name="runtime_planting_missing">Dikim tarihi henüz eklenmedi</string>
+    <string name="runtime_zone_inactive">Bölge pasif</string>
+    <string name="runtime_past_season">Geçmiş sezon</string>
+    <string name="runtime_compare_heading">Önceki ve yeni fotoğraf</string>
+    <string name="runtime_previous">Önceki</string>
+    <string name="runtime_new">Yeni</string>
+    <string name="runtime_compare_detail">AVORA karşılaştırması: Yeni fotoğrafı önceki analiz ve gözlemlerle birlikte değerlendirin.</string>
+    <string name="runtime_event_planting">Dikim yapıldı</string>
+    <string name="runtime_event_note">Gözlem / not</string>
+    <string name="runtime_event_flowering">Çiçeklenme dönemi başladı</string>
+    <string name="runtime_event_first_product">İlk ürün</string>
+    <string name="runtime_event_harvest">Hasat</string>
+    <string name="runtime_event_special">Özel olay</string>
+    <string name="runtime_event_growth_photo">Gelişim fotoğrafı ekle</string>
+    <string name="runtime_planting_hint">Örn. 12 fide dikildi</string>
+    <string name="runtime_short_note_hint">Kısa notunuzu yazın</string>
+    <string name="runtime_active_season_record_note">Bu kayıt yalnız bu bitkinin etkin sezonuna eklenir.</string>
+    <string name="runtime_health_score_format">%1$d/100</string>
+    <string name="runtime_temperature_celsius">%1$d°C</string>
+    <string name="runtime_weather_wind_card">%1$s  %2$s km/sa</string>
+    <string name="runtime_weather_missing_value">~ —</string>
+    <string name="runtime_weather_approximate_value">~ %1$d</string>
+</resources>

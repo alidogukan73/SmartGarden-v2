@@ -32,7 +32,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="AI Bitki Asistanı"
+                        android:text="@string/fertilization_zone_assistant_action"
                         android:textColor="@color/textPrimary"
                         android:textSize="23sp"
                         android:textStyle="bold" />
@@ -40,14 +40,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Fotoğraf ve bahçe verilerini birlikte analiz ederiz"
+                        android:text="@string/plant_assistant_subtitle"
                         android:textColor="@color/textSecondary"
                         android:textSize="13sp" />
                 </LinearLayout>
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:contentDescription="AI Bitki Asistanı"
+                    android:contentDescription="@string/fertilization_zone_assistant_action"
                     android:src="@drawable/ic_plant_assistant_logo" />
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
@@ -67,7 +67,7 @@
                     <ImageView
                         android:layout_width="62dp"
                         android:layout_height="100dp"
-                        android:contentDescription="AI"
+                        android:contentDescription="@string/ai_tech_badge"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_plant_assistant_badge" />
                     <LinearLayout
@@ -79,7 +79,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="AI Bitki Asistanı"
+                            android:text="@string/fertilization_zone_assistant_action"
                             android:textColor="@color/textPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -87,7 +87,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Görsel, sensör ve hava verilerini birlikte değerlendiriyoruz."
+                            android:text="@string/plant_assistant_intro"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -99,7 +99,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Güvenilirlik"
+                            android:text="@string/reliability_title"
                             android:textColor="@color/textSecondary"
                             android:textSize="10sp" />
                         <com.google.android.material.card.MaterialCardView
@@ -117,13 +117,13 @@
                                 <ImageView
                                     android:layout_width="16dp"
                                     android:layout_height="16dp"
-                                    android:contentDescription="Orta güvenilirlik"
+                                    android:contentDescription="@string/medium_reliability_description"
                                     android:src="@drawable/ic_shield_check_24" />
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="3dp"
-                                    android:text="Orta"
+                                    android:text="@string/adaptive_confidence_medium"
                                     android:textColor="@color/warning"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -134,7 +134,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:layout_marginStart="5dp"
-                        android:contentDescription="Bilgi"
+                        android:contentDescription="@string/info_description"
                         android:src="@drawable/ic_info_outline_20" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -189,7 +189,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:text="Henüz fotoğraf eklenmedi&#10;Yaprak veya bitkinin genel fotoğrafını ekleyin."
+                                android:text="@string/plant_assistant_no_photo"
                                 android:textColor="@color/textSecondary"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -223,7 +223,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="📍  2. Bölge"
+                                android:text="@string/plant_assistant_zone_step"
                                 android:textColor="@color/textPrimary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -231,7 +231,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="12dp"
-                                android:text="Bölge"
+                                android:text="@string/zone_fallback_name"
                                 android:textColor="@color/textSecondary"
                                 android:textSize="11sp" />
                             <com.google.android.material.textfield.TextInputLayout
@@ -256,7 +256,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="144dp"
                         android:layout_marginTop="12dp"
-                        android:hint="4. Açıklama (isteğe bağlı)"
+                        android:hint="@string/plant_assistant_description_hint"
                         app:hintTextColor="@color/textSecondary"
                         app:boxCornerRadiusBottomEnd="12dp"
                         app:boxCornerRadiusBottomStart="12dp"
@@ -300,14 +300,14 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="🍃  3. Belirtiler"
+                                android:text="@string/plant_assistant_symptoms_step"
                                 android:textColor="@color/textPrimary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
                             <ImageView
                                 android:layout_width="17dp"
                                 android:layout_height="17dp"
-                                android:contentDescription="Belirti bilgisi"
+                                android:contentDescription="@string/symptom_info_description"
                                 android:src="@drawable/ic_info_outline_20" />
                         </LinearLayout>
                         <CheckBox
@@ -317,7 +317,7 @@
                             android:layout_marginTop="7dp"
                             android:buttonTint="@color/primary"
                             android:gravity="center_vertical"
-                            android:text="🍂  Yaprak Sararması"
+                            android:text="@string/symptom_yellowing"
                             android:textColor="@color/textPrimary"
                             android:textSize="12sp" />
                         <CheckBox
@@ -326,7 +326,7 @@
                             android:layout_height="34dp"
                             android:buttonTint="@color/primary"
                             android:gravity="center_vertical"
-                            android:text="🟤  Yaprak Kuruması"
+                            android:text="@string/symptom_drying"
                             android:textColor="@color/textPrimary"
                             android:textSize="12sp" />
                         <CheckBox
@@ -335,7 +335,7 @@
                             android:layout_height="34dp"
                             android:buttonTint="@color/primary"
                             android:gravity="center_vertical"
-                            android:text="🟣  Leke / Benek"
+                            android:text="@string/symptom_spot"
                             android:textColor="@color/textPrimary"
                             android:textSize="12sp" />
                         <CheckBox
@@ -371,7 +371,7 @@
                             android:layout_height="34dp"
                             android:buttonTint="@color/primary"
                             android:gravity="center_vertical"
-                            android:text="•••  Diğer"
+                            android:text="@string/symptom_other"
                             android:textColor="@color/textPrimary"
                             android:textSize="12sp" />
                         <com.google.android.material.textfield.TextInputLayout
@@ -380,7 +380,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:hint="Belirtiyi kısaca yazın"
+                            android:hint="@string/symptom_other_hint"
                             app:hintTextColor="@color/textSecondary"
                             android:visibility="gone">
                             <com.google.android.material.textfield.TextInputEditText
@@ -404,7 +404,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:visibility="gone"
-                android:hint="4. Açıklama (isteğe bağlı)"
+                android:hint="@string/plant_assistant_description_hint"
                 app:counterEnabled="true"
                 app:counterMaxLength="250">
                 <com.google.android.material.textfield.TextInputEditText
@@ -423,7 +423,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:layout_marginTop="14dp"
-                android:text="✦  AI Analiz Başlat&#10;Tüm veriler birlikte analiz edilecek"
+                android:text="@string/plant_assistant_start_analysis"
                 android:textAllCaps="false"
                 android:textSize="14sp" />
             <com.google.android.material.card.MaterialCardView
@@ -443,7 +443,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="AI Analize Dahil Edilecek Veriler"
+                        android:text="@string/plant_assistant_data_title"
                         android:textColor="@color/textPrimary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -467,7 +467,7 @@
                             android:layout_height="52dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="🌡&#10;Hava sıcaklığı"
+                            android:text="@string/weather_temperature_label"
                             android:textColor="@color/textPrimary"
                             android:textSize="10sp" />
                         <TextView
@@ -504,7 +504,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="▧  Son Analiz"
+                android:text="@string/plant_assistant_last_analysis"
                 android:textColor="@color/textPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -559,7 +559,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:gravity="center"
-                android:text="ⓘ AI önerileri destek amaçlıdır; kesin teşhis için ziraat uzmanına danışınız."
+                android:text="@string/plant_assistant_disclaimer"
                 android:textColor="@color/textSecondary"
                 android:textSize="11sp" />
         </LinearLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="feedback_areas">
+        <item>@string/feedback_area_general</item>
+        <item>@string/feedback_area_irrigation</item>
+        <item>@string/feedback_area_assistant</item>
+        <item>@string/feedback_area_fertilization</item>
+        <item>@string/feedback_area_journal</item>
+        <item>@string/feedback_area_notifications</item>
+        <item>@string/feedback_area_settings</item>
+    </string-array>
+</resources>

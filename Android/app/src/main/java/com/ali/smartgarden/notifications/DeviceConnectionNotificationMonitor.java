@@ -10,6 +10,7 @@ import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.Status;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public final class DeviceConnectionNotificationMonitor {
@@ -27,6 +28,8 @@ public final class DeviceConnectionNotificationMonitor {
     private boolean started;
     private boolean connectionStateInitialized;
     private boolean startupEvaluationScheduled;
+    private boolean firebaseConnected;
+    private boolean statusReadCancelled;
 
     public DeviceConnectionNotificationMonitor(Context context) {
         this.context = context.getApplicationContext();
@@ -48,8 +51,24 @@ public final class DeviceConnectionNotificationMonitor {
                         return;
                     }
 
+                    long newestHeartbeat = latestStatus == null
+                            ? 0L : latestStatus.getLastSeenEpoch();
+                    if (!NotificationPolicy.shouldAcceptDeviceSnapshot(
+                            status.getLastSeenEpoch(),
+                            newestHeartbeat,
+                            System.currentTimeMillis() / 1000L)) {
+                        return;
+                    }
+
                     latestStatus = status;
                     receivedStatus = true;
+                    statusReadCancelled = false;
+
+                    // Cached status is not proof that the Pi is offline.
+                    if (!firebaseConnected) {
+                        discardUnverifiableCandidate();
+                        return;
+                    }
 
                     /*
                      * Firebase uygulama açılışında önce yerel önbellekteki eski
@@ -61,11 +80,7 @@ public final class DeviceConnectionNotificationMonitor {
                         return;
                     }
 
-                    NotificationSignalCoordinator
-                            .evaluateDeviceConnection(
-                                    context,
-                                    latestStatus
-                            );
+                    evaluateLatestStatus();
 
                     NotificationSignalCoordinator
                             .evaluateDevice(
@@ -79,8 +94,40 @@ public final class DeviceConnectionNotificationMonitor {
                 public void onCancelled(
                         @NonNull DatabaseError error
                 ) {
-                    // Firebase bağlantı hatası Raspberry Pi
-                    // offline olayı olarak değerlendirilmez.
+                    statusReadCancelled = true;
+                    discardUnverifiableCandidate();
+                }
+            };
+
+    private final ValueEventListener firebaseConnectionListener =
+            new ValueEventListener() {
+
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    boolean connected = Boolean.TRUE.equals(
+                            snapshot.getValue(Boolean.class));
+                    if (firebaseConnected == connected) return;
+
+                    firebaseConnected = connected;
+                    connectionStateInitialized = false;
+                    handler.removeCallbacks(startupEvaluator);
+                    startupEvaluationScheduled = false;
+
+                    if (!connected) {
+                        discardUnverifiableCandidate();
+                        return;
+                    }
+
+                    // Allow the listener to replace disk cache with server data.
+                    if (receivedStatus && !statusReadCancelled) {
+                        scheduleStartupEvaluation();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    firebaseConnected = false;
+                    discardUnverifiableCandidate();
                 }
             };
 
@@ -91,7 +138,9 @@ public final class DeviceConnectionNotificationMonitor {
                 public void run() {
                     startupEvaluationScheduled = false;
 
-                    if (!receivedStatus || latestStatus == null) {
+                    if (!firebaseConnected || statusReadCancelled
+                            || !receivedStatus || latestStatus == null) {
+                        discardUnverifiableCandidate();
                         return;
                     }
 
@@ -102,6 +151,12 @@ public final class DeviceConnectionNotificationMonitor {
                             );
 
                     connectionStateInitialized = true;
+
+                    if (isLatestStatusOffline()) {
+                        DeviceConnectionVerificationWorker.schedule(context);
+                    } else {
+                        DeviceConnectionVerificationWorker.cancel(context);
+                    }
 
                     NotificationSignalCoordinator
                             .evaluateDevice(
@@ -118,14 +173,10 @@ public final class DeviceConnectionNotificationMonitor {
                 @Override
                 public void run() {
 
-                    if (receivedStatus
-                            && connectionStateInitialized) {
-
-                        NotificationSignalCoordinator
-                                .evaluateDeviceConnection(
-                                        context,
-                                        latestStatus
-                                );
+                    if (!firebaseConnected || statusReadCancelled) {
+                        discardUnverifiableCandidate();
+                    } else if (receivedStatus && connectionStateInitialized) {
+                        evaluateLatestStatus();
                     }
 
                     handler.postDelayed(
@@ -149,6 +200,41 @@ public final class DeviceConnectionNotificationMonitor {
         );
     }
 
+    private void evaluateLatestStatus() {
+        if (latestStatus == null || !firebaseConnected || statusReadCancelled) {
+            discardUnverifiableCandidate();
+            return;
+        }
+
+        if (isLatestStatusOffline()) {
+            // Seed the outage window without publishing from listener cache.
+            // The worker below performs the live server verification.
+            NotificationSignalCoordinator.synchronizeDeviceConnection(
+                    context, latestStatus);
+            DeviceConnectionVerificationWorker.schedule(context);
+            return;
+        }
+
+        DeviceConnectionVerificationWorker.cancel(context);
+        NotificationSignalCoordinator.evaluateDeviceConnection(
+                context, latestStatus);
+    }
+
+    private boolean isLatestStatusOffline() {
+        if (latestStatus == null) return false;
+        return NotificationPolicy.isDeviceOfflineObservation(
+                firebaseConnected,
+                latestStatus.isOnline(),
+                latestStatus.getLastSeenEpoch(),
+                System.currentTimeMillis() / 1000L,
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+    }
+
+    private void discardUnverifiableCandidate() {
+        NotificationSignalCoordinator.discardDeviceConnectionCandidates(context);
+        DeviceConnectionVerificationWorker.cancel(context);
+    }
+
     public void start() {
 
         if (started) {
@@ -156,6 +242,10 @@ public final class DeviceConnectionNotificationMonitor {
         }
 
         started = true;
+
+        FirebaseDatabase.getInstance()
+                .getReference(".info/connected")
+                .addValueEventListener(firebaseConnectionListener);
 
         repository.observeStatus(statusListener);
 

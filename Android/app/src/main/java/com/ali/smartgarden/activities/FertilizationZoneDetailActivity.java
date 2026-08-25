@@ -63,8 +63,10 @@ public class FertilizationZoneDetailActivity
             "HARVEST",
             "SEASON_END"
     };
-    private static final DateTimeFormatter DISPLAY_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault());
+    private static DateTimeFormatter displayDateFormat() {
+        return DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault());
+    }
+
 
     private final FirebaseRepository repository =
             new FirebaseRepository();
@@ -484,11 +486,11 @@ public class FertilizationZoneDetailActivity
         FertilizationProfile profile = currentZone == null ? null
                 : currentZone.getFertilization();
         TextInputEditText phInput = new TextInputEditText(this);
-        phInput.setHint("pH (örnek: 6,5)");
+        phInput.setHint(R.string.runtime_ph_hint);
         phInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
                 | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         TextInputEditText ecInput = new TextInputEditText(this);
-        ecInput.setHint("EC mS/cm (örnek: 1,80)");
+        ecInput.setHint(R.string.runtime_ec_hint);
         ecInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
                 | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         if (profile != null) {
@@ -502,8 +504,8 @@ public class FertilizationZoneDetailActivity
         content.addView(phInput);
         content.addView(ecInput);
         new MaterialAlertDialogBuilder(this)
-                .setTitle("EC / pH su analizi")
-                .setMessage("Bu değerler öneri ve risk uyarıları içindir; otomatik gübreleme başlatmaz.")
+                .setTitle(R.string.fertilization_water_analysis_action)
+                .setMessage(R.string.runtime_soil_values_message)
                 .setView(content)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.settings_save, (dialog, which) -> {
@@ -513,9 +515,9 @@ public class FertilizationZoneDetailActivity
                         if (ph < 0 || ph > 14 || ec < 0 || ec > 20) throw new IllegalArgumentException();
                         repository.updateFertilizationWaterAnalysis(zoneId, ph, ec)
                                 .addOnFailureListener(error -> Toast.makeText(this,
-                                        "Su analizi kaydedilemedi.", Toast.LENGTH_LONG).show());
+                                        R.string.runtime_water_analysis_save_failed, Toast.LENGTH_LONG).show());
                     } catch (Exception error) {
-                        Toast.makeText(this, "pH 0–14, EC 0–20 aralığında olmalıdır.",
+                        Toast.makeText(this, R.string.runtime_soil_values_invalid,
                                 Toast.LENGTH_LONG).show();
                     }
                 }).show();
@@ -766,23 +768,19 @@ public class FertilizationZoneDetailActivity
             if (detail.length() > 0) {
                 detail.append("\n\n");
             }
-            detail.append("Ürün uygunluğu: ")
-                    .append(aiProfile.getSuitability())
-                    .append("\nNeden: ")
-                    .append(aiProfile.getReason());
+            detail.append(getString(R.string.runtime_product_suitability, aiProfile.getSuitability()))
+                    .append("\n").append(getString(R.string.runtime_reason_label, aiProfile.getReason()));
             if ("FRUITING".equals(selectedStage)) {
-                detail.append("\nMeyve döneminde: ")
-                        .append(aiProfile.getFruitStageAdvice());
+                detail.append("\n").append(getString(
+                        R.string.runtime_fruit_stage, aiProfile.getFruitStageAdvice()));
             } else if (isHarvestStage()) {
-                detail.append("\nAktif hasatta: Yalnız ürün etiketinde hasada kadar kullanım açıkça belirtiliyorsa ve hasat öncesi kısıt yoksa değerlendirin.");
+                detail.append("\n").append(getString(R.string.runtime_active_harvest_note));
             }
-            detail.append("\nGüvenlik: ")
-                    .append(aiProfile.getSafetyNote());
+            detail.append("\n").append(getString(R.string.runtime_safety_label, aiProfile.getSafetyNote()));
 
             if (isRepeatBlocked()) {
-                detail.append("\n\nUygulama zamanı: Tekrar uygulama için ")
-                        .append(repeatDaysRemaining())
-                        .append(" gün bekleyin.");
+                detail.append("\n\n").append(getString(
+                        R.string.runtime_application_wait_days, repeatDaysRemaining()));
             } else if (originalLastApplicationAt > 0L) {
                 long elapsed = Math.max(0L,
                         java.time.temporal.ChronoUnit.DAYS.between(
@@ -791,17 +789,15 @@ public class FertilizationZoneDetailActivity
                                         .toLocalDate(),
                                 LocalDate.now()
                         ));
-                detail.append("\n\nSon uygulama: ")
-                        .append(elapsed)
-                        .append(" gün önce.");
+                detail.append("\n\n").append(getString(
+                        R.string.runtime_last_application_days, elapsed));
             }
 
             if (selected.getStock_unit() != null
                     && !selected.getStock_unit().isBlank()) {
-                detail.append("\nStok: ")
-                        .append(formatDose(selected.getStock_amount()))
-                        .append(" ")
-                        .append(selected.getStock_unit());
+                detail.append("\n").append(getString(R.string.runtime_stock_value,
+                        formatDose(selected.getStock_amount()),
+                        selected.getStock_unit()));
             }
         }
         String soilSupport = soilSupportAdvice();
@@ -1249,7 +1245,7 @@ public class FertilizationZoneDetailActivity
                 (picker, year, month, day) -> {
                     inputPlantingDate.setText(
                             LocalDate.of(year, month + 1, day)
-                                    .format(DISPLAY_DATE_FORMAT)
+                                    .format(displayDateFormat())
                     );
                     updateApplicationPreview();
                     updateUnsavedState();
@@ -1508,7 +1504,7 @@ public class FertilizationZoneDetailActivity
             return getString(
                     R.string.fertilization_unified_timing_wait,
                     recommendation.getWaitDays(),
-                    next.format(DISPLAY_DATE_FORMAT)
+                    next.format(displayDateFormat())
             );
         }
         if (isApplicationDecisionReady(advice, recommendation)) {
@@ -1674,7 +1670,7 @@ public class FertilizationZoneDetailActivity
         dropdownMethod.setSimpleItems(methodLabels);
         dropdownMethod.setText(methodLabels[0], false);
         inputApplicationDate.setText(
-                LocalDate.now().format(DISPLAY_DATE_FORMAT)
+                LocalDate.now().format(displayDateFormat())
         );
         inputApplicationDate.setOnClickListener(
                 view -> showApplicationDatePicker(inputApplicationDate)
@@ -1858,7 +1854,7 @@ public class FertilizationZoneDetailActivity
                                                 R.string
                                                         .fertilization_repeat_blocked_message,
                                                 allowedDate.format(
-                                                        DISPLAY_DATE_FORMAT
+                                                        displayDateFormat()
                                                 )
                                         )
                                 )
@@ -2034,7 +2030,7 @@ public class FertilizationZoneDetailActivity
                                         year,
                                         month + 1,
                                         dayOfMonth
-                                ).format(DISPLAY_DATE_FORMAT)
+                                ).format(displayDateFormat())
                         ),
                 selectedDate.getYear(),
                 selectedDate.getMonthValue() - 1,
@@ -2346,11 +2342,11 @@ public class FertilizationZoneDetailActivity
                 overdue
                         ? getString(
                                 R.string.fertilization_first_application_overdue,
-                                date.format(DISPLAY_DATE_FORMAT)
+                                date.format(displayDateFormat())
                         )
                         : getString(
                                 R.string.fertilization_first_application,
-                                date.format(DISPLAY_DATE_FORMAT),
+                                date.format(displayDateFormat()),
                                 product.getMinimum_interval_days()
                         )
         );
@@ -2387,7 +2383,7 @@ public class FertilizationZoneDetailActivity
 
     private LocalDate parseDisplayedDate(String value) {
         try {
-            return LocalDate.parse(value, DISPLAY_DATE_FORMAT);
+            return LocalDate.parse(value, displayDateFormat());
         } catch (Exception ignored) {
             return LocalDate.parse(value);
         }
@@ -2399,7 +2395,7 @@ public class FertilizationZoneDetailActivity
         }
         try {
             return parseDisplayedDate(storageDate)
-                    .format(DISPLAY_DATE_FORMAT);
+                    .format(displayDateFormat());
         } catch (Exception ignored) {
             return storageDate;
         }

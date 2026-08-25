@@ -48,10 +48,55 @@ public class NotificationPolicyTest {
     }
 
     @Test
+    public void cachedHeartbeatCannotDeclarePiOfflineWithoutFirebaseConnection() {
+        long now = 10_000L;
+        long staleHeartbeat = 9_000L;
+        long maximumAge = NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS;
+
+        assertFalse(NotificationPolicy.isDeviceOfflineObservation(
+                false, true, staleHeartbeat, now, maximumAge));
+        assertTrue(NotificationPolicy.isDeviceOfflineObservation(
+                true, true, staleHeartbeat, now, maximumAge));
+    }
+
+    @Test
     public void staleDeviceSnapshotRequiresAConfirmationWindow() {
-        assertFalse(NotificationPolicy.isOfflineConfirmationDue(1_000L, 15_999L, 15_000L));
-        assertTrue(NotificationPolicy.isOfflineConfirmationDue(1_000L, 16_000L, 15_000L));
-        assertFalse(NotificationPolicy.isOfflineConfirmationDue(0L, 20_000L, 15_000L));
+        long window = NotificationPolicy.DEVICE_OFFLINE_CONFIRMATION_MILLIS;
+        assertFalse(NotificationPolicy.isOfflineConfirmationDue(
+                1_000L, 1_000L + window - 1L, window));
+        assertTrue(NotificationPolicy.isOfflineConfirmationDue(
+                1_000L, 1_000L + window, window));
+        assertFalse(NotificationPolicy.isOfflineConfirmationDue(
+                0L, 1_000L + window, window));
+    }
+
+    @Test
+    public void recoveryUsesTheSameStableObservationRule() {
+        long window = NotificationPolicy.DEVICE_RECOVERY_CONFIRMATION_MILLIS;
+        assertFalse(NotificationPolicy.isOfflineConfirmationDue(
+                5_000L, 5_000L + window - 1L, window));
+        assertTrue(NotificationPolicy.isOfflineConfirmationDue(
+                5_000L, 5_000L + window, window));
+    }
+
+    @Test
+    public void sensorErrorRecoveryRequiresTwoStableMinutes() {
+        long window = NotificationPolicy.DEVICE_ERROR_RECOVERY_CONFIRMATION_MILLIS;
+        assertEquals(2L * 60L * 1000L, window);
+        assertFalse(NotificationPolicy.isOfflineConfirmationDue(
+                10_000L, 10_000L + window - 1L, window));
+        assertTrue(NotificationPolicy.isOfflineConfirmationDue(
+                10_000L, 10_000L + window, window));
+    }
+
+    @Test
+    public void olderDeviceSnapshotsCannotMoveHeartbeatBackwards() {
+        long now = 10_000L;
+        assertTrue(NotificationPolicy.shouldAcceptDeviceSnapshot(9_990L, 9_980L, now));
+        assertTrue(NotificationPolicy.shouldAcceptDeviceSnapshot(9_990L, 9_990L, now));
+        assertFalse(NotificationPolicy.shouldAcceptDeviceSnapshot(9_980L, 9_990L, now));
+        assertFalse(NotificationPolicy.shouldAcceptDeviceSnapshot(0L, 9_990L, now));
+        assertTrue(NotificationPolicy.shouldAcceptDeviceSnapshot(9_900L, 10_400L, now));
     }
 
     @Test

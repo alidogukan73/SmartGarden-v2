@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="calendar_today_ai_title">Bugünkü AI önerileri</string>
+    <string name="calendar_today_ai_detail">Öneriler kayıtlarınıza göre hazırlanır; uygulamayı siz onaylarsınız.</string>
+    <string name="weather_location_settings">Konum ayarları</string>
+    <string name="weather_current_badge">GÜNCEL</string>
+    <string name="weather_refresh_note">Tahmin düzenli güncellenir</string>
+    <string name="weather_seven_day_title">7 Günlük Tahmin</string>
+    <string name="weather_swipe_hint">Kaydır →</string>
+    <string name="weather_smart_advice">Akıllı öneri</string>
+    <string name="ai_step_status_description">Adım durumu</string>
+    <string name="ai_decision_step_description">AI karar adımı</string>
+    <string name="ai_sensor_sample_complete">20 sensör ölçümü başarıyla toplandı.</string>
+    <string name="timeline_title">Zaman Çizelgesi</string>
+    <string name="photos_title">Fotoğraflar</string>
+    <string name="notes_title">Notlar</string>
+    <string name="compare_title">Karşılaştır</string>
+    <string name="filter_all">▦  Tümü</string>
+    <string name="filter_ai_analysis">✦  AI Analiz</string>
+    <string name="filter_event">▲  Olay</string>
+    <string name="timeline_empty">Henüz bu bitki için günlük kaydı yok.</string>
+    <string name="plant_list_screen_title">Bitki Günlüklerim</string>
+    <string name="plant_list_screen_subtitle">Her bitkinin sezon geçmişi ve günlüğü</string>
+    <string name="plant_list_hero_title">Gelişimi kaydet, geleceği planla</string>
+    <string name="plant_list_hero_detail">Bitkilerinize dokunarak gelişim fotoğraflarını, önemli olayları ve sezon geçmişini kayıt altına alın.</string>
+    <string name="plant_list_journal_description">Gelişim günlüğü</string>
+    <string name="plant_list_empty">Henüz bitki bölgesi yok.</string>
+    <string name="plant_list_total">Toplam bitki</string>
+    <string name="plant_list_healthy">Sağlıklı</string>
+    <string name="plant_list_attention">Takip gerekli</string>
+    <string name="plant_list_waiting">Veri bekliyor</string>
+    <string name="plant_list_tip">💡 AVORA ipucu: Düzenli gelişim fotoğrafı ve kısa notlar, gelecek sezonlarda bahçenizi karşılaştırmanızı kolaylaştırır.</string>
+    <string name="notification_menu_description">Bildirim menüsü</string>
+    <string name="record_detail_title">Kayıt Detayı</string>
+    <string name="record_ai_assessment">AI Bitki Asistanı Değerlendirmesi</string>
+    <string name="record_assessment">✦  Değerlendirme</string>
+    <string name="record_follow_up_assessment">Takip Değerlendirmesi</string>
+    <string name="record_linked_records">Bağlantılı Kayıtlar</string>
+    <string name="record_delete_action">🗑  Kaydı Sil</string>
+    <string name="new_record_title">Yeni Kayıt Ekle</string>
+    <string name="new_record_intro">Bitki gelişimini kaydederek
+geçmiş yıllarla karşılaştırabilir,
+daha sağlıklı sonuçlar elde edebilirsin.</string>
+    <string name="plant_growth_description">Bitki gelişimi</string>
+    <string name="record_type_title">Kayıt Türü</string>
+    <string name="record_type_observation">Gözlem</string>
+    <string name="record_type_photo">Fotoğraf</string>
+    <string name="record_type_event">Olay</string>
+    <string name="date_time_title">Tarih &amp; Saat</string>
+    <string name="optional_description">Açıklama (isteğe bağlı)</string>
+    <string name="observations_hint">Gözlemlerinizi yazın…</string>
+    <string name="add_photo_optional">Fotoğraf Ekle (isteğe bağlı)</string>
+    <string name="plant_assistant_subtitle">Fotoğraf ve bahçe verilerini birlikte analiz ederiz</string>
+    <string name="plant_assistant_intro">Görsel, sensör ve hava verilerini birlikte değerlendiriyoruz.</string>
+    <string name="reliability_title">Güvenilirlik</string>
+    <string name="medium_reliability_description">Orta güvenilirlik</string>
+    <string name="info_description">Bilgi</string>
+    <string name="plant_assistant_no_photo">Henüz fotoğraf eklenmedi
+Yaprak veya bitkinin genel fotoğrafını ekleyin.</string>
+    <string name="plant_assistant_zone_step">📍  2. Bölge</string>
+    <string name="plant_assistant_description_hint">4. Açıklama (isteğe bağlı)</string>
+    <string name="plant_assistant_symptoms_step">🍃  3. Belirtiler</string>
+    <string name="symptom_info_description">Belirti bilgisi</string>
+    <string name="symptom_yellowing">🍂  Yaprak Sararması</string>
+    <string name="symptom_drying">🟤  Yaprak Kuruması</string>
+    <string name="symptom_spot">🟣  Leke / Benek</string>
+    <string name="symptom_other">•••  Diğer</string>
+    <string name="symptom_other_hint">Belirtiyi kısaca yazın</string>
+    <string name="plant_assistant_start_analysis">✦  AI Analiz Başlat
+Tüm veriler birlikte analiz edilecek</string>
+    <string name="plant_assistant_data_title">AI Analize Dahil Edilecek Veriler</string>
+    <string name="weather_temperature_label">🌡
+Hava sıcaklığı</string>
+    <string name="plant_assistant_last_analysis">▧  Son Analiz</string>
+    <string name="plant_assistant_disclaimer">ⓘ AI önerileri destek amaçlıdır; kesin teşhis için ziraat uzmanına danışınız.</string>
+    <string name="fertilizer_result_assessment">AI sonuç değerlendirmesi</string>
+    <string name="fertilizer_result_assessment_detail">Uygulama sonuçları kaydedildikçe bu bölüm eğilimleri gösterir.</string>
+    <string name="gallery_all_photos">Tüm fotoğraflar</string>
+    <string name="gallery_select_to_delete">Silmek için fotoğrafları seçin</string>
+    <string name="gallery_select_all">Tümünü seç</string>
+    <string name="gallery_empty">Henüz arşivde fotoğraf yok.</string>
+    <string name="gallery_delete_selected">Seçilenleri sil</string>
+    <string name="garden_location_subtitle">Hava tahmini için hassas bahçe noktası</string>
+    <string name="garden_location_precise_title">En hassas yöntem</string>
+    <string name="garden_location_precise_detail">Bahçedeyken telefonun konumunu bir kez kaydedin. Yerel sağanaklarda ilçe merkezinden daha doğru sonuç verir.</string>
+    <string name="garden_location_capture">Bahçe konumumu al</string>
+    <string name="weather_source_title">Hava tahmini kaynağı</string>
+    <string name="weather_source_detail">Otomatik seçimde önce OpenWeather denenir; erişilemezse Open-Meteo kullanılır.</string>
+    <string name="preference_hint">Tercih</string>
+    <string name="weather_source_save">Kaynak tercihini kaydet</string>
+    <string name="garden_location_manual_title">Elle düzeltme</string>
+    <string name="garden_location_manual_detail">GPS kullanmak istemezseniz il ve ilçe merkezine göre tahmin alınır.</string>
+    <string name="city_hint">İl</string>
+    <string name="district_hint">İlçe</string>
+    <string name="garden_location_manual_save">İl ve ilçeyi kaydet</string>
+</resources>

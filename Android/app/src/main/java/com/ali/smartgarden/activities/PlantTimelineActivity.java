@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.ali.smartgarden.R;
@@ -20,10 +21,15 @@ import com.ali.smartgarden.journal.LocalGardenEventStore;
 import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.GardenSeason;
 import com.ali.smartgarden.models.FertilizerApplication;
+import com.ali.smartgarden.models.SeasonStatus;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.models.ZoneSeasonState;
 import com.ali.smartgarden.photos.LocalGardenPhotoStore;
+import com.ali.smartgarden.season.SeasonRepository;
+import com.ali.smartgarden.season.SeasonScope;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
@@ -41,7 +47,13 @@ import java.time.format.DateTimeFormatter;
 
 /** Per-plant season timeline. It combines manual notes and archived analysis photos. */
 public class PlantTimelineActivity extends AppCompatActivity {
+    public static final String EXTRA_ZONE_ID = "zone_id";
+    public static final String EXTRA_SEASON_ID = "season_id";
+    public static final String EXTRA_INITIAL_TAB = "initial_tab";
+    public static final String TAB_COMPARE = "compare";
+
     private final FirebaseRepository repository = new FirebaseRepository();
+    private final SeasonRepository seasonRepository = new SeasonRepository();
     private String zoneId = "";
     private GardenZone zone;
     private LinearLayout entries;
@@ -49,9 +61,14 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private final List<TimelineItem> items = new ArrayList<>();
     private List<FertilizerApplication> fertilizerApplications = new ArrayList<>();
     private List<WateringHistory> wateringHistory = new ArrayList<>();
+    private List<GardenSeason> seasons = new ArrayList<>();
+    private List<GardenSeason> observedSeasons = new ArrayList<>();
     private WeatherForecast weatherForecast;
     private String activeFilter = "all";
     private String activeTab = "timeline";
+    private String selectedSeasonId = "";
+    private boolean seasonSelectionInitialized;
+    private boolean zoneSnapshotLoaded;
     private TextView tabTimeline, tabPhotos, tabNotes, tabCompare;
     private int selectedYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
     private final int[] filterIds = {R.id.filterTimelineAll, R.id.filterTimelineWatering, R.id.filterTimelineFertilizer, R.id.filterTimelineAnalysis, R.id.filterTimelineEvent};
@@ -59,21 +76,41 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state); setContentView(R.layout.activity_plant_timeline);
-        zoneId = getIntent().getStringExtra("zone_id"); if (zoneId == null) zoneId = "";
+        zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID); if (zoneId == null) zoneId = "";
+        if (TAB_COMPARE.equals(getIntent().getStringExtra(EXTRA_INITIAL_TAB))) {
+            activeTab = TAB_COMPARE;
+        }
         title = findViewById(R.id.txtTimelineTitle); season = findViewById(R.id.txtTimelineSeason); planting = findViewById(R.id.txtTimelinePlanting); status = findViewById(R.id.txtTimelineStatus); emoji = findViewById(R.id.txtTimelineEmoji); month = findViewById(R.id.txtTimelineMonth); empty = findViewById(R.id.txtTimelineEmpty); entries = findViewById(R.id.layoutTimelineEvents);
         tabTimeline = findViewById(R.id.tabTimeline); tabPhotos = findViewById(R.id.tabPhotos); tabNotes = findViewById(R.id.tabNotes); tabCompare = findViewById(R.id.tabCompare);
         findViewById(R.id.btnTimelineBack).setOnClickListener(v -> finish());
-        findViewById(R.id.btnTimelineAdd).setOnClickListener(v -> { Intent intent = new Intent(this, NewJournalRecordActivity.class); intent.putExtra("zone_id", zoneId); startActivity(intent); });
+        findViewById(R.id.btnTimelineAdd).setOnClickListener(v -> showNewRecordTypes());
         season.setOnClickListener(v -> showSeasonPicker());
         tabTimeline.setOnClickListener(v -> { activeTab = "timeline"; render(); });
         tabPhotos.setOnClickListener(v -> { activeTab = "photos"; render(); });
         tabNotes.setOnClickListener(v -> { activeTab = "notes"; render(); });
         tabCompare.setOnClickListener(v -> { activeTab = "compare"; render(); });
         for (int i = 0; i < filterIds.length; i++) { final String value = filterValues[i]; findViewById(filterIds[i]).setOnClickListener(v -> { activeFilter = value; render(); }); }
-        repository.observeGardenZones().observe(this, zones -> { if (zones != null) for (GardenZone value : zones) if (zoneId.equals(value.getZone_id())) { zone = value; break; } render(); });
+        repository.observeGardenZones().observe(this, zones -> {
+            zone = null;
+            if (zones != null) {
+                for (GardenZone value : zones) {
+                    if (zoneId.equals(value.getZone_id())) { zone = value; break; }
+                }
+            }
+            zoneSnapshotLoaded = true;
+            refreshVisibleSeasons();
+            selectInitialSeason();
+            render();
+        });
         repository.observeFertilizerHistory().observe(this, values -> { fertilizerApplications = values == null ? new ArrayList<>() : values; loadItems(); render(); });
         repository.observeWateringHistory().observe(this, values -> { wateringHistory = values == null ? new ArrayList<>() : values; loadItems(); render(); });
         repository.observeWeatherForecast().observe(this, value -> { weatherForecast = value; addAutomaticSignals(); loadItems(); render(); });
+        seasonRepository.observeZoneSeasons(zoneId).observe(this, values -> {
+            observedSeasons = values == null ? new ArrayList<>() : new ArrayList<>(values);
+            refreshVisibleSeasons();
+            if (zoneSnapshotLoaded) selectInitialSeason();
+            render();
+        });
     }
 
     @Override protected void onResume() { super.onResume(); loadItems(); render(); }
@@ -95,8 +132,10 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     private void render() {
         addAutomaticSignals();
-        String name = zone == null || zone.getName() == null || zone.getName().isBlank() ? "Bitki" : zone.getName();
-        title.setText(name + " Günlüğü"); season.setText(name + " - " + selectedYear + " Sezonu  ⌄");
+        String name = zone == null || zone.getName() == null || zone.getName().isBlank() ? getString(R.string.runtime_plant_default) : zone.getName();
+        GardenSeason selected = selectedSeason();
+        title.setText(getString(R.string.runtime_timeline_named_title, name));
+        season.setText(seasonHeader(name, selected));
         planting.setText("● " + plantingDateText());
         status.setText("● " + liveSeasonStatus());
         emoji.setText(zone == null || zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji());
@@ -106,7 +145,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
         if ("compare".equals(activeTab)) {
             shown = renderComparison();
         } else {
-            for (TimelineItem item : items) if (yearOf(item.time()) == selectedYear && visibleInTab(item)) {
+            for (TimelineItem item : items) if (recordBelongsToSelectedSeason(item) && visibleInTab(item)) {
                 String monthKey = monthKey(item.time());
                 if (!monthKey.equals(lastMonthKey)) {
                     TextView monthHeader = text(monthHeading(item.time()), 20, R.color.textPrimary);
@@ -123,12 +162,13 @@ public class PlantTimelineActivity extends AppCompatActivity {
             }
         }
         empty.setVisibility(shown == 0 ? View.VISIBLE : View.GONE);
-        empty.setText("compare".equals(activeTab) ? "Karşılaştırmak için bu sezondan en az iki fotoğraf ekleyin." : "Bu görünüm için henüz kayıt yok.");
+        empty.setText("compare".equals(activeTab)
+                ? R.string.runtime_compare_empty : R.string.runtime_view_empty);
         updateTabStyle(tabTimeline, "timeline"); updateTabStyle(tabPhotos, "photos"); updateTabStyle(tabNotes, "notes"); updateTabStyle(tabCompare, "compare");
         for (int i = 0; i < filterIds.length; i++) {
-            MaterialCardView filter = findViewById(filterIds[i]); boolean selected = filterValues[i].equals(activeFilter);
-            filter.setCardBackgroundColor(getColor(selected ? R.color.surfaceGreen : R.color.card));
-            filter.setStrokeColor(getColor(selected ? R.color.primary : R.color.border));
+            MaterialCardView filter = findViewById(filterIds[i]); boolean filterSelected = filterValues[i].equals(activeFilter);
+            filter.setCardBackgroundColor(getColor(filterSelected ? R.color.surfaceGreen : R.color.card));
+            filter.setStrokeColor(getColor(filterSelected ? R.color.primary : R.color.border));
         }
     }
 
@@ -137,51 +177,74 @@ public class PlantTimelineActivity extends AppCompatActivity {
     }
 
     private String monthHeading(long epoch) {
-        return new SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("tr-TR"))
+        return new SimpleDateFormat("MMMM yyyy", Locale.getDefault())
                 .format(new Date(epoch * 1000L));
     }
     private String tabHeading() {
-        if ("photos".equals(activeTab)) return "Gelişim fotoğrafları";
-        if ("notes".equals(activeTab)) return "Notlar ve gözlemler";
-        if ("compare".equals(activeTab)) return "Fotoğraf karşılaştırması";
-        return new SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("tr-TR")).format(new Date());
+        if ("photos".equals(activeTab)) return getString(R.string.runtime_growth_photos);
+        if ("notes".equals(activeTab)) return getString(R.string.runtime_notes_observations);
+        if ("compare".equals(activeTab)) return getString(R.string.runtime_photo_comparison);
+        return new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(new Date());
     }
 
     private String plantingDateText() {
-        if (zone != null && zone.getFertilization() != null) {
-            String configuredDate = zone.getFertilization().getPlanting_date();
+        GardenSeason selected = selectedSeason();
+        String configuredDate = selected == null ? "" : selected.getPlanting_date();
+        if ((configuredDate == null || configuredDate.isBlank())
+                && selected != null && SeasonStatus.isActive(selected.getStatus())
+                && zone != null && zone.getFertilization() != null) {
+            configuredDate = zone.getFertilization().getPlanting_date();
+        }
+        if (configuredDate != null && !configuredDate.isBlank()) {
+            return getString(R.string.runtime_planting_done, formatPlantingDate(configuredDate));
+        }
+        if (selected == null && zone != null && zone.getFertilization() != null) {
+            configuredDate = zone.getFertilization().getPlanting_date();
             if (configuredDate != null && !configuredDate.isBlank()) {
-                try {
-                    LocalDate date = LocalDate.parse(configuredDate);
-                    return date.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.forLanguageTag("tr-TR"))) + " dikim yapıldı";
-                } catch (Exception ignored) {
-                    return configuredDate + " dikim yapıldı";
-                }
+                return getString(R.string.runtime_planting_done, formatPlantingDate(configuredDate));
             }
         }
         for (TimelineItem item : items) {
-            if (item.event != null && item.event.getType() != null
+            if (recordBelongsToSelectedSeason(item)
+                    && item.event != null && item.event.getType() != null
                     && item.event.getType().toLowerCase(Locale.ROOT).contains("dikim")) {
-                return new SimpleDateFormat("dd MMMM yyyy", Locale.forLanguageTag("tr-TR"))
-                        .format(new Date(item.time())) + " dikim yapıldı";
+                return getString(R.string.runtime_planting_done,
+                        new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                                .format(new Date(item.time() * 1000L)));
             }
         }
-        return "Dikim tarihi henüz eklenmedi";
+        return getString(R.string.runtime_planting_missing);
+    }
+
+    private String formatPlantingDate(String value) {
+        try {
+            LocalDate date = LocalDate.parse(value);
+            return date.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.getDefault()));
+        } catch (Exception ignored) {
+            return value;
+        }
     }
 
     private String liveSeasonStatus() {
+        GardenSeason selected = selectedSeason();
+        if (selected != null) {
+            if (SeasonStatus.isClosed(selected.getStatus())) return getString(R.string.season_closed_event_title);
+            if (SeasonStatus.PLANNED.equals(selected.getStatus())) return getString(R.string.runtime_planned_season);
+            if (zone != null && !zone.isEnabled()) return getString(R.string.runtime_zone_inactive);
+            return getString(R.string.runtime_season_ongoing);
+        }
         for (TimelineItem item : items) {
-            if (yearOf(item.time()) == selectedYear && item.event != null
+            if (recordBelongsToSelectedSeason(item) && item.event != null
                     && item.event.getType() != null
                     && item.event.getType().toLowerCase(Locale.ROOT).contains("hasat")) {
-                return "Sezon tamamlandı";
+                return getString(R.string.season_closed_event_title);
             }
         }
         int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
-        if (selectedYear < currentYear) return "Geçmiş sezon";
-        if (selectedYear > currentYear) return "Planlanan sezon";
-        if (zone != null && !zone.isEnabled()) return "Bölge pasif";
-        return "Sezon devam ediyor";
+        if (selectedYear < currentYear) return getString(R.string.runtime_past_season);
+        if (selectedYear > currentYear) return getString(R.string.runtime_planned_season);
+        if (zone != null && !zone.isEnabled()) return getString(R.string.runtime_zone_inactive);
+        return getString(R.string.runtime_season_ongoing);
     }
     private boolean visibleInTab(TimelineItem item) {
         if ("photos".equals(activeTab)) return item.photo != null;
@@ -197,26 +260,27 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     private int renderComparison() {
         List<TimelineItem> photos = new ArrayList<>();
-        for (TimelineItem item : items) if (item.photo != null && yearOf(item.time()) == selectedYear) photos.add(item);
+        for (TimelineItem item : items) if (item.photo != null && recordBelongsToSelectedSeason(item)) photos.add(item);
         if (photos.size() < 2) return 0;
         TimelineItem newest = photos.get(0), previous = photos.get(1);
         MaterialCardView card = new MaterialCardView(this); card.setRadius(dp(16)); card.setCardBackgroundColor(getColor(R.color.card)); card.setStrokeColor(getColor(R.color.border)); card.setStrokeWidth(dp(1));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2); params.bottomMargin = dp(9); card.setLayoutParams(params);
         LinearLayout content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(14), dp(14), dp(14), dp(14));
-        TextView heading = text("Önceki ve yeni fotoğraf", 15, R.color.textPrimary); heading.setTypeface(null, android.graphics.Typeface.BOLD); content.addView(heading);
+        TextView heading = text(getString(R.string.runtime_compare_heading), 15, R.color.textPrimary); heading.setTypeface(null, android.graphics.Typeface.BOLD); content.addView(heading);
         LinearLayout images = new LinearLayout(this); images.setOrientation(LinearLayout.HORIZONTAL); images.setPadding(0, dp(12), 0, 0);
-        addComparisonImage(images, previous, "Önceki"); addComparisonImage(images, newest, "Yeni"); content.addView(images);
-        TextView detail = text("AVORA karşılaştırması: Yeni fotoğrafı önceki analiz ve gözlemlerle birlikte değerlendirin.", 12, R.color.textSecondary); detail.setPadding(0, dp(12), 0, 0); content.addView(detail);
+        addComparisonImage(images, previous, getString(R.string.runtime_previous)); addComparisonImage(images, newest, getString(R.string.runtime_new)); content.addView(images);
+        TextView detail = text(getString(R.string.runtime_compare_detail), 12, R.color.textSecondary); detail.setPadding(0, dp(12), 0, 0); content.addView(detail);
         card.addView(content); card.setOnClickListener(v -> openRecord(newest)); entries.addView(card); return 1;
     }
 
     private void addComparisonImage(LinearLayout parent, TimelineItem item, String label) {
         LinearLayout holder = new LinearLayout(this); holder.setOrientation(LinearLayout.VERTICAL); holder.setGravity(Gravity.CENTER); LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1); if (parent.getChildCount() > 0) lp.setMarginStart(dp(10)); holder.setLayoutParams(lp);
         ImageView image = new ImageView(this); image.setScaleType(ImageView.ScaleType.CENTER_CROP); image.setImageURI(android.net.Uri.fromFile(new File(item.photo.getLocal_path()))); holder.addView(image, new LinearLayout.LayoutParams(-1, dp(132)));
-        TextView caption = text(label + " · " + new SimpleDateFormat("dd MMM", Locale.forLanguageTag("tr-TR")).format(new Date(item.time() * 1000L)), 11, R.color.textSecondary); caption.setGravity(Gravity.CENTER); caption.setPadding(0, dp(6), 0, 0); holder.addView(caption); parent.addView(holder);
+        TextView caption = text(label + " · " + new SimpleDateFormat("dd MMM", Locale.getDefault()).format(new Date(item.time() * 1000L)), 11, R.color.textSecondary); caption.setGravity(Gravity.CENTER); caption.setPadding(0, dp(6), 0, 0); holder.addView(caption); parent.addView(holder);
     }
     private void addAutomaticSignals() {
-        if (zone == null) return;
+        GardenSeason active = activeSeason();
+        if (zone == null || active == null) return;
         LocalGardenEventStore store = new LocalGardenEventStore(this); GardenEvent created = null;
         if (zone.hasSensorData() && zone.getMoisture() <= zone.getMoisture_limit() - 10) {
             created = store.addAutomaticOncePerDay(zoneId, "Nem riski", "Toprak nemi %" + zone.getMoisture() + ". Bölge limiti %" + zone.getMoisture_limit() + " altında.", "moisture_risk");
@@ -227,9 +291,13 @@ public class PlantTimelineActivity extends AppCompatActivity {
             else if (rain != null && rain >= 70) created = store.addAutomaticOncePerDay(zoneId, "Yağış uyarısı", "Yağış olasılığı %" + Math.round(rain) + ". Sulama öncesi toprak nemini yeniden kontrol edin.", "rain_weather");
             else if (wind != null && wind >= 35) created = store.addAutomaticOncePerDay(zoneId, "Kuvvetli rüzgar", "Rüzgar yaklaşık " + Math.round(wind) + " km/sa. Toprak nemi daha hızlı düşebilir.", "wind_weather");
         }
-    if (created != null) {
-        repository.saveGardenEvent(created);
-        loadItems();
+        if (created != null) {
+        created.setSeason_id(active.getSeason_id());
+        store.replaceSeasonId(created.getId(), active.getSeason_id());
+        GardenEvent createdEvent = created;
+        repository.saveGardenEvent(createdEvent).addOnSuccessListener(unused -> {
+            loadItems(); render();
+        });
     }
 }
     private View card(TimelineItem item) {
@@ -281,9 +349,9 @@ public class PlantTimelineActivity extends AppCompatActivity {
         row.setPadding(dp(12), dp(10), dp(10), dp(10));
         LinearLayout info = new LinearLayout(this);
         info.setOrientation(LinearLayout.VERTICAL);
-        TextView heading = text(item.title(), 14, R.color.textPrimary);
+        TextView heading = text(item.title(this), 14, R.color.textPrimary);
         heading.setTypeface(null, android.graphics.Typeface.BOLD);
-        TextView detail = text(item.detail(), 12, R.color.textSecondary);
+        TextView detail = text(item.detail(this), 12, R.color.textSecondary);
         info.addView(heading);
         info.addView(detail);
         row.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
@@ -308,32 +376,245 @@ public class PlantTimelineActivity extends AppCompatActivity {
     }
     private TextView text(String s, int size, int color) { TextView view = new TextView(this); view.setText(s); view.setTextSize(size); view.setTextColor(getColor(color)); return view; }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
-    private void openRecord(TimelineItem item) { Intent intent = new Intent(this, JournalRecordDetailActivity.class); intent.putExtra("title", item.title()); intent.putExtra("detail", item.detail()); intent.putExtra("icon", item.icon(this)); intent.putExtra("time", item.time()); intent.putExtra("zone_id", zoneId); if (item.event != null && "MANUAL".equals(item.event.getSource())) { intent.putExtra("manual_event_id", item.event.getId()); intent.putExtra("manual_event_type", item.event.getType()); } if (item.photo != null) { intent.putExtra("photo_path", item.photo.getLocal_path()); intent.putExtra("photo_group_id", item.photo.getRelated_application_id()); intent.putExtra("advice", item.photo.getAnalysis_advice()); } startActivity(intent); }
+    private void openRecord(TimelineItem item) {
+        Intent intent = new Intent(this, JournalRecordDetailActivity.class);
+        GardenSeason selected = selectedSeason();
+        intent.putExtra("title", item.title(this));
+        intent.putExtra("detail", item.detail(this));
+        intent.putExtra("icon", item.icon(this));
+        intent.putExtra("time", item.time());
+        intent.putExtra("zone_id", zoneId);
+        intent.putExtra("season_id", item.seasonId());
+        intent.putExtra("season_read_only",
+                selected != null && SeasonStatus.isClosed(selected.getStatus()));
+        if (item.event != null && "MANUAL".equals(item.event.getSource())) {
+            intent.putExtra("manual_event_id", item.event.getId());
+            intent.putExtra("manual_event_type", item.event.getType());
+        }
+        if (item.photo != null) {
+            intent.putExtra("photo_path", item.photo.getLocal_path());
+            intent.putExtra("photo_group_id", item.photo.getRelated_application_id());
+            intent.putExtra("advice", item.photo.getAnalysis_advice());
+        }
+        startActivity(intent);
+    }
     private int yearOf(long epoch) { java.util.Calendar calendar = java.util.Calendar.getInstance(); calendar.setTimeInMillis(epoch * 1000L); return calendar.get(java.util.Calendar.YEAR); }
     private void showSeasonPicker() {
-        PopupMenu menu = new PopupMenu(this, season); java.util.TreeSet<Integer> years = new java.util.TreeSet<>(java.util.Collections.reverseOrder()); years.add(selectedYear);
-        for (TimelineItem item : items) years.add(yearOf(item.time()));
-        for (Integer year : years) menu.getMenu().add(String.valueOf(year));
-        menu.setOnMenuItemClickListener(item -> { selectedYear = Integer.parseInt(String.valueOf(item.getTitle())); render(); return true; }); menu.show();
-    }
-    private void showNewRecordTypes() {
-        PopupMenu menu = new PopupMenu(this, findViewById(R.id.btnTimelineAdd));
-        String[] types = {"Dikim yapıldı", "Gözlem / not", "Çiçeklenme dönemi başladı", "İlk ürün", "Hasat", "Özel olay", "Gelişim fotoğrafı ekle"};
-        for (String type : types) menu.getMenu().add(type);
-        menu.setOnMenuItemClickListener(choice -> { String type = String.valueOf(choice.getTitle()); if ("Gelişim fotoğrafı ekle".equals(type)) { Intent i = new Intent(this, NewJournalRecordActivity.class); i.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID, zoneId); i.putExtra(NewJournalRecordActivity.EXTRA_INITIAL_TYPE, NewJournalRecordActivity.RECORD_TYPE_PHOTO); startActivity(i); } else showNewEventDialog(type); return true; });
+        PopupMenu menu = new PopupMenu(this, season);
+        if (!seasons.isEmpty()) {
+            for (GardenSeason value : seasons) {
+                String label = value.getLabel().isBlank()
+                        ? yearOf(value.getStarted_at_epoch()) + " Sezonu"
+                        : value.getLabel();
+                menu.getMenu().add(label).setIntent(
+                        new Intent().putExtra("season_id", value.getSeason_id())
+                );
+            }
+            menu.setOnMenuItemClickListener(item -> {
+                Intent metadata = item.getIntent();
+                selectedSeasonId = metadata == null ? "" : metadata.getStringExtra("season_id");
+                GardenSeason selected = selectedSeason();
+                if (selected != null) selectedYear = yearOf(selected.getStarted_at_epoch());
+                render();
+                return true;
+            });
+        } else {
+            java.util.TreeSet<Integer> years = new java.util.TreeSet<>(java.util.Collections.reverseOrder());
+            years.add(selectedYear);
+            for (TimelineItem item : items) years.add(yearOf(item.time()));
+            for (Integer year : years) menu.getMenu().add(String.valueOf(year));
+            menu.setOnMenuItemClickListener(item -> {
+                selectedYear = Integer.parseInt(String.valueOf(item.getTitle()));
+                render();
+                return true;
+            });
+        }
         menu.show();
     }
+
+
+    private void refreshVisibleSeasons() {
+        seasons = new ArrayList<>();
+        ZoneSeasonState current = zone == null ? null : zone.getSeason();
+        for (GardenSeason value : observedSeasons) {
+            if (SeasonScope.isVisibleSeason(value, current)) {
+                seasons.add(value);
+            }
+        }
+    }
+
+    private void selectInitialSeason() {
+        if (seasonSelectionInitialized && selectedSeason() != null) return;
+        String requested = getIntent().getStringExtra(EXTRA_SEASON_ID);
+        GardenSeason choice = null;
+        if (requested != null && !requested.isBlank()) {
+            for (GardenSeason value : seasons) {
+                if (requested.equals(value.getSeason_id())) { choice = value; break; }
+            }
+        }
+        if (choice == null) {
+            for (GardenSeason value : seasons) {
+                if (SeasonStatus.isActive(value.getStatus())) { choice = value; break; }
+            }
+        }
+        if (choice == null && !seasons.isEmpty()) choice = seasons.get(0);
+        if (choice != null) {
+            selectedSeasonId = choice.getSeason_id();
+            selectedYear = yearOf(choice.getStarted_at_epoch());
+            seasonSelectionInitialized = true;
+        }
+    }
+
+    private GardenSeason selectedSeason() {
+        for (GardenSeason value : seasons) {
+            if (selectedSeasonId.equals(value.getSeason_id())) return value;
+        }
+        return null;
+    }
+
+    private GardenSeason activeSeason() {
+        for (GardenSeason value : seasons) {
+            if (SeasonStatus.isActive(value.getStatus())) return value;
+        }
+        return null;
+    }
+
+    private String seasonHeader(String zoneName, GardenSeason selected) {
+        if (selected == null) return zoneName + " - " + selectedYear + " Sezonu  ⌄";
+        String label = selected.getLabel().isBlank()
+                ? selectedYear + " Sezonu"
+                : selected.getLabel().trim();
+        String normalizedZone = zoneName == null ? "" : zoneName.trim();
+        // Compatibility with the first season format: "2026 Domates".
+        if (!normalizedZone.isBlank() && (label.endsWith(" " + normalizedZone)
+                || label.equalsIgnoreCase(normalizedZone))) {
+            label = selectedYear + " Sezonu";
+        }
+        return zoneName + " - " + label + "  ⌄";
+    }
+
+    private boolean recordBelongsToSelectedSeason(TimelineItem item) {
+        GardenSeason selected = selectedSeason();
+        if (selected == null) return yearOf(item.time()) == selectedYear;
+        ZoneSeasonState scope = new ZoneSeasonState();
+        scope.setActive_season_id(selected.getSeason_id());
+        scope.setStatus(selected.getStatus());
+        scope.setStarted_at_epoch(selected.getStarted_at_epoch());
+        scope.setEnded_at_epoch(selected.getEnded_at_epoch());
+        scope.setInclude_legacy_records(selected.isIncludes_legacy_records());
+        return SeasonScope.belongsTo(item.seasonId(), item.time(), scope);
+    }
+    private void showNewRecordTypes() {
+        GardenSeason active = activeSeason();
+        if (active == null) {
+            Toast.makeText(this, R.string.runtime_start_season_first, Toast.LENGTH_LONG).show();
+            return;
+        }
+        PopupMenu menu = new PopupMenu(this, findViewById(R.id.btnTimelineAdd));
+        String[] types = {"Dikim yapıldı", "Gözlem / not", "Çiçeklenme dönemi başladı", "İlk ürün", "Hasat", "Özel olay", "Gelişim fotoğrafı ekle"};
+        for (int index = 0; index < types.length; index++) {
+            menu.getMenu().add(0, index, index, eventTypeLabel(types[index]));
+        }
+        menu.setOnMenuItemClickListener(choice -> {
+            String type = types[choice.getItemId()];
+            if ("Gelişim fotoğrafı ekle".equals(type)) {
+                Intent i = new Intent(this, NewJournalRecordActivity.class);
+                i.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID, zoneId);
+                i.putExtra(NewJournalRecordActivity.EXTRA_SEASON_ID, active.getSeason_id());
+                i.putExtra(NewJournalRecordActivity.EXTRA_INITIAL_TYPE, NewJournalRecordActivity.RECORD_TYPE_PHOTO);
+                startActivity(i);
+            } else showNewEventDialog(type);
+            return true;
+        });
+        menu.show();
+    }
+
+    private String eventTypeLabel(String type) {
+        if ("Dikim yapıldı".equals(type)) return getString(R.string.runtime_event_planting);
+        if ("Gözlem / not".equals(type)) return getString(R.string.runtime_event_note);
+        if ("Çiçeklenme dönemi başladı".equals(type)) return getString(R.string.runtime_event_flowering);
+        if ("İlk ürün".equals(type)) return getString(R.string.runtime_event_first_product);
+        if ("Hasat".equals(type)) return getString(R.string.runtime_event_harvest);
+        if ("Özel olay".equals(type)) return getString(R.string.runtime_event_special);
+        if ("Gelişim fotoğrafı ekle".equals(type)) return getString(R.string.runtime_event_growth_photo);
+        return type;
+    }
+
     private void showNewEventDialog(String type) {
-        EditText input = new EditText(this); input.setHint(type.equals("Dikim yapıldı") ? "Örn. 12 fide dikildi" : "Kısa notunuzu yazın"); input.setMinLines(3); int pad = dp(20); input.setPadding(pad, dp(8), pad, dp(8));
-        new MaterialAlertDialogBuilder(this).setTitle(type).setMessage("Bu kayıt yalnız bu bitkinin seçili sezonuna eklenir.").setView(input).setNegativeButton("İptal", null).setPositiveButton("Kaydet", (dialog, which) -> { GardenEvent saved = new LocalGardenEventStore(this).add(zoneId, type, input.getText().toString()); repository.saveGardenEvent(saved); loadItems(); render(); }).show();
+        GardenSeason active = activeSeason();
+        if (active == null) {
+            Toast.makeText(this, R.string.runtime_start_season_first, Toast.LENGTH_LONG).show();
+            return;
+        }
+        EditText input = new EditText(this);
+        input.setHint(type.equals("Dikim yapıldı")
+                ? R.string.runtime_planting_hint : R.string.runtime_short_note_hint);
+        input.setMinLines(3);
+        int pad = dp(20);
+        input.setPadding(pad, dp(8), pad, dp(8));
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(eventTypeLabel(type))
+                .setMessage(R.string.runtime_active_season_record_note)
+                .setView(input)
+                .setNegativeButton(R.string.settings_quick_cancel, null)
+                .setPositiveButton(R.string.settings_quick_save, (dialog, which) -> {
+                    LocalGardenEventStore store = new LocalGardenEventStore(this);
+                    GardenEvent saved = store.addForSeason(
+                            zoneId, active.getSeason_id(), type, input.getText().toString());
+                    repository.saveGardenEvent(saved)
+                            .addOnSuccessListener(unused -> {
+                                store.replaceSeasonId(saved.getId(), saved.getSeason_id());
+                                loadItems();
+                                render();
+                            })
+                            .addOnFailureListener(error -> Toast.makeText(
+                                    this, error.getMessage(), Toast.LENGTH_LONG).show());
+                }).show();
     }
     private static final class TimelineItem {
         final GardenEvent event; final GardenPhoto photo; final FertilizerApplication fertilizer; final WateringHistory watering;
         private TimelineItem(GardenEvent e, GardenPhoto p, FertilizerApplication f, WateringHistory w) { event = e; photo = p; fertilizer = f; watering = w; }
         static TimelineItem event(GardenEvent v) { return new TimelineItem(v, null, null, null); } static TimelineItem photo(GardenPhoto v) { return new TimelineItem(null, v, null, null); } static TimelineItem fertilizer(FertilizerApplication v) { return new TimelineItem(null, null, v, null); } static TimelineItem watering(WateringHistory v) { return new TimelineItem(null, null, null, v); }
         long time() { if (event != null) return event.getOccurred_at_epoch(); if (photo != null) return photo.getCaptured_at_epoch(); if (fertilizer != null) return fertilizer.getApplied_at_epoch(); return parseTime(watering.getFinishedAt()); }
-        String title() { if (fertilizer != null) return "Gübreleme"; if (watering != null) return "Sulama"; if (photo != null) return photo.getAnalysis_title() == null || photo.getAnalysis_title().isBlank() ? "Gelişim fotoğrafı" : photo.getAnalysis_title(); return event.getType() == null || event.getType().isBlank() ? "Bahçe kaydı" : event.getType(); }
-        String detail() { if (fertilizer != null) return fertilizer.getProduct_name() + " · " + fertilizer.getApplied_dose() + " " + fertilizer.getDose_unit(); if (watering != null) return "Süre: " + watering.getDuration() + " sn"; if (photo != null) return photo.getNote() == null || photo.getNote().isBlank() ? "Bitki gelişim fotoğrafı eklendi." : photo.getNote(); return event.getNote() == null || event.getNote().isBlank() ? "Günlük kaydı eklendi." : event.getNote(); }
+        String seasonId() { if (event != null) return event.getSeason_id(); if (photo != null) return photo.getSeason_id(); if (fertilizer != null) return fertilizer.getSeason_id(); return watering.getSeasonId(); }
+        String title(android.content.Context context) {
+            if (fertilizer != null) return context.getString(R.string.notification_category_fertilization);
+            if (watering != null) return context.getString(R.string.notification_category_irrigation);
+            if (photo != null) return photo.getAnalysis_title() == null || photo.getAnalysis_title().isBlank()
+                    ? context.getString(R.string.runtime_growth_photo) : photo.getAnalysis_title();
+            String raw = event.getType();
+            if (raw == null || raw.isBlank()) return context.getString(R.string.runtime_garden_record);
+            if ("Dikim yapıldı".equals(raw)) return context.getString(R.string.runtime_event_planting);
+            if ("Gözlem / not".equals(raw)) return context.getString(R.string.runtime_event_note);
+            if ("Çiçeklenme dönemi başladı".equals(raw)) return context.getString(R.string.runtime_event_flowering);
+            if ("İlk ürün".equals(raw)) return context.getString(R.string.runtime_event_first_product);
+            if ("Hasat".equals(raw)) return context.getString(R.string.runtime_event_harvest);
+            if ("Özel olay".equals(raw)) return context.getString(R.string.runtime_event_special);
+            if ("Takip fotoğrafı önerisi".equals(raw)) return context.getString(R.string.runtime_follow_up_photo_title);
+            if ("Takip değerlendirmesi".equals(raw)) return context.getString(R.string.runtime_follow_up_assessment_title);
+            if ("Nem riski".equals(raw)) return context.getString(R.string.runtime_signal_moisture_title);
+            if ("Sıcak hava uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_hot_title);
+            if ("Yağış uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_rain_title);
+            if ("Kuvvetli rüzgar".equals(raw)) return context.getString(R.string.runtime_signal_wind_title);
+            return raw;
+        }
+        String detail(android.content.Context context) {
+            if (fertilizer != null) return fertilizer.getProduct_name() + " · "
+                    + fertilizer.getApplied_dose() + " " + fertilizer.getDose_unit();
+            if (watering != null) return context.getString(
+                    R.string.runtime_duration_seconds, watering.getDuration());
+            if (photo != null) return photo.getNote() == null || photo.getNote().isBlank()
+                    ? context.getString(R.string.runtime_growth_photo_added) : photo.getNote();
+            String type = event.getType() == null ? "" : event.getType();
+            if ("Takip fotoğrafı önerisi".equals(type)) return context.getString(R.string.runtime_follow_up_photo_note);
+            if ("Takip değerlendirmesi".equals(type)) return context.getString(R.string.runtime_follow_up_assessment_note);
+            if ("Nem riski".equals(type)) return context.getString(R.string.runtime_signal_moisture_note);
+            if ("Sıcak hava uyarısı".equals(type)) return context.getString(R.string.runtime_signal_hot_note);
+            if ("Yağış uyarısı".equals(type)) return context.getString(R.string.runtime_signal_rain_note);
+            if ("Kuvvetli rüzgar".equals(type)) return context.getString(R.string.runtime_signal_wind_note);
+            return event.getNote() == null || event.getNote().isBlank()
+                    ? context.getString(R.string.runtime_journal_added) : event.getNote();
+        }
         String icon(android.content.Context context) { if (fertilizer != null) return context.getString(R.string.symbol_plant); if (watering != null) return context.getString(R.string.symbol_water_drop); if (photo != null) return context.getString(R.string.symbol_leaf); String type = event.getType().toLowerCase(Locale.ROOT); return type.contains("gübre") ? context.getString(R.string.symbol_plant) : type.contains("sula") ? context.getString(R.string.symbol_water_drop) : type.contains("analiz") ? context.getString(R.string.symbol_sparkle) : context.getString(R.string.symbol_bullet); }
         boolean matches(String filter) { if ("all".equals(filter)) return true; if ("watering".equals(filter)) return watering != null || event != null && event.getType().toLowerCase(Locale.ROOT).contains("sula"); if ("fertilizer".equals(filter)) return fertilizer != null || event != null && event.getType().toLowerCase(Locale.ROOT).contains("gübre"); if ("analysis".equals(filter)) return photo != null || event != null && event.getType().toLowerCase(Locale.ROOT).contains("analiz"); return event != null && !event.getType().toLowerCase(Locale.ROOT).contains("sula") && !event.getType().toLowerCase(Locale.ROOT).contains("gübre") && !event.getType().toLowerCase(Locale.ROOT).contains("analiz"); }
         private static long parseTime(String value) { if (value == null) return 0L; String[] formats = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss", "dd-MM-yyyy HH:mm"}; for (String format : formats) try { return new SimpleDateFormat(format, Locale.US).parse(value).getTime() / 1000L; } catch (Exception ignored) { } return 0L; }

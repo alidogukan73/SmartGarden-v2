@@ -34,23 +34,35 @@ public class WateringHistoryAdapter extends ListAdapter<
                     Locale.US
             );
 
-    private static final SimpleDateFormat DISPLAY_DATE_FORMAT =
-            new SimpleDateFormat(
-                    "dd-MM-yyyy",
-                    new Locale("tr", "TR")
-            );
+    private static SimpleDateFormat displayDateFormat() {
+        return new SimpleDateFormat(
+                "dd-MM-yyyy",
+                Locale.getDefault()
+        );
+    }
 
-    private static final SimpleDateFormat DISPLAY_TIME_FORMAT =
-            new SimpleDateFormat(
-                    "HH:mm",
-                    Locale.getDefault()
-            );
+    private static SimpleDateFormat displayTimeFormat() {
+        return new SimpleDateFormat(
+                "HH:mm",
+                Locale.getDefault()
+        );
+    }
 
+    private java.util.Map<String, String> zoneLabels =
+            java.util.Collections.emptyMap();
 
     public WateringHistoryAdapter() {
 
         super(DIFF_CALLBACK);
     }
+
+    public void setZoneLabels(java.util.Map<String, String> labels) {
+        zoneLabels = labels == null
+                ? java.util.Collections.emptyMap()
+                : new java.util.HashMap<>(labels);
+        notifyDataSetChanged();
+    }
+
 
 
     private static final DiffUtil.ItemCallback<WateringHistory>
@@ -149,7 +161,8 @@ public class WateringHistoryAdapter extends ListAdapter<
     ) {
 
         holder.bind(
-                getItem(position)
+                getItem(position),
+                zoneLabels
         );
     }
 
@@ -253,7 +266,8 @@ public class WateringHistoryAdapter extends ListAdapter<
          * Tek bir sulama kaydını kart görünümüne bağlar.
          */
         public void bind(
-                WateringHistory history
+                WateringHistory history,
+                java.util.Map<String, String> zoneLabels
         ) {
 
             Context context =
@@ -262,7 +276,8 @@ public class WateringHistoryAdapter extends ListAdapter<
             txtHistoryZone.setText(
                     formatZone(
                             context,
-                            history.getZoneId()
+                            history.getZoneId(),
+                            zoneLabels
                     )
             );
 
@@ -326,40 +341,14 @@ public class WateringHistoryAdapter extends ListAdapter<
 
         private String formatZone(
                 Context context,
-                String zoneId
+                String zoneId,
+                java.util.Map<String, String> zoneLabels
         ) {
-            if (zoneId == null) {
-                return context.getString(
-                        R.string.history_zone_legacy
-                );
+            if (zoneId == null || zoneId.isBlank()) {
+                return context.getString(R.string.history_zone_legacy);
             }
-
-            switch (zoneId) {
-                case "zone-001":
-                    return context.getString(
-                            R.string.history_zone_tomato
-                    );
-                case "zone-002":
-                    return context.getString(
-                            R.string.history_zone_pepper
-                    );
-                case "zone-003":
-                    return context.getString(
-                            R.string.history_zone_cucumber
-                    );
-                case "zone-004":
-                    return context.getString(
-                            R.string.history_zone_eggplant
-                    );
-                case "zone-005":
-                    return context.getString(
-                            R.string.history_zone_bean
-                    );
-                default:
-                    return context.getString(
-                            R.string.history_zone_legacy
-                    );
-            }
+            String label = zoneLabels.get(zoneId);
+            return label == null || label.isBlank() ? zoneId : label;
         }
 
 
@@ -413,13 +402,13 @@ public class WateringHistoryAdapter extends ListAdapter<
                 }
 
                 txtHistoryDate.setText(
-                        DISPLAY_DATE_FORMAT.format(
+                        displayDateFormat().format(
                                 parsedDate
                         )
                 );
 
                 txtHistoryTime.setText(
-                        DISPLAY_TIME_FORMAT.format(
+                        displayTimeFormat().format(
                                 parsedDate
                         )
                 );

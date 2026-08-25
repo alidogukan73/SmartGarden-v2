@@ -6,6 +6,7 @@ public class FertilizerApplication {
 
     private String application_id;
     private String zone_id;
+    private String season_id;
     private String zone_name;
     private String product_id;
     private String product_name;
@@ -39,6 +40,8 @@ public class FertilizerApplication {
     public void setApplication_id(String value) { application_id = value; }
     public String getZone_id() { return zone_id; }
     public void setZone_id(String value) { zone_id = value; }
+    public String getSeason_id() { return season_id; }
+    public void setSeason_id(String value) { season_id = value; }
     public String getZone_name() { return zone_name; }
     public void setZone_name(String value) { zone_name = value; }
     public String getProduct_id() { return product_id; }

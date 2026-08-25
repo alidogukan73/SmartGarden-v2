@@ -1,0 +1,51 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+@@ -26,8 +26,13 @@
+ import com.ali.smartgarden.models.FertilizerApplication;
++import com.ali.smartgarden.models.GardenSeason;
+ import com.ali.smartgarden.models.GardenZone;
+ import com.ali.smartgarden.models.Statistics;
+ import com.ali.smartgarden.models.SeasonOutcome;
++import com.ali.smartgarden.models.SeasonStatus;
+ import com.ali.smartgarden.models.WeatherForecast;
+ import com.ali.smartgarden.models.WateringHistory;
++import com.ali.smartgarden.models.ZoneSeasonState;
++import com.ali.smartgarden.season.SeasonRepository;
++import com.ali.smartgarden.season.SeasonScope;
+@@ -40,2 +45,6 @@
+ import java.text.SimpleDateFormat;
++import java.time.Instant;
++import java.time.LocalDateTime;
++import java.time.OffsetDateTime;
++import java.time.ZoneId;
+ import java.util.ArrayList;
+@@ -49,2 +58,3 @@
+     private final FirebaseRepository repository = new FirebaseRepository();
++    private final SeasonRepository seasonRepository = new SeasonRepository();
+     private TextView reportView;
+@@ -61,4 +71,6 @@
+     private LocalGardenEventStore gardenEventStore;
+     private List<SeasonOutcome> seasonOutcomes = new ArrayList<>();
++    private List<GardenSeason> seasons = new ArrayList<>();
+     private String selectedZoneId = "";
++    private String selectedSeasonId = "";
+@@ -76,2 +88,4 @@
+         selectedZoneId = getIntent().getStringExtra("zone_id");
+         if (selectedZoneId == null) selectedZoneId = "";
++        selectedSeasonId = getIntent().getStringExtra("season_id");
++        if (selectedSeasonId == null) selectedSeasonId = "";
+@@ -84,3 +98,4 @@
+         findViewById(R.id.btnExportSeasonPdf).setOnClickListener(view ->
+                 pdfCreator.launch("AVORA-Sezon-Raporu-" + new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()) + ".pdf"));
++        scopeView.setOnClickListener(view -> showSeasonSelector());
+         repository.observeStatistics(new ValueEventListener() {
+@@ -96,4 +111,9 @@
+         repository.observeWateringHistory().observe(this, value -> { wateringHistory = value == null ? new ArrayList<>() : value; render(); });
+         repository.observeWeatherForecast().observe(this, value -> { weather = value; render(); });
++        seasonRepository.observeAllSeasons().observe(this, value -> {
++            seasons = value == null ? new ArrayList<>() : value;
++            ensureSelectedSeason();
++            render();
++        });
+     }

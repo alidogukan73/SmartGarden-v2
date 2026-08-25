@@ -10,8 +10,7 @@
     <string name="language_option_turkish_detail">AVORA’s complete and active application language.</string>
     <string name="language_code_english">EN</string>
     <string name="language_option_english">English</string>
-    <string name="language_option_english_detail">Available after the full translation review is complete.</string>
-    <string name="language_coming_soon">COMING SOON</string>
+    <string name="language_option_english_detail">AVORA’s complete and active English application language.</string>
     <string name="language_preview_section">Text preview</string>
     <string name="language_preview_title">Overall garden status</string>
     <string name="language_preview_message">Soil moisture is in the ideal range. Irrigation is not needed right now.</string>

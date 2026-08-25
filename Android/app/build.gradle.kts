@@ -23,8 +23,8 @@ android {
         applicationId = "com.ali.smartgarden"
         minSdk = 26
         targetSdk = 36
-        versionCode = 30
-        versionName = "2.9.1"
+        versionCode = 31
+        versionName = "2.10.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "PLANT_VISION_TOKEN", "\"$plantVisionToken\"")

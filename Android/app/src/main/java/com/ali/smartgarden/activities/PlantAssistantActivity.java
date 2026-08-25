@@ -144,8 +144,12 @@ public class PlantAssistantActivity extends AppCompatActivity {
 
     private void showPhotoSourceDialog() {
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Fotoğraf ekle")
-                .setItems(new String[]{"Fotoğraf çek", "Galeriden seç", "Bitki Günlüğünden seç"}, (dialog, which) -> {
+                .setTitle(R.string.runtime_add_photo)
+                .setItems(new String[]{
+                        getString(R.string.runtime_take_photo),
+                        getString(R.string.runtime_choose_gallery),
+                        getString(R.string.runtime_choose_journal)
+                }, (dialog, which) -> {
                     if (which == 0) {
                         camera.launch(null);
                     } else if (which == 1) {
@@ -188,11 +192,11 @@ public class PlantAssistantActivity extends AppCompatActivity {
         GardenZone zone = selectedZone();
         List<String> symptoms = selectedSymptoms();
         if (zone == null) {
-            toast("Önce bir bölge seçin.");
+            toast(getString(R.string.runtime_select_zone_first));
             return;
         }
         if (symptoms.isEmpty()) {
-            toast("En az bir belirti seçin.");
+            toast(getString(R.string.runtime_select_symptom));
             return;
         }
         String note = text(generalNote);
@@ -204,8 +208,10 @@ public class PlantAssistantActivity extends AppCompatActivity {
 
     private void renderHeuristicResult(PlantAssistantResult result) {
         title.setText(result.getTitle());
-        meta.setText("Olasılık: " + result.getProbability() + " · Aciliyet: " + result.getUrgency());
-        context.setText("Değerlendirilen bahçe verisi: " + result.getContext());
+        meta.setText(getString(R.string.runtime_probability_urgency,
+                result.getProbability(), result.getUrgency()));
+        context.setText(getString(R.string.runtime_evaluated_context,
+                result.getContext()));
         advice.setText(result.getAdvice());
         GardenZone zone = selectedZone();
         PlantAssistantRecommendationStore.save(
@@ -218,7 +224,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
         resultCard.setVisibility(View.VISIBLE);
         archiveAnalysis(
                 result.getTitle(),
-                "Olasılık: " + result.getProbability() + " · Aciliyet: " + result.getUrgency(),
+                getString(R.string.runtime_probability_urgency,
+                        result.getProbability(), result.getUrgency()),
                 result.getContext(),
                 result.getAdvice()
         );
@@ -231,7 +238,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         }
         if (bitmap == null) return;
         Bitmap image = bitmap;
-        toast("Görsel AI analizi hazırlanıyor...");
+        toast(getString(R.string.runtime_visual_ai_preparing));
         new Thread(() -> {
             try {
                 JSONObject payload = new JSONObject();
@@ -251,40 +258,46 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 JSONObject visual = PlantAssistantVisionClient.analyze(image, payload);
                 runOnUiThread(() -> renderVisionResult(visual));
             } catch (Exception error) {
-                runOnUiThread(() -> toast("Görsel AI servisine ulaşılamadı: " + error.getMessage()));
+                runOnUiThread(() -> toast(getString(
+                        R.string.runtime_visual_ai_unavailable, error.getMessage())));
             }
         }).start();
     }
 
     private void renderVisionResult(JSONObject visual) {
         if (!visual.optBoolean("is_plant_photo", true)) {
-            title.setText("Fotoğraf bitkiyi yeterince göstermiyor");
-            meta.setText("Görsel güven: %" + visual.optInt("confidence", 0) + " · Aciliyet: Düşük");
-            context.setText("Yaprak veya belirtili bölge net seçilemedi. Yakın plan, gün ışığında ve tek yaprağa odaklı yeni bir fotoğraf ekleyin.");
-            advice.setText("Bu fotoğraf için hastalık değerlendirmesi yapılmadı. Bitkiyi tekrar fotoğraflayıp analizi yenileyin.");
+            title.setText(R.string.runtime_photo_quality_title);
+            meta.setText(getString(R.string.runtime_visual_confidence_urgency,
+                    visual.optInt("confidence", 0), getString(R.string.runtime_urgency_low)));
+            context.setText(R.string.runtime_photo_quality_detail);
+            advice.setText(R.string.runtime_photo_quality_advice);
             resultCard.setVisibility(View.VISIBLE);
             archiveAnalysis(String.valueOf(title.getText()), String.valueOf(meta.getText()),
                     String.valueOf(context.getText()), String.valueOf(advice.getText()));
             return;
         }
-        String findings = visual.optString("visual_findings", "Görsel bulgu üretilemedi.");
+        String findings = visual.optString("visual_findings", getString(R.string.runtime_no_visual_findings));
         String causes = PlantAssistantVisionClient.list(visual.optJSONArray("possible_causes"));
         String steps = PlantAssistantVisionClient.list(visual.optJSONArray("next_steps"));
         String redFlags = PlantAssistantVisionClient.list(visual.optJSONArray("red_flags"));
         PlantAssistantRecommendationStore.save(
                 this,
                 selectedZone() == null ? "" : selectedZone().getZone_id(),
-                visual.optString("urgency", "Düşük"),
-                visual.optString("title", "Görsel ön değerlendirme"),
+                visual.optString("urgency", getString(R.string.runtime_urgency_low)),
+                visual.optString("title", getString(R.string.runtime_visual_preassessment)),
                 steps.isEmpty() ? findings : steps
         );
-        title.setText(visual.optString("title", "Görsel ön değerlendirme"));
-        meta.setText("Görsel güven: %" + visual.optInt("confidence", 0)
-                + " · Aciliyet: " + visual.optString("urgency", "Düşük"));
-        context.setText(findings + (causes.isEmpty() ? "" : "\n\nOlası nedenler\n" + causes));
-        advice.setText((steps.isEmpty() ? "" : "Önerilen gözlem\n" + steps + "\n\n")
-                + (redFlags.isEmpty() ? "" : "Dikkat edilmesi gerekenler\n" + redFlags + "\n\n")
-                + visual.optString("disclaimer", "Bu sonuç kesin teşhis değildir."));
+        title.setText(visual.optString("title", getString(R.string.runtime_visual_preassessment)));
+        meta.setText(getString(R.string.runtime_visual_confidence_urgency,
+                visual.optInt("confidence", 0),
+                visual.optString("urgency", getString(R.string.runtime_urgency_low))));
+        context.setText(findings + (causes.isEmpty() ? ""
+                : "\n\n" + getString(R.string.runtime_possible_causes) + "\n" + causes));
+        advice.setText((steps.isEmpty() ? ""
+                : getString(R.string.runtime_recommended_observation) + "\n" + steps + "\n\n")
+                + (redFlags.isEmpty() ? ""
+                : getString(R.string.runtime_red_flags) + "\n" + redFlags + "\n\n")
+                + visual.optString("disclaimer", getString(R.string.runtime_not_diagnosis)));
         resultCard.setVisibility(View.VISIBLE);
         archiveAnalysis(String.valueOf(title.getText()), String.valueOf(meta.getText()),
                 String.valueOf(context.getText()), String.valueOf(advice.getText()));
@@ -292,29 +305,31 @@ public class PlantAssistantActivity extends AppCompatActivity {
 
     private List<String> selectedSymptoms() {
         List<String> items = new ArrayList<>();
-        if (yellowing.isChecked()) items.add("Alt yapraklarda sararma");
-        if (drying.isChecked()) items.add("Yaprak kuruması");
-        if (spot.isChecked()) items.add("Yaprakta leke / yanıklık");
-        if (wilt.isChecked()) items.add("Solma");
-        if (pest.isChecked()) items.add("Meyve çatlaması");
-        if (flowerDrop.isChecked()) items.add("Çiçek dökümü");
-        if (other.isChecked()) items.add(text(otherNote).isEmpty() ? "Diğer gözlem" : text(otherNote));
+        if (yellowing.isChecked()) items.add(getString(R.string.runtime_symptom_yellowing));
+        if (drying.isChecked()) items.add(getString(R.string.runtime_symptom_drying));
+        if (spot.isChecked()) items.add(getString(R.string.runtime_symptom_spot));
+        if (wilt.isChecked()) items.add(getString(R.string.runtime_symptom_wilt));
+        if (pest.isChecked()) items.add(getString(R.string.runtime_symptom_fruit_crack));
+        if (flowerDrop.isChecked()) items.add(getString(R.string.runtime_symptom_flower_drop));
+        if (other.isChecked()) items.add(text(otherNote).isEmpty() ? getString(R.string.runtime_other_observation) : text(otherNote));
         return items;
     }
 
     private void renderLiveData(GardenZone zone) {
         if (zone == null) return;
         soilData.setText(getString(R.string.format_assistant_soil_data, "%" + zone.getMoisture()));
-        weatherTemperatureData.setText("🌡\nHava sıcaklığı\n" + number(currentWeather == null ? null : currentWeather.getCurrentTemperature(), "°C"));
+        weatherTemperatureData.setText(getString(R.string.weather_temperature_label) + "\n"
+                + number(currentWeather == null ? null : currentWeather.getCurrentTemperature(), "°C"));
         sunData.setText(getString(R.string.format_assistant_sun_data, sunLabel(currentWeather)));
-        windData.setText(getString(R.string.symbol_wind) + "\nRüzgar\n" + number(currentWeather == null ? null : currentWeather.getCurrentWind(), " km/sa"));
+        windData.setText(getString(R.string.runtime_wind_format,
+                number(currentWeather == null ? null : currentWeather.getCurrentWind(), " km/sa")));
         humidityData.setText(getString(R.string.format_assistant_humidity_data, number(currentWeather == null ? null : currentWeather.getCurrentHumidity(), "%")));
     }
 
     private void savePhotoToArchive(GardenZone zone, List<String> symptoms, String note) {
         if (!hasPhoto() || selectedPhotoArchived) return;
         selectedPhotoArchived = true;
-        String archiveNote = "Bitki Asistanı · " + String.join(", ", symptoms)
+        String archiveNote = getString(R.string.runtime_assistant_archive_note, String.join(", ", symptoms))
                 + (note.isEmpty() ? "" : " · " + note);
         Uri uri = selectedPhotoUri;
         Bitmap bitmap = selectedPhotoBitmap;
@@ -329,11 +344,11 @@ public class PlantAssistantActivity extends AppCompatActivity {
                         archivedPhotoId = saved.getId();
                         applyPendingAnalysis();
                     }
-                    toast("Fotoğraf ve analiz kaydı Bitki Günlüğü'ne eklendi.");
+                    toast(getString(R.string.runtime_photo_analysis_archived));
                 });
             } catch (Exception ignored) {
                 selectedPhotoArchived = false;
-                runOnUiThread(() -> toast("Fotoğraf analize eklendi, ancak arşive kaydedilemedi."));
+                runOnUiThread(() -> toast(getString(R.string.runtime_photo_archive_failed)));
             }
         }).start();
     }
@@ -354,12 +369,16 @@ public class PlantAssistantActivity extends AppCompatActivity {
         new Thread(() -> {
             PlantFollowUpStore.Result followUp = followUpStore.registerAnalysis(snapshot.zoneId, archivedPhotoId, snapshot.title);
             String contextText = snapshot.context;
-            if ("SCHEDULED".equals(followUp.type) || "SCHEDULED_EXISTING".equals(followUp.type)) contextText += "\n\nTakip görevi: 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.";
-            else if ("COMPLETED".equals(followUp.type)) contextText += "\n\nTakip değerlendirmesi: Önceki analiz ('" + followUp.previousTitle + "') ile yeni fotoğraf karşılaştırılmak üzere kaydedildi.";
+            if ("SCHEDULED".equals(followUp.type) || "SCHEDULED_EXISTING".equals(followUp.type))
+                contextText += "\n\n" + getString(R.string.runtime_follow_up_task);
+            else if ("COMPLETED".equals(followUp.type))
+                contextText += "\n\n" + getString(R.string.runtime_follow_up_comparison, followUp.previousTitle);
             com.ali.smartgarden.models.GardenPhoto updated = photoStore.updateAnalysis(archivedPhotoId,
                     snapshot.title, snapshot.meta, contextText, snapshot.advice);
             if (updated != null) {
-                repository.saveGardenPhotoMetadata(updated);
+                repository.saveGardenPhotoMetadata(updated).addOnSuccessListener(unused ->
+                        photoStore.updateSeasonId(updated.getId(), updated.getSeason_id())
+                );
                 GardenNotificationManager notifications = new GardenNotificationManager(this);
                 notifications.publishOnce("PLANT_ASSISTANT", "HIGH", snapshot.zoneId, snapshot.title,
                         getString(R.string.notification_plant_analysis_saved_description),
@@ -400,7 +419,9 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private String number(Double value, String suffix) { return value == null ? "—" : Math.round(value) + suffix; }
     private String sunLabel(WeatherForecast weather) {
         if (weather == null || weather.getCurrentWeatherCode() == null) return "—";
-        return weather.getCurrentWeatherCode() <= 1 ? "Kuvvetli" : weather.getCurrentWeatherCode() <= 3 ? "Orta" : "Düşük";
+        return getString(weather.getCurrentWeatherCode() <= 1
+                ? R.string.runtime_sun_strong : weather.getCurrentWeatherCode() <= 3
+                ? R.string.runtime_sun_medium : R.string.runtime_sun_low);
     }
 
     private void showPhoto(Uri uri) {

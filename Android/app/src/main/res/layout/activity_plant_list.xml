@@ -26,7 +26,7 @@
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnPlantsBack"
-                    android:contentDescription="Geri" />
+                    android:contentDescription="@string/notification_detail_back" />
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -36,13 +36,13 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bitki Günlüklerim"
+                        android:text="@string/plant_list_screen_title"
                         android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="1dp"
-                        android:text="Her bitkinin sezon geçmişi ve günlüğü"
+                        android:text="@string/plant_list_screen_subtitle"
                         android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 </LinearLayout>
             </LinearLayout>
@@ -70,7 +70,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Gelişimi kaydet, geleceği planla"
+                            android:text="@string/plant_list_hero_title"
                             android:textColor="@color/textPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -79,7 +79,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:lineSpacingExtra="1dp"
-                            android:text="Bitkilerinize dokunarak gelişim fotoğraflarını, önemli olayları ve sezon geçmişini kayıt altına alın."
+                            android:text="@string/plant_list_hero_detail"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -87,7 +87,7 @@
                         android:layout_width="92dp"
                         android:layout_height="92dp"
                         android:layout_gravity="end|bottom"
-                        android:contentDescription="Gelişim günlüğü"
+                        android:contentDescription="@string/plant_list_journal_description"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_plant_journal_header" />
                 </FrameLayout>
@@ -155,7 +155,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
                 android:gravity="center"
-                android:text="Henüz bitki bölgesi yok."
+                android:text="@string/plant_list_empty"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPlantOverview"
@@ -188,7 +188,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Toplam bitki"
+                            android:text="@string/plant_list_total"
                             android:textColor="@color/textSecondary"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -212,7 +212,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sağlıklı"
+                            android:text="@string/plant_list_healthy"
                             android:textColor="@color/textSecondary"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -236,7 +236,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Takip gerekli"
+                            android:text="@string/plant_list_attention"
                             android:textColor="@color/textSecondary"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -260,7 +260,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Veri bekliyor"
+                            android:text="@string/plant_list_waiting"
                             android:textColor="@color/textSecondary"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -279,7 +279,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="14dp"
-                    android:text="💡 AVORA ipucu: Düzenli gelişim fotoğrafı ve kısa notlar, gelecek sezonlarda bahçenizi karşılaştırmanızı kolaylaştırır."
+                    android:text="@string/plant_list_tip"
                     android:textColor="@color/textSecondary"
                     android:textSize="12sp" />
             </com.google.android.material.card.MaterialCardView>

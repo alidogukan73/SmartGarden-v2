@@ -62,7 +62,7 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         if (pickMode) {
             selectAll.setVisibility(View.GONE);
             deleteSelected.setVisibility(View.GONE);
-            selection.setText("Analize eklemek için bir fotoğrafa dokunun.");
+            selection.setText(R.string.runtime_gallery_select_for_analysis);
         } else {
             selectAll.setOnClickListener(view -> toggleSelectAll());
             deleteSelected.setOnClickListener(view -> confirmDeleteSelected());
@@ -101,7 +101,8 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         grid.removeAllViews();
         boolean hasPhotos = !photos.isEmpty();
         empty.setVisibility(hasPhotos ? View.GONE : View.VISIBLE);
-        count.setText(photos.size() + " fotoğraf");
+        count.setText(getResources().getQuantityString(
+                R.plurals.runtime_photo_count, photos.size(), photos.size()));
         for (GardenPhoto photo : photos) addPhoto(photo);
         updateSelectionUi();
     }
@@ -155,10 +156,11 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     private void updateSelectionUi() {
         if (pickMode) return;
         int selected = selectedIds.size();
-        selection.setText(selected == 0 ? "Silmek için fotoğrafları seçin"
-                : selected + " fotoğraf seçildi");
+        selection.setText(selected == 0 ? getString(R.string.gallery_select_to_delete)
+                : getResources().getQuantityString(
+                        R.plurals.runtime_photo_selected, selected, selected));
         selectAll.setText(selected == photos.size() && !photos.isEmpty()
-                ? "Seçimi kaldır" : "Tümünü seç");
+                ? R.string.runtime_gallery_clear_selection : R.string.gallery_select_all);
         deleteSelected.setEnabled(selected > 0);
         deleteSelected.setAlpha(selected > 0 ? 1f : .45f);
     }
@@ -167,10 +169,11 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         int selected = selectedIds.size();
         if (selected == 0) return;
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Seçilen fotoğraflar silinsin mi?")
-                .setMessage(selected + " fotoğraf Bitki Günlüğü’nden ve bu telefondan kalıcı olarak silinir.")
-                .setNegativeButton("Vazgeç", null)
-                .setPositiveButton("Sil", (dialog, which) -> deleteSelected())
+                .setTitle(R.string.runtime_gallery_delete_title)
+                .setMessage(getResources().getQuantityString(
+                        R.plurals.runtime_gallery_delete_message, selected, selected))
+                .setNegativeButton(R.string.manual_relay_test_cancel, null)
+                .setPositiveButton(R.string.notification_center_action_delete, (dialog, which) -> deleteSelected())
                 .show();
     }
 
@@ -184,7 +187,8 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 selectedIds.clear();
                 reload();
-                Toast.makeText(this, countDeleted + " fotoğraf silindi.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getQuantityString(
+                        R.plurals.runtime_gallery_deleted, countDeleted, countDeleted), Toast.LENGTH_SHORT).show();
             });
         }).start();
     }

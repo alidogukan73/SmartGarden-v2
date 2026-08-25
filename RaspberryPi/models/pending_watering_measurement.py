@@ -61,6 +61,7 @@ class PendingWateringMeasurement:
                 firmware=str(record_data.get("firmware", "")),
                 zone_id=str(record_data.get("zone_id", "")),
                 sensor_id=str(record_data.get("sensor_id", "")),
+                season_id=str(record_data.get("season_id", "")),
             )
             pending_key = str(
                 payload.get("pending_key") or record.firebase_key

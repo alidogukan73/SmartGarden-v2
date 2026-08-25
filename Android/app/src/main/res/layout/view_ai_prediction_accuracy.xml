@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/cardPredictionAccuracy"
+    android:id="@+id/cardPredictionAccuracy"
                 style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,7 +73,7 @@
                                 android:paddingBottom="6dp"
                                 android:text="@string/ai_tech_waiting_upper"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold" />
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
@@ -85,7 +85,8 @@
                         android:background="@color/surfaceSoft"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="14dp">
+                        android:padding="14dp"
+                        tools:ignore="DisableBaselineAlignment">
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -96,7 +97,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_overall_accuracy"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionAccuracyPercent"
                                 android:layout_width="wrap_content"
@@ -117,7 +118,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_confidence_multiplier"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionConfidenceMultiplier"
                                 android:layout_width="wrap_content"
@@ -158,7 +159,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_validated"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionCount"
                                 android:layout_width="wrap_content"
@@ -186,7 +187,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_successful"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtSuccessfulPredictions"
                                 android:layout_width="wrap_content"
@@ -214,7 +215,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_average_error"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionAverageError"
                                 android:layout_width="wrap_content"
@@ -236,7 +237,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        tools:ignore="DisableBaselineAlignment">
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -247,7 +249,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_minimum_error"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionMinimumError"
                                 android:layout_width="wrap_content"
@@ -269,7 +271,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_maximum_error"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtPredictionMaximumError"
                                 android:layout_width="wrap_content"
@@ -288,6 +290,6 @@
                         android:layout_marginTop="14dp"
                         android:text="@string/ai_tech_last_updated_empty"
                         android:textColor="@color/textSecondary"
-                        android:textSize="10sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

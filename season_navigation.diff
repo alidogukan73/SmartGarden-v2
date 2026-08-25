@@ -1,0 +1,38 @@
+diff --git a/Android/app/src/main/AndroidManifest.xml b/Android/app/src/main/AndroidManifest.xml
+--- a/Android/app/src/main/AndroidManifest.xml
++++ b/Android/app/src/main/AndroidManifest.xml
+@@ -92,6 +92,9 @@
+         <activity
+             android:name=".activities.SeasonReportActivity"
+             android:exported="false" />
++        <activity
++            android:name=".activities.SeasonManagementActivity"
++            android:exported="false" />
+         <activity
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+@@ -1,5 +1,6 @@
+ package com.ali.smartgarden.activities;
+ 
++import android.content.Intent;
+ import android.graphics.Canvas;
+@@ -66,7 +67,9 @@ public class SeasonReportActivity extends AppCompatActivity {
+         seasonOutcomeStore = new LocalSeasonOutcomeStore(this);
+         gardenEventStore = new LocalGardenEventStore(this);
+         syncSeasonBackup();
+-        findViewById(R.id.btnAddSeasonOutcome).setOnClickListener(view -> showSeasonOutcomeDialog());
++        findViewById(R.id.btnAddSeasonOutcome).setOnClickListener(view ->
++                startActivity(new Intent(this, SeasonManagementActivity.class))
++        );
+         findViewById(R.id.btnExportSeasonPdf).setOnClickListener(view ->
+diff --git a/Android/app/src/main/res/layout/activity_season_report.xml b/Android/app/src/main/res/layout/activity_season_report.xml
+--- a/Android/app/src/main/res/layout/activity_season_report.xml
++++ b/Android/app/src/main/res/layout/activity_season_report.xml
+@@ -88,5 +88,5 @@
+                     android:layout_width="match_parent"
+                     android:layout_height="52dp"
+                     android:layout_marginTop="14dp"
+-                    android:text="Hasat sonucu ekle" />
++                    android:text="@string/season_manage_from_report" />
+             </LinearLayout>

@@ -2,7 +2,6 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/cardUnifiedConfidence"
                 style="@style/Widget.SmartGarden.Card.Main"
                 android:layout_width="match_parent"
@@ -72,7 +71,7 @@
                                 android:paddingBottom="6dp"
                                 android:text="@string/ai_tech_waiting_upper"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold" />
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
@@ -81,6 +80,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:background="@color/surfaceSoft"
+                        android:baselineAligned="false"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="14dp">
@@ -94,7 +94,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_overall_confidence"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedOverallConfidence"
                                 android:layout_width="wrap_content"
@@ -115,7 +115,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_level"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedConfidenceLevel"
                                 android:layout_width="wrap_content"
@@ -155,7 +155,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_soil_label"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedSoilConfidence"
                                 android:layout_width="wrap_content"
@@ -183,7 +183,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_prediction"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedPredictionAccuracy"
                                 android:layout_width="wrap_content"
@@ -211,7 +211,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_sensor"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedSensorConfidence"
                                 android:layout_width="wrap_content"
@@ -232,6 +232,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
+                        android:baselineAligned="false"
                         android:orientation="horizontal">
                         <LinearLayout
                             android:layout_width="0dp"
@@ -243,7 +244,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_trend_confidence"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedTrendConfidence"
                                 android:layout_width="wrap_content"
@@ -265,7 +266,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/ai_tech_weighted_score"
                                 android:textColor="@color/textSecondary"
-                                android:textSize="9sp" />
+                                android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/txtUnifiedWeightedScore"
                                 android:layout_width="wrap_content"
@@ -284,6 +285,6 @@
                         android:layout_marginTop="14dp"
                         android:text="@string/ai_tech_last_updated_empty"
                         android:textColor="@color/textSecondary"
-                        android:textSize="10sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

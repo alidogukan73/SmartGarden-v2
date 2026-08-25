@@ -15,7 +15,7 @@
     <string name="notification_device_offline_unknown">No connection status was received from the Raspberry Pi. Check power and network connectivity.</string>
     <string name="notification_device_offline_minutes">The Raspberry Pi has not responded for about %1$d minutes. Check power and network connectivity.</string>
     <string name="notification_device_recovered_title">Raspberry Pi connection restored</string>
-    <string name="notification_device_recovered_description">The garden device is online again. The connection was restored at %1$s.</string>
+    <string name="notification_device_recovered_description">The garden device is online again and the connection is stable.</string>
     <string name="notification_sensor_unavailable_title">Sensor data unavailable</string>
     <string name="notification_device_warning_title">Garden device warning</string>
     <string name="notification_sensor_unavailable_description">No recent reading was received from the wireless sensors. Check their power and connection.</string>

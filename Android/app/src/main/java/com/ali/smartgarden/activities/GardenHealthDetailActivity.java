@@ -64,7 +64,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
                 now,
                 PlantAssistantRecommendationStore.healthSignal(this)
         );
-        summaryScore.setText(summary.getScore() + "/100");
+        summaryScore.setText(getString(R.string.runtime_health_score_format, summary.getScore()));
         summaryTitle.setText(summary.getTitle());
         summaryDetail.setText(summary.getDetail());
         summaryScore.setTextColor(ContextCompat.getColor(this, colorFor(summary.getScore())));
@@ -111,7 +111,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         TextView title = new TextView(this);
         title.setText((zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji()) + " "
-                + (zone.getName() == null ? "Bölge" : zone.getName()));
+                + (zone.getName() == null ? getString(R.string.zone_fallback_name) : zone.getName()));
         title.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
         title.setTextSize(16);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -124,7 +124,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         text.addView(detail);
 
         TextView score = new TextView(this);
-        score.setText(result.getScore() + "/100");
+        score.setText(getString(R.string.runtime_health_score_format, result.getScore()));
         score.setTextColor(ContextCompat.getColor(this, colorFor(result.getScore())));
         score.setTextSize(19);
         score.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -141,26 +141,26 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
 
     private ZoneResult evaluate(GardenZone zone, long now) {
         int score = 100;
-        String reason = "Nem, sulama ve gübreleme planı uygun görünüyor";
+        String reason = getString(R.string.runtime_health_plan_good);
         if (!zone.isSensor_enabled() || !zone.hasSensorData()) {
-            return new ZoneResult(55, "Sensör verisi bekleniyor");
+            return new ZoneResult(55, getString(R.string.ai_zone_waiting));
         }
         if (zone.getMoisture() < zone.getMoisture_limit()) {
             score -= Math.min(35, 10 + zone.getMoisture_limit() - zone.getMoisture());
-            reason = "Toprak nemi sınırın altında";
+            reason = getString(R.string.runtime_health_moisture_low);
         }
         ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
         if (irrigation != null && !irrigation.isSensor_stable()) {
             score -= 20;
-            reason = "Sensör ölçümü kararsız";
+            reason = getString(R.string.runtime_health_sensor_unstable);
         }
         FertilizationProfile profile = zone.getFertilization();
         if (profile != null && profile.isEnabled()
                 && profile.getNext_application_at_epoch() > 0
                 && profile.getNext_application_at_epoch() <= now) {
             score -= 10;
-            if ("Nem, sulama ve gübreleme planı uygun görünüyor".equals(reason)) {
-                reason = "Gübreleme uygulama kaydı bekleniyor";
+            if (getString(R.string.runtime_health_plan_good).equals(reason)) {
+                reason = getString(R.string.runtime_health_fertilizer_waiting);
             }
         }
         return new ZoneResult(Math.max(0, score), reason);

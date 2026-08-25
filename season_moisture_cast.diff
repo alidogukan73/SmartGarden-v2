@@ -1,0 +1,12 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+@@ -199,7 +199,7 @@ public final class SeasonRepository {
+             manifest.child("photo_count").setValue(counts.photoCount);
+             manifest.child("plant_assistant_analysis_count").setValue(counts.analysisCount);
+             manifest.child("notification_count").setValue(counts.notificationCount);
+-            manifest.child("final_moisture").setValue(intValue(zoneData.child("moisture")));
++            manifest.child("final_moisture").setValue((int) longValue(zoneData.child("moisture")));
+             manifest.child("final_sensor_updated_at_epoch").setValue(longValue(zoneData.child("updated_at_epoch")));
+             copyOutcome(manifest, outcome, seasonId, zoneId, now);
+             manifest.child("updated_at_epoch").setValue(now);

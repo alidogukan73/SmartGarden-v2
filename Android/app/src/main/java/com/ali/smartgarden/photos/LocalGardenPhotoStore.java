@@ -52,6 +52,7 @@ public class LocalGardenPhotoStore {
         JSONObject item = new JSONObject();
         item.put("id", photo.getId());
         item.put("zone_id", photo.getZone_id());
+        item.put("season_id", safe(photo.getSeason_id()));
         item.put("local_path", photo.getLocal_path());
         item.put("note", photo.getNote());
         item.put("related_application_id", photo.getRelated_application_id());
@@ -88,6 +89,7 @@ public class LocalGardenPhotoStore {
         JSONObject item = new JSONObject();
         item.put("id", photo.getId());
         item.put("zone_id", photo.getZone_id());
+        item.put("season_id", safe(photo.getSeason_id()));
         item.put("local_path", photo.getLocal_path());
         item.put("note", photo.getNote());
         item.put("related_application_id", photo.getRelated_application_id());
@@ -114,6 +116,7 @@ public class LocalGardenPhotoStore {
                 GardenPhoto photo = new GardenPhoto();
                 photo.setId(item.optString("id"));
                 photo.setZone_id(item.optString("zone_id"));
+                photo.setSeason_id(item.optString("season_id"));
                 photo.setLocal_path(file.getAbsolutePath());
                 photo.setNote(item.optString("note"));
                 photo.setRelated_application_id(
@@ -167,6 +170,23 @@ public class LocalGardenPhotoStore {
                 JSONObject item = index.getJSONObject(i);
                 if (!photoId.equals(item.optString("id"))) continue;
                 item.put("related_application_id", safe(relatedApplicationId));
+                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                        .putString(KEY_INDEX, index.toString()).apply();
+                return true;
+            } catch (Exception ignored) { }
+        }
+        return false;
+    }
+
+    /** Persists the cloud-resolved season id in the phone-only photo index. */
+    public boolean updateSeasonId(String photoId, String seasonId) {
+        if (photoId == null || photoId.isBlank()) return false;
+        JSONArray index = readIndex();
+        for (int i = 0; i < index.length(); i++) {
+            try {
+                JSONObject item = index.getJSONObject(i);
+                if (!photoId.equals(item.optString("id"))) continue;
+                item.put("season_id", safe(seasonId));
                 context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                         .putString(KEY_INDEX, index.toString()).apply();
                 return true;

@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="runtime_location_permission_denied">Location permission was not granted. You can continue with a city and district.</string>
+    <string name="runtime_weather_source_auto">Automatic (recommended)</string>
+    <string name="runtime_weather_source_open_meteo">Open-Meteo only</string>
+    <string name="runtime_weather_source_open_weather">OpenWeather only</string>
+    <string name="runtime_location_unavailable">Location could not be obtained. Turn on GPS while in the garden and try again.</string>
+    <string name="runtime_location_precise_saved">Precise garden location and source preference saved.</string>
+    <string name="runtime_location_save_failed">Location could not be saved. Check your connection.</string>
+    <string name="runtime_location_city_required">Enter a city and district.</string>
+    <string name="runtime_location_manual_saved">District-center location and source preference saved.</string>
+    <string name="runtime_location_precise_coordinates">Precise GPS location saved: %1$.5f, %2$.5f</string>
+    <string name="runtime_location_save_failed_short">Location could not be saved.</string>
+    <string name="runtime_weather_source_save_failed">Source preference could not be saved.</string>
+    <string name="runtime_location_capture_first">Save the garden location first.</string>
+    <string name="runtime_weather_source_updated">Weather forecast source updated.</string>
+
+    <string name="runtime_gallery_select_for_analysis">Tap a photo to include it in the analysis.</string>
+    <plurals name="runtime_photo_count"><item quantity="one">%1$d photo</item><item quantity="other">%1$d photos</item></plurals>
+    <plurals name="runtime_photo_selected"><item quantity="one">%1$d photo selected</item><item quantity="other">%1$d photos selected</item></plurals>
+    <string name="runtime_gallery_clear_selection">Clear selection</string>
+    <string name="runtime_gallery_delete_title">Delete the selected photos?</string>
+    <plurals name="runtime_gallery_delete_message"><item quantity="one">%1$d photo will be permanently deleted from the Plant Journal and this phone.</item><item quantity="other">%1$d photos will be permanently deleted from the Plant Journal and this phone.</item></plurals>
+    <plurals name="runtime_gallery_deleted"><item quantity="one">%1$d photo deleted.</item><item quantity="other">%1$d photos deleted.</item></plurals>
+
+    <string name="runtime_zone_unnamed">Unnamed zone</string>
+    <string name="runtime_sensor_unassigned">No sensor assigned</string>
+    <string name="runtime_moisture_low">Low moisture</string>
+    <string name="runtime_moisture_high">High moisture</string>
+    <string name="runtime_moisture_ideal">Ideal moisture</string>
+    <string name="runtime_cannot_evaluate">Could not evaluate</string>
+    <string name="runtime_sensor_no_data">No sensor data</string>
+    <string name="runtime_sensor_off">Sensor off</string>
+    <string name="runtime_moisture_low_short">Moisture low</string>
+    <string name="runtime_moisture_high_short">Moisture high</string>
+    <string name="runtime_ideal_range">Ideal range</string>
+    <string name="runtime_irrigation_running">Irrigation running</string>
+    <string name="runtime_moisture_will_remeasure">Moisture will be measured again</string>
+    <string name="runtime_irrigation_preparing">Preparing irrigation</string>
+    <string name="runtime_automatic_monitoring">Automatic mode is monitoring</string>
+    <string name="runtime_automatic_on">Automatic mode on</string>
+    <string name="runtime_automatic_off">Automatic mode off</string>
+    <string name="runtime_pump_valve_active">Pump and valve active</string>
+    <string name="runtime_wait_minutes">%1$d min wait</string>
+    <string name="runtime_irrigation_not_needed">Irrigation not needed</string>
+
+    <string name="runtime_sort_smart">⭐  Smart sorting</string>
+    <string name="runtime_sort_moisture">💧  Moisture: low to high</string>
+    <string name="runtime_sort_recent">🕐  Most recently updated</string>
+    <string name="runtime_sort_plant_name">🌱  By plant name</string>
+    <string name="runtime_plant_sort_title">Sort plants</string>
+    <string name="runtime_garden_zone">Garden zone</string>
+    <string name="runtime_sensor_stale">Sensor data is outdated</string>
+    <string name="runtime_not_current">Outdated</string>
+    <string name="runtime_attention">Attention</string>
+
+    <string name="runtime_photo_limit">A record can contain up to 5 photos.</string>
+    <string name="runtime_add_photo">Add photo</string>
+    <string name="runtime_take_photo">Take photo</string>
+    <string name="runtime_sort_needs_attention">⚠  Needs attention</string>
+    <string name="runtime_plant_moisture_meta">💧 Moisture: %%%1$d  ·  %2$s</string>
+    <string name="runtime_moisture_tracking_needed">Moisture tracking needed</string>
+    <string name="runtime_season_tracking_active">Season tracking active</string>
+    <string name="runtime_no_data">No data</string>
+    <string name="runtime_choose_gallery">Choose from gallery</string>
+    <string name="runtime_choose_journal">Choose from Plant Journal</string>
+    <plurals name="runtime_photos_selected_limit"><item quantity="one">%1$d photo selected
+Up to 5 photos · tap to change</item><item quantity="other">%1$d photos selected
+Up to 5 photos · tap to change</item></plurals>
+    <string name="runtime_zone_not_found">Zone information was not found.</string>
+    <string name="runtime_photo_required">Select at least one photo for a photo record.</string>
+    <string name="runtime_season_inactive">This season is no longer active. The record was not added.</string>
+    <string name="runtime_journal_added">Journal entry added.</string>
+    <string name="runtime_cloud_save_failed">The record could not be saved to the cloud.</string>
+    <string name="runtime_start_season_first">Start a new season for this zone first.</string>
+
+    <string name="runtime_select_zone_first">Select a zone first.</string>
+    <string name="runtime_select_symptom">Select at least one symptom.</string>
+    <string name="runtime_probability_urgency">Probability: %1$s · Urgency: %2$s</string>
+    <string name="runtime_evaluated_context">Garden data evaluated: %1$s</string>
+    <string name="runtime_visual_ai_preparing">Preparing visual AI analysis…</string>
+    <string name="runtime_visual_ai_unavailable">Visual AI service could not be reached: %1$s</string>
+    <string name="runtime_photo_quality_title">The photo does not show the plant clearly enough</string>
+    <string name="runtime_visual_confidence_urgency">Visual confidence: %%%1$d · Urgency: %2$s</string>
+    <string name="runtime_urgency_low">Low</string>
+    <string name="runtime_symptom_yellowing">Yellowing of lower leaves</string>
+    <string name="runtime_symptom_wilt">Wilting</string>
+    <string name="runtime_red_flags">Warning signs</string>
+    <string name="runtime_photo_quality_detail">The leaf or affected area could not be seen clearly. Add a close-up photo taken in daylight and focused on a single leaf.</string>
+    <string name="runtime_photo_quality_advice">No disease assessment was made for this photo. Photograph the plant again and repeat the analysis.</string>
+    <string name="runtime_no_visual_findings">No visual findings were produced.</string>
+    <string name="runtime_visual_preassessment">Visual pre-assessment</string>
+    <string name="runtime_possible_causes">Possible causes</string>
+    <string name="runtime_recommended_observation">Recommended observation</string>
+    <string name="runtime_not_diagnosis">This result is not a definitive diagnosis.</string>
+    <string name="runtime_symptom_drying">Leaf drying</string>
+    <string name="runtime_symptom_spot">Leaf spots / scorching</string>
+    <string name="runtime_symptom_fruit_crack">Fruit cracking</string>
+    <string name="runtime_symptom_flower_drop">Flower drop</string>
+    <string name="runtime_other_observation">Other observation</string>
+    <string name="runtime_firebase_connection_failed">A secure Firebase connection could not be established. Check your internet connection.</string>
+    <string name="runtime_wind_format">💨
+Wind
+%1$s</string>
+    <string name="runtime_assistant_archive_note">Plant Assistant · %1$s</string>
+    <string name="runtime_photo_analysis_archived">Photo and analysis added to the Plant Journal.</string>
+    <string name="runtime_photo_archive_failed">The photo was added to the analysis but could not be archived.</string>
+
+    <string name="runtime_weather_updated">↻ Updated: %1$s</string>
+    <string name="runtime_weather_raining">It is raining now — check soil moisture again before irrigation.</string>
+    <string name="runtime_weather_rain_high">High chance of rain — check soil moisture again before irrigation.</string>
+    <string name="runtime_weather_rain_possible">Rain is possible — check soil moisture again before irrigation.</string>
+    <string name="runtime_weather_hot">High temperature — monitor soil moisture and leaves for wilting.</string>
+    <string name="runtime_weather_windy">Strong wind — soil moisture may drop faster.</string>
+    <string name="runtime_weather_hot_dry">A hot, dry period for irrigation. Remember to monitor soil moisture.</string>
+    <string name="runtime_weather_balanced">Weather conditions look balanced for the garden.</string>
+
+    <string name="runtime_offline_auto_mode">Automatic mode cannot be changed while the device is offline.</string>
+    <string name="runtime_open_valve_first">Pump could not start: open a valve first.</string>
+    <string name="runtime_pump_simulation_protection">Pump protection is active: valves are in simulation mode.</string>
+    <string name="runtime_offline_pump_start">Pump could not start: device is offline.</string>
+    <string name="runtime_physical_suffix"> · Physical</string>
+    <string name="runtime_gpio_pin">GPIO %1$d · Physical Pin %2$d</string>
+    <string name="runtime_stop_pump">Stop pump</string>
+    <string name="runtime_simulation_suffix"> · Simulation</string>
+    <string name="runtime_close_valve_first">Close the open valve first.</string>
+    <string name="runtime_device_offline_short">Device offline.</string>
+    <string name="runtime_valve_command_sent">Valve-open command sent.</string>
+    <string name="runtime_valve_mode_locked">Valve mode cannot be changed while the pump or a valve is open.</string>
+    <string name="runtime_connection_loading">Loading connection information</string>
+
+    <string name="runtime_weather_weekly_place">Weekly weather forecast · %1$s</string>
+    <string name="runtime_weather_source_detail">Source: %1$s · Garden-area forecast</string>
+    <string name="runtime_weather_humidity">💧
+Humidity %%%1$s</string>
+    <string name="runtime_weather_day_card">%1$s\n%2$s\n%3$s°\n%4$s°\n💧 %%%5$s\n💨 %6$s km/h</string>
+    <string name="runtime_weather_wind">💨
+Wind %1$s km/h</string>
+    <string name="runtime_weather_rain">🌧
+Rain %%%1$s</string>
+    <string name="runtime_weather_pressure">◉
+%1$s hPa</string>
+    <string name="runtime_rain_chance">Chance of rain</string>
+    <string name="runtime_wettest_day">Wettest day</string>
+    <string name="runtime_hottest_day">Hottest day</string>
+    <string name="runtime_tomorrow_rain_advice">There is a high chance of rain tomorrow. Check again before applying the irrigation plan.</string>
+    <string name="runtime_tomorrow_clear_advice">No significant rain risk is expected tomorrow. Irrigation Assistant will continue to recommend actions from moisture data.</string>
+    <string name="runtime_condition_rainy">Rainy</string>
+    <string name="runtime_condition_cloudy">Cloudy</string>
+    <string name="runtime_condition_sunny">Sunny</string>
+
+    <string name="runtime_record_default">Record</string>
+    <string name="runtime_no_description">No description added.</string>
+    <plurals name="runtime_record_photos_title"><item quantity="one">Photos · %1$d photo</item><item quantity="other">Photos · %1$d photos</item></plurals>
+    <string name="runtime_add_photo_tile">＋
+Add photo</string>
+    <string name="runtime_record_photo_limit">This record can contain up to 5 photos.</string>
+    <string name="runtime_photo_added">Photo added to the record.</string>
+    <string name="runtime_photo_add_failed">Photo could not be added.</string>
+    <string name="runtime_growth_photo">Growth photo</string>
+    <string name="runtime_close">Close</string>
+    <string name="runtime_plant_default">Plant</string>
+    <string name="runtime_planned_season">Planned season</string>
+    <string name="runtime_season_ongoing">Season in progress</string>
+    <string name="runtime_garden_record">Garden record</string>
+    <string name="runtime_growth_photo_added">Plant growth photo added.</string>
+    <string name="runtime_duration_seconds">Duration: %1$d sec</string>
+    <string name="runtime_health_plan_good">Moisture, irrigation, and fertilization plans look appropriate</string>
+    <string name="runtime_health_moisture_low">Soil moisture is below the limit</string>
+    <string name="runtime_health_sensor_unstable">Sensor reading is unstable</string>
+    <string name="runtime_health_fertilizer_waiting">Waiting for a fertilization application record</string>
+    <string name="runtime_restart_title">Restart the device?</string>
+    <string name="runtime_restart_message">The Raspberry Pi will restart. Irrigation and sensor connections will be interrupted briefly.</string>
+    <string name="runtime_restart_action">Restart</string>
+    <string name="runtime_restart_sent">Restart command sent.</string>
+    <string name="runtime_monitoring_off_badge">MONITORING OFF</string>
+    <string name="runtime_monitoring_off">Sensor monitoring is off</string>
+    <string name="runtime_monitoring_no_sensor">There are no active wireless sensors for these zones.</string>
+    <string name="runtime_no_esp32_data">No ESP32 data received yet</string>
+    <string name="runtime_last_esp32_data">Last ESP32 data: %1$s%2$s</string>
+    <string name="runtime_wifi_suffix"> · Wi‑Fi %1$d dBm</string>
+    <string name="runtime_no_connection_badge">NO CONNECTION</string>
+    <string name="runtime_partial_connection_badge">PARTIALLY CONNECTED</string>
+    <string name="runtime_connected_badge">CONNECTED</string>
+    <string name="runtime_live_sensor_count">%1$d / %2$d sensors live</string>
+    <string name="runtime_esp32_waiting">The ESP32 may be off or waiting for a Wi‑Fi / MQTT connection.</string>
+    <string name="runtime_esp32_partial">Waiting for current data from some ESP32 sensors.</string>
+    <string name="runtime_esp32_healthy">The ESP32 wireless sensor network is sending data regularly.</string>
+    <string name="runtime_just_now">Just now</string>
+    <string name="runtime_seconds_ago">%1$d sec ago</string>
+    <string name="runtime_minutes_ago">%1$d min ago</string>
+    <string name="runtime_connection_connected">● Connected</string>
+    <string name="runtime_connection_waiting">● Waiting</string>
+    <string name="runtime_connection_none">● No Connection</string>
+    <string name="runtime_rssi_excellent">Excellent (%1$d dBm)</string>
+    <string name="runtime_rssi_good">Good (%1$d dBm)</string>
+    <string name="runtime_rssi_weak">Weak (%1$d dBm)</string>
+    <string name="runtime_rssi_very_weak">Very weak (%1$d dBm)</string>
+    <string name="runtime_product_unnamed">Unnamed product</string>
+    <string name="runtime_zone_data_preparing">Preparing zone data.</string>
+    <string name="runtime_status_organic_required">ORGANIC PRODUCT REQUIRED</string>
+    <string name="runtime_status_preparation_required">PREPARATION REQUIRED</string>
+    <string name="runtime_status_too_early">TOO EARLY</string>
+    <string name="runtime_status_season_completed">SEASON COMPLETED</string>
+    <string name="runtime_form_liquid">Liquid</string>
+    <string name="runtime_form_powder">Powder</string>
+    <string name="runtime_form_granular">Granular</string>
+    <string name="runtime_npk_missing">NPK not specified</string>
+    <string name="runtime_product_suitability">Product suitability: %1$s</string>
+    <string name="runtime_fruit_stage">During fruiting: %1$s</string>
+    <string name="runtime_safety_label">Safety: %1$s</string>
+    <string name="runtime_ph_hint">pH (example: 6.5)</string>
+    <string name="runtime_ec_hint">EC mS/cm (example: 1.80)</string>
+    <string name="runtime_soil_values_message">These values are used for recommendations and risk warnings; they do not start automatic fertilization.</string>
+    <string name="runtime_soil_values_invalid">pH must be 0–14 and EC must be 0–20.</string>
+    <string name="runtime_active_harvest_note">During active harvest: Consider only products whose label explicitly permits use until harvest and has no pre-harvest restriction.</string>
+    <string name="runtime_application_wait_days">Application timing: Wait %1$d days before applying again.</string>
+    <string name="runtime_days_ago">%1$d days ago.</string>
+    <string name="runtime_history_photo_prompt">You can also add a plant photo for this observation to the local archive.</string>
+    <string name="runtime_not_now">Not now</string>
+    <string name="runtime_valid_date_amount">Enter a valid date and amount.</string>
+    <string name="runtime_csv_header">Application date,Zone,Product,Amount,Unit,Method,Area m2,Tank L,Note,Outcome,Vitality score,Outcome note\n</string>
+    <string name="runtime_outcome_improved">Improvement observed</string>
+    <string name="runtime_outcome_unchanged">No significant change</string>
+    <string name="runtime_outcome_issue">Issue observed</string>
+    <string name="runtime_outcome_label">Outcome: %1$s</string>
+    <string name="runtime_vitality_suffix"> · Vitality %1$d/5</string>
+    <string name="runtime_application_outcome_saved">Application outcome saved</string>
+    <string name="runtime_no_linked_records">No irrigation or fertilization record is linked to this entry.</string>
+    <string name="runtime_reason_label">Reason: %1$s</string>
+    <string name="runtime_water_analysis_save_failed">Water analysis could not be saved.</string>
+    <string name="runtime_last_application_days">Last application: %1$d days ago.</string>
+    <string name="runtime_stock_value">Stock: %1$s %2$s</string>
+    <string name="runtime_follow_up_task">Follow-up task: Add a new photo from the same zone in 3 days.</string>
+    <string name="runtime_follow_up_comparison">Follow-up assessment: The new photo was saved for comparison with the previous analysis (‘%1$s’).</string>
+    <string name="runtime_follow_up_photo_title">Follow-up photo recommendation</string>
+    <string name="runtime_follow_up_photo_note">Add a new photo from the same zone 3 days after the Plant Assistant analysis.</string>
+    <string name="runtime_follow_up_assessment_title">Follow-up assessment</string>
+    <string name="runtime_follow_up_assessment_note">The new analysis was saved for comparison with the previous Plant Assistant analysis.</string>
+    <string name="runtime_sun_strong">Strong</string>
+    <string name="runtime_sun_medium">Medium</string>
+    <string name="runtime_sun_low">Low</string>
+    <string name="runtime_signal_moisture_title">Moisture risk</string>
+    <string name="runtime_signal_moisture_note">Soil moisture is below the zone limit.</string>
+    <string name="runtime_signal_hot_title">Hot weather warning</string>
+    <string name="runtime_signal_hot_note">High temperature is expected. Monitor soil moisture and leaves for wilting.</string>
+    <string name="runtime_signal_rain_title">Rain warning</string>
+    <string name="runtime_signal_rain_note">There is a high chance of rain. Check soil moisture again before irrigation.</string>
+    <string name="runtime_signal_wind_title">Strong wind</string>
+    <string name="runtime_signal_wind_note">Wind is strong. Soil moisture may drop faster.</string>
+    <string name="runtime_delete_ellipsis">Delete…</string>
+    <string name="runtime_delete_record_title">Delete record?</string>
+    <string name="runtime_delete_user_record_message">This user record will be deleted. Automatic irrigation and fertilization history will not be affected.</string>
+    <string name="runtime_delete_photo_record_message">This user photo record and its copy on your phone will be deleted.</string>
+
+    <string name="runtime_timeline_named_title">%1$s Journal</string>
+    <string name="runtime_compare_empty">Add at least two photos from this season to compare them.</string>
+    <string name="runtime_view_empty">No records for this view yet.</string>
+    <string name="runtime_growth_photos">Growth photos</string>
+    <string name="runtime_notes_observations">Notes and observations</string>
+    <string name="runtime_photo_comparison">Photo comparison</string>
+    <string name="runtime_planting_done">Planted on %1$s</string>
+    <string name="runtime_planting_missing">Planting date has not been added yet</string>
+    <string name="runtime_zone_inactive">Zone inactive</string>
+    <string name="runtime_past_season">Past season</string>
+    <string name="runtime_compare_heading">Previous and new photo</string>
+    <string name="runtime_previous">Previous</string>
+    <string name="runtime_new">New</string>
+    <string name="runtime_compare_detail">AVORA comparison: Evaluate the new photo together with the previous analysis and observations.</string>
+    <string name="runtime_event_planting">Planting completed</string>
+    <string name="runtime_event_note">Observation / note</string>
+    <string name="runtime_event_flowering">Flowering started</string>
+    <string name="runtime_event_first_product">First produce</string>
+    <string name="runtime_event_harvest">Harvest</string>
+    <string name="runtime_event_special">Special event</string>
+    <string name="runtime_event_growth_photo">Add growth photo</string>
+    <string name="runtime_planting_hint">Example: 12 seedlings planted</string>
+    <string name="runtime_short_note_hint">Write a short note</string>
+    <string name="runtime_active_season_record_note">This record is added only to this plant’s active season.</string>
+    <string name="runtime_health_score_format">%1$d/100</string>
+    <string name="runtime_temperature_celsius">%1$d°C</string>
+    <string name="runtime_weather_wind_card">%1$s  %2$s km/h</string>
+    <string name="runtime_weather_missing_value">~ —</string>
+    <string name="runtime_weather_approximate_value">~ %1$d</string>
+</resources>

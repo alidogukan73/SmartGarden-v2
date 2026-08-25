@@ -18,6 +18,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:localeConfig="@xml/locales_config"
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGarden">
@@ -91,7 +92,16 @@
             android:name=".activities.PlantAssistantActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.SeasonReportActivity"
+            android:name=".activities.SeasonManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.CropCatalogActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ZoneManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.SensorCalibrationWizardActivity"
             android:exported="false" />
         <activity
             android:name=".activities.FertilizationCalendarActivity"

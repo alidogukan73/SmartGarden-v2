@@ -16,7 +16,7 @@
             android:id="@+id/imgSelectableGardenPhoto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="Arşiv fotoğrafı"
+            android:contentDescription="@string/archive_photo_content_description"
             android:scaleType="centerCrop" />
         <TextView
             android:id="@+id/txtSelectableGardenPhotoDate"

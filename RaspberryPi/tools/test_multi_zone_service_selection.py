@@ -32,6 +32,9 @@ from controllers.zone_irrigation_scheduler import (
 from controllers.weather_irrigation_policy import (
     WeatherIrrigationPolicy,
 )
+from controllers.optimal_irrigation_time_engine import (
+    OptimalIrrigationTimeEngine,
+)
 from models.command_state import CommandState
 from models.sensor_reading import SensorReading
 from services.irrigation_service import IrrigationService
@@ -138,11 +141,13 @@ def main() -> None:
     service._zone_executor = FakeExecutor()
     service._valves = FakeValves()
     service._weather_policy = WeatherIrrigationPolicy()
+    service._irrigation_time_engine = OptimalIrrigationTimeEngine()
     service._latest_weather_forecast = None
     service._weather_adjustments_by_zone = {}
     service._zone_ai_pipelines = {}
     service._zone_prediction_validation_queues = {}
     service._zone_prediction_histories = {}
+    service._zone_ai_season_ids = {}
     service._last_zone_ai_update = 0.0
     service._ai_decision_interval_seconds = 30
     service._prediction_history_limit = 100

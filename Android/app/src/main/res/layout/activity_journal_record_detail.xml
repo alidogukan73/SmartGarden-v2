@@ -28,7 +28,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Kayıt Detayı"
+                    android:text="@string/record_detail_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:id="@+id/btnRecordEdit"
@@ -37,13 +37,13 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="✎"
+                    android:text="@string/symbol_edit_pencil"
                     android:textSize="20sp" />
                 <TextView
                     android:layout_width="22dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="⋮"
+                    android:text="@string/symbol_more_options"
                     android:textSize="20sp" />
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
@@ -90,7 +90,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
-                        android:text="Açıklama"
+                        android:text="@string/notification_detail_description"
                         android:textColor="@color/textPrimary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -105,7 +105,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
-                        android:text="Fotoğraflar"
+                        android:text="@string/photos_title"
                         android:textColor="@color/textPrimary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -128,7 +128,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="AI Bitki Asistanı Değerlendirmesi"
+                android:text="@string/record_ai_assessment"
                 android:textColor="@color/textPrimary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -147,7 +147,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="✦  Değerlendirme"
+                        android:text="@string/record_assessment"
                         android:textColor="@color/primary"
                         android:textStyle="bold" />
                     <TextView
@@ -163,7 +163,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Takip Değerlendirmesi"
+                android:text="@string/record_follow_up_assessment"
                 android:textColor="@color/textPrimary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -185,7 +185,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Bağlantılı Kayıtlar"
+                android:text="@string/record_linked_records"
                 android:textColor="@color/textPrimary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -199,7 +199,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="18dp"
-                android:text="🗑  Kaydı Sil"
+                android:text="@string/record_delete_action"
                 android:textColor="@color/error"
                 app:backgroundTint="@color/card"
                 app:cornerRadius="10dp"

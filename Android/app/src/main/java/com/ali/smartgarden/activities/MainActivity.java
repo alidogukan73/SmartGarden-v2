@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
+import com.ali.smartgarden.notifications.NotificationPolicy;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
 import com.ali.smartgarden.models.Status;
@@ -42,6 +43,7 @@ import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.models.GardenNotification;
 
@@ -63,7 +65,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
-    private long lastStatusReceivedElapsedMillis = 0L;
     private long connectionStartedElapsedMillis;
     private MaterialCardView cardOnlineStatus;
     private TextView txtOnline;
@@ -115,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private List<GardenZone> latestZones;
     private WeatherForecast latestWeather;
 
-    private static final long ONLINE_TIMEOUT_MILLIS = 30_000L;
+    private static final long CONNECTION_SETTLE_MILLIS = 15_000L;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
 
     private enum ConnectionState {
@@ -183,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
             );
             Toast.makeText(
                     this,
-                    "Güvenli Firebase bağlantısı kurulamadı. İnternet bağlantısını kontrol edin.",
+                    getString(R.string.runtime_firebase_connection_failed),
                     Toast.LENGTH_LONG
             ).show();
         });
@@ -392,13 +393,13 @@ public class MainActivity extends AppCompatActivity {
         String location = forecast.getDistrict().isBlank()
                 ? forecast.getCity()
                 : forecast.getDistrict() + " / " + forecast.getCity();
-        txtHomeWeatherTitle.setText("Hava durumu");
+        txtHomeWeatherTitle.setText(R.string.home_weather_title);
         txtHomeWeatherLocation.setText(getString(R.string.symbol_middle_dot) + " " + location);
         txtHomeWeatherIcon.setText(getString(R.string.symbol_sun));
         txtHomeWeatherUpdated.setText(
-                "↻ Güncellendi: " + new SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR"))
+                getString(R.string.runtime_weather_updated, new SimpleDateFormat("HH:mm", Locale.getDefault())
                         .format(new Date())
-        );
+        ));
         bindWeatherDay(txtHomeWeatherTodayIcon, txtHomeWeatherTodayTemperature,
                 txtHomeWeatherTodayRain, txtHomeWeatherTodayWind,
                 forecast.getTodayTemperatureMax(), forecast.getTodayRainProbability(),
@@ -425,24 +426,24 @@ public class MainActivity extends AppCompatActivity {
         // Current weather code is an observation from the provider; it is more
         // meaningful than the daily probability when rain is already falling.
         if (isRainNow(forecast.getCurrentWeatherCode())) {
-            return new WeatherImpact(getString(R.string.symbol_rain), "Şu an yağış görünüyor — sulama öncesi toprak nemini yeniden kontrol edin.");
+            return new WeatherImpact(getString(R.string.symbol_rain), getString(R.string.runtime_weather_raining));
         }
         if (rain >= 60D) {
-            return new WeatherImpact(getString(R.string.symbol_rain), "Yağış olasılığı yüksek — sulama öncesi toprak nemini yeniden kontrol edin.");
+            return new WeatherImpact(getString(R.string.symbol_rain), getString(R.string.runtime_weather_rain_high));
         }
         if (rain >= 30D) {
-            return new WeatherImpact(getString(R.string.symbol_rain), "Yağış ihtimali var — sulama öncesi toprak nemini yeniden kontrol edin.");
+            return new WeatherImpact(getString(R.string.symbol_rain), getString(R.string.runtime_weather_rain_possible));
         }
         if (hottest >= 35D) {
-            return new WeatherImpact(getString(R.string.symbol_sun), "Yüksek sıcaklık — toprak nemini ve yapraklarda solmayı takip edin.");
+            return new WeatherImpact(getString(R.string.symbol_sun), getString(R.string.runtime_weather_hot));
         }
         if (wind >= 30D) {
-            return new WeatherImpact(getString(R.string.symbol_wind), "Rüzgâr kuvvetli — toprak nemi daha hızlı düşebilir.");
+            return new WeatherImpact(getString(R.string.symbol_wind), getString(R.string.runtime_weather_windy));
         }
         if (hottest >= 30D && rain <= 20D) {
-            return new WeatherImpact(getString(R.string.symbol_water_drop), "Sulama açısından sıcak ve kurak bir dönem. Toprak nemini takip etmeyi unutmayın.");
+            return new WeatherImpact(getString(R.string.symbol_water_drop), getString(R.string.runtime_weather_hot_dry));
         }
-        return new WeatherImpact(getString(R.string.symbol_plant), "Bahçe için hava koşulları dengeli görünüyor.");
+        return new WeatherImpact(getString(R.string.symbol_plant), getString(R.string.runtime_weather_balanced));
     }
 
     private boolean isRainNow(Long weatherCode) {
@@ -478,9 +479,16 @@ public class MainActivity extends AppCompatActivity {
                                 TextView windView, Double temperature, Double rain,
                                 Double wind, Long code) {
         icon.setText(weatherIcon(code));
-        temperatureView.setText(temperature == null ? "—" : Math.round(temperature) + "°C");
+        temperatureView.setText(temperature == null
+                ? getString(R.string.placeholder_dash)
+                : getString(R.string.runtime_temperature_celsius, Math.round(temperature)));
         rainView.setText(getString(R.string.format_rain_probability, rain == null ? "%—" : "%" + Math.round(rain)));
-        windView.setText(getString(R.string.symbol_wind) + "  " + (wind == null ? "~ —" : "~ " + Math.round(wind)) + " km/sa");
+        String windValue = wind == null
+                ? getString(R.string.runtime_weather_missing_value)
+                : getString(R.string.runtime_weather_approximate_value, Math.round(wind));
+        windView.setText(getString(R.string.runtime_weather_wind_card,
+                getString(R.string.symbol_wind),
+                windValue));
     }
 
     private String weatherIcon(Long code) {
@@ -498,18 +506,24 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        long newestHeartbeat = latestStatus == null
+                ? 0L : latestStatus.getLastSeenEpoch();
+        if (!NotificationPolicy.shouldAcceptDeviceSnapshot(
+                status.getLastSeenEpoch(),
+                newestHeartbeat,
+                System.currentTimeMillis() / 1000L)) {
+            return;
+        }
+
         latestStatus = status;
-
-        lastStatusReceivedElapsedMillis =
-                SystemClock.elapsedRealtime();
-
         renderEffectiveOnlineStatus();
     }
 
 
     private void renderGardenZones(List<GardenZone> zones) {
-        latestZones = zones;
-        NotificationSignalCoordinator.evaluateIrrigationAi(this, zones);
+        List<GardenZone> activeZones = ZoneCapacityPolicy.activeZones(zones);
+        latestZones = activeZones;
+        NotificationSignalCoordinator.evaluateIrrigationAi(this, activeZones);
 
         if (zones == null) {
             homeZonePagerAdapter.submitList(null);
@@ -521,27 +535,25 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        homeZonePagerAdapter.submitList(zones);
-        if (
-                !homeZonePagerPositioned
-                        && !zones.isEmpty()
-        ) {
+        homeZonePagerAdapter.submitList(activeZones);
+        if (activeZones.isEmpty()) {
+            homeZonePagerPositioned = false;
+        } else if (!homeZonePagerPositioned) {
             recyclerHomeZones.scrollToPosition(
                     homeZonePagerAdapter.initialAdapterPosition()
             );
             homeZonePagerPositioned = true;
         }
         renderHomeZoneDots(
-                zones.size(),
+                activeZones.size(),
                 homeZonePagerAdapter.toZonePosition(
                         currentHomeZonePage()
                 )
         );
 
-
-        renderHomeWateringSummary(zones);
-        renderHomeFertilizationSummary(zones);
-        renderHomeHealthSummary(zones);
+        renderHomeWateringSummary(activeZones);
+        renderHomeFertilizationSummary(activeZones);
+        renderHomeHealthSummary(activeZones);
         renderHomePlantAssistantRecommendation();
         renderHomeAlerts();
     }
@@ -849,15 +861,20 @@ public class MainActivity extends AppCompatActivity {
     private ConnectionState getConnectionState() {
         if (
                 latestStatus == null
-                        || lastStatusReceivedElapsedMillis <= 0L
         ) {
             long connectionWaitMillis =
                     SystemClock.elapsedRealtime()
                             - connectionStartedElapsedMillis;
 
-            return connectionWaitMillis <= ONLINE_TIMEOUT_MILLIS
+            return connectionWaitMillis <= CONNECTION_SETTLE_MILLIS
                     ? ConnectionState.CONNECTING
                     : ConnectionState.OFFLINE;
+        }
+
+        if (!isDeviceEffectivelyOnline()
+                && SystemClock.elapsedRealtime() - connectionStartedElapsedMillis
+                <= CONNECTION_SETTLE_MILLIS) {
+            return ConnectionState.CONNECTING;
         }
 
         return isDeviceEffectivelyOnline()
@@ -866,20 +883,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isDeviceEffectivelyOnline() {
-        if (
-                latestStatus == null
-                        || lastStatusReceivedElapsedMillis <= 0L
-        ) {
+        if (latestStatus == null) {
             return false;
         }
 
-        long elapsedSinceLastStatusMillis =
-                SystemClock.elapsedRealtime()
-                        - lastStatusReceivedElapsedMillis;
-
-        return latestStatus.isOnline()
-                && elapsedSinceLastStatusMillis
-                <= ONLINE_TIMEOUT_MILLIS;
+        return !NotificationPolicy.isDeviceOffline(
+                latestStatus.isOnline(),
+                latestStatus.getLastSeenEpoch(),
+                System.currentTimeMillis() / 1000L,
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
     }
 
     private void renderHomeAlerts() {

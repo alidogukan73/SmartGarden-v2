@@ -19,7 +19,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Tüm fotoğraflar"
+            android:text="@string/gallery_all_photos"
             android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
         <TextView
             android:id="@+id/txtGalleryCount"
@@ -40,14 +40,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Silmek için fotoğrafları seçin"
+            android:text="@string/gallery_select_to_delete"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSelectAllGardenPhotos"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="42dp"
-            android:text="Tümünü seç"
+            android:text="@string/gallery_select_all"
             android:textAllCaps="false"
             android:textColor="@color/primary" />
     </LinearLayout>
@@ -72,7 +72,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="32dp"
-        android:text="Henüz arşivde fotoğraf yok."
+        android:text="@string/gallery_empty"
         android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDeleteSelectedGardenPhotos"
@@ -82,6 +82,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="18dp"
-        android:text="Seçilenleri sil"
+        android:text="@string/gallery_delete_selected"
         android:textAllCaps="false" />
 </LinearLayout>

@@ -12,7 +12,7 @@ class AppConfig:
 
     DEVICE_ID = "smartgarden-001"
 
-    VERSION = "2.9.1"
+    VERSION = "2.10.0"
 
     LOOP_DELAY_SECONDS = 2.0
 

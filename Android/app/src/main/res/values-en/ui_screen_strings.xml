@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="calendar_today_ai_title">Today’s AI recommendations</string>
+    <string name="calendar_today_ai_detail">Recommendations are prepared from your records; you approve each application.</string>
+    <string name="weather_location_settings">Location settings</string>
+    <string name="weather_current_badge">CURRENT</string>
+    <string name="weather_refresh_note">The forecast is updated regularly</string>
+    <string name="weather_seven_day_title">7-Day Forecast</string>
+    <string name="weather_swipe_hint">Swipe →</string>
+    <string name="weather_smart_advice">Smart advice</string>
+    <string name="ai_step_status_description">Step status</string>
+    <string name="ai_decision_step_description">AI decision step</string>
+    <string name="ai_sensor_sample_complete">20 sensor readings collected successfully.</string>
+    <string name="timeline_title">Timeline</string>
+    <string name="photos_title">Photos</string>
+    <string name="notes_title">Notes</string>
+    <string name="compare_title">Compare</string>
+    <string name="filter_all">▦  All</string>
+    <string name="filter_ai_analysis">✦  AI Analysis</string>
+    <string name="filter_event">▲  Event</string>
+    <string name="timeline_empty">No journal entries for this plant yet.</string>
+    <string name="plant_list_screen_title">My Plant Journals</string>
+    <string name="plant_list_screen_subtitle">Each plant’s season history and journal</string>
+    <string name="plant_list_hero_title">Record growth, plan ahead</string>
+    <string name="plant_list_hero_detail">Tap a plant to save growth photos, important events, and its season history.</string>
+    <string name="plant_list_journal_description">Growth journal</string>
+    <string name="plant_list_empty">No plant zones yet.</string>
+    <string name="plant_list_total">Total plants</string>
+    <string name="plant_list_healthy">Healthy</string>
+    <string name="plant_list_attention">Needs attention</string>
+    <string name="plant_list_waiting">Waiting for data</string>
+    <string name="plant_list_tip">💡 AVORA tip: Regular growth photos and short notes make it easier to compare your garden across seasons.</string>
+    <string name="notification_menu_description">Notification menu</string>
+    <string name="record_detail_title">Record Details</string>
+    <string name="record_ai_assessment">AI Plant Assistant Assessment</string>
+    <string name="record_assessment">✦  Assessment</string>
+    <string name="record_follow_up_assessment">Follow-up Assessment</string>
+    <string name="record_linked_records">Linked Records</string>
+    <string name="record_delete_action">🗑  Delete Record</string>
+    <string name="new_record_title">Add New Record</string>
+    <string name="new_record_intro">Record plant growth,
+compare it with previous years,
+and make healthier decisions.</string>
+    <string name="plant_growth_description">Plant growth</string>
+    <string name="record_type_title">Record Type</string>
+    <string name="record_type_observation">Observation</string>
+    <string name="record_type_photo">Photo</string>
+    <string name="record_type_event">Event</string>
+    <string name="date_time_title">Date &amp; Time</string>
+    <string name="optional_description">Description (optional)</string>
+    <string name="observations_hint">Write your observations…</string>
+    <string name="add_photo_optional">Add Photo (optional)</string>
+    <string name="plant_assistant_subtitle">We analyze photos and garden data together</string>
+    <string name="plant_assistant_intro">We evaluate visual, sensor, and weather data together.</string>
+    <string name="reliability_title">Reliability</string>
+    <string name="medium_reliability_description">Medium reliability</string>
+    <string name="info_description">Information</string>
+    <string name="plant_assistant_no_photo">No photo added yet
+Add a leaf or whole-plant photo.</string>
+    <string name="plant_assistant_zone_step">📍  2. Zone</string>
+    <string name="plant_assistant_description_hint">4. Description (optional)</string>
+    <string name="plant_assistant_symptoms_step">🍃  3. Symptoms</string>
+    <string name="symptom_info_description">Symptom information</string>
+    <string name="symptom_yellowing">🍂  Leaf Yellowing</string>
+    <string name="symptom_drying">🟤  Leaf Drying</string>
+    <string name="symptom_spot">🟣  Spot / Speck</string>
+    <string name="symptom_other">•••  Other</string>
+    <string name="symptom_other_hint">Briefly describe the symptom</string>
+    <string name="plant_assistant_start_analysis">✦  Start AI Analysis
+All data will be analyzed together</string>
+    <string name="plant_assistant_data_title">Data Included in AI Analysis</string>
+    <string name="weather_temperature_label">🌡
+Air temperature</string>
+    <string name="plant_assistant_last_analysis">▧  Last Analysis</string>
+    <string name="plant_assistant_disclaimer">ⓘ AI recommendations are for guidance; consult an agricultural specialist for a definitive diagnosis.</string>
+    <string name="fertilizer_result_assessment">AI outcome assessment</string>
+    <string name="fertilizer_result_assessment_detail">This section shows trends as application outcomes are recorded.</string>
+    <string name="gallery_all_photos">All photos</string>
+    <string name="gallery_select_to_delete">Select photos to delete</string>
+    <string name="gallery_select_all">Select all</string>
+    <string name="gallery_empty">No archived photos yet.</string>
+    <string name="gallery_delete_selected">Delete selected</string>
+    <string name="garden_location_subtitle">Precise garden location for weather forecasts</string>
+    <string name="garden_location_precise_title">Most accurate method</string>
+    <string name="garden_location_precise_detail">Save your phone’s location once while you are in the garden. This is more accurate than the district center for local showers.</string>
+    <string name="garden_location_capture">Use my garden location</string>
+    <string name="weather_source_title">Weather forecast source</string>
+    <string name="weather_source_detail">Automatic mode tries OpenWeather first and uses Open-Meteo if it is unavailable.</string>
+    <string name="preference_hint">Preference</string>
+    <string name="weather_source_save">Save source preference</string>
+    <string name="garden_location_manual_title">Manual correction</string>
+    <string name="garden_location_manual_detail">If you do not want to use GPS, forecasts use the city and district center.</string>
+    <string name="city_hint">City</string>
+    <string name="district_hint">District</string>
+    <string name="garden_location_manual_save">Save city and district</string>
+</resources>

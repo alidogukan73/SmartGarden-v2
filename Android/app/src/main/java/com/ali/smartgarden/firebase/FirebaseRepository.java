@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
+import com.ali.smartgarden.models.CropCatalogItem;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerRecommendation;
@@ -21,6 +22,9 @@ import com.ali.smartgarden.models.MoisturePrediction;
 import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.PredictionValidationStatus;
 import com.ali.smartgarden.models.SeasonOutcome;
+import com.ali.smartgarden.models.SeasonStatus;
+import com.ali.smartgarden.season.SeasonRepository;
+import com.ali.smartgarden.season.SeasonScope;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.WateringHistory;
@@ -28,6 +32,7 @@ import com.ali.smartgarden.models.WeatherDay;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.models.WeatherLocation;
 import com.ali.smartgarden.models.RainSettings;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.models.IrrigationTimingSettings;
 import com.ali.smartgarden.models.GardenProfile;
 import com.ali.smartgarden.models.DisplayUnitSettings;
@@ -75,6 +80,7 @@ public class FirebaseRepository {
    private final DatabaseReference soilLearningProfileRef;
    private final DatabaseReference zonesRef;
    private final DatabaseReference fertilizerProductsRef;
+   private final DatabaseReference cropCatalogRef;
    private final DatabaseReference journalEventsRef;
    private final DatabaseReference seasonOutcomesRef;
    private final DatabaseReference journalPhotoMetadataRef;
@@ -82,6 +88,7 @@ public class FirebaseRepository {
    private final DatabaseReference notificationDeletionsRef;
    private final DatabaseReference notificationSettingsRef;
    private final DatabaseReference pushTokensRef;
+   private final SeasonRepository seasonRepository = new SeasonRepository();
 
    public FirebaseRepository() {
       DatabaseReference zonesRef = this.deviceRef.child("zones");
@@ -102,6 +109,7 @@ public class FirebaseRepository {
       this.predictionValidationRef = this.deviceRef.child("ai").child("prediction_validation");
       this.zonesRef = zonesRef;
       this.fertilizerProductsRef = this.deviceRef.child("fertilizer_products");
+      this.cropCatalogRef = this.deviceRef.child("crop_catalog");
       this.journalEventsRef = this.deviceRef.child("garden_journal").child("events");
       this.seasonOutcomesRef = this.deviceRef.child("garden_journal").child("season_outcomes");
       this.journalPhotoMetadataRef = this.deviceRef.child("garden_journal").child("photo_metadata");
@@ -219,6 +227,43 @@ public class FirebaseRepository {
       updates.put("sensor_calibration_dry_raw", sensorDryRaw);
       updates.put("sensor_calibration_wet_raw", sensorWetRaw);
       updates.put("sensor_config_updated_at_epoch", ServerValue.TIMESTAMP);
+      return this.zonesRef.child(zoneId).updateChildren(updates);
+   }
+
+   public Task<Void> setZoneIrrigationEnabledForCalibration(
+         String zoneId,
+         boolean enabled
+   ) {
+      if (!ZoneCapacityPolicy.isValidZoneId(zoneId)) {
+         return Tasks.forException(
+               new IllegalArgumentException(ZoneCapacityPolicy.ERROR_INVALID_ZONE));
+      }
+      Map<String, Object> updates = new HashMap<>();
+      updates.put("irrigation_enabled", enabled);
+      updates.put("sensor_calibration_session_updated_at_epoch", ServerValue.TIMESTAMP);
+      return this.zonesRef.child(zoneId).updateChildren(updates);
+   }
+
+   public Task<Void> completeSensorCalibration(
+         String zoneId,
+         int dryRaw,
+         int wetRaw,
+         boolean restoreIrrigationEnabled
+   ) {
+      if (!ZoneCapacityPolicy.isValidZoneId(zoneId)) {
+         return Tasks.forException(
+               new IllegalArgumentException(ZoneCapacityPolicy.ERROR_INVALID_ZONE));
+      }
+      if (dryRaw <= wetRaw || dryRaw - wetRaw < 500) {
+         return Tasks.forException(
+               new IllegalArgumentException("SENSOR_CALIBRATION_INVALID"));
+      }
+      Map<String, Object> updates = new HashMap<>();
+      updates.put("sensor_calibration_dry_raw", dryRaw);
+      updates.put("sensor_calibration_wet_raw", wetRaw);
+      updates.put("sensor_config_updated_at_epoch", ServerValue.TIMESTAMP);
+      updates.put("sensor_calibration_updated_at_epoch", ServerValue.TIMESTAMP);
+      updates.put("irrigation_enabled", restoreIrrigationEnabled);
       return this.zonesRef.child(zoneId).updateChildren(updates);
    }
 
@@ -420,29 +465,152 @@ public class FirebaseRepository {
       return this.zonesRef.child(zoneId).updateChildren(updates);
    }
 
+   /** Saves a zone only after validating the shared eight-channel hardware map. */
    public Task<Void> createGardenZone(GardenZone zone) {
-      if (zone.getZone_id() != null && !zone.getZone_id().isBlank()) {
+      return saveGardenZone(zone);
+   }
+
+   public Task<Void> saveGardenZone(GardenZone zone) {
+      return this.zonesRef.get().continueWithTask(task -> {
+         if (!task.isSuccessful()) {
+            Exception error = task.getException();
+            return Tasks.forException(error == null
+                  ? new IllegalStateException("ZONE_READ_FAILED") : error);
+         }
+         DataSnapshot zonesSnapshot = task.getResult();
+         List<GardenZone> zones = new ArrayList<>();
+         for (DataSnapshot child : zonesSnapshot.getChildren()) {
+            GardenZone existing = child.getValue(GardenZone.class);
+            if (existing == null) continue;
+            if (existing.getZone_id() == null || existing.getZone_id().isBlank()) {
+               existing.setZone_id(child.getKey());
+            }
+            zones.add(existing);
+         }
+         ZoneCapacityPolicy.validateCandidate(zone, zones);
+
+         String zoneId = zone.getZone_id();
+         GardenZone storedZone = zonesSnapshot.child(zoneId).getValue(GardenZone.class);
+         boolean initializeWithoutSeason = storedZone == null
+               || ZoneCapacityPolicy.isInactive(storedZone);
+         String sensorId = clean(zone.getSensor_id());
+         String valveId = clean(zone.getValve_id());
+          String previousSensorId = storedZone == null
+                ? "" : clean(storedZone.getSensor_id());
+          boolean sensorChanged = !sensorId.equalsIgnoreCase(previousSensorId);
+         boolean hardwareReady = !sensorId.isEmpty() && !valveId.isEmpty();
+         int sensorDryRaw = zone.getSensor_calibration_dry_raw();
+         int sensorWetRaw = zone.getSensor_calibration_wet_raw();
+         if (sensorDryRaw <= sensorWetRaw) {
+            sensorDryRaw = 12650;
+            sensorWetRaw = 505;
+         }
          long now = System.currentTimeMillis() / 1000L;
-         Map<String, Object> updates = new HashMap();
-         String path = "zones/" + zone.getZone_id() + "/";
-         updates.put(path + "zone_id", zone.getZone_id());
-         updates.put(path + "name", zone.getName());
-         updates.put(path + "plant_type", zone.getPlant_type());
-         updates.put(path + "emoji", zone.getEmoji());
-         updates.put(path + "sensor_id", zone.getSensor_id());
-         updates.put(path + "valve_id", zone.getValve_id());
-         updates.put(path + "enabled", zone.isEnabled());
-         updates.put(path + "irrigation_enabled", zone.isIrrigation_enabled());
+         long createdAt = snapshotLong(zonesSnapshot.child(zoneId).child("created_at_epoch"));
+         if (createdAt <= 0L) createdAt = now;
+         String path = "zones/" + zoneId + "/";
+         Map<String, Object> updates = new HashMap<>();
+         updates.put(path + "zone_id", zoneId);
+         updates.put(path + "name", clean(zone.getName()));
+         updates.put(path + "plant_type", clean(zone.getPlant_type()));
+         updates.put(path + "emoji", clean(zone.getEmoji()));
+         updates.put(path + "sensor_id", sensorId);
+         updates.put(path + "sensor_enabled", !sensorId.isEmpty());
+          updates.put(path + "sensor_config_updated_at_epoch", now);
+         updates.put(path + "sensor_calibration_dry_raw", sensorDryRaw);
+         updates.put(path + "sensor_calibration_wet_raw", sensorWetRaw);
+         updates.put(path + "valve_id", valveId);
+         updates.put(path + "valve_type", valveId.isEmpty() ? "" : "SOLENOID");
+         updates.put(path + "valve_mode", valveId.isEmpty() ? "SIMULATION" : "PHYSICAL");
+         updates.put(path + "enabled", true);
+         updates.put(path + "irrigation_enabled",
+               hardwareReady && zone.isIrrigation_enabled());
          updates.put(path + "moisture_limit", zone.getMoisture_limit());
          updates.put(path + "pump_duration", zone.getPump_duration());
          updates.put(path + "cooldown_seconds", zone.getCooldown_seconds());
          updates.put(path + "restart_delta", zone.getRestart_delta());
          updates.put(path + "order", zone.getOrder());
+         updates.put(path + "lifecycle_status", hardwareReady
+               ? ZoneCapacityPolicy.LIFECYCLE_ACTIVE
+               : ZoneCapacityPolicy.LIFECYCLE_HARDWARE_PENDING);
+         updates.put(path + "created_at_epoch", createdAt);
+         updates.put(path + "archived_at_epoch", 0L);
          updates.put(path + "updated_at_epoch", now);
+          if (sensorChanged) {
+             updates.put(path + "moisture", 0);
+             updates.put(path + "raw", 0);
+             updates.put(path + "voltage", 0.0d);
+             updates.put(path + "rssi", 0);
+             updates.put(path + "firmware", "");
+             updates.put(path + "uptime_seconds", 0L);
+             updates.put(path + "updated_at", "");
+             updates.put(path + "updated_at_epoch", 0L);
+          }
+         if (initializeWithoutSeason) {
+            updates.put(path + "season/active_season_id", "");
+            updates.put(path + "season/status", SeasonStatus.CLOSED);
+            updates.put(path + "season/label", "");
+            updates.put(path + "season/started_at_epoch", 0L);
+            updates.put(path + "season/ended_at_epoch", 0L);
+            updates.put(path + "season/include_legacy_records", false);
+            updates.put(path + "season/updated_at_epoch", now);
+            updates.put(path + "ai/season_id", "");
+            updates.put(path + "ai/season_status", SeasonStatus.CLOSED);
+            updates.put(path + "ai/season_started_at_epoch", 0L);
+            updates.put(path + "ai/season_closed_at_epoch", 0L);
+         }
          return this.deviceRef.updateChildren(updates);
-      } else {
-         return Tasks.forException(new IllegalArgumentException("Bölge kimliği gerekli."));
+      });
+   }
+
+   /** Archives the configuration while preserving history and completed seasons. */
+   public Task<Void> deactivateGardenZone(String zoneId) {
+      if (!ZoneCapacityPolicy.isValidZoneId(zoneId)) {
+         return Tasks.forException(
+               new IllegalArgumentException(ZoneCapacityPolicy.ERROR_INVALID_ZONE));
       }
+      return this.deviceRef.get().continueWithTask(task -> {
+         if (!task.isSuccessful()) {
+            Exception error = task.getException();
+            return Tasks.forException(error == null
+                  ? new IllegalStateException("ZONE_READ_FAILED") : error);
+         }
+         DataSnapshot root = task.getResult();
+         DataSnapshot zone = root.child("zones").child(zoneId);
+         if (!zone.exists()) {
+            return Tasks.forException(
+                  new IllegalStateException(ZoneCapacityPolicy.ERROR_ZONE_NOT_FOUND));
+         }
+         if (ZoneCapacityPolicy.hasProtectedSeason(
+               snapshotString(zone.child("season").child("status")),
+               snapshotString(zone.child("season").child("active_season_id")))) {
+            return Tasks.forException(
+                  new IllegalStateException(ZoneCapacityPolicy.ERROR_ACTIVE_SEASON));
+         }
+         if (isIrrigationBusySnapshot(root)) {
+            return Tasks.forException(
+                  new IllegalStateException(ZoneCapacityPolicy.ERROR_IRRIGATION_BUSY));
+         }
+         long now = System.currentTimeMillis() / 1000L;
+         String path = "zones/" + zoneId + "/";
+         Map<String, Object> updates = new HashMap<>();
+         updates.put(path + "enabled", false);
+         updates.put(path + "irrigation_enabled", false);
+         updates.put(path + "sensor_enabled", false);
+         updates.put(path + "previous_sensor_id", snapshotString(zone.child("sensor_id")));
+         updates.put(path + "previous_valve_id", snapshotString(zone.child("valve_id")));
+         updates.put(path + "sensor_id", "");
+         updates.put(path + "valve_id", "");
+         updates.put(path + "valve_type", "");
+         updates.put(path + "valve_mode", "SIMULATION");
+         updates.put(path + "lifecycle_status", ZoneCapacityPolicy.LIFECYCLE_INACTIVE);
+         updates.put(path + "archived_at_epoch", now);
+         updates.put(path + "updated_at_epoch", now);
+         updates.put(path + "irrigation_status/watering_active", false);
+         updates.put(path + "irrigation_status/selected_for_watering", false);
+         updates.put(path + "irrigation_status/queue_position", 0);
+         return this.deviceRef.updateChildren(updates);
+      });
    }
 
    public Task<Void> updateFertilizationWaterAnalysis(String zoneId, double ph, double ecMs) {
@@ -510,6 +678,50 @@ public class FirebaseRepository {
       return liveData;
    }
 
+   public LiveData<List<CropCatalogItem>> observeCropCatalogItems() {
+      final MutableLiveData<List<CropCatalogItem>> liveData = new MutableLiveData<>();
+      this.cropCatalogRef.addValueEventListener(new ValueEventListener() {
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            List<CropCatalogItem> items = new ArrayList<>();
+            for (DataSnapshot child : snapshot.getChildren()) {
+               CropCatalogItem item = child.getValue(CropCatalogItem.class);
+               if (item == null) continue;
+               if (item.getCrop_id() == null || item.getCrop_id().isBlank()) {
+                  item.setCrop_id(child.getKey());
+               }
+               items.add(item);
+            }
+            liveData.setValue(items);
+         }
+
+         public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, "Crop catalog read failed", error.toException());
+         }
+      });
+      return liveData;
+   }
+
+   public Task<Void> saveCropCatalogItem(CropCatalogItem item) {
+      if (item == null || item.getCrop_id() == null || item.getCrop_id().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Crop catalog item is invalid"));
+      }
+      item.setSource(CropCatalogItem.SOURCE_USER);
+      item.setEnabled(true);
+      long now = System.currentTimeMillis() / 1000L;
+      if (item.getCreated_at_epoch() <= 0L) item.setCreated_at_epoch(now);
+      item.setUpdated_at_epoch(now);
+      return this.cropCatalogRef.child(item.getCrop_id()).setValue(item);
+   }
+
+   public Task<Void> deactivateCropCatalogItem(String cropId) {
+      if (cropId == null || cropId.isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Crop id is required"));
+      }
+      Map<String, Object> updates = new HashMap<>();
+      updates.put("enabled", false);
+      updates.put("updated_at_epoch", System.currentTimeMillis() / 1000L);
+      return this.cropCatalogRef.child(cropId).updateChildren(updates);
+   }
    public LiveData<List<FertilizerRecommendation>> observeFertilizerRecommendations() {
       final MutableLiveData<List<FertilizerRecommendation>> liveData = new MutableLiveData();
       this.deviceRef.child("fertilization").child("recommendations").addValueEventListener(new ValueEventListener() {
@@ -828,11 +1040,13 @@ public class FirebaseRepository {
    }
 
    private void writeFertilizerApplication(MutableData root, String applicationId, BulkFertilizerApplication application, FertilizerProduct product, String appliedUnit, boolean stockDeducted, long recordedAt) {
+      String seasonId = ensureActiveSeasonForWrite(root, application.zoneId, recordedAt);
       String type = normalizedApplicationType(application.applicationType);
       int intervalDays = Math.max(0, product.getMinimum_interval_days());
       long nextAt = intervalDays == 0 ? 0L
             : application.appliedAt + (long)intervalDays * 86400L;
       MutableData history = root.child("fertilizer_history").child(applicationId);
+      history.child("season_id").setValue(seasonId);
       history.child("application_id").setValue(applicationId);
       history.child("zone_id").setValue(application.zoneId);
       history.child("zone_name").setValue(application.zoneName);
@@ -882,12 +1096,70 @@ public class FirebaseRepository {
       }
    }
 
+   private String ensureActiveSeasonForWrite(MutableData root, String zoneId, long now) {
+      if (zoneId == null || zoneId.isBlank()) {
+         throw new IllegalStateException("Bölge bilgisi gerekli.");
+      }
+      MutableData zone = root.child("zones").child(zoneId);
+      MutableData state = zone.child("season");
+      String status = stringValue(state.child("status"));
+      String existingId = stringValue(state.child("active_season_id"));
+      if (SeasonStatus.isActive(status) && !existingId.isBlank()) {
+         return existingId;
+      }
+      if (SeasonStatus.isClosed(status)) {
+         throw new IllegalStateException("Bu bölgenin sezonu kapalı. Önce yeni sezon başlatın.");
+      }
+
+      String seasonId = SeasonScope.createSeasonId(zoneId, now);
+      String zoneName = stringValue(zone.child("name"));
+      String plantType = stringValue(zone.child("plant_type"));
+      String plantingDate = stringValue(zone.child("fertilization").child("planting_date"));
+      String year = new java.text.SimpleDateFormat("yyyy", Locale.getDefault())
+            .format(new java.util.Date(now * 1000L));
+      String label = year + " " + zoneName;
+
+      state.child("active_season_id").setValue(seasonId);
+      state.child("status").setValue(SeasonStatus.ACTIVE);
+      state.child("label").setValue(label);
+      state.child("started_at_epoch").setValue(now);
+      state.child("ended_at_epoch").setValue(0L);
+      state.child("include_legacy_records").setValue(true);
+      state.child("updated_at_epoch").setValue(now);
+
+      MutableData manifest = root.child("garden_journal").child("seasons").child(seasonId);
+      manifest.child("season_id").setValue(seasonId);
+      manifest.child("zone_id").setValue(zoneId);
+      manifest.child("zone_name").setValue(zoneName);
+      manifest.child("plant_type").setValue(plantType);
+      manifest.child("label").setValue(label);
+      manifest.child("status").setValue(SeasonStatus.ACTIVE);
+      manifest.child("planting_date").setValue(plantingDate);
+      manifest.child("started_at_epoch").setValue(now);
+      manifest.child("ended_at_epoch").setValue(0L);
+      manifest.child("includes_legacy_records").setValue(true);
+      manifest.child("created_at_epoch").setValue(now);
+      manifest.child("updated_at_epoch").setValue(now);
+      zone.child("ai").child("season_id").setValue(seasonId);
+      return seasonId;
+   }
+
    private void recalculateApplicationSchedule(MutableData root, String zoneId, String type, long recordedAt) {
+      MutableData seasonState = root.child("zones").child(zoneId).child("season");
+      String activeSeasonId = stringValue(seasonState.child("active_season_id"));
+      boolean includeLegacy = booleanValue(seasonState.child("include_legacy_records"));
       MutableData latest = null;
       long latestAt = Long.MIN_VALUE;
       for (MutableData candidate : root.child("fertilizer_history").getChildren()) {
          if (!zoneId.equals(stringValue(candidate.child("zone_id")))) {
             continue;
+         }
+         if (!activeSeasonId.isBlank()) {
+            String candidateSeasonId = stringValue(candidate.child("season_id"));
+            if ((candidateSeasonId.isBlank() && !includeLegacy)
+                  || (!candidateSeasonId.isBlank() && !activeSeasonId.equals(candidateSeasonId))) {
+               continue;
+            }
          }
          if (!type.equals(normalizedApplicationType(stringValue(candidate.child("application_type"))))) {
             continue;
@@ -1006,6 +1278,45 @@ public class FirebaseRepository {
             ? "NUTRITION"
             : value.trim().toUpperCase(Locale.ROOT);
    }
+
+   private static boolean isIrrigationBusySnapshot(DataSnapshot root) {
+      if (snapshotBoolean(root.child("status").child("relay"))
+            || snapshotBoolean(root.child("status").child("valve_open"))
+            || snapshotBoolean(root.child("commands").child("relay"))
+            || snapshotBoolean(root.child("irrigation_hardware").child("valve_open"))
+            || root.child("irrigation_runtime").child("pending_waterings").hasChildren()) {
+         return true;
+      }
+      for (DataSnapshot zone : root.child("zones").getChildren()) {
+         DataSnapshot status = zone.child("irrigation_status");
+         if (snapshotBoolean(status.child("watering_active"))
+               || snapshotBoolean(status.child("selected_for_watering"))
+               || snapshotLong(status.child("queue_position")) > 0L) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   private static boolean snapshotBoolean(DataSnapshot data) {
+      Boolean value = data.getValue(Boolean.class);
+      return Boolean.TRUE.equals(value);
+   }
+
+   private static long snapshotLong(DataSnapshot data) {
+      Object value = data.getValue();
+      return value instanceof Number ? ((Number)value).longValue() : 0L;
+   }
+
+   private static String snapshotString(DataSnapshot data) {
+      Object value = data.getValue();
+      return value == null ? "" : String.valueOf(value).trim();
+   }
+
+   private static String clean(String value) {
+      return value == null ? "" : value.trim();
+   }
+
 
    private static String stringValue(MutableData data) {
       Object value = data.getValue();
@@ -1202,7 +1513,17 @@ public class FirebaseRepository {
    }
 
    public Task<Void> saveGardenEvent(GardenEvent event) {
-      return event != null && !event.getId().isBlank() ? this.journalEventsRef.child(event.getId()).setValue(event) : Tasks.forException(new IllegalArgumentException("Journal event id is required"));
+      if (event == null || event.getId().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Journal event id is required"));
+      }
+      if (event.getSeason_id() != null && !event.getSeason_id().isBlank()) {
+         return this.journalEventsRef.child(event.getId()).setValue(event);
+      }
+      return seasonRepository.requireActiveSeasonId(event.getZone_id()).continueWithTask(task -> {
+         if (!task.isSuccessful()) return Tasks.forException(task.getException());
+         event.setSeason_id(task.getResult());
+         return this.journalEventsRef.child(event.getId()).setValue(event);
+      });
    }
 
    public Task<Void> deleteGardenEvent(String eventId) {
@@ -1210,24 +1531,47 @@ public class FirebaseRepository {
    }
 
    public Task<Void> saveSeasonOutcome(SeasonOutcome outcome) {
-      return outcome != null && !outcome.getId().isBlank() ? this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome) : Tasks.forException(new IllegalArgumentException("Season outcome id is required"));
+      if (outcome == null || outcome.getId().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Season outcome id is required"));
+      }
+      if (!outcome.getSeason_id().isBlank()) {
+         return this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome);
+      }
+      return seasonRepository.requireActiveSeasonId(outcome.getZone_id()).continueWithTask(task -> {
+         if (!task.isSuccessful()) return Tasks.forException(task.getException());
+         outcome.setSeason_id(task.getResult());
+         return this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome);
+      });
    }
 
    public Task<Void> saveGardenPhotoMetadata(GardenPhoto photo) {
       if (photo != null && photo.getId() != null && !photo.getId().isBlank()) {
-         Map<String, Object> values = new HashMap();
-         values.put("id", photo.getId());
-         values.put("zone_id", photo.getZone_id());
-         values.put("note", photo.getNote() == null ? "" : photo.getNote());
-         values.put("related_application_id", photo.getRelated_application_id() == null ? "" : photo.getRelated_application_id());
-         values.put("analysis_title", photo.getAnalysis_title() == null ? "" : photo.getAnalysis_title());
-         values.put("analysis_meta", photo.getAnalysis_meta() == null ? "" : photo.getAnalysis_meta());
-         values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
-         values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
-         values.put("captured_at_epoch", photo.getCaptured_at_epoch());
-         values.put("photo_kept_on_owner_phone", true);
-         values.put("metadata_updated_at_epoch", System.currentTimeMillis() / 1000L);
-         return this.journalPhotoMetadataRef.child(photo.getId()).setValue(values);
+         Task<String> seasonTask;
+         if (photo.getSeason_id() != null && !photo.getSeason_id().isBlank()) {
+            seasonTask = Tasks.forResult(photo.getSeason_id());
+         } else {
+            seasonTask = seasonRepository.requireActiveSeasonId(photo.getZone_id());
+         }
+         return seasonTask.continueWithTask(task -> {
+            if (!task.isSuccessful()) return Tasks.forException(task.getException());
+            if (photo.getSeason_id() == null || photo.getSeason_id().isBlank()) {
+               photo.setSeason_id(task.getResult());
+            }
+            Map<String, Object> values = new HashMap();
+            values.put("id", photo.getId());
+            values.put("zone_id", photo.getZone_id());
+            values.put("season_id", photo.getSeason_id());
+            values.put("note", photo.getNote() == null ? "" : photo.getNote());
+            values.put("related_application_id", photo.getRelated_application_id() == null ? "" : photo.getRelated_application_id());
+            values.put("analysis_title", photo.getAnalysis_title() == null ? "" : photo.getAnalysis_title());
+            values.put("analysis_meta", photo.getAnalysis_meta() == null ? "" : photo.getAnalysis_meta());
+            values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
+            values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
+            values.put("captured_at_epoch", photo.getCaptured_at_epoch());
+            values.put("photo_kept_on_owner_phone", true);
+            values.put("metadata_updated_at_epoch", System.currentTimeMillis() / 1000L);
+            return this.journalPhotoMetadataRef.child(photo.getId()).setValue(values);
+         });
       } else {
          return Tasks.forException(new IllegalArgumentException("Photo id is required"));
       }
@@ -1238,7 +1582,17 @@ public class FirebaseRepository {
    }
 
    public Task<Void> saveGardenNotification(GardenNotification notification) {
-      return notification != null && !notification.getId().isBlank() ? this.notificationsRef.child(notification.getId()).setValue(notification) : Tasks.forException(new IllegalArgumentException("Notification id is required"));
+      if (notification == null || notification.getId().isBlank()) {
+         return Tasks.forException(new IllegalArgumentException("Notification id is required"));
+      }
+      if (notification.getZone_id().isBlank() || !notification.getSeason_id().isBlank()) {
+         return this.notificationsRef.child(notification.getId()).setValue(notification);
+      }
+      return seasonRepository.requireActiveSeasonId(notification.getZone_id()).continueWithTask(task -> {
+         if (!task.isSuccessful()) return Tasks.forException(task.getException());
+         notification.setSeason_id(task.getResult());
+         return this.notificationsRef.child(notification.getId()).setValue(notification);
+      });
    }
 
    public Task<Void> deleteGardenNotificationsWithTombstones(

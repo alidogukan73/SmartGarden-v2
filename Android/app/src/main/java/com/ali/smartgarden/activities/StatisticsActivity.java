@@ -12,10 +12,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Statistics;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.viewmodels.StatisticsViewModel;
+import com.ali.smartgarden.zones.ZoneChipRenderer;
 import com.ali.smartgarden.viewmodels.WateringHistoryViewModel;
 
 import com.google.android.material.card.MaterialCardView;
@@ -598,26 +600,26 @@ public class StatisticsActivity extends AppCompatActivity {
             case "completed":
             case "duration_completed":
             case "watering_completed":
-                return "Başarıyla tamamlandı";
+                return getString(R.string.history_reason_completed);
 
             case "manual_stop":
             case "manual":
             case "user_stopped":
-                return "Kullanıcı tarafından durduruldu";
+                return getString(R.string.history_reason_manual_stop);
 
             case "moisture_reached":
             case "target_reached":
-                return "Hedef nem seviyesine ulaşıldı";
+                return getString(R.string.history_reason_target_reached);
 
             case "system_disabled":
-                return "Sistem devre dışı bırakıldı";
+                return getString(R.string.history_reason_system_disabled);
 
             case "device_offline":
-                return "Cihaz bağlantısı kesildi";
+                return getString(R.string.history_reason_device_offline);
 
             case "safety_timeout":
             case "timeout":
-                return "Güvenlik süresi doldu";
+                return getString(R.string.history_reason_timeout);
 
             default:
                 return stopReason
@@ -689,15 +691,18 @@ public class StatisticsActivity extends AppCompatActivity {
                 view -> finish()
         );
 
-        chipGroupStatisticZones.setOnCheckedStateChangeListener(
-                (group, checkedIds) -> {
-                    int checkedId = checkedIds.isEmpty()
-                            ? R.id.chipStatisticZoneAll
-                            : checkedIds.get(0);
-                    selectedZoneId =
-                            zoneIdForChip(checkedId);
-                    renderSelectedStatistics();
-                }
+        new FirebaseRepository().observeGardenZones().observe(this, zones ->
+                ZoneChipRenderer.render(
+                        this,
+                        chipGroupStatisticZones,
+                        zones,
+                        selectedZoneId,
+                        R.string.history_zone_all,
+                        zoneId -> {
+                            selectedZoneId = zoneId;
+                            renderSelectedStatistics();
+                        }
+                )
         );
     }
 
@@ -808,23 +813,4 @@ public class StatisticsActivity extends AppCompatActivity {
     }
 
 
-    private String zoneIdForChip(int chipId) {
-
-        if (chipId == R.id.chipStatisticZone001) {
-            return "zone-001";
-        }
-        if (chipId == R.id.chipStatisticZone002) {
-            return "zone-002";
-        }
-        if (chipId == R.id.chipStatisticZone003) {
-            return "zone-003";
-        }
-        if (chipId == R.id.chipStatisticZone004) {
-            return "zone-004";
-        }
-        if (chipId == R.id.chipStatisticZone005) {
-            return "zone-005";
-        }
-        return "";
-    }
 }

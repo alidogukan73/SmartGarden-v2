@@ -58,36 +58,6 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:text="@string/history_zone_all" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFertilizerTomato"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/history_zone_tomato" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFertilizerPepper"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/history_zone_pepper" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFertilizerCucumber"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/history_zone_cucumber" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFertilizerEggplant"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/history_zone_eggplant" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFertilizerBean"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/history_zone_bean" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
     <com.google.android.material.card.MaterialCardView
@@ -177,7 +147,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="AI sonuç değerlendirmesi"
+                android:text="@string/fertilizer_result_assessment"
                 android:textColor="@color/textPrimary"
                 android:textStyle="bold" />
             <TextView
@@ -185,7 +155,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Uygulama sonuçları kaydedildikçe bu bölüm eğilimleri gösterir."
+                android:text="@string/fertilizer_result_assessment_detail"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

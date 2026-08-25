@@ -26,6 +26,7 @@ public class WateringHistory {
     private String firmware;
     private String zoneId;
     private String sensorId;
+    private String seasonId;
 
     /**
      * Firebase Realtime Database için boş constructor zorunludur.
@@ -39,6 +40,7 @@ public class WateringHistory {
         recordId = "";
         zoneId = "";
         sensorId = "";
+        seasonId = "";
     }
 
     /**
@@ -201,5 +203,15 @@ public class WateringHistory {
     @PropertyName("sensor_id")
     public void setSensorId(String sensorId) {
         this.sensorId = sensorId;
+    }
+
+    @PropertyName("season_id")
+    public String getSeasonId() {
+        return seasonId;
+    }
+
+    @PropertyName("season_id")
+    public void setSeasonId(String seasonId) {
+        this.seasonId = seasonId;
     }
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zone_management_title">Bölge Yönetimi</string>
+    <string name="zone_management_subtitle">Ürünleri, sensörleri ve vanaları güvenle eşleştirin</string>
+    <string name="zone_management_capacity_initial">Bölge kapasitesi</string>
+    <string name="zone_management_capacity">%1$d / %2$d bölge kullanımda</string>
+    <string name="zone_management_info">Sistem en fazla 8 bölgeyi destekler. Her etkin bölgede sensör ve vana yalnız bir kez kullanılabilir. Donanımı eksik bölge izlenebilir ancak otomatik sulama yapmaz.</string>
+    <string name="zone_management_add">Bölge ekle</string>
+    <string name="zone_management_open_catalog">Ürün kataloğu</string>
+    <string name="zone_management_regions_heading">Bölgeler ve donanım kanalları</string>
+    <string name="zone_management_capacity_full">8 bölgenin tamamı kullanımda. Yeni bölge eklemek için önce bir bölgeyi kullanımdan kaldırın.</string>
+    <string name="zone_management_empty_slot_title">Bölge %1$d · Boş yuva</string>
+    <string name="zone_management_empty_slot_detail">Bu kanala ürün, sensör ve vana atayabilirsiniz.</string>
+    <string name="zone_management_status_available">KULLANILABİLİR</string>
+    <string name="zone_management_status_active">ETKİN</string>
+    <string name="zone_management_status_hardware_pending">DONANIM BEKLİYOR</string>
+    <string name="zone_management_status_inactive">KULLANIM DIŞI</string>
+    <string name="zone_management_mapping">Sensör: %1$s · Vana: %2$s</string>
+    <string name="zone_management_channel">Kanal kimliği: %1$s</string>
+    <string name="zone_management_add_this">Bu bölgeyi ekle</string>
+    <string name="zone_management_reuse">Yeniden kullan</string>
+    <string name="zone_management_edit">Düzenle</string>
+    <string name="zone_management_deactivate">Kullanımdan kaldır</string>
+    <string name="zone_management_product">Yetiştirilecek ürün</string>
+    <string name="zone_management_name">Bölge adı</string>
+    <string name="zone_management_name_hint">Ör. Arka bahçe</string>
+    <string name="zone_management_sensor">Toprak nem sensörü</string>
+    <string name="zone_management_valve">Sulama vanası</string>
+    <string name="zone_management_auto_irrigation">Otomatik sulamaya izin ver</string>
+    <string name="zone_management_hardware_note">Sensör veya vana seçmezseniz bölge “Donanım bekliyor” olarak kaydedilir ve otomatik sulama kapalı kalır.</string>
+    <string name="zone_management_add_dialog">Yeni bölge</string>
+    <string name="zone_management_edit_dialog">Bölgeyi düzenle</string>
+    <string name="zone_management_dialog_channel">%1$s donanım kanalını yapılandırıyorsunuz.</string>
+    <string name="zone_management_unassigned">Atanmadı</string>
+    <string name="zone_management_saved">Bölge kaydedildi ve donanım eşlemesi etkinleştirildi.</string>
+    <string name="zone_management_saved_pending">Bölge kaydedildi. Donanım tamamlanana kadar otomatik sulama kapalıdır.</string>
+    <string name="zone_management_deactivate_title">Bölge kullanımdan kaldırılsın mı?</string>
+    <string name="zone_management_deactivate_message">%1$s görünür listelerden kaldırılır; sezon ve geçmiş kayıtları korunur. Aktif sezon veya sulama varsa işlem engellenir.</string>
+    <string name="zone_management_deactivated">Bölge kullanımdan kaldırıldı. Geçmiş kayıtları korunuyor.</string>
+    <string name="zone_management_error_sensor_used">Bu sensör başka bir etkin bölgeye atanmış.</string>
+    <string name="zone_management_error_valve_used">Bu vana başka bir etkin bölgeye atanmış.</string>
+    <string name="zone_management_error_irrigation_busy">Sulama, pompa, vana veya sulama kuyruğu çalışırken bölge kaldırılamaz.</string>
+    <string name="zone_management_error_active_season">Bu bölgenin aktif sezonunu önce Sezon Yönetimi ekranından kapatın.</string>
+    <string name="zone_management_error_invalid_channel">Yalnız zone-001…008, soil-001…008 ve valve-001…008 kanalları kullanılabilir.</string>
+    <string name="zone_management_error_save">İşlem tamamlanamadı: %1$s</string>
+    <string name="zone_management_default_name">Bölge %1$d</string>
+</resources>

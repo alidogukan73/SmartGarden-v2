@@ -2,9 +2,11 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="92dp"
     android:layout_height="136dp"
     android:layout_marginEnd="9dp"
+    tools:ignore="UnusedResources"
     app:cardCornerRadius="10dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/border"
@@ -17,7 +19,7 @@
             android:id="@+id/imgGardenPhotoThumb"
             android:layout_width="match_parent"
             android:layout_height="88dp"
-            android:contentDescription="Bahçe fotoğrafı"
+            android:contentDescription="@string/garden_photo_content_description"
             android:scaleType="centerCrop" />
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,8 +35,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="@color/textPrimary"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:ignore="NestedWeights,SmallSp" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenGardenPhoto"
                 style="@style/Widget.Material3.Button.TextButton"
@@ -44,7 +47,7 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:padding="0dp"
-                android:text="⋮"
+                android:text="@string/symbol_more_options"
                 android:textColor="@color/textPrimary"
                 android:textSize="18sp" />
         </LinearLayout>

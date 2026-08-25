@@ -4,6 +4,7 @@ import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Produces the short, advisory-only recommendation shown on the home screen.
@@ -129,13 +130,13 @@ public final class PlantAssistantHomeRecommendation {
         if (signal == null || signal.getTitle().isBlank() || !signal.isRecent(nowEpoch)) return false;
         long age = nowEpoch - signal.getCreatedAtEpoch();
         if (age > RECENT_ANALYSIS_SECONDS) return false;
-        String urgency = signal.getUrgency().trim().toLowerCase();
+        String urgency = signal.getUrgency().trim().toLowerCase(Locale.ROOT);
         return urgency.equals("orta") || urgency.equals("yüksek") || urgency.equals("acil");
     }
 
     private static boolean isHighUrgency(PlantAssistantHealthSignal signal) {
         if (signal == null) return false;
-        String urgency = signal.getUrgency().trim().toLowerCase();
+        String urgency = signal.getUrgency().trim().toLowerCase(Locale.ROOT);
         return urgency.equals("yüksek") || urgency.equals("acil");
     }
 

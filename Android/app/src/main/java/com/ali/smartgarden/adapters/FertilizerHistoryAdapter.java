@@ -135,7 +135,7 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
             );
             holder.note.setVisibility(View.VISIBLE);
         }
-        String outcome = outcomeLabel(value);
+        String outcome = outcomeLabel(holder.itemView.getContext(), value);
         if (outcome.isEmpty()) {
             int evaluated = FertilizerOutcomeFollowUpPolicy.evaluatedCount(
                     values, value.getZone_id(), value.getProduct_id()
@@ -209,19 +209,20 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
         return R.color.info;
     }
 
-    private static String outcomeLabel(FertilizerApplication value) {
+    private static String outcomeLabel(android.content.Context context, FertilizerApplication value) {
         String status = value.getOutcome_status();
         if (status == null || status.isBlank()) {
             return "";
         }
-        String label = "IMPROVED".equals(status)
-                ? "Sonuç: İyileşme gözlendi"
+        String outcome = "IMPROVED".equals(status)
+                ? context.getString(R.string.runtime_outcome_improved)
                 : "UNCHANGED".equals(status)
-                ? "Sonuç: Belirgin değişiklik yok"
-                : "Sonuç: Sorun gözlendi";
+                ? context.getString(R.string.runtime_outcome_unchanged)
+                : context.getString(R.string.runtime_outcome_issue);
+        String label = context.getString(R.string.runtime_outcome_label, outcome);
         if (value.getOutcome_vigor_score() > 0) {
-            label += " · Canlılık "
-                    + value.getOutcome_vigor_score() + "/5";
+            label += context.getString(R.string.runtime_vitality_suffix,
+                    value.getOutcome_vigor_score());
         }
         return label;
     }

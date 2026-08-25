@@ -43,7 +43,10 @@ def main() -> None:
             },
         }
     )
-    assert publisher.calls == [("soil-002", True, 12650, 505)]
+    assert len(publisher.calls) == 8
+    assert publisher.calls[0] == ("soil-001", False, 12650, 505)
+    assert publisher.calls[1] == ("soil-002", True, 12650, 505)
+    assert publisher.calls[-1] == ("soil-008", False, 12650, 505)
 
     service._publish_saved_sensor_configs(
         {
@@ -54,7 +57,7 @@ def main() -> None:
             },
         }
     )
-    assert len(publisher.calls) == 1
+    assert len(publisher.calls) == 8
 
     service._publish_saved_sensor_configs(
         {
@@ -66,6 +69,22 @@ def main() -> None:
         }
     )
     assert publisher.calls[-1] == ("soil-002", False, 12000, 600)
+
+    legacy_service = make_service()
+    legacy_publisher = legacy_service._sensor_config_publisher
+    legacy_service._publish_saved_sensor_configs(
+        {
+            "soil-005": {
+                "sensor_enabled": True,
+            },
+        }
+    )
+    assert legacy_publisher.calls[4] == ("soil-005", True, 12650, 505)
+
+    before_removal = len(legacy_publisher.calls)
+    legacy_service._publish_saved_sensor_configs({})
+    assert len(legacy_publisher.calls) == before_removal + 1
+    assert legacy_publisher.calls[-1] == ("soil-005", False, 12650, 505)
     print("[PASS] Firebase-to-ESP32 sensor configuration bridge.")
 
 

@@ -3,6 +3,7 @@ package com.ali.smartgarden.models;
 public class GardenPhoto {
     private String id;
     private String zone_id;
+    private String season_id;
     private String image_url;
     private String local_path;
     private String note;
@@ -19,6 +20,8 @@ public class GardenPhoto {
     public void setId(String id) { this.id = id; }
     public String getZone_id() { return zone_id; }
     public void setZone_id(String zoneId) { zone_id = zoneId; }
+    public String getSeason_id() { return season_id; }
+    public void setSeason_id(String value) { season_id = value; }
     public String getImage_url() { return image_url; }
     public void setImage_url(String imageUrl) { image_url = imageUrl; }
     public String getLocal_path() { return local_path; }

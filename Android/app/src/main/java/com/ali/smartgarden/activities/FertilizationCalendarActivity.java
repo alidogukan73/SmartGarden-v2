@@ -670,7 +670,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
 
     private String productName(FertilizerProduct product) {
         String name = product.getName();
-        return name == null || name.trim().isEmpty() ? "Adsız ürün" : name;
+        return name == null || name.trim().isEmpty() ? getString(R.string.runtime_product_unnamed) : name;
     }
 
     private void showBulkProductPicker() {
@@ -1023,7 +1023,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         layoutTodayAdvice.removeAllViews();
         if (currentZones.isEmpty()) {
             TextView empty = new TextView(this);
-            empty.setText("Bölge verileri hazırlanıyor.");
+            empty.setText(R.string.runtime_zone_data_preparing);
             layoutTodayAdvice.addView(empty);
             return;
         }
@@ -1160,7 +1160,19 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 || "ÖNCE SULAMA".equals(advice.getStatus())) {
             return getString(R.string.fertilizer_today_status_check);
         }
-        return advice.getStatus();
+        return localizedAdviceStatus(advice.getStatus());
+    }
+
+    private String localizedAdviceStatus(String status) {
+        if ("ORGANİK ÜRÜN GEREKİYOR".equals(status)) {
+            return getString(R.string.runtime_status_organic_required);
+        }
+        if ("HAZIRLIK GEREKİYOR".equals(status)) {
+            return getString(R.string.runtime_status_preparation_required);
+        }
+        if ("HENÜZ ERKEN".equals(status)) return getString(R.string.runtime_status_too_early);
+        if ("SEZON TAMAMLANDI".equals(status)) return getString(R.string.runtime_status_season_completed);
+        return status;
     }
 
     private int summaryStatusColor(FertilizerAdvice advice, boolean waiting) {

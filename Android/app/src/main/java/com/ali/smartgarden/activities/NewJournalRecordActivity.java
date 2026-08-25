@@ -21,6 +21,9 @@ import com.ali.smartgarden.journal.LocalGardenEventStore;
 import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.photos.LocalGardenPhotoStore;
+import com.ali.smartgarden.season.SeasonRepository;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,6 +38,7 @@ import java.util.UUID;
 /** Manual season record entry point for a single plant journal. */
 public final class NewJournalRecordActivity extends AppCompatActivity {
     public static final String EXTRA_ZONE_ID = "zone_id";
+    public static final String EXTRA_SEASON_ID = "season_id";
     public static final String EXTRA_INITIAL_TYPE = "initial_record_type";
     public static final String EXTRA_RELATED_APPLICATION_ID = "related_application_id";
     public static final String RECORD_TYPE_PHOTO = "Fotoğraf";
@@ -42,6 +46,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private static final int[] TYPE_CARDS = {R.id.cardRecordObservation, R.id.cardRecordWatering, R.id.cardRecordFertilizer, R.id.cardRecordPhoto, R.id.cardRecordEvent};
     private final Calendar selectedDateTime = Calendar.getInstance();
     private String zoneId = "";
+    private String seasonId = "";
     private String relatedApplicationId = "";
     private String selectedType = TYPES[0];
     private static final int MAX_PHOTOS_PER_RECORD = 5;
@@ -63,7 +68,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
                 if (bitmap == null) return;
                 if (selectedPhotos.size() + selectedPhotoBitmaps.size() >= MAX_PHOTOS_PER_RECORD) {
-                    Toast.makeText(this, "Bir kayda en fazla 5 fotoğraf eklenebilir.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.runtime_photo_limit, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 selectedPhotoBitmaps.add(bitmap);
@@ -75,6 +80,8 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_journal_record);
         zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID);
         if (zoneId == null) zoneId = "";
+        seasonId = getIntent().getStringExtra(EXTRA_SEASON_ID);
+        if (seasonId == null) seasonId = "";
         relatedApplicationId = getIntent().getStringExtra(EXTRA_RELATED_APPLICATION_ID);
         if (relatedApplicationId == null) relatedApplicationId = "";
         String initialType = getIntent().getStringExtra(EXTRA_INITIAL_TYPE);
@@ -131,8 +138,11 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
 
     private void showPhotoSourceDialog() {
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Fotoğraf ekle")
-                .setItems(new String[]{"Fotoğraf çek", "Galeriden seç"}, (dialog, which) -> {
+                .setTitle(R.string.runtime_add_photo)
+                .setItems(new String[]{
+                        getString(R.string.runtime_take_photo),
+                        getString(R.string.runtime_choose_gallery)
+                }, (dialog, which) -> {
                     if (which == 0) {
                         photoCamera.launch(null);
                     } else {
@@ -150,20 +160,62 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private void showSelectedPhotoState() {
         if (photoState == null) return;
         int count = selectedPhotos.size() + selectedPhotoBitmaps.size();
-        photoState.setText(getString(R.string.symbol_check) + " " + count + " fotoğraf seçildi\nEn fazla 5 fotoğraf · değiştirmek için dokunun");
+        photoState.setText(getString(R.string.symbol_check) + " "
+                + getResources().getQuantityString(
+                        R.plurals.runtime_photos_selected_limit, count, count));
     }
 
     private void refreshDateTime() {
-        dateText.setText(new SimpleDateFormat("dd MMMM yyyy", Locale.forLanguageTag("tr-TR")).format(selectedDateTime.getTime()));
-        timeText.setText(new SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(selectedDateTime.getTime()));
+        dateText.setText(new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(selectedDateTime.getTime()));
+        timeText.setText(new SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedDateTime.getTime()));
     }
 
     private void save() {
-        if (zoneId.isBlank()) { Toast.makeText(this, "Bölge bilgisi bulunamadı.", Toast.LENGTH_SHORT).show(); return; }
+        if (zoneId.isBlank()) { Toast.makeText(this, R.string.runtime_zone_not_found, Toast.LENGTH_SHORT).show(); return; }
+        boolean hasPhoto = !selectedPhotos.isEmpty() || !selectedPhotoBitmaps.isEmpty();
+        if (RECORD_TYPE_PHOTO.equals(selectedType) && !hasPhoto) {
+            Toast.makeText(this, R.string.runtime_photo_required, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        View saveButton = findViewById(R.id.btnNewRecordSave);
+        saveButton.setEnabled(false);
+        new SeasonRepository().requireActiveSeasonId(zoneId)
+                .addOnSuccessListener(activeSeasonId -> {
+                    if (!seasonId.isBlank() && !seasonId.equals(activeSeasonId)) {
+                        saveButton.setEnabled(true);
+                        Toast.makeText(
+                                this,
+                                getString(R.string.runtime_season_inactive),
+                                Toast.LENGTH_LONG
+                        ).show();
+                        return;
+                    }
+                    seasonId = activeSeasonId;
+                    persistRecord(hasPhoto)
+                            .addOnSuccessListener(unused -> {
+                                Toast.makeText(this, R.string.runtime_journal_added, Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(error -> {
+                                saveButton.setEnabled(true);
+                                Toast.makeText(this, R.string.runtime_cloud_save_failed, Toast.LENGTH_LONG).show();
+                            });
+                })
+                .addOnFailureListener(error -> {
+                    saveButton.setEnabled(true);
+                    Toast.makeText(
+                            this,
+                            getString(R.string.runtime_start_season_first),
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+    private Task<Void> persistRecord(boolean hasPhoto) {
         String note = noteInput.getText() == null ? "" : noteInput.getText().toString().trim();
         long epoch = selectedDateTime.getTimeInMillis() / 1000L;
+        List<Task<?>> writes = new ArrayList<>();
         try {
-            boolean hasPhoto = !selectedPhotos.isEmpty() || !selectedPhotoBitmaps.isEmpty();
             if (hasPhoto) {
                 String photoGroupId = relatedApplicationId.isBlank()
                         ? "journal_record_" + UUID.randomUUID()
@@ -172,22 +224,28 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                 FirebaseRepository repository = new FirebaseRepository();
                 for (Uri photo : selectedPhotos) {
                     GardenPhoto saved = store.save(photo, zoneId, note, photoGroupId);
-                    repository.saveGardenPhotoMetadata(saved);
+                    saved.setSeason_id(seasonId);
+                    store.updateSeasonId(saved.getId(), seasonId);
+                    writes.add(repository.saveGardenPhotoMetadata(saved));
                 }
                 for (Bitmap bitmap : selectedPhotoBitmaps) {
                     GardenPhoto saved = store.save(bitmap, zoneId, note, photoGroupId);
-                    repository.saveGardenPhotoMetadata(saved);
+                    saved.setSeason_id(seasonId);
+                    store.updateSeasonId(saved.getId(), seasonId);
+                    writes.add(repository.saveGardenPhotoMetadata(saved));
                 }
             }
             // Fotoğraflı kayıt, zaman çizelgesinde tek bir gelişim kaydı olarak gösterilir.
             if (!hasPhoto && !"Fotoğraf".equals(selectedType)) {
-                GardenEvent event = new LocalGardenEventStore(this).add(zoneId, selectedType, note, epoch);
-                new FirebaseRepository().saveGardenEvent(event);
+                LocalGardenEventStore eventStore = new LocalGardenEventStore(this);
+                GardenEvent event = eventStore.add(zoneId, selectedType, note, epoch);
+                event.setSeason_id(seasonId);
+                eventStore.replaceSeasonId(event.getId(), seasonId);
+                writes.add(new FirebaseRepository().saveGardenEvent(event));
             }
-            Toast.makeText(this, "Günlük kaydı eklendi.", Toast.LENGTH_SHORT).show();
-            finish();
+            return Tasks.whenAll(writes);
         } catch (Exception error) {
-            Toast.makeText(this, "Kayıt eklenemedi.", Toast.LENGTH_SHORT).show();
+            return Tasks.forException(error);
         }
     }
 

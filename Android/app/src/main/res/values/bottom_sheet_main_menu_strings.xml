@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_menu_garden_name">AVORA Bahçesi</string>
+    <string name="main_menu_connection_connecting">● Bağlanıyor · smartgarden-001</string>
+    <string name="main_menu_today_recommendation">Bugünkü Öneri</string>
+    <string name="main_menu_garden_data_preparing">Bahçe verisi hazırlanıyor</string>
+    <string name="main_menu_sensor_weather_waiting">Sensör ve hava verisi bekleniyor.</string>
+    <string name="main_menu_management_title">⚙  Yönetim</string>
+    <string name="main_menu_statistics_title">İstatistikler</string>
+    <string name="main_menu_statistics_subtitle">Bugünkü ve genel performans</string>
+    <string name="main_menu_history_title">Sulama Geçmişi</string>
+    <string name="main_menu_history_subtitle">Tüm sulama kayıtları</string>
+    <string name="main_menu_journal_title">Bitki Günlüğü</string>
+    <string name="main_menu_journal_subtitle">Bahçenin günlük görünümü ve öneriler</string>
+    <string name="main_menu_season_title">Sezon Yönetimi</string>
+    <string name="main_menu_season_subtitle">Sezonları başlatın, kapatın ve arşivleyin</string>
+    <string name="main_menu_health_title">Cihaz Sağlığı</string>
+    <string name="main_menu_health_subtitle">Sistem durumu ve kaynak kullanımı</string>
+    <string name="main_menu_settings_title">Ayarlar</string>
+    <string name="main_menu_settings_subtitle">Sistem ayarları ve sınırlar</string>
+    <string name="main_menu_about_title">Hakkında</string>
+    <string name="main_menu_about_subtitle">Uygulama ve geliştirici bilgileri</string>
+
+    <string name="symbol_main_menu" translatable="false">☰</string>
+    <string name="symbol_garden_outline" translatable="false">♧</string>
+    <string name="symbol_more_horizontal" translatable="false">•••</string>
+    <string name="symbol_statistics_chart" translatable="false">📊</string>
+    <string name="symbol_watering_history" translatable="false">📋</string>
+    <string name="symbol_plant_journal" translatable="false">📔</string>
+    <string name="symbol_settings_gear" translatable="false">⚙</string>
+    <string name="symbol_information" translatable="false">ⓘ</string>
+</resources>

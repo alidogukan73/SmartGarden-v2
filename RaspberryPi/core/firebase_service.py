@@ -22,6 +22,7 @@ from core.config import IrrigationConfig
 from core.config import SensorConfig
 from core.logger import AppLogger
 from core.device_control import DeviceControl
+from core.zone_capacity import validate_zone_configurations
 from hardware.esp32_sensor_config_publisher import (
     Esp32SensorConfigPublisher,
 )
@@ -82,7 +83,7 @@ class FirebaseService:
         self._zone_by_sensor_id: dict[str, str] = {}
         self._zone_config_by_sensor_id: dict[str, dict] = {}
         self._zone_map_refreshed_at = 0.0
-        self._zone_map_refresh_seconds = 10.0
+        self._zone_map_refresh_seconds = max(1.0, AppConfig.LOOP_DELAY_SECONDS)
         self._published_sensor_configs: dict[
             str,
             tuple[bool, int, int],
@@ -614,6 +615,8 @@ class FirebaseService:
                 continue
 
             prefix = f"zones/{zone_id}"
+            # sensor_id is configuration owned by the app. Telemetry must
+            # never overwrite it while an older map is still cached.
 
             updates.update(
                 {
@@ -623,7 +626,6 @@ class FirebaseService:
                         3,
                     ),
                     f"{prefix}/moisture": reading.moisture,
-                    f"{prefix}/sensor_id": reading.sensor_id,
                     f"{prefix}/firmware": reading.firmware,
                     f"{prefix}/rssi": reading.rssi,
                     f"{prefix}/uptime_seconds":
@@ -650,31 +652,13 @@ class FirebaseService:
             .get()
         )
 
-        zone_by_sensor_id: dict[str, str] = {}
-        zone_config_by_sensor_id: dict[str, dict] = {}
-
-        if isinstance(zones, dict):
-            for zone_id, zone in zones.items():
-                if not isinstance(zone, dict):
-                    continue
-
-                sensor_id = str(
-                    zone.get(
-                        "sensor_id",
-                        "",
-                    ),
-                ).strip()
-
-                if sensor_id:
-                    zone_by_sensor_id[
-                        sensor_id
-                    ] = str(zone_id)
-                    zone_config_by_sensor_id[
-                        sensor_id
-                    ] = {
-                        **zone,
-                        "zone_id": str(zone_id),
-                    }
+        (
+            zone_by_sensor_id,
+            zone_config_by_sensor_id,
+        ) = validate_zone_configurations(
+            zones,
+            self._logger.warning,
+        )
 
         self._zone_by_sensor_id = (
             zone_by_sensor_id
@@ -702,37 +686,56 @@ class FirebaseService:
         self,
         zones_by_sensor: dict[str, dict],
     ) -> None:
-        """Send only explicitly saved app settings to the ESP32."""
+        """Publish a complete retained map so removed sensors cannot stay enabled."""
+        default_dry_raw = 12650
+        default_wet_raw = 505
+        supported_sensor_ids = tuple(
+            f"soil-{index:03d}"
+            for index in range(1, 9)
+        )
         current_configs: dict[str, tuple[bool, int, int]] = {}
 
-        for sensor_id, zone in zones_by_sensor.items():
-            required_fields = {
-                "sensor_enabled",
-                "sensor_calibration_dry_raw",
-                "sensor_calibration_wet_raw",
-            }
-            if not required_fields.issubset(zone):
-                # Existing zones keep the ESP32 firmware defaults until the
-                # user saves their sensor settings from Android.
-                continue
-
-            try:
-                enabled = bool(zone["sensor_enabled"])
-                dry_raw = int(zone["sensor_calibration_dry_raw"])
-                wet_raw = int(zone["sensor_calibration_wet_raw"])
-            except (TypeError, ValueError):
-                self._logger.warning(
-                    "Invalid saved sensor configuration ignored. sensor_id=%s",
-                    sensor_id,
+        for sensor_id in supported_sensor_ids:
+            zone = zones_by_sensor.get(sensor_id)
+            if not isinstance(zone, dict):
+                current_configs[sensor_id] = (
+                    False,
+                    default_dry_raw,
+                    default_wet_raw,
                 )
                 continue
+
+            enabled = bool(zone.get("sensor_enabled", False))
+            try:
+                dry_raw = int(
+                    zone.get(
+                        "sensor_calibration_dry_raw",
+                        default_dry_raw,
+                    )
+                )
+                wet_raw = int(
+                    zone.get(
+                        "sensor_calibration_wet_raw",
+                        default_wet_raw,
+                    )
+                )
+            except (TypeError, ValueError):
+                dry_raw = default_dry_raw
+                wet_raw = default_wet_raw
+                self._logger.warning(
+                    "Invalid sensor calibration replaced with safe defaults. "
+                    "sensor_id=%s",
+                    sensor_id,
+                )
 
             if dry_raw <= wet_raw:
+                dry_raw = default_dry_raw
+                wet_raw = default_wet_raw
                 self._logger.warning(
-                    "Unsafe saved sensor calibration ignored. sensor_id=%s",
+                    "Unsafe sensor calibration replaced with safe defaults. "
+                    "sensor_id=%s",
                     sensor_id,
                 )
-                continue
 
             current_configs[sensor_id] = (
                 enabled,
@@ -821,6 +824,60 @@ class FirebaseService:
             for sensor_id, zone
             in self._zone_config_by_sensor_id.items()
         }
+
+    @staticmethod
+    def _season_scope_from_zone(zone: object) -> tuple[bool, str, bool]:
+        """Return (watering_allowed, active_season_id, includes_legacy)."""
+        if not isinstance(zone, dict):
+            return True, "", True
+        season = zone.get("season")
+        if not isinstance(season, dict):
+            # Backward compatibility: installations created before season
+            # management continue inside their one-time legacy season.
+            return True, "", True
+        status = str(season.get("status", "")).strip().upper()
+        season_id = str(
+            season.get("active_season_id", "")
+        ).strip()
+        includes_legacy = bool(
+            season.get("include_legacy_records", False)
+        )
+        if not status:
+            return True, season_id, True
+        return status == "ACTIVE" and bool(season_id), season_id, includes_legacy
+
+    def get_zone_season_scope(
+        self,
+        zone_id: str,
+        *,
+        fresh: bool = False,
+    ) -> tuple[bool, str, bool]:
+        """Read the season boundary used by watering and AI learning."""
+        normalized_zone_id = str(zone_id or "").strip()
+        if not normalized_zone_id:
+            return True, "", True
+        zone = None
+        if not fresh:
+            for cached in self._zone_config_by_sensor_id.values():
+                if str(cached.get("zone_id", "")).strip() == normalized_zone_id:
+                    zone = cached
+                    break
+        if zone is None:
+            zone = self._device_ref().child(
+                f"zones/{normalized_zone_id}"
+            ).get()
+        return self._season_scope_from_zone(zone)
+
+    def verify_zone_season_before_watering(
+        self,
+        zone_id: str,
+    ) -> tuple[bool, str]:
+        """Use a fresh server read immediately before opening a valve."""
+        allowed, season_id, _ = self.get_zone_season_scope(
+            zone_id,
+            fresh=True,
+        )
+        return allowed, season_id
 
     def get_physical_valve_ids(self) -> set[str]:
         """Return only zones explicitly approved for real valve control."""
@@ -1188,6 +1245,11 @@ class FirebaseService:
         }
 
         history_data = {
+            "season_id": (
+                record.season_id
+                or self.get_zone_season_scope(record.zone_id)[1]
+            ),
+
             "started_at":
                 record.started_at,
 
@@ -1620,6 +1682,13 @@ class FirebaseService:
                             "",
                         ),
                     ),
+
+                    season_id=str(
+                        item.get(
+                            "season_id",
+                            "",
+                        ),
+                    ),
                 )
 
                 if (
@@ -1633,6 +1702,21 @@ class FirebaseService:
                     and record.zone_id != zone_id
                 ):
                     continue
+
+                if zone_id:
+                    _, active_season_id, includes_legacy = (
+                        self.get_zone_season_scope(zone_id)
+                    )
+                    if active_season_id:
+                        if record.season_id:
+                            if record.season_id != active_season_id:
+                                continue
+                        elif not includes_legacy:
+                            continue
+                    elif record.season_id:
+                        # A deliberately closed season must not train a new
+                        # active model until the user starts another season.
+                        continue
 
                 records.append(record)
 

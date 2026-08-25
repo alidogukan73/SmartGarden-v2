@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="season_cancel">İptal</string>
+    <string name="season_management_title">Sezon Yönetimi</string>
+    <string name="season_management_subtitle">Her bölgenin sezonunu güvenle başlatın, kapatın ve arşivleyin</string>
+    <string name="season_management_menu_subtitle">Sezonları başlatın, kapatın ve arşivleyin</string>
+    <string name="season_management_info_title">Kayıtlarınız korunur</string>
+    <string name="season_management_info_body">Yeni sezon yalnız bölgenin dönemsel planını sıfırlar. Eski sulama, gübreleme, günlük, fotoğraf ve Bitki Asistanı kayıtları sezon arşivinde kalır.</string>
+    <string name="season_management_zones_title">Etkin bölgeler ve sezonlar</string>
+    <string name="season_management_loading">Sezon bilgileri hazırlanıyor…</string>
+    <string name="season_management_no_zones">Henüz yönetilecek bir bahçe bölgesi yok.</string>
+    <string name="season_management_no_active_zones">Şu anda etkin bir bahçe bölgesi yok. Yeni sezon başlatmak için önce Bölge Yönetimi’nden bir bölgeyi etkinleştirin.</string>
+    <string name="season_management_inactive_title">Kullanım dışı bölge arşivleri (%1$d)</string>
+    <string name="season_management_inactive_description">Bu bölgeler yeni sezon başlatamaz. Geçmiş sezonları inceleyebilir veya Bölge Yönetimi’nden yeniden etkinleştirebilirsiniz.</string>
+    <string name="season_management_preparing">Mevcut kayıtlar ilk sezon arşivine bağlanıyor…</string>
+    <string name="season_bootstrap_failed">Mevcut kayıtlar sezon arşivine bağlanamadı.</string>
+    <string name="season_status_preparing">HAZIRLANIYOR</string>
+    <string name="season_status_active">AKTİF SEZON</string>
+    <string name="season_status_closed">SEZON KAPALI</string>
+    <string name="season_status_zone_inactive">BÖLGE KULLANIM DIŞI</string>
+    <string name="season_status_not_started">SEZON BAŞLATILMADI</string>
+    <string name="season_not_started_summary">Bu bölge için henüz sezon başlatılmadı.</string>
+    <string name="season_auto_start_repaired">Yanlışlıkla oluşturulan boş sezon kaldırıldı.</string>
+    <string name="season_auto_start_repair_failed">Otomatik oluşturulan boş sezon düzeltilemedi.</string>
+    <string name="season_label_fallback">Sezon</string>
+    <string name="season_date_unknown">Tarih bilinmiyor</string>
+    <string name="season_active_summary">%1$s · Başlangıç: %2$s</string>
+    <string name="season_closed_summary">%1$s · Kapanış: %2$s</string>
+    <string name="season_history_empty">Henüz tamamlanmış sezon yok.</string>
+    <string name="season_result_not_entered">Sonuç notu girilmedi</string>
+    <plurals name="season_history_count">
+        <item quantity="one">%1$d tamamlanan sezon · Son sonuç: %2$s</item>
+        <item quantity="other">%1$d tamamlanan sezon · Son sonuç: %2$s</item>
+    </plurals>
+    <string name="season_prepare_action">Sezon hazırlanıyor…</string>
+    <string name="season_start_action">Yeni sezon başlat</string>
+    <string name="season_close_action">Sezonu kapat</string>
+    <string name="season_start_dialog_title">%1$s · Yeni sezon</string>
+    <string name="season_start_dialog_message">Eski sezon kayıtları değişmez. Yeni kayıtlar yeni sezon kimliğiyle tutulur.</string>
+    <string name="season_start_planting_date_hint">Dikim veya fide şaşırtma tarihi (gg-aa-yyyy)</string>
+    <string name="season_start_label_hint">Sezon adı</string>
+    <string name="season_default_label">%1$s Sezonu</string>
+    <string name="season_invalid_date">Tarihi gün-ay-yıl biçiminde girin. Örnek: 30-07-2026</string>
+    <string name="season_started_success">Yeni sezon güvenle başlatıldı.</string>
+    <string name="season_start_failed">Yeni sezon başlatılamadı.</string>
+    <string name="season_close_dialog_title">%1$s · Sezon kapanışı</string>
+    <string name="season_close_dialog_message">Sulama ve vanalar kapalı olmalıdır. Kapanıştan sonra bu bölgeye yeni kayıt eklenmez; yeni sezonu ayrıca başlatırsınız.</string>
+    <string name="season_harvest_amount_hint">Yaklaşık hasat miktarı (ör. 18 kg)</string>
+    <string name="season_yield_note_hint">Verim değerlendirmesi</string>
+    <string name="season_issues_hint">Sezon boyunca görülen sorunlar</string>
+    <string name="season_practices_hint">En başarılı uygulamalar</string>
+    <string name="season_next_note_hint">Gelecek sezon notu</string>
+    <string name="season_closed_success">Sezon kapatıldı ve arşivlendi.</string>
+    <string name="season_close_failed">Sezon kapatılamadı.</string>
+    <string name="season_closed_event_title">Sezon tamamlandı</string>
+    <string name="season_harvest_short">Hasat: %1$s</string>
+    <string name="season_operation_wait">İşlem yapılıyor…</string>
+    <string name="season_operation_done">Güncelleniyor…</string>
+    <string name="season_archive_action">Sezon arşivini ve karşılaştırmayı aç</string>
+    <string name="season_reactivate_zone_action">Bölge Yönetimi’nde yeniden etkinleştir</string>
+
+    <string name="season_start_crop_label">Yeni sezonda yetiştirilecek ürün</string>
+    <string name="season_start_custom_crop_hint">Diğer ürünün adı</string>
+    <string name="season_start_custom_emoji_hint">Ürün simgesi (isteğe bağlı, ör. 🥕)</string>
+    <string name="season_start_stage_label">Sezonun başlangıç gelişim dönemi</string>
+    <string name="season_start_sensor_label">Bu sezonda kullanılacak sensör</string>
+    <string name="season_start_custom_sensor_hint">Sensör kimliği (ör. soil-006)</string>
+    <string name="season_start_sensor_current">Mevcut sensörle devam · %1$s</string>
+    <string name="season_start_sensor_available">Kullanılabilir sensör · %1$s</string>
+    <string name="season_start_sensor_later">Sensörü daha sonra bağlayacağım</string>
+    <string name="season_start_sensor_custom">Başka sensör kimliği…</string>
+    <string name="season_start_valve_note">Vana bu fiziksel bölgeye bağlı kalır: %1$s</string>
+    <string name="season_start_no_valve">Vana atanmamış</string>
+    <string name="season_crop_required">Yeni sezon için ürün adını girin.</string>
+    <string name="season_sensor_required">Başka sensör seçtiyseniz sensör kimliğini girin.</string>
+    <string name="season_sensor_already_used">%1$s sensörü başka bir bölgeye atanmış. Farklı bir sensör seçin.</string>
+
+    <string-array name="season_crop_labels">
+        <item>🍅 Domates</item>
+        <item>🌶️ Biber</item>
+        <item>🥒 Salatalık</item>
+        <item>🍆 Patlıcan</item>
+        <item>🫘 Fasulye</item>
+        <item>🌱 Diğer ürün…</item>
+    </string-array>
+    <string-array name="season_crop_names">
+        <item>Domates</item>
+        <item>Biber</item>
+        <item>Salatalık</item>
+        <item>Patlıcan</item>
+        <item>Fasulye</item>
+        <item></item>
+    </string-array>
+    <string-array name="season_crop_codes">
+        <item>tomato</item>
+        <item>pepper</item>
+        <item>cucumber</item>
+        <item>eggplant</item>
+        <item>bean</item>
+        <item>custom</item>
+    </string-array>
+    <string-array name="season_crop_emojis">
+        <item>🍅</item>
+        <item>🌶️</item>
+        <item>🥒</item>
+        <item>🍆</item>
+        <item>🫘</item>
+        <item>🌱</item>
+    </string-array>
+    <string-array name="season_growth_stage_labels">
+        <item>Toprak hazırlığı</item>
+        <item>Fide / dikim</item>
+        <item>Vejetatif gelişim</item>
+        <item>Çiçeklenme</item>
+        <item>Meyve oluşumu</item>
+        <item>Aktif hasat</item>
+    </string-array>
+    <string-array name="season_growth_stage_codes">
+        <item>SOIL_PREPARATION</item>
+        <item>SEEDLING</item>
+        <item>VEGETATIVE</item>
+        <item>FLOWERING</item>
+        <item>FRUITING</item>
+        <item>ACTIVE_HARVEST</item>
+    </string-array>
+    <string-array name="season_result_labels">
+        <item>Çok iyi geçti</item>
+        <item>İyi geçti</item>
+        <item>Orta</item>
+        <item>Beklenenin altında</item>
+    </string-array>
+    <string name="season_cancel_new_action">Yeni sezonu iptal et</string>
+    <string name="season_cancel_new_dialog_title">%1$s · Yeni sezonu iptal et</string>
+    <string name="season_cancel_new_dialog_message">Yalnız boş Toprak hazırlığı sezonu kaldırılır. Tamamlanmış sezonlar ve arşiv kayıtları korunur. Devam etmek istiyor musunuz?</string>
+    <string name="season_cancel_new_confirm">Sezonu iptal et</string>
+    <string name="season_cancel_new_success">Yeni sezon iptal edildi. Bölge sezon kapalı durumuna döndü.</string>
+    <string name="season_cancel_new_failed">Yeni sezon iptal edilemedi.</string>
+</resources>

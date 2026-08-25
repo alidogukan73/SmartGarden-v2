@@ -33,6 +33,7 @@ class WateringRecord:
 
     zone_id: str = ""
     sensor_id: str = ""
+    season_id: str = ""
     
     @property
     def firebase_key(

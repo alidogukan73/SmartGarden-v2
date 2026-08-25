@@ -164,7 +164,11 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         TextView txtAiProductProfile =
                 content.findViewById(R.id.txtAiProductProfile);
 
-        String[] forms = {"Sıvı", "Toz", "Granül"};
+        String[] forms = {
+                getString(R.string.runtime_form_liquid),
+                getString(R.string.runtime_form_powder),
+                getString(R.string.runtime_form_granular)
+        };
         String[] units = {
                 "kg/dekar",
                 "kg/dekar · 1 ton su ile",
@@ -216,7 +220,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         if (existing == null) {
             dropdownForm.setText(forms[0], false);
             dropdownUnit.setText(units[0], false);
-            inputInterval.setText("14");
+            inputInterval.setText(Integer.toString(14));
             dropdownStockUnit.setText(stockUnits[0], false);
             dropdownApplicationType.setText(applicationTypes[0], false);
             switchOrganicFarmingEligible.setChecked(false);
@@ -510,10 +514,10 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 : product;
         FertilizerAiProfile profile = FertilizerAiAdvisor.profileFor(source);
         target.setText(
-                "Ürün uygunluğu: " + profile.getSuitability()
-                        + "\nNeden: " + profile.getReason()
-                        + "\nMeyve döneminde: " + profile.getFruitStageAdvice()
-                        + "\nGüvenlik: " + profile.getSafetyNote()
+                getString(R.string.runtime_product_suitability, profile.getSuitability())
+                        + "\n" + getString(R.string.runtime_reason_label, profile.getReason())
+                        + "\n" + getString(R.string.runtime_fruit_stage, profile.getFruitStageAdvice())
+                        + "\n" + getString(R.string.runtime_safety_label, profile.getSafetyNote())
         );
     }
 
@@ -540,9 +544,9 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 && getResources().getConfiguration().screenWidthDp < 430) {
             LinearLayout buttonPanel = (LinearLayout) panel;
             buttonPanel.setOrientation(LinearLayout.HORIZONTAL);
-            setCompactDialogButton(save, "Kaydet");
-            setCompactDialogButton(remove, "Sil…");
-            setCompactDialogButton(cancel, "İptal");
+            setCompactDialogButton(save, getString(R.string.settings_quick_save));
+            setCompactDialogButton(remove, getString(R.string.runtime_delete_ellipsis));
+            setCompactDialogButton(cancel, getString(R.string.settings_quick_cancel));
         }
     }
 
@@ -707,9 +711,9 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             product.setMinimum_interval_days(interval);
             product.setDosage_unit(unit);
             product.setForm(
-                    "Granül".contentEquals(dropdownForm.getText())
+                    getString(R.string.runtime_form_granular).contentEquals(dropdownForm.getText())
                             ? "GRANULAR"
-                            : "Toz".contentEquals(
+                            : getString(R.string.runtime_form_powder).contentEquals(
                                     dropdownForm.getText()
                             )
                             ? "POWDER"

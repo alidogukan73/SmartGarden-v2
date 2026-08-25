@@ -25,12 +25,12 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bahçe Konumu"
+                    android:text="@string/garden_info_location_label"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hava tahmini için hassas bahçe noktası"
+                    android:text="@string/garden_location_subtitle"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
         </LinearLayout>
@@ -48,13 +48,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="En hassas yöntem"
+                    android:text="@string/garden_location_precise_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Bahçedeyken telefonun konumunu bir kez kaydedin. Yerel sağanaklarda ilçe merkezinden daha doğru sonuç verir."
+                    android:text="@string/garden_location_precise_detail"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnUseGpsLocation"
@@ -62,7 +62,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:layout_marginTop="14dp"
-                    android:text="Bahçe konumumu al" />
+                    android:text="@string/garden_location_capture" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <TextView
@@ -85,20 +85,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hava tahmini kaynağı"
+                    android:text="@string/weather_source_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Otomatik seçimde önce OpenWeather denenir; erişilemezse Open-Meteo kullanılır."
+                    android:text="@string/weather_source_detail"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:hint="Tercih"
+                    android:hint="@string/preference_hint"
                     app:endIconMode="dropdown_menu">
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/inputWeatherSource"
@@ -112,7 +112,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginTop="12dp"
-                    android:text="Kaynak tercihini kaydet"
+                    android:text="@string/weather_source_save"
                     android:textAllCaps="false"
                     app:cornerRadius="16dp"
                     app:strokeColor="@color/primary" />
@@ -131,20 +131,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Elle düzeltme"
+                    android:text="@string/garden_location_manual_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="GPS kullanmak istemezseniz il ve ilçe merkezine göre tahmin alınır."
+                    android:text="@string/garden_location_manual_detail"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="İl">
+                    android:hint="@string/city_hint">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputLocationCity"
                         android:layout_width="match_parent"
@@ -155,7 +155,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="İlçe">
+                    android:hint="@string/district_hint">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputLocationDistrict"
                         android:layout_width="match_parent"
@@ -167,7 +167,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginTop="14dp"
-                    android:text="İl ve ilçeyi kaydet"
+                    android:text="@string/garden_location_manual_save"
                     android:textAllCaps="false"
                     app:cornerRadius="16dp"
                     app:strokeColor="@color/primary" />

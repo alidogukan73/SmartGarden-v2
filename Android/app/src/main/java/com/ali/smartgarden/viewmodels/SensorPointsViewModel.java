@@ -6,12 +6,18 @@ import androidx.lifecycle.ViewModel;
 
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class SensorPointsViewModel extends ViewModel {
 
-    private final MediatorLiveData<List<GardenZone>> zones =
+    private final MediatorLiveData<List<GardenZone>> sensorPoints =
+            new MediatorLiveData<>();
+    private final MediatorLiveData<List<GardenZone>> configuredZones =
             new MediatorLiveData<>();
 
     private List<GardenZone> firebaseZones =
@@ -25,7 +31,7 @@ public class SensorPointsViewModel extends ViewModel {
         LiveData<List<GardenZone>> zoneSource =
                 repository.observeGardenZones();
 
-        zones.addSource(
+        sensorPoints.addSource(
                 zoneSource,
                 value -> {
                     firebaseZones =
@@ -37,73 +43,76 @@ public class SensorPointsViewModel extends ViewModel {
         );
     }
 
-    public LiveData<List<GardenZone>> getZones() {
+    public LiveData<List<GardenZone>> getSensorPoints() {
 
-        return zones;
+        return sensorPoints;
+    }
+
+    public LiveData<List<GardenZone>> getConfiguredZones() {
+
+        return configuredZones;
     }
 
     private void publishZones() {
+        List<GardenZone> activeZones =
+                ZoneCapacityPolicy.activeZones(firebaseZones);
 
-        if (!firebaseZones.isEmpty()) {
-            zones.setValue(
-                    new ArrayList<>(
-                            firebaseZones
-                    )
-            );
-            return;
+        configuredZones.setValue(
+                new ArrayList<>(activeZones)
+        );
+
+        sensorPoints.setValue(
+                buildSensorPoints(activeZones)
+        );
+    }
+
+    static List<GardenZone> buildSensorPoints(
+            List<GardenZone> zones
+    ) {
+        Map<String, GardenZone> assignedZones =
+                new HashMap<>();
+
+        for (GardenZone zone : ZoneCapacityPolicy.activeZones(zones)) {
+            String sensorId = safe(zone.getSensor_id())
+                    .toLowerCase(Locale.US);
+            if (sensorId.isEmpty()
+                    || !ZoneCapacityPolicy.isValidSensorId(sensorId)) {
+                continue;
+            }
+            assignedZones.putIfAbsent(sensorId, zone);
         }
 
-        List<GardenZone> fallbackZones =
-                new ArrayList<>();
+        List<GardenZone> points =
+                new ArrayList<>(ZoneCapacityPolicy.MAX_ZONES);
+        for (int slot = 1; slot <= ZoneCapacityPolicy.MAX_ZONES; slot++) {
+            String sensorId = ZoneCapacityPolicy.sensorId(slot);
+            GardenZone assigned = assignedZones.get(sensorId);
+            points.add(
+                    assigned == null
+                            ? unassignedPoint(sensorId, slot)
+                            : assigned
+            );
+        }
 
-        fallbackZones.add(
-                new GardenZone(
-                        "zone-001",
-                        "Domates",
-                        "tomato",
-                        "🍅",
-                        "soil-001",
-                        true,
-                        1
-                )
-        );
+        return points;
+    }
 
-        fallbackZones.add(
-                new GardenZone(
-                        "zone-002",
-                        "Biber",
-                        "pepper",
-                        "🌶️",
-                        "soil-002",
-                        true,
-                        2
-                )
-        );
+    private static GardenZone unassignedPoint(
+            String sensorId,
+            int slot
+    ) {
+        GardenZone point = new GardenZone();
+        point.setZone_id("");
+        point.setName("");
+        point.setEmoji("");
+        point.setSensor_id(sensorId);
+        point.setSensor_enabled(false);
+        point.setEnabled(false);
+        point.setOrder(slot);
+        return point;
+    }
 
-        fallbackZones.add(
-                new GardenZone(
-                        "zone-003",
-                        "Salatalık",
-                        "cucumber",
-                        "🥒",
-                        "soil-003",
-                        true,
-                        3
-                )
-        );
-
-        fallbackZones.add(
-                new GardenZone(
-                        "zone-004",
-                        "Fasulye",
-                        "bean",
-                        "🫘",
-                        "soil-004",
-                        true,
-                        4
-                )
-        );
-
-        zones.setValue(fallbackZones);
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 }

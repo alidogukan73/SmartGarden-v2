@@ -128,14 +128,14 @@ public class PlantListActivity extends AppCompatActivity {
 
     private void showSortMenu() {
         String[] choices = {
-                "⭐  Akıllı sıralama",
-                getString(R.string.symbol_warning) + "  Dikkat gerektirenler",
-                getString(R.string.symbol_water_drop) + "  Nem: düşükten yükseğe",
-                "🕐  Son güncellenen",
-                getString(R.string.symbol_plant) + "  Bitki adına göre"
+                getString(R.string.runtime_sort_smart),
+                getString(R.string.runtime_sort_needs_attention),
+                getString(R.string.runtime_sort_moisture),
+                getString(R.string.runtime_sort_recent),
+                getString(R.string.runtime_sort_plant_name)
         };
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Bitkileri sırala")
+                .setTitle(R.string.runtime_plant_sort_title)
                 .setSingleChoiceItems(choices, sortMode, (dialog, which) -> {
                     sortMode = which;
                     getSharedPreferences(PREFS, MODE_PRIVATE)
@@ -235,7 +235,7 @@ public class PlantListActivity extends AppCompatActivity {
         TextView title = text(safeName(zone), 16, R.color.textPrimary);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         TextView status = text("●  " + status(zone), 12, statusColor(zone));
-        TextView meta = text(getString(R.string.symbol_water_drop) + " Nem: %" + zone.getMoisture() + "  ·  " + lastRecord(zone), 11, R.color.textSecondary);
+        TextView meta = text(getString(R.string.runtime_plant_moisture_meta, zone.getMoisture(), lastRecord(zone)), 11, R.color.textSecondary);
         details.addView(title);
         details.addView(status);
         details.addView(meta);
@@ -262,20 +262,20 @@ public class PlantListActivity extends AppCompatActivity {
     }
 
     private String safeName(GardenZone zone) {
-        return zone.getName() == null || zone.getName().isBlank() ? "Bahçe bölgesi" : zone.getName();
+        return zone.getName() == null || zone.getName().isBlank() ? getString(R.string.runtime_garden_zone) : zone.getName();
     }
 
     private String status(GardenZone zone) {
-        if (!zone.hasSensorData()) return "Sensör verisi bekleniyor";
-        if (!hasCurrentSensorData(zone)) return "Sensör verisi güncel değil";
-        if (zone.getMoisture() < zone.getMoisture_limit()) return "Nem takibi gerekli";
-        return "Sezon takibi aktif";
+        if (!zone.hasSensorData()) return getString(R.string.ai_zone_waiting);
+        if (!hasCurrentSensorData(zone)) return getString(R.string.runtime_sensor_stale);
+        if (zone.getMoisture() < zone.getMoisture_limit()) return getString(R.string.runtime_moisture_tracking_needed);
+        return getString(R.string.runtime_season_tracking_active);
     }
 
     private String badge(GardenZone zone) {
-        if (!zone.hasSensorData()) return "Veri yok";
-        if (!hasCurrentSensorData(zone)) return "Güncel değil";
-        return zone.getMoisture() < zone.getMoisture_limit() ? "Dikkat" : "Sağlıklı";
+        if (!zone.hasSensorData()) return getString(R.string.runtime_no_data);
+        if (!hasCurrentSensorData(zone)) return getString(R.string.runtime_not_current);
+        return zone.getMoisture() < zone.getMoisture_limit() ? getString(R.string.runtime_attention) : getString(R.string.plant_list_healthy);
     }
 
     private int statusColor(GardenZone zone) {

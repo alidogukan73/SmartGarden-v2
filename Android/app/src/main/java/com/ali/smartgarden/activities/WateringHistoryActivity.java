@@ -16,9 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.adapters.WateringHistoryAdapter;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.viewmodels.WateringHistoryViewModel;
+import com.ali.smartgarden.zones.ZoneChipRenderer;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 
@@ -287,16 +289,39 @@ public class WateringHistoryActivity extends AppCompatActivity {
                 view -> finish()
         );
 
-        chipGroupZones.setOnCheckedStateChangeListener(
-                (group, checkedIds) -> {
-                    int checkedId = checkedIds.isEmpty()
-                            ? R.id.chipZoneAll
-                            : checkedIds.get(0);
-                    selectedZoneId = zoneIdForChip(checkedId);
-                    applyZoneFilter();
-                }
-        );
+        new FirebaseRepository().observeGardenZones().observe(this, zones -> {
+            adapter.setZoneLabels(zoneLabels(zones));
+            ZoneChipRenderer.render(
+                    this,
+                    chipGroupZones,
+                    zones,
+                    selectedZoneId,
+                    R.string.history_zone_all,
+                    zoneId -> {
+                        selectedZoneId = zoneId;
+                        applyZoneFilter();
+                    }
+            );
+        });
     }
+
+    private java.util.Map<String, String> zoneLabels(
+            List<com.ali.smartgarden.models.GardenZone> zones
+    ) {
+        java.util.Map<String, String> labels = new java.util.HashMap<>();
+        if (zones == null) return labels;
+        for (com.ali.smartgarden.models.GardenZone zone : zones) {
+            if (zone == null || zone.getZone_id() == null) continue;
+            String name = zone.getName();
+            if (name == null || name.isBlank()) name = zone.getZone_id();
+            String emoji = zone.getEmoji();
+            labels.put(zone.getZone_id(),
+                    emoji == null || emoji.isBlank() ? name : emoji + " " + name);
+        }
+        return labels;
+    }
+
+
 
     private void renderStatistics(
             List<WateringHistory> items
@@ -369,22 +394,4 @@ public class WateringHistoryActivity extends AppCompatActivity {
                 : minutes + " dk";
     }
 
-    private String zoneIdForChip(int chipId) {
-        if (chipId == R.id.chipZone001) {
-            return "zone-001";
-        }
-        if (chipId == R.id.chipZone002) {
-            return "zone-002";
-        }
-        if (chipId == R.id.chipZone003) {
-            return "zone-003";
-        }
-        if (chipId == R.id.chipZone004) {
-            return "zone-004";
-        }
-        if (chipId == R.id.chipZone005) {
-            return "zone-005";
-        }
-        return "";
-    }
 }

@@ -32,7 +32,7 @@ public class GardenLocationActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> permission =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) saveGps();
-                else status.setText("Konum izni verilmedi. İl ve ilçe ile devam edebilirsiniz.");
+                else status.setText(R.string.runtime_location_permission_denied);
             });
 
     @Override
@@ -48,9 +48,13 @@ public class GardenLocationActivity extends AppCompatActivity {
         source.setAdapter(new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
-                new String[]{"Otomatik (önerilen)", "Yalnız Open-Meteo", "Yalnız OpenWeather"}
+                new String[]{
+                        getString(R.string.runtime_weather_source_auto),
+                        getString(R.string.runtime_weather_source_open_meteo),
+                        getString(R.string.runtime_weather_source_open_weather)
+                }
         ));
-        source.setText("Otomatik (önerilen)", false);
+        source.setText(getString(R.string.runtime_weather_source_auto), false);
 
         findViewById(R.id.btnLocationBack).setOnClickListener(view -> finish());
         repository.observeWeatherLocation().observe(this, location -> {
@@ -61,9 +65,8 @@ public class GardenLocationActivity extends AppCompatActivity {
             savedLatitude = location.getLatitude();
             savedLongitude = location.getLongitude();
             if (location.getLatitude() != null && location.getLongitude() != null) {
-                status.setText("Hassas GPS konumu kaydedildi: " + String.format(
-                        "%.5f, %.5f", location.getLatitude(), location.getLongitude()
-                ));
+                status.setText(getString(R.string.runtime_location_precise_coordinates,
+                        location.getLatitude(), location.getLongitude()));
             }
         });
         findViewById(R.id.btnSaveWeatherSource).setOnClickListener(view -> saveSourcePreference());
@@ -89,15 +92,15 @@ public class GardenLocationActivity extends AppCompatActivity {
             // Permission is checked before this method is invoked.
         }
         if (location == null) {
-            status.setText("Konum alınamadı. Bahçedeyken GPS'i açıp tekrar deneyin.");
+            status.setText(R.string.runtime_location_unavailable);
             return;
         }
         repository.saveWeatherLocation(
                 text(city), text(district), location.getLatitude(), location.getLongitude(), sourceValue()
         ).addOnSuccessListener(unused ->
-                status.setText("Hassas bahçe konumu ve kaynak tercihi kaydedildi.")
+                status.setText(R.string.runtime_location_precise_saved)
         ).addOnFailureListener(error ->
-                status.setText("Konum kaydedilemedi. Bağlantıyı kontrol edin.")
+                status.setText(R.string.runtime_location_save_failed)
         );
     }
 
@@ -105,28 +108,28 @@ public class GardenLocationActivity extends AppCompatActivity {
         String selectedCity = text(city);
         String selectedDistrict = text(district);
         if (selectedCity.isEmpty() || selectedDistrict.isEmpty()) {
-            status.setText("İl ve ilçe girin.");
+            status.setText(R.string.runtime_location_city_required);
             return;
         }
         repository.saveWeatherLocation(
                 selectedCity, selectedDistrict, null, null, sourceValue()
         ).addOnSuccessListener(unused ->
-                status.setText("İlçe merkezi konumu ve kaynak tercihi kaydedildi.")
-        ).addOnFailureListener(error -> status.setText("Konum kaydedilemedi."));
+                status.setText(R.string.runtime_location_manual_saved)
+        ).addOnFailureListener(error -> status.setText(R.string.runtime_location_save_failed_short));
     }
 
     private void saveSourcePreference() {
         String selectedCity = text(city);
         String selectedDistrict = text(district);
         if (selectedCity.isEmpty() || selectedDistrict.isEmpty()) {
-            status.setText("Önce bahçe konumunu kaydedin.");
+            status.setText(R.string.runtime_location_capture_first);
             return;
         }
         repository.saveWeatherLocation(
                 selectedCity, selectedDistrict, savedLatitude, savedLongitude, sourceValue()
         ).addOnSuccessListener(unused ->
-                status.setText("Hava tahmini kaynağı güncellendi.")
-        ).addOnFailureListener(error -> status.setText("Kaynak tercihi kaydedilemedi."));
+                status.setText(R.string.runtime_weather_source_updated)
+        ).addOnFailureListener(error -> status.setText(R.string.runtime_weather_source_save_failed));
     }
 
     private String sourceValue() {
@@ -137,9 +140,9 @@ public class GardenLocationActivity extends AppCompatActivity {
     }
 
     private String sourceText(String value) {
-        if ("openweather".equals(value)) return "Yalnız OpenWeather";
-        if ("open_meteo".equals(value)) return "Yalnız Open-Meteo";
-        return "Otomatik (önerilen)";
+        if ("openweather".equals(value)) return getString(R.string.runtime_weather_source_open_weather);
+        if ("open_meteo".equals(value)) return getString(R.string.runtime_weather_source_open_meteo);
+        return getString(R.string.runtime_weather_source_auto);
     }
 
     private String text(TextInputEditText input) {

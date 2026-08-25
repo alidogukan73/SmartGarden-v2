@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="season_cancel">Cancel</string>
+    <string name="season_management_title">Season Management</string>
+    <string name="season_management_subtitle">Safely start, close, and archive each zone season</string>
+    <string name="season_management_menu_subtitle">Start, close, and archive seasons</string>
+    <string name="season_management_info_title">Your records are protected</string>
+    <string name="season_management_info_body">A new season resets only the seasonal plan for the zone. Previous watering, fertilizing, journal, photo, and Plant Assistant records remain in the season archive.</string>
+    <string name="season_management_zones_title">Active zones and seasons</string>
+    <string name="season_management_loading">Preparing season information…</string>
+    <string name="season_management_no_zones">There are no garden zones to manage yet.</string>
+    <string name="season_management_no_active_zones">There are no active garden zones. Reactivate a zone in Zone Management before starting a new season.</string>
+    <string name="season_management_inactive_title">Inactive zone archives (%1$d)</string>
+    <string name="season_management_inactive_description">These zones cannot start a new season. You can review previous seasons or reactivate the zone in Zone Management.</string>
+    <string name="season_management_preparing">Linking existing records to the first season archive…</string>
+    <string name="season_bootstrap_failed">Existing records could not be linked to the season archive.</string>
+    <string name="season_status_preparing">PREPARING</string>
+    <string name="season_status_active">ACTIVE SEASON</string>
+    <string name="season_status_closed">SEASON CLOSED</string>
+    <string name="season_status_zone_inactive">ZONE INACTIVE</string>
+    <string name="season_status_not_started">SEASON NOT STARTED</string>
+    <string name="season_not_started_summary">No season has been started for this zone yet.</string>
+    <string name="season_auto_start_repaired">The incorrectly created empty season was removed.</string>
+    <string name="season_auto_start_repair_failed">The automatically created empty season could not be repaired.</string>
+    <string name="season_label_fallback">Season</string>
+    <string name="season_date_unknown">Date unknown</string>
+    <string name="season_active_summary">%1$s · Started: %2$s</string>
+    <string name="season_closed_summary">%1$s · Closed: %2$s</string>
+    <string name="season_history_empty">No completed season yet.</string>
+    <string name="season_result_not_entered">No result entered</string>
+    <plurals name="season_history_count">
+        <item quantity="one">%1$d completed season · Latest result: %2$s</item>
+        <item quantity="other">%1$d completed seasons · Latest result: %2$s</item>
+    </plurals>
+    <string name="season_prepare_action">Preparing season…</string>
+    <string name="season_start_action">Start new season</string>
+    <string name="season_close_action">Close season</string>
+    <string name="season_start_dialog_title">%1$s · New season</string>
+    <string name="season_start_dialog_message">Previous season records remain unchanged. New records are stored under the new season ID.</string>
+    <string name="season_start_planting_date_hint">Planting or transplanting date (dd-MM-yyyy)</string>
+    <string name="season_start_label_hint">Season name</string>
+    <string name="season_default_label">%1$s Season</string>
+    <string name="season_invalid_date">Enter the date in day-month-year format. Example: 30-07-2026</string>
+    <string name="season_started_success">The new season was started safely.</string>
+    <string name="season_start_failed">The new season could not be started.</string>
+    <string name="season_close_dialog_title">%1$s · Close season</string>
+    <string name="season_close_dialog_message">Watering and all valves must be off. After closing, no new records can be added to this zone until you start another season.</string>
+    <string name="season_harvest_amount_hint">Approximate harvest amount (for example, 18 kg)</string>
+    <string name="season_yield_note_hint">Yield assessment</string>
+    <string name="season_issues_hint">Issues observed during the season</string>
+    <string name="season_practices_hint">Most successful practices</string>
+    <string name="season_next_note_hint">Notes for the next season</string>
+    <string name="season_closed_success">The season was closed and archived.</string>
+    <string name="season_close_failed">The season could not be closed.</string>
+    <string name="season_closed_event_title">Season completed</string>
+    <string name="season_harvest_short">Harvest: %1$s</string>
+    <string name="season_operation_wait">Processing…</string>
+    <string name="season_operation_done">Updating…</string>
+    <string name="season_archive_action">Open season archive and comparison</string>
+    <string name="season_reactivate_zone_action">Reactivate in Zone Management</string>
+
+    <string name="season_start_crop_label">Crop to grow in the new season</string>
+    <string name="season_start_custom_crop_hint">Other crop name</string>
+    <string name="season_start_custom_emoji_hint">Crop icon (optional, for example 🥕)</string>
+    <string name="season_start_stage_label">Initial growth stage</string>
+    <string name="season_start_sensor_label">Sensor to use this season</string>
+    <string name="season_start_custom_sensor_hint">Sensor ID (for example, soil-006)</string>
+    <string name="season_start_sensor_current">Continue with current sensor · %1$s</string>
+    <string name="season_start_sensor_available">Available sensor · %1$s</string>
+    <string name="season_start_sensor_later">I will connect a sensor later</string>
+    <string name="season_start_sensor_custom">Another sensor ID…</string>
+    <string name="season_start_valve_note">The valve remains assigned to this physical zone: %1$s</string>
+    <string name="season_start_no_valve">No valve assigned</string>
+    <string name="season_crop_required">Select a crop for the new season.</string>
+    <string name="season_sensor_required">Enter the sensor ID when choosing another sensor.</string>
+    <string name="season_sensor_already_used">Sensor %1$s is assigned to another zone. Select a different sensor.</string>
+
+    <string-array name="season_crop_labels">
+        <item>🍅 Tomato</item>
+        <item>🌶️ Pepper</item>
+        <item>🥒 Cucumber</item>
+        <item>🍆 Eggplant</item>
+        <item>🫘 Bean</item>
+        <item>🌱 Other crop…</item>
+    </string-array>
+    <string-array name="season_crop_names">
+        <item>Tomato</item>
+        <item>Pepper</item>
+        <item>Cucumber</item>
+        <item>Eggplant</item>
+        <item>Bean</item>
+        <item></item>
+    </string-array>
+    <string-array name="season_crop_codes">
+        <item>tomato</item>
+        <item>pepper</item>
+        <item>cucumber</item>
+        <item>eggplant</item>
+        <item>bean</item>
+        <item>custom</item>
+    </string-array>
+    <string-array name="season_crop_emojis">
+        <item>🍅</item>
+        <item>🌶️</item>
+        <item>🥒</item>
+        <item>🍆</item>
+        <item>🫘</item>
+        <item>🌱</item>
+    </string-array>
+    <string-array name="season_growth_stage_labels">
+        <item>Soil preparation</item>
+        <item>Seedling / planting</item>
+        <item>Vegetative growth</item>
+        <item>Flowering</item>
+        <item>Fruiting</item>
+        <item>Active harvest</item>
+    </string-array>
+    <string-array name="season_growth_stage_codes">
+        <item>SOIL_PREPARATION</item>
+        <item>SEEDLING</item>
+        <item>VEGETATIVE</item>
+        <item>FLOWERING</item>
+        <item>FRUITING</item>
+        <item>ACTIVE_HARVEST</item>
+    </string-array>
+    <string-array name="season_result_labels">
+        <item>Very successful</item>
+        <item>Successful</item>
+        <item>Average</item>
+        <item>Below expectations</item>
+    </string-array>
+    <string name="season_cancel_new_action">Cancel new season</string>
+    <string name="season_cancel_new_dialog_title">%1$s · Cancel new season</string>
+    <string name="season_cancel_new_dialog_message">Only an empty Soil preparation season is removed. Completed seasons and archived records remain protected. Do you want to continue?</string>
+    <string name="season_cancel_new_confirm">Cancel season</string>
+    <string name="season_cancel_new_success">The new season was cancelled. The zone returned to the season-not-started state.</string>
+    <string name="season_cancel_new_failed">The new season could not be cancelled.</string>
+</resources>

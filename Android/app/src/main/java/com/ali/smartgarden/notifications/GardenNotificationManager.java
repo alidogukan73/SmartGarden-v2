@@ -46,7 +46,7 @@ public final class GardenNotificationManager {
         GardenNotification value =
                 store.add(type, priority, zoneId, title, description, sourceKey);
 
-        repository.saveGardenNotification(value);
+        persistNotification(value);
 
         notifyNotificationsChanged();
 
@@ -62,7 +62,7 @@ public final class GardenNotificationManager {
                 store.addOnce(type, priority, zoneId, title, description, sourceKey);
 
         if (value != null) {
-            repository.saveGardenNotification(value);
+            persistNotification(value);
 
             notifyNotificationsChanged();
 
@@ -71,6 +71,15 @@ public final class GardenNotificationManager {
 
         return value;
     }
+
+    private void persistNotification(GardenNotification value) {
+        repository.saveGardenNotification(value).addOnSuccessListener(ignored -> {
+            if (store.updateSeasonId(value.getId(), value.getSeason_id())) {
+                notifyNotificationsChanged();
+            }
+        });
+    }
+
     /**
      * Publishes the first alert of an incident immediately, then at most one reminder
      * per interval. State is persisted so the foreground listener, WorkManager and

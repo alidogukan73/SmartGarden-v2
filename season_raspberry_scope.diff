@@ -1,0 +1,193 @@
+diff --git a/RaspberryPi/models/watering_record.py b/RaspberryPi/models/watering_record.py
+index 1adcd7b..1111111 100644
+--- a/RaspberryPi/models/watering_record.py
++++ b/RaspberryPi/models/watering_record.py
+@@ -30,6 +30,7 @@ class WateringRecord:
+ 
+     zone_id: str = ""
+     sensor_id: str = ""
++    season_id: str = ""
+     
+     @property
+     def firebase_key(
+diff --git a/RaspberryPi/models/pending_watering_measurement.py b/RaspberryPi/models/pending_watering_measurement.py
+index 93ef42f..2222222 100644
+--- a/RaspberryPi/models/pending_watering_measurement.py
++++ b/RaspberryPi/models/pending_watering_measurement.py
+@@ -64,6 +64,7 @@ class PendingWateringMeasurement:
+                 firmware=str(record_data.get("firmware", "")),
+                 zone_id=str(record_data.get("zone_id", "")),
+                 sensor_id=str(record_data.get("sensor_id", "")),
++                season_id=str(record_data.get("season_id", "")),
+             )
+             pending_key = str(
+                 payload.get("pending_key") or record.firebase_key
+diff --git a/RaspberryPi/core/firebase_service.py b/RaspberryPi/core/firebase_service.py
+index 3d7a596..3333333 100644
+--- a/RaspberryPi/core/firebase_service.py
++++ b/RaspberryPi/core/firebase_service.py
+@@ -821,6 +821,54 @@ class FirebaseService:
+             in self._zone_config_by_sensor_id.items()
+         }
+ 
++    @staticmethod
++    def _season_scope_from_zone(zone: object) -> tuple[bool, str, bool]:
++        """Return (watering_allowed, active_season_id, includes_legacy)."""
++        if not isinstance(zone, dict):
++            return True, "", True
++        season = zone.get("season")
++        if not isinstance(season, dict):
++            # Backward compatibility: installations created before season
++            # management continue inside their one-time legacy season.
++            return True, "", True
++        status = str(season.get("status", "")).strip().upper()
++        season_id = str(
++            season.get("active_season_id", "")
++        ).strip()
++        includes_legacy = bool(
++            season.get("include_legacy_records", False)
++        )
++        if not status:
++            return True, season_id, True
++        return status == "ACTIVE" and bool(season_id), season_id, includes_legacy
++
++    def get_zone_season_scope(
++        self,
++        zone_id: str,
++        *,
++        fresh: bool = False,
++    ) -> tuple[bool, str, bool]:
++        """Read the season boundary used by watering and AI learning."""
++        normalized_zone_id = str(zone_id or "").strip()
++        if not normalized_zone_id:
++            return True, "", True
++        zone = None
++        if not fresh:
++            for cached in self._zone_config_by_sensor_id.values():
++                if str(cached.get("zone_id", "")).strip() == normalized_zone_id:
++                    zone = cached
++                    break
++        if zone is None:
++            zone = self._device_ref().child(
++                f"zones/{normalized_zone_id}"
++            ).get()
++        return self._season_scope_from_zone(zone)
++
++    def verify_zone_season_before_watering(
++        self,
++        zone_id: str,
++    ) -> tuple[bool, str]:
++        """Use a fresh server read immediately before opening a valve."""
++        allowed, season_id, _ = self.get_zone_season_scope(
++            zone_id,
++            fresh=True,
++        )
++        return allowed, season_id
++
+     def get_physical_valve_ids(self) -> set[str]:
+         """Return only zones explicitly approved for real valve control."""
+         return {
+@@ -1190,6 +1238,13 @@ class FirebaseService:
+         history_data = {
++            "season_id": (
++                record.season_id
++                or self.get_zone_season_scope(record.zone_id)[1]
++            ),
++
+             "started_at":
+                 record.started_at,
+@@ -1618,6 +1673,12 @@ class FirebaseService:
+                             "",
+                         ),
+                     ),
++
++                    season_id=str(
++                        item.get(
++                            "season_id",
++                            "",
++                        ),
++                    ),
+                 )
+ 
+                 if (
+@@ -1635,6 +1696,19 @@ class FirebaseService:
+                 ):
+                     continue
+ 
++                if zone_id:
++                    _, active_season_id, includes_legacy = (
++                        self.get_zone_season_scope(zone_id)
++                    )
++                    if active_season_id:
++                        if record.season_id:
++                            if record.season_id != active_season_id:
++                                continue
++                        elif not includes_legacy:
++                            continue
++                    elif record.season_id:
++                        # A deliberately closed season must not train a new
++                        # active model until the user starts another season.
++                        continue
++
+                 records.append(record)
+diff --git a/RaspberryPi/services/irrigation_service.py b/RaspberryPi/services/irrigation_service.py
+index fa5f5b3..4444444 100644
+--- a/RaspberryPi/services/irrigation_service.py
++++ b/RaspberryPi/services/irrigation_service.py
+@@ -1292,6 +1292,19 @@ class IrrigationService:
+                             duration_plan.adaptive_watering_count,
+                         )
+ 
++                    season_allowed, active_season_id = (
++                        self._firebase.verify_zone_season_before_watering(
++                            selected_candidate.zone_id
++                        )
++                    )
++                    if not season_allowed:
++                        self._relay.off()
++                        self._valves.close_all()
++                        self._logger.warning(
++                            "Automatic watering blocked because the zone season "
++                            "is not active. zone_id=%s",
++                            selected_candidate.zone_id,
++                        )
++                        self._mark_update_cycle_recovered()
++                        return
++
+                     self._cancel_pending_prediction_validations(
+                         reason="AUTO_IRRIGATION_STARTED",
+                     )
+@@ -1417,6 +1430,7 @@ class IrrigationService:
+                         firmware=AppConfig.VERSION,
+                         zone_id=selected_candidate.zone_id,
+                         sensor_id=selected_candidate.sensor_id,
++                        season_id=active_season_id,
+                     )
+ 
+                     if (
+@@ -1725,12 +1739,21 @@ class IrrigationService:
+             ),
+         )
+ 
++        season = zone_config.get("season")
++        season_status = ""
++        season_id = ""
++        if isinstance(season, dict):
++            season_status = str(season.get("status", "")).strip().upper()
++            season_id = str(
++                season.get("active_season_id", "")
++            ).strip()
++        season_allows_irrigation = (
++            not season_status
++            or (season_status == "ACTIVE" and bool(season_id))
++        )
+         zone_enabled = (
+             zone_config.get("enabled", True) is True
+             and zone_config.get(
+                 "irrigation_enabled",
+                 False,
+             ) is True
++            and season_allows_irrigation
+         )
+         zone_id = str(
+             zone_config.get("zone_id", ""),

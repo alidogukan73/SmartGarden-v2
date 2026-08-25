@@ -1,10 +1,12 @@
 package com.ali.smartgarden.models;
 
+import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@IgnoreExtraProperties
 public class AIExplanation {
 
     private String explanationCode;

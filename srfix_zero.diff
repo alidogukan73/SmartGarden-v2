@@ -1,0 +1,41 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+@@ -125,0 +126 @@
++            root.child("garden_journal").child("seasons").child(seasonId).child("label").setValue(label);
+@@ -215,0 +217,37 @@
++
++    /**
++     * Returns an active season id. Existing installations are bootstrapped once;
++     * a deliberately closed season is never reopened implicitly.
++     */
++    public Task<String> requireActiveSeasonId(String zoneId) {
++        if (safe(zoneId).isBlank()) {
++            return Tasks.forException(new IllegalArgumentException("Bölge bilgisi gerekli."));
++        }
++        return deviceRef.child("zones").child(zoneId).get().continueWithTask(task -> {
++            if (!task.isSuccessful() || task.getResult() == null || !task.getResult().exists()) {
++                Exception error = task.getException();
++                return Tasks.forException(error == null
++                        ? new IllegalStateException("Bölge bulunamadı.")
++                        : error);
++            }
++            DataSnapshot snapshot = task.getResult();
++            ZoneSeasonState state = snapshot.child("season").getValue(ZoneSeasonState.class);
++            if (state != null && state.isActive()) {
++                return Tasks.forResult(state.getActive_season_id());
++            }
++            if (state != null && SeasonStatus.isClosed(state.getStatus())) {
++                return Tasks.forException(new IllegalStateException(
++                        "Bu bölgenin sezonu kapalı. Önce yeni sezon başlatın."
++                ));
++            }
++            GardenZone zone = snapshot.getValue(GardenZone.class);
++            if (zone == null) {
++                return Tasks.forException(new IllegalStateException("Bölge bilgisi okunamadı."));
++            }
++            if (safe(zone.getZone_id()).isBlank()) zone.setZone_id(zoneId);
++            return bootstrapLegacySeason(zone)
++                    .continueWithTask(ignored -> resolveActiveSeasonId(zoneId));
++        });
++    }

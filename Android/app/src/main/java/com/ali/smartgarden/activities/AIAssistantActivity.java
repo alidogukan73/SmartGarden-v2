@@ -3765,7 +3765,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionValidationTarget.setText(
-                targetMinutes + " dk"
+                getString(R.string.ai_runtime_target_minutes, targetMinutes)
         );
 
         txtPredictionValidationPending.setText(

@@ -1,0 +1,14 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonManagementActivity.java
+@@ -232,1 +232,1 @@
+-                .setNegativeButton(R.string.cancel, null)
++                .setNegativeButton(R.string.season_cancel, null)
+@@ -279,1 +279,1 @@
+-                .setNegativeButton(R.string.cancel, null)
++                .setNegativeButton(R.string.season_cancel, null)
+diff --git a/Android/app/src/main/res/values/strings_season.xml b/Android/app/src/main/res/values/strings_season.xml
+--- a/Android/app/src/main/res/values/strings_season.xml
++++ b/Android/app/src/main/res/values/strings_season.xml
+@@ -2,0 +3,1 @@
++    <string name="season_cancel">İptal</string>

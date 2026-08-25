@@ -63,10 +63,35 @@ public final class NotificationSignalWorker extends Worker {
             Health health =
                     device.child("health").getValue(Health.class);
 
-            NotificationSignalCoordinator.evaluateDeviceConnection(
-                    context,
-                    status
-            );
+            DataSnapshot connection = Tasks.await(FirebaseDatabase.getInstance()
+                            .getReference(".info/connected").get(),
+                    10, TimeUnit.SECONDS);
+            boolean firebaseConnected = Boolean.TRUE.equals(
+                    connection.getValue(Boolean.class));
+
+            long nowEpoch = System.currentTimeMillis() / 1000L;
+            boolean deviceOffline = status != null
+                    && NotificationPolicy.isDeviceOfflineObservation(
+                    firebaseConnected, status.isOnline(), status.getLastSeenEpoch(), nowEpoch,
+                    NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+
+            /*
+             * A WorkManager run can start the application process and therefore
+             * the foreground monitor at the same time. Seed the shared state here
+             * instead of publishing from the worker's first snapshot. A separate
+             * one-shot verification publishes only if the outage remains real.
+             */
+            if (!firebaseConnected) {
+                NotificationSignalCoordinator
+                        .discardDeviceConnectionCandidates(context);
+                DeviceConnectionVerificationWorker.cancel(context);
+            } else if (deviceOffline) {
+                NotificationSignalCoordinator.synchronizeDeviceConnection(context, status);
+                DeviceConnectionVerificationWorker.schedule(context);
+            } else {
+                NotificationSignalCoordinator.synchronizeDeviceConnection(context, status);
+                DeviceConnectionVerificationWorker.cancel(context);
+            }
 
             NotificationSignalCoordinator.evaluateDevice(
                     context,

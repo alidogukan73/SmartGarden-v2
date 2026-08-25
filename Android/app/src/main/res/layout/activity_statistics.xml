@@ -67,36 +67,6 @@
                     android:layout_height="wrap_content"
                     android:checked="true"
                     android:text="@string/history_zone_all" />
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipStatisticZone001"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/history_zone_tomato" />
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipStatisticZone002"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/history_zone_pepper" />
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipStatisticZone003"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/history_zone_cucumber" />
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipStatisticZone004"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/history_zone_eggplant" />
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipStatisticZone005"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/history_zone_bean" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
         <TextView
@@ -138,7 +108,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
-                        android:text="0"
+                        android:text="@string/home_raw_zero"
                         android:textColor="@color/primary"
                         android:textSize="34sp"
                         android:textStyle="bold" />
@@ -172,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
-                        android:text="0"
+                        android:text="@string/home_raw_zero"
                         android:textColor="@color/textPrimary"
                         android:textSize="34sp"
                         android:textStyle="bold" />
@@ -225,7 +195,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
-                    android:text="0%"
+                    android:text="@string/home_moisture_zero"
                     android:textColor="@color/online"
                     android:textSize="34sp"
                     android:textStyle="bold" />
@@ -270,7 +240,7 @@
                             android:id="@+id/txtCompletedWaterings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/home_raw_zero"
                             android:textColor="@color/online"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -298,7 +268,7 @@
                             android:id="@+id/txtInterruptedWaterings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/home_raw_zero"
                             android:textColor="@color/warning"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -353,7 +323,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="0 sn"
+                            android:text="@string/history_default_duration"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -382,7 +352,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="0 sn"
+                            android:text="@string/history_default_duration"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -411,7 +381,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="0 sn"
+                            android:text="@string/history_default_duration"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -465,7 +435,7 @@
                             android:id="@+id/txtBeforeMoisture"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="@string/home_moisture_zero"
                             android:textColor="@color/textPrimary"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -494,7 +464,7 @@
                             android:id="@+id/txtAfterMoisture"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0%"
+                            android:text="@string/home_moisture_zero"
                             android:textColor="@color/textPrimary"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -522,7 +492,7 @@
                                 android:id="@+id/txtMoistureChange"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="+0%"
+                                android:text="@string/history_default_signed_percentage"
                                 android:textColor="@color/primary"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
@@ -597,7 +567,7 @@
                         android:id="@+id/txtStatisticsDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="-"
+                        android:text="@string/symbol_minus"
                         android:textColor="@color/textPrimary"
                         android:textSize="13sp"
                         android:textStyle="bold" />

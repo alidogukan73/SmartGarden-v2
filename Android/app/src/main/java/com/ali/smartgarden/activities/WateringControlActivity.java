@@ -143,7 +143,7 @@ public class WateringControlActivity extends AppCompatActivity {
                         updatingSwitch = false;
                         Toast.makeText(
                                 this,
-                                "Cihaz çevrimdışıyken otomatik mod değiştirilemez.",
+                                getString(R.string.runtime_offline_auto_mode),
                                 Toast.LENGTH_LONG
                         ).show();
                         return;
@@ -157,7 +157,7 @@ public class WateringControlActivity extends AppCompatActivity {
                         updatingSwitch = false;
                         Toast.makeText(
                                 this,
-                                "Pompa açılamadı: önce bir vana açın.",
+                                getString(R.string.runtime_open_valve_first),
                                 Toast.LENGTH_LONG
                         ).show();
                         return;
@@ -169,7 +169,7 @@ public class WateringControlActivity extends AppCompatActivity {
                         updatingSwitch = false;
                         Toast.makeText(
                                 this,
-                                "Pompa koruma altında: vanalar simülasyon modunda.",
+                                getString(R.string.runtime_pump_simulation_protection),
                                 Toast.LENGTH_LONG
                         ).show();
                         return;
@@ -200,7 +200,7 @@ public class WateringControlActivity extends AppCompatActivity {
                     if (!isDeviceOnline()) {
                         Toast.makeText(
                                 this,
-                                "Pompa başlatılamadı: cihaz çevrimdışı.",
+                                getString(R.string.runtime_offline_pump_start),
                                 Toast.LENGTH_LONG
                         ).show();
                         return;
@@ -234,7 +234,7 @@ public class WateringControlActivity extends AppCompatActivity {
             if (!isDeviceOnline()) {
                 Toast.makeText(
                         this,
-                        "Pompa başlatılamadı: cihaz çevrimdışı.",
+                        getString(R.string.runtime_offline_pump_start),
                         Toast.LENGTH_LONG
                 ).show();
                 return;
@@ -344,7 +344,7 @@ public class WateringControlActivity extends AppCompatActivity {
         );
         pumpButton.setText(
                 relayOn
-                        ? "Pompayı durdur"
+                        ? getString(R.string.runtime_stop_pump)
                         : getString(R.string.manual_relay_test_button)
         );
         pumpButton.setBackgroundTintList(
@@ -413,8 +413,8 @@ public class WateringControlActivity extends AppCompatActivity {
                     zone.getValve_id()
                             + (
                             zonePhysical
-                                    ? " · Fiziksel"
-                                    : " · Simülasyon"
+                                    ? getString(R.string.runtime_physical_suffix)
+                                    : getString(R.string.runtime_simulation_suffix)
                     )
             );
             boolean thisValveOpen =
@@ -443,7 +443,7 @@ public class WateringControlActivity extends AppCompatActivity {
                             button.setChecked(false);
                             Toast.makeText(
                                     this,
-                                    "Önce açık vanayı kapatın.",
+                                    getString(R.string.runtime_close_valve_first),
                                     Toast.LENGTH_LONG
                             ).show();
                             return;
@@ -453,7 +453,7 @@ public class WateringControlActivity extends AppCompatActivity {
                             button.setChecked(false);
                             Toast.makeText(
                                     this,
-                                    "Cihaz çevrimdışı.",
+                                    getString(R.string.runtime_device_offline_short),
                                     Toast.LENGTH_LONG
                             ).show();
                             return;
@@ -467,7 +467,7 @@ public class WateringControlActivity extends AppCompatActivity {
                         viewModel.openManualValve(zone);
                         Toast.makeText(
                                 this,
-                                "Vana açma komutu gönderildi.",
+                                getString(R.string.runtime_valve_command_sent),
                                 Toast.LENGTH_SHORT
                         ).show();
                     }
@@ -492,7 +492,7 @@ public class WateringControlActivity extends AppCompatActivity {
         if (relayOn || valveOpen) {
             Toast.makeText(
                     this,
-                    "Pompa veya vana açıkken vana modu değiştirilemez.",
+                    getString(R.string.runtime_valve_mode_locked),
                     Toast.LENGTH_LONG
             ).show();
             return;
@@ -527,10 +527,10 @@ public class WateringControlActivity extends AppCompatActivity {
             );
             String wiring = zone.getValve_gpio_bcm() > 0
                     && zone.getValve_gpio_physical_pin() > 0
-                    ? "GPIO " + zone.getValve_gpio_bcm()
-                    + " · Fiziksel Pin "
-                    + zone.getValve_gpio_physical_pin()
-                    : "Bağlantı bilgisi yükleniyor";
+                    ? getString(R.string.runtime_gpio_pin,
+                            zone.getValve_gpio_bcm(),
+                            zone.getValve_gpio_physical_pin())
+                    : getString(R.string.runtime_connection_loading);
             label.setText(
                     zone.getEmoji() + " " + zone.getName()
                             + "\n" + valveId + " · "

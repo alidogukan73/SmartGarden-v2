@@ -18,7 +18,7 @@ import com.ali.smartgarden.activities.DeviceHealthActivity;
 import com.ali.smartgarden.activities.FertilizationCalendarActivity;
 import com.ali.smartgarden.activities.PlantAssistantActivity;
 import com.ali.smartgarden.activities.PlantListActivity;
-import com.ali.smartgarden.activities.SeasonReportActivity;
+import com.ali.smartgarden.activities.SeasonManagementActivity;
 import com.ali.smartgarden.activities.SettingsHubActivity;
 import com.ali.smartgarden.activities.StatisticsActivity;
 import com.ali.smartgarden.activities.WateringHistoryActivity;
@@ -48,7 +48,7 @@ public class MainMenuBottomSheet extends BottomSheetDialogFragment {
         bind(view, R.id.menuCardStatistics, StatisticsActivity.class);
         bind(view, R.id.menuCardHistory, WateringHistoryActivity.class);
         bind(view, R.id.menuCardPlantJournal, PlantListActivity.class);
-        bind(view, R.id.menuCardSeasonReport, SeasonReportActivity.class);
+        bind(view, R.id.menuCardSeasonManagement, SeasonManagementActivity.class);
         bind(view, R.id.menuCardHealth, DeviceHealthActivity.class);
         bind(view, R.id.menuCardSettings, SettingsHubActivity.class);
         bind(view, R.id.menuCardAbout, AboutActivity.class);

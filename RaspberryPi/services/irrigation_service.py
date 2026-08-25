@@ -121,6 +121,7 @@ class IrrigationService:
         self._zone_ai_pipelines: dict[str, AIPipeline] = {}
         self._zone_prediction_validation_queues: dict[str, PredictionValidationQueue] = {}
         self._zone_prediction_histories: dict[str, list] = {}
+        self._zone_ai_season_ids: dict[str, str] = {}
         self._last_zone_ai_update = 0.0
 
         self._prediction_history = []
@@ -154,6 +155,10 @@ class IrrigationService:
         self._update_error_active = False
         self._last_update_error_log = 0.0
         self._update_error_log_interval_seconds = 30.0
+        self._update_recovery_started_at = 0.0
+        self._update_recovery_success_count = 0
+        self._update_recovery_confirmation_seconds = 120.0
+        self._update_recovery_required_successes = 3
 
         self._manual_relay_started_at = 0.0
         self._manual_relay_timeout_latched = False
@@ -548,6 +553,51 @@ class IrrigationService:
             ]
         return value
 
+    @staticmethod
+    def _active_zone_season_id(zone: dict) -> str:
+        """Return the active season id without accepting a closed season."""
+
+        season = zone.get("season") if isinstance(zone, dict) else None
+        if not isinstance(season, dict):
+            return ""
+        status = str(season.get("status", "")).strip().upper()
+        season_id = str(season.get("active_season_id", "")).strip()
+        if status and status != "ACTIVE":
+            return ""
+        return season_id
+
+    def _reset_transient_zone_ai_for_season(
+        self,
+        *,
+        zone_id: str,
+        sensor_id: str,
+        previous_season_id: str,
+        active_season_id: str,
+    ) -> None:
+        """Start a clean decision window while keeping learned physical data."""
+
+        self._zone_ai_pipelines.pop(zone_id, None)
+        self._zone_prediction_validation_queues.pop(zone_id, None)
+        self._zone_prediction_histories.pop(zone_id, None)
+        self._adaptive_recommendations_by_zone.pop(zone_id, None)
+        self._watering_duration_plans_by_zone.pop(zone_id, None)
+        self._adaptive_recommendation_cache.pop(zone_id, None)
+        self._multi_zone_engine.reset(sensor_id)
+        self._persist_zone_irrigation_safety_state(
+            zone_id=zone_id,
+            sensor_id=sensor_id,
+        )
+        self._last_zone_ai_update = 0.0
+        self._last_multi_zone_status_signature = None
+        self._logger.info(
+            "Zone season changed; transient irrigation AI reset. "
+            "zone_id=%s sensor_id=%s previous_season_id=%s active_season_id=%s",
+            zone_id,
+            sensor_id,
+            previous_season_id or "LEGACY",
+            active_season_id or "LEGACY",
+        )
+
     def _update_multi_zone_ai_if_needed(
         self,
         *,
@@ -571,6 +621,15 @@ class IrrigationService:
         watering_recommended = 0
         warnings = 0
 
+        zone_ai_season_ids = getattr(
+            self,
+            "_zone_ai_season_ids",
+            None,
+        )
+        if zone_ai_season_ids is None:
+            zone_ai_season_ids = {}
+            self._zone_ai_season_ids = zone_ai_season_ids
+
         for result in results:
             candidate = result.candidate
             zone_id = candidate.zone_id
@@ -580,6 +639,19 @@ class IrrigationService:
 
             if reading is None or not isinstance(zone, dict):
                 continue
+
+            active_season_id = self._active_zone_season_id(zone)
+            known_season_id = zone_ai_season_ids.get(zone_id)
+            if known_season_id is None:
+                zone_ai_season_ids[zone_id] = active_season_id
+            elif known_season_id != active_season_id:
+                self._reset_transient_zone_ai_for_season(
+                    zone_id=zone_id,
+                    sensor_id=sensor_id,
+                    previous_season_id=known_season_id,
+                    active_season_id=active_season_id,
+                )
+                zone_ai_season_ids[zone_id] = active_season_id
 
             commands, _, _, _ = self._effective_zone_commands(
                 global_commands,
@@ -1292,6 +1364,22 @@ class IrrigationService:
                             duration_plan.adaptive_watering_count,
                         )
 
+                    season_allowed, active_season_id = (
+                        self._firebase.verify_zone_season_before_watering(
+                            selected_candidate.zone_id
+                        )
+                    )
+                    if not season_allowed:
+                        self._relay.off()
+                        self._valves.close_all()
+                        self._logger.warning(
+                            "Automatic watering blocked because the zone season "
+                            "is not active. zone_id=%s",
+                            selected_candidate.zone_id,
+                        )
+                        self._mark_update_cycle_recovered()
+                        return
+
                     self._cancel_pending_prediction_validations(
                         reason="AUTO_IRRIGATION_STARTED",
                     )
@@ -1417,6 +1505,7 @@ class IrrigationService:
                         firmware=AppConfig.VERSION,
                         zone_id=selected_candidate.zone_id,
                         sensor_id=selected_candidate.sensor_id,
+                        season_id=active_season_id,
                     )
 
                     if (
@@ -1556,6 +1645,12 @@ class IrrigationService:
             self._enter_fail_safe(
                 reason=type(exc).__name__,
             )
+
+            # One successful retry must not close an outage. Reset the
+            # recovery candidate on every failed cycle so intermittent ESP32
+            # data remains a single incident instead of notification spam.
+            self._update_recovery_started_at = 0.0
+            self._update_recovery_success_count = 0
 
             current_time = time.monotonic()
 
@@ -1725,12 +1820,25 @@ class IrrigationService:
             ),
         )
 
+        season = zone_config.get("season")
+        season_status = ""
+        season_id = ""
+        if isinstance(season, dict):
+            season_status = str(season.get("status", "")).strip().upper()
+            season_id = str(
+                season.get("active_season_id", "")
+            ).strip()
+        season_allows_irrigation = (
+            not season_status
+            or (season_status == "ACTIVE" and bool(season_id))
+        )
         zone_enabled = (
             zone_config.get("enabled", True) is True
             and zone_config.get(
                 "irrigation_enabled",
                 False,
             ) is True
+            and season_allows_irrigation
         )
         zone_id = str(
             zone_config.get("zone_id", ""),
@@ -2659,14 +2767,54 @@ class IrrigationService:
 
     def _mark_update_cycle_recovered(self) -> None:
         """
-        Log one recovery event after a failed update period.
+        Close an update incident only after recovery remains stable.
+
+        ESP32 power loss can briefly alternate between a cached successful
+        read and a failed fresh read. Immediate clearing would turn that one
+        outage into a new notification on every retry.
         """
 
         if not self._update_error_active:
             return
 
+        current_time = time.monotonic()
+        recovery_started_at = getattr(
+            self,
+            "_update_recovery_started_at",
+            0.0,
+        )
+
+        if recovery_started_at <= 0.0:
+            self._update_recovery_started_at = current_time
+            self._update_recovery_success_count = 1
+            return
+
+        self._update_recovery_success_count = (
+            getattr(self, "_update_recovery_success_count", 0) + 1
+        )
+
+        recovery_seconds = current_time - recovery_started_at
+        required_seconds = getattr(
+            self,
+            "_update_recovery_confirmation_seconds",
+            120.0,
+        )
+        required_successes = getattr(
+            self,
+            "_update_recovery_required_successes",
+            3,
+        )
+
+        if (
+            recovery_seconds < required_seconds
+            or self._update_recovery_success_count < required_successes
+        ):
+            return
+
         self._update_error_active = False
         self._last_update_error_log = 0.0
+        self._update_recovery_started_at = 0.0
+        self._update_recovery_success_count = 0
 
         self._logger.info(
             "Update cycle recovered.",

@@ -23,6 +23,7 @@ import com.ali.smartgarden.adapters.FertilizerHistoryAdapter;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
+import com.ali.smartgarden.zones.ZoneChipRenderer;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -117,29 +118,22 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 this,
                 this::render
         );
-        ((ChipGroup) findViewById(
+        ChipGroup zoneGroup = findViewById(
                 R.id.chipGroupFertilizerZones
-        )).setOnCheckedStateChangeListener((group, checkedIds) -> {
-            int checkedId = checkedIds.isEmpty()
-                    ? R.id.chipFertilizerAll
-                    : checkedIds.get(0);
-            if (checkedId == R.id.chipFertilizerTomato) {
-                selectedZoneId = "zone-001";
-            } else if (checkedId == R.id.chipFertilizerPepper) {
-                selectedZoneId = "zone-002";
-            } else if (checkedId
-                    == R.id.chipFertilizerCucumber) {
-                selectedZoneId = "zone-003";
-            } else if (checkedId
-                    == R.id.chipFertilizerEggplant) {
-                selectedZoneId = "zone-004";
-            } else if (checkedId == R.id.chipFertilizerBean) {
-                selectedZoneId = "zone-005";
-            } else {
-                selectedZoneId = "";
-            }
-            applyFilter();
-        });
+        );
+        repository.observeGardenZones().observe(this, zones ->
+                ZoneChipRenderer.render(
+                        this,
+                        zoneGroup,
+                        zones,
+                        selectedZoneId,
+                        R.string.history_zone_all,
+                        zoneId -> {
+                            selectedZoneId = zoneId;
+                            applyFilter();
+                        }
+                )
+        );
     }
 
     private void render(List<FertilizerApplication> values) {
@@ -273,10 +267,10 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
 
     private void showPhotoPrompt(FertilizerApplication value) {
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Uygulama sonucu kaydedildi")
-                .setMessage("İsterseniz bu gözleme ait bir bitki fotoğrafını da yerel arşive ekleyebilirsiniz.")
-                .setNegativeButton("Şimdi değil", null)
-                .setPositiveButton("Fotoğraf ekle", (dialog, which) -> {
+                .setTitle(R.string.runtime_application_outcome_saved)
+                .setMessage(R.string.runtime_history_photo_prompt)
+                .setNegativeButton(R.string.runtime_not_now, null)
+                .setPositiveButton(R.string.runtime_add_photo, (dialog, which) -> {
                     Intent intent = new Intent(this, NewJournalRecordActivity.class);
                     intent.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID,
                             value.getZone_id());
@@ -383,7 +377,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                             } catch (Exception ignored) {
                                 android.widget.Toast.makeText(
                                         this,
-                                        "Geçerli tarih ve miktar girin.",
+                                        getString(R.string.runtime_valid_date_amount),
                                         android.widget.Toast.LENGTH_LONG
                                 ).show();
                             }
@@ -668,8 +662,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 )
         )) {
             writer.write('\uFEFF');
-            writer.write(
-                    "Uygulama tarihi,Bölge,Ürün,Miktar,Birim,Yöntem,Alan m2,Tank L,Not,Sonuç,Canlılık puanı,Sonuç notu\n"
+            writer.write(getString(R.string.runtime_csv_header)
             );
             for (FertilizerApplication value : visibleValues) {
                 String date = value.getApplied_at_epoch() <= 0L
@@ -679,7 +672,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         ).atZone(ZoneId.systemDefault())
                                 .format(DateTimeFormatter.ofPattern(
                                         "dd-MM-yyyy HH:mm",
-                                        new Locale("tr", "TR")
+                                        Locale.getDefault()
                                 ));
                 writer.write(String.join(",",
                         csv(date),
@@ -725,9 +718,9 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     }
 
     private String outcomeLabel(String status) {
-        if ("IMPROVED".equals(status)) return "İyileşme gözlendi";
-        if ("UNCHANGED".equals(status)) return "Belirgin değişiklik yok";
-        if ("ISSUE".equals(status)) return "Sorun gözlendi";
+        if ("IMPROVED".equals(status)) return getString(R.string.runtime_outcome_improved);
+        if ("UNCHANGED".equals(status)) return getString(R.string.runtime_outcome_unchanged);
+        if ("ISSUE".equals(status)) return getString(R.string.runtime_outcome_issue);
         return "";
     }
 

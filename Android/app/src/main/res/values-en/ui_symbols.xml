@@ -41,4 +41,7 @@
     <string name="ui_assistant_wind">≋\nWind</string>
     <string name="symbol_weather_cloud">☁</string>
     <string name="symbol_chevron_right">›</string>
+    <string name="symbol_more_options">⋮</string>
+    <string name="garden_photo_content_description">Garden photo</string>
+    <string name="archive_photo_content_description">Archive photo</string>
 </resources>

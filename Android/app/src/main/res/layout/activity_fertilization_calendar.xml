@@ -110,13 +110,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Bugünkü AI önerileri"
+                android:text="@string/calendar_today_ai_title"
                 android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Öneriler kayıtlarınıza göre hazırlanır; uygulamayı siz onaylarsınız."
+                android:text="@string/calendar_today_ai_detail"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             <LinearLayout
                 android:id="@+id/layoutTodayFertilizerAdvice"

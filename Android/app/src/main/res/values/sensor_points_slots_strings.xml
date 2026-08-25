@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sensor_unassigned_point_title">Atanmamış sensör noktası</string>
+    <string name="sensor_unassigned_point_description">Bir bölgeye atamak için dokunun.</string>
+    <string name="sensor_status_unassigned">Atanmadı</string>
+</resources>

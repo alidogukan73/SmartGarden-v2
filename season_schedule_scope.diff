@@ -1,0 +1,17 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+@@ -939,1 +939,4 @@
+    private void recalculateApplicationSchedule(MutableData root, String zoneId, String type, long recordedAt) {
++      MutableData seasonState = root.child("zones").child(zoneId).child("season");
++      String activeSeasonId = stringValue(seasonState.child("active_season_id"));
++      boolean includeLegacy = booleanValue(seasonState.child("include_legacy_records"));
+@@ -946,1 +949,8 @@
++         if (!activeSeasonId.isBlank()) {
++            String candidateSeasonId = stringValue(candidate.child("season_id"));
++            if ((candidateSeasonId.isBlank() && !includeLegacy)
++                  || (!candidateSeasonId.isBlank() && !activeSeasonId.equals(candidateSeasonId))) {
++               continue;
++            }
++         }
+          if (!type.equals(normalizedApplicationType(stringValue(candidate.child("application_type"))))) {

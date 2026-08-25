@@ -29,7 +29,6 @@ public final class AvoraLanguageManager {
         if (MODE_TURKISH.equals(value)) {
             return MODE_TURKISH;
         }
-        // English becomes selectable only after the complete translation bundle ships.
         if (MODE_ENGLISH.equals(value) && isEnglishAvailable()) {
             return MODE_ENGLISH;
         }
@@ -48,7 +47,7 @@ public final class AvoraLanguageManager {
     }
 
     public static boolean isEnglishAvailable() {
-        return false;
+        return true;
     }
 
     private static SharedPreferences preferences(Context context) {

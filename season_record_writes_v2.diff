@@ -1,0 +1,83 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+@@ -1258,3 +1258,10 @@
+    public Task<Void> saveGardenEvent(GardenEvent event) {
+-      return event != null && !event.getId().isBlank() ? this.journalEventsRef.child(event.getId()).setValue(event) : Tasks.forException(new IllegalArgumentException("Journal event id is required"));
++      if (event == null || event.getId().isBlank()) {
++         return Tasks.forException(new IllegalArgumentException("Journal event id is required"));
++      }
++      return seasonRepository.requireActiveSeasonId(event.getZone_id()).continueWithTask(task -> {
++         if (!task.isSuccessful()) return Tasks.forException(task.getException());
++         event.setSeason_id(task.getResult());
++         return this.journalEventsRef.child(event.getId()).setValue(event);
++      });
+    }
+@@ -1266,3 +1273,13 @@
+    public Task<Void> saveSeasonOutcome(SeasonOutcome outcome) {
+-      return outcome != null && !outcome.getId().isBlank() ? this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome) : Tasks.forException(new IllegalArgumentException("Season outcome id is required"));
++      if (outcome == null || outcome.getId().isBlank()) {
++         return Tasks.forException(new IllegalArgumentException("Season outcome id is required"));
++      }
++      if (!outcome.getSeason_id().isBlank()) {
++         return this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome);
++      }
++      return seasonRepository.requireActiveSeasonId(outcome.getZone_id()).continueWithTask(task -> {
++         if (!task.isSuccessful()) return Tasks.forException(task.getException());
++         outcome.setSeason_id(task.getResult());
++         return this.seasonOutcomesRef.child(outcome.getId()).setValue(outcome);
++      });
+    }
+@@ -1270,19 +1287,24 @@
+    public Task<Void> saveGardenPhotoMetadata(GardenPhoto photo) {
+       if (photo != null && photo.getId() != null && !photo.getId().isBlank()) {
+-         Map<String, Object> values = new HashMap();
+-         values.put("id", photo.getId());
+-         values.put("zone_id", photo.getZone_id());
+-         values.put("note", photo.getNote() == null ? "" : photo.getNote());
+-         values.put("related_application_id", photo.getRelated_application_id() == null ? "" : photo.getRelated_application_id());
+-         values.put("analysis_title", photo.getAnalysis_title() == null ? "" : photo.getAnalysis_title());
+-         values.put("analysis_meta", photo.getAnalysis_meta() == null ? "" : photo.getAnalysis_meta());
+-         values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
+-         values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
+-         values.put("captured_at_epoch", photo.getCaptured_at_epoch());
+-         values.put("photo_kept_on_owner_phone", true);
+-         values.put("metadata_updated_at_epoch", System.currentTimeMillis() / 1000L);
+-         return this.journalPhotoMetadataRef.child(photo.getId()).setValue(values);
++         return seasonRepository.requireActiveSeasonId(photo.getZone_id()).continueWithTask(task -> {
++            if (!task.isSuccessful()) return Tasks.forException(task.getException());
++            photo.setSeason_id(task.getResult());
++            Map<String, Object> values = new HashMap();
++            values.put("id", photo.getId());
++            values.put("zone_id", photo.getZone_id());
++            values.put("season_id", photo.getSeason_id());
++            values.put("note", photo.getNote() == null ? "" : photo.getNote());
++            values.put("related_application_id", photo.getRelated_application_id() == null ? "" : photo.getRelated_application_id());
++            values.put("analysis_title", photo.getAnalysis_title() == null ? "" : photo.getAnalysis_title());
++            values.put("analysis_meta", photo.getAnalysis_meta() == null ? "" : photo.getAnalysis_meta());
++            values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
++            values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
++            values.put("captured_at_epoch", photo.getCaptured_at_epoch());
++            values.put("photo_kept_on_owner_phone", true);
++            values.put("metadata_updated_at_epoch", System.currentTimeMillis() / 1000L);
++            return this.journalPhotoMetadataRef.child(photo.getId()).setValue(values);
++         });
+       } else {
+          return Tasks.forException(new IllegalArgumentException("Photo id is required"));
+       }
+    }
+@@ -1294,3 +1316,13 @@
+    public Task<Void> saveGardenNotification(GardenNotification notification) {
+-      return notification != null && !notification.getId().isBlank() ? this.notificationsRef.child(notification.getId()).setValue(notification) : Tasks.forException(new IllegalArgumentException("Notification id is required"));
++      if (notification == null || notification.getId().isBlank()) {
++         return Tasks.forException(new IllegalArgumentException("Notification id is required"));
++      }
++      if (notification.getZone_id().isBlank() || !notification.getSeason_id().isBlank()) {
++         return this.notificationsRef.child(notification.getId()).setValue(notification);
++      }
++      return seasonRepository.requireActiveSeasonId(notification.getZone_id()).continueWithTask(task -> {
++         if (!task.isSuccessful()) return Tasks.forException(task.getException());
++         notification.setSeason_id(task.getResult());
++         return this.notificationsRef.child(notification.getId()).setValue(notification);
++      });
+    }

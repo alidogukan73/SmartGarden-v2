@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Yeni Kayıt Ekle"
+                android:text="@string/new_record_title"
                 android:textColor="@color/textPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -53,14 +53,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:lineSpacingExtra="0dp"
-                    android:text="Bitki gelişimini kaydederek&#10;geçmiş yıllarla karşılaştırabilir,&#10;daha sağlıklı sonuçlar elde edebilirsin."
+                    android:text="@string/new_record_intro"
                     android:textColor="@color/textPrimary"
                     android:textSize="11sp"
                     android:textStyle="bold" />
                 <ImageView
                     android:layout_width="70dp"
                     android:layout_height="70dp"
-                    android:contentDescription="Bitki gelişimi"
+                    android:contentDescription="@string/plant_growth_description"
                     android:scaleType="centerCrop"
                     android:src="@drawable/img_photo_archive_plant" />
             </LinearLayout>
@@ -69,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Kayıt Türü"
+            android:text="@string/record_type_title"
             android:textColor="@color/textPrimary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -99,7 +99,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gözlem"
+                        android:text="@string/record_type_observation"
                         android:textSize="9sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -125,7 +125,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Sulama"
+                        android:text="@string/notification_category_irrigation"
                         android:textSize="9sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -146,12 +146,12 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌿"
+                        android:text="@string/symbol_leaf"
                         android:textSize="17sp" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gübre"
+                        android:text="@string/fertilizer_outcome_follow_up_product"
                         android:textSize="9sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -177,7 +177,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Fotoğraf"
+                        android:text="@string/record_type_photo"
                         android:textSize="9sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -203,7 +203,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Olay"
+                        android:text="@string/record_type_event"
                         android:textSize="9sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -212,7 +212,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Tarih &amp; Saat"
+            android:text="@string/date_time_title"
             android:textColor="@color/textPrimary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -263,7 +263,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Açıklama (isteğe bağlı)"
+            android:text="@string/optional_description"
             android:textColor="@color/textPrimary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -271,7 +271,7 @@
             android:layout_width="match_parent"
             android:layout_height="116dp"
             android:layout_marginTop="7dp"
-            android:hint="Gözlemlerinizi yazın..."
+            android:hint="@string/observations_hint"
             app:boxBackgroundMode="outline"
             app:boxStrokeColor="@color/border">
             <com.google.android.material.textfield.TextInputEditText
@@ -289,7 +289,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:text="Fotoğraf Ekle (isteğe bağlı)"
+            android:text="@string/add_photo_optional"
             android:textColor="@color/textPrimary"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -317,7 +317,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="20dp"
-            android:text="Kaydet"
+            android:text="@string/settings_quick_save"
             android:textAllCaps="false"
             android:textColor="@color/card"
             android:textStyle="bold"

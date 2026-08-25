@@ -1,0 +1,73 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/models/GardenSeason.java b/Android/app/src/main/java/com/ali/smartgarden/models/GardenSeason.java
+index d564e5b..6e57168 100644
+--- a/Android/app/src/main/java/com/ali/smartgarden/models/GardenSeason.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/models/GardenSeason.java
+@@ -21,6 +21,9 @@ public class GardenSeason {
+     private int journal_event_count;
+     private int photo_count;
+     private int plant_assistant_analysis_count;
++    private int notification_count;
++    private int final_moisture;
++    private long final_sensor_updated_at_epoch;
+     private String result = "";
+     private String harvest_amount = "";
+     private String yield_note = "";
+@@ -64,6 +67,12 @@ public class GardenSeason {
+     public void setPhoto_count(int value) { photo_count = Math.max(0, value); }
+     public int getPlant_assistant_analysis_count() { return plant_assistant_analysis_count; }
+     public void setPlant_assistant_analysis_count(int value) { plant_assistant_analysis_count = Math.max(0, value); }
++    public int getNotification_count() { return notification_count; }
++    public void setNotification_count(int value) { notification_count = Math.max(0, value); }
++    public int getFinal_moisture() { return final_moisture; }
++    public void setFinal_moisture(int value) { final_moisture = Math.max(0, Math.min(100, value)); }
++    public long getFinal_sensor_updated_at_epoch() { return final_sensor_updated_at_epoch; }
++    public void setFinal_sensor_updated_at_epoch(long value) { final_sensor_updated_at_epoch = Math.max(0L, value); }
+     public String getResult() { return result; }
+     public void setResult(String value) { result = safe(value); }
+     public String getHarvest_amount() { return harvest_amount; }
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+index c189dae..ae86075 100644
+--- a/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/season/SeasonRepository.java
+@@ -198,6 +198,9 @@ public final class SeasonRepository {
+             manifest.child("journal_event_count").setValue(counts.eventCount);
+             manifest.child("photo_count").setValue(counts.photoCount);
+             manifest.child("plant_assistant_analysis_count").setValue(counts.analysisCount);
++            manifest.child("notification_count").setValue(counts.notificationCount);
++            manifest.child("final_moisture").setValue(intValue(zoneData.child("moisture")));
++            manifest.child("final_sensor_updated_at_epoch").setValue(longValue(zoneData.child("updated_at_epoch")));
+             copyOutcome(manifest, outcome, seasonId, zoneId, now);
+             manifest.child("updated_at_epoch").setValue(now);
+@@ -403,6 +406,11 @@ public final class SeasonRepository {
+             counts.photoCount++;
+             if (!stringValue(record.child("analysis_title")).isBlank()) counts.analysisCount++;
+         }
++        for (MutableData record : root.child("notifications").getChildren()) {
++            if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
++            if (belongs(record, state)) counts.notificationCount++;
++        }
+         return counts;
+     }
+@@ -489,6 +497,7 @@ public final class SeasonRepository {
+         int eventCount;
+         int photoCount;
+         int analysisCount;
++        int notificationCount;
+     }
+ }
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+index a959175..118fce8 100644
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+@@ -168,7 +168,11 @@ public final class SeasonReportActivity extends AppCompatActivity {
+                 + "Günlük ve AI\nGünlük olayı: " + season.getJournal_event_count()
+                 + " · Fotoğraf: " + season.getPhoto_count()
+-                + " · Bitki Asistanı analizi: " + season.getPlant_assistant_analysis_count() + "\n\n"
++                + " · Bitki Asistanı analizi: " + season.getPlant_assistant_analysis_count()
++                + " · Bildirim: " + season.getNotification_count() + "\n"
++                + (closed && season.getFinal_sensor_updated_at_epoch() > 0L
++                ? "Kapanış nemi: %" + season.getFinal_moisture() + "\n"
++                : "") + "\n"
+                 + fertilizerLearningSummary(scope) + "\n\n"
+                 + "Bahçe sağlığı\n" + healthText + "\n\n"
+                 + "Hava görünümü\n" + weatherText;

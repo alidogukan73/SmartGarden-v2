@@ -2,7 +2,9 @@ package com.ali.smartgarden.notifications;
 
 import android.content.Context;
 
+import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -33,6 +35,9 @@ public final class NotificationSignalScheduler {
                         15,
                         TimeUnit.MINUTES
                 )
+                        .setConstraints(new Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build())
                         .build()
         );
     }

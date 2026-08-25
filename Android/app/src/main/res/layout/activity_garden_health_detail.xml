@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/gardenHealthDetailRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
     android:fillViewport="true">
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,13 +28,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bahçe Sağlık Detayı"
+                    android:text="@string/garden_health_detail_screen_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Bölgelere göre açıklanabilir sağlık değerlendirmesi"
+                    android:text="@string/garden_health_detail_screen_subtitle"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
         </LinearLayout>
@@ -48,7 +48,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="18dp">
+                android:padding="18dp"
+                tools:ignore="DisableBaselineAlignment">
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -80,9 +81,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bahçe Sağlık Puanı"
+                        android:text="@string/home_health_score_title"
                         android:textColor="@color/textSecondary"
-                        android:textSize="9sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -90,13 +91,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
-            android:text="Bölgeler"
+            android:text="@string/home_quick_zones"
             android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Bir bölgeye dokunarak ayrıntılarına ve ayarlarına gidin."
+            android:text="@string/garden_health_detail_zones_hint"
             android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         <LinearLayout
             android:id="@+id/layoutGardenHealthZones"

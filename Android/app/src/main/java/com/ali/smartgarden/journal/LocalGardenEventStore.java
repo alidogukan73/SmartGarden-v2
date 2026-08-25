@@ -26,6 +26,12 @@ public final class LocalGardenEventStore {
     public GardenEvent add(String zoneId, String type, String note) {
         return addInternal(zoneId, type, note, "MANUAL", "");
     }
+    public GardenEvent addForSeason(String zoneId, String seasonId, String type, String note) {
+        GardenEvent event = addInternal(zoneId, type, note, "MANUAL", "");
+        event.setSeason_id(seasonId);
+        replaceSeasonId(event.getId(), seasonId);
+        return event;
+    }
     public GardenEvent add(String zoneId, String type, String note, long occurredAtEpoch) {
         GardenEvent event = addInternal(zoneId, type, note, "MANUAL", "");
         if (occurredAtEpoch > 0L) {
@@ -57,6 +63,7 @@ public final class LocalGardenEventStore {
         try {
             item.put("id", event.getId());
             item.put("zone_id", event.getZone_id());
+            item.put("season_id", event.getSeason_id());
             item.put("type", event.getType());
             item.put("note", event.getNote());
             item.put("source", event.getSource()); item.put("source_key", event.getSource_key());
@@ -81,6 +88,16 @@ public final class LocalGardenEventStore {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putString(KEY_INDEX, index.toString()).apply();
     }
+    public void replaceSeasonId(String id, String seasonId) {
+        JSONArray index = read();
+        for (int i = 0; i < index.length(); i++) {
+            JSONObject item = index.optJSONObject(i);
+            if (item == null || !id.equals(item.optString("id"))) continue;
+            try { item.put("season_id", seasonId == null ? "" : seasonId); } catch (Exception ignored) { }
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_INDEX, index.toString()).apply();
+    }
     public List<GardenEvent> load() {
         List<GardenEvent> events = new ArrayList<>();
         JSONArray index = read();
@@ -90,6 +107,7 @@ public final class LocalGardenEventStore {
                 GardenEvent event = new GardenEvent();
                 event.setId(item.optString("id"));
                 event.setZone_id(item.optString("zone_id"));
+                event.setSeason_id(item.optString("season_id"));
                 event.setType(item.optString("type"));
                 event.setNote(item.optString("note"));
                 event.setSource(item.optString("source", "MANUAL")); event.setSource_key(item.optString("source_key"));

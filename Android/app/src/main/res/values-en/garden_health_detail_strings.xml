@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="garden_health_detail_screen_title">Garden Health Details</string>
+    <string name="garden_health_detail_screen_subtitle">Explainable health assessment by zone</string>
+    <string name="garden_health_detail_zones_hint">Tap a zone to open its details and settings.</string>
+</resources>

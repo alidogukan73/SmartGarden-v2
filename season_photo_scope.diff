@@ -1,0 +1,108 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/photos/LocalGardenPhotoStore.java b/Android/app/src/main/java/com/ali/smartgarden/photos/LocalGardenPhotoStore.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/photos/LocalGardenPhotoStore.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/photos/LocalGardenPhotoStore.java
+@@ -50,6 +50,7 @@ public class LocalGardenPhotoStore {
+         item.put("id", photo.getId());
+         item.put("zone_id", photo.getZone_id());
++        item.put("season_id", safe(photo.getSeason_id()));
+         item.put("local_path", photo.getLocal_path());
+         item.put("note", photo.getNote());
+         item.put("related_application_id", photo.getRelated_application_id());
+@@ -88,6 +89,7 @@ public class LocalGardenPhotoStore {
+         item.put("id", photo.getId());
+         item.put("zone_id", photo.getZone_id());
++        item.put("season_id", safe(photo.getSeason_id()));
+         item.put("local_path", photo.getLocal_path());
+         item.put("note", photo.getNote());
+         item.put("related_application_id", photo.getRelated_application_id());
+@@ -114,6 +116,7 @@ public class LocalGardenPhotoStore {
+                 GardenPhoto photo = new GardenPhoto();
+                 photo.setId(item.optString("id"));
+                 photo.setZone_id(item.optString("zone_id"));
++                photo.setSeason_id(item.optString("season_id"));
+                 photo.setLocal_path(file.getAbsolutePath());
+                 photo.setNote(item.optString("note"));
+                 photo.setRelated_application_id(
+@@ -168,6 +171,22 @@ public class LocalGardenPhotoStore {
+         }
+         return false;
+     }
++
++    /** Persists the cloud-resolved season id in the phone-only photo index. */
++    public boolean updateSeasonId(String photoId, String seasonId) {
++        if (photoId == null || photoId.isBlank()) return false;
++        JSONArray index = readIndex();
++        for (int i = 0; i < index.length(); i++) {
++            try {
++                JSONObject item = index.getJSONObject(i);
++                if (!photoId.equals(item.optString("id"))) continue;
++                item.put("season_id", safe(seasonId));
++                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
++                        .putString(KEY_INDEX, index.toString()).apply();
++                return true;
++            } catch (Exception ignored) { }
++        }
++        return false;
++    }
+     /** Removes both the private archive record and its private phone copy. */
+     public boolean delete(GardenPhoto photo) {
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/NewJournalRecordActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/NewJournalRecordActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/NewJournalRecordActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/NewJournalRecordActivity.java
+@@ -172,11 +172,15 @@ public class NewJournalRecordActivity extends AppCompatActivity {
+                 FirebaseRepository repository = new FirebaseRepository();
+                 for (Uri photo : selectedPhotos) {
+                     GardenPhoto saved = store.save(photo, zoneId, note, photoGroupId);
+-                    repository.saveGardenPhotoMetadata(saved);
++                    repository.saveGardenPhotoMetadata(saved).addOnSuccessListener(unused ->
++                            store.updateSeasonId(saved.getId(), saved.getSeason_id())
++                    );
+                 }
+                 for (Bitmap bitmap : selectedPhotoBitmaps) {
+                     GardenPhoto saved = store.save(bitmap, zoneId, note, photoGroupId);
+-                    repository.saveGardenPhotoMetadata(saved);
++                    repository.saveGardenPhotoMetadata(saved).addOnSuccessListener(unused ->
++                            store.updateSeasonId(saved.getId(), saved.getSeason_id())
++                    );
+                 }
+             }
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/PlantAssistantActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/PlantAssistantActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/PlantAssistantActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/PlantAssistantActivity.java
+@@ -359,7 +359,9 @@ public class PlantAssistantActivity extends AppCompatActivity {
+             com.ali.smartgarden.models.GardenPhoto updated = photoStore.updateAnalysis(archivedPhotoId,
+                     snapshot.title, snapshot.meta, contextText, snapshot.advice);
+             if (updated != null) {
+-                repository.saveGardenPhotoMetadata(updated);
++                repository.saveGardenPhotoMetadata(updated).addOnSuccessListener(unused ->
++                        photoStore.updateSeasonId(updated.getId(), updated.getSeason_id())
++                );
+                 GardenNotificationManager notifications = new GardenNotificationManager(this);
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/JournalRecordDetailActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/JournalRecordDetailActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/JournalRecordDetailActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/JournalRecordDetailActivity.java
+@@ -192,9 +192,18 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
+                 photoGroupId = "journal_record_" + UUID.randomUUID();
+                 store.updateRelatedApplicationId(selectedPhotoRecord.getId(), photoGroupId);
+             }
+-            if (bitmap != null) store.save(bitmap, zoneId, currentDetail, photoGroupId);
++            if (bitmap != null) persistPhotoMetadata(store,
++                    store.save(bitmap, zoneId, currentDetail, photoGroupId));
+             else if (uris != null) {
+-                for (int i = 0; i < Math.min(remaining, uris.size()); i++) store.save(uris.get(i), zoneId, currentDetail, photoGroupId);
++                for (int i = 0; i < Math.min(remaining, uris.size()); i++) {
++                    persistPhotoMetadata(store,
++                            store.save(uris.get(i), zoneId, currentDetail, photoGroupId));
++                }
+             }
+@@ -203,6 +212,13 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
+         }
+     }
++
++    private void persistPhotoMetadata(LocalGardenPhotoStore store, GardenPhoto photo) {
++        repository.saveGardenPhotoMetadata(photo).addOnSuccessListener(unused ->
++                store.updateSeasonId(photo.getId(), photo.getSeason_id())
++        );
++    }
++
+     private void showPhoto(GardenPhoto photo) {

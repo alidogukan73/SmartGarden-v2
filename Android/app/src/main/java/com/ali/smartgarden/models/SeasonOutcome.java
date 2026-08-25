@@ -4,6 +4,7 @@ package com.ali.smartgarden.models;
 public class SeasonOutcome {
     private String id = "";
     private String zone_id = "";
+    private String season_id = "";
     private String result = "";
     private String harvest_amount = "";
     private String next_season_note = "";
@@ -18,6 +19,8 @@ public class SeasonOutcome {
     public void setId(String value) { id = value == null ? "" : value; }
     public String getZone_id() { return zone_id; }
     public void setZone_id(String value) { zone_id = value == null ? "" : value; }
+    public String getSeason_id() { return season_id; }
+    public void setSeason_id(String value) { season_id = value == null ? "" : value; }
     public String getResult() { return result; }
     public void setResult(String value) { result = value == null ? "" : value; }
     public String getHarvest_amount() { return harvest_amount; }

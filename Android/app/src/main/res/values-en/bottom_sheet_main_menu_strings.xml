@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_menu_garden_name">AVORA Garden</string>
+    <string name="main_menu_connection_connecting">● Connecting · smartgarden-001</string>
+    <string name="main_menu_today_recommendation">Today’s Recommendation</string>
+    <string name="main_menu_garden_data_preparing">Preparing garden data</string>
+    <string name="main_menu_sensor_weather_waiting">Waiting for sensor and weather data.</string>
+    <string name="main_menu_management_title">⚙  Management</string>
+    <string name="main_menu_statistics_title">Statistics</string>
+    <string name="main_menu_statistics_subtitle">Today’s and overall performance</string>
+    <string name="main_menu_history_title">Irrigation History</string>
+    <string name="main_menu_history_subtitle">All irrigation records</string>
+    <string name="main_menu_journal_title">Plant Journal</string>
+    <string name="main_menu_journal_subtitle">Daily garden overview and recommendations</string>
+    <string name="main_menu_season_title">Season Management</string>
+    <string name="main_menu_season_subtitle">Start, close, and archive seasons</string>
+    <string name="main_menu_health_title">Device Health</string>
+    <string name="main_menu_health_subtitle">System status and resource usage</string>
+    <string name="main_menu_settings_title">Settings</string>
+    <string name="main_menu_settings_subtitle">System settings and limits</string>
+    <string name="main_menu_about_title">About</string>
+    <string name="main_menu_about_subtitle">App and developer information</string>
+</resources>

@@ -29,14 +29,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hava Durumu"
+                    android:text="@string/home_weather_title"
                     android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
                 <TextView
                     android:id="@+id/txtWeatherLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Bahçe konumu"
+                    android:text="@string/garden_info_location_label"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
@@ -70,7 +70,7 @@
                     android:layout_height="36dp"
                     android:background="@drawable/bg_ai_icon"
                     android:gravity="center"
-                    android:text="♧"
+                    android:text="@string/symbol_garden_outline"
                     android:textColor="@color/primary"
                     android:drawableTop="@drawable/ic_leaf_24"
                     android:drawableTint="@color/primary"
@@ -79,7 +79,7 @@
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:contentDescription="AVORA"
+                    android:contentDescription="@string/main_menu_title"
                     android:src="@mipmap/ic_launcher" />
                 <LinearLayout
                     android:layout_width="0dp"
@@ -91,7 +91,7 @@
                         android:id="@+id/txtWeatherDevice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="smartgarden-001"
+                        android:text="@string/default_device_name"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
                     <TextView
@@ -105,7 +105,7 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="Konum ayarları"
+                    android:text="@string/weather_location_settings"
                     android:textAllCaps="false"
                     android:textSize="11sp"
                     app:cornerRadius="14dp"
@@ -169,7 +169,7 @@
                         android:paddingEnd="9dp"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="GÜNCEL"
+                        android:text="@string/weather_current_badge"
                         android:textColor="@color/primary"
                         android:textSize="9sp"
                         android:textStyle="bold" />
@@ -214,7 +214,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
-                    android:text="Tahmin düzenli güncellenir"
+                    android:text="@string/weather_refresh_note"
                     android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -228,12 +228,12 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="7 Günlük Tahmin"
+                android:text="@string/weather_seven_day_title"
                 android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kaydır →"
+                android:text="@string/weather_swipe_hint"
                 android:textColor="@color/primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -288,7 +288,7 @@
                     android:layout_weight="1"
                     android:orientation="vertical">
                     <TextView
-                        android:text="Akıllı öneri"
+                        android:text="@string/weather_smart_advice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/textPrimary"

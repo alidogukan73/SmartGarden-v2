@@ -41,8 +41,9 @@ import java.util.UUID;
 /** Detail view for one live plant-journal timeline record. */
 public class JournalRecordDetailActivity extends AppCompatActivity {
     private final FirebaseRepository repository = new FirebaseRepository();
-    private String manualEventId = "", manualEventType = "", zoneId = "", currentDetail = "";
+    private String manualEventId = "", manualEventType = "", zoneId = "", seasonId = "", currentDetail = "";
     private String selectedPhotoPath = "", selectedAdvice = "", photoGroupId = "";
+    private boolean seasonReadOnly;
     private GardenPhoto selectedPhotoRecord;
     private long recordEpoch;
     private LinearLayout photosLayout, linksLayout;
@@ -82,10 +83,12 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         manualEventId = safe(getIntent().getStringExtra("manual_event_id"));
         manualEventType = safe(getIntent().getStringExtra("manual_event_type"));
         zoneId = safe(getIntent().getStringExtra("zone_id"));
+        seasonId = safe(getIntent().getStringExtra("season_id"));
         currentDetail = safe(getIntent().getStringExtra("detail"));
         selectedPhotoPath = safe(getIntent().getStringExtra("photo_path"));
         photoGroupId = safe(getIntent().getStringExtra("photo_group_id"));
         selectedAdvice = safe(getIntent().getStringExtra("advice"));
+        seasonReadOnly = getIntent().getBooleanExtra("season_read_only", false);
         recordEpoch = getIntent().getLongExtra("time", System.currentTimeMillis() / 1000L);
     }
 
@@ -103,11 +106,11 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     private void renderStaticDetail() {
         String title = safe(getIntent().getStringExtra("title"));
         String icon = safe(getIntent().getStringExtra("icon"));
-        ((TextView) findViewById(R.id.txtRecordTitle)).setText(title.isBlank() ? "Kayıt" : title);
-        ((TextView) findViewById(R.id.txtRecordDetail)).setText(currentDetail.isBlank() ? "Açıklama eklenmedi." : currentDetail);
+        ((TextView) findViewById(R.id.txtRecordTitle)).setText(title.isBlank() ? getString(R.string.runtime_record_default) : title);
+        ((TextView) findViewById(R.id.txtRecordDetail)).setText(currentDetail.isBlank() ? getString(R.string.runtime_no_description) : currentDetail);
         ((TextView) findViewById(R.id.txtRecordIcon)).setText(icon.isBlank() ? "•" : icon);
         ((TextView) findViewById(R.id.txtRecordDate)).setText(dateTime(recordEpoch));
-        boolean editable = !manualEventId.isBlank();
+        boolean editable = !seasonReadOnly && !manualEventId.isBlank();
         findViewById(R.id.btnRecordEdit).setVisibility(editable ? View.VISIBLE : View.GONE);
         updateDeleteAction();
     }
@@ -133,9 +136,10 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         } else {
             photosTitle.setVisibility(View.VISIBLE);
             photosLayout.setVisibility(View.VISIBLE);
-            photosTitle.setText("Fotoğraflar · " + related.size() + " fotoğraf");
+            photosTitle.setText(getResources().getQuantityString(
+                    R.plurals.runtime_record_photos_title, related.size(), related.size()));
             for (GardenPhoto photo : related) addPhoto(photo);
-            if (related.size() < 5) addPhotoAddTile();
+            if (!seasonReadOnly && related.size() < 5) addPhotoAddTile();
         }
         GardenPhoto analyzed = related.isEmpty() ? null : related.get(0);
         selectedPhotoRecord = analyzed;
@@ -163,7 +167,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
 
     private void addPhotoAddTile() {
         TextView add = new TextView(this);
-        add.setText("＋\nFotoğraf ekle");
+        add.setText(R.string.runtime_add_photo_tile);
         add.setTextSize(12); add.setGravity(Gravity.CENTER); add.setTextColor(getColor(R.color.primary));
         add.setBackgroundColor(getColor(R.color.surfaceGreen));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(108), dp(108));
@@ -173,10 +177,14 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     }
 
     private void showExtraPhotoSourceDialog() {
+        if (seasonReadOnly) return;
         int remaining = 5 - relatedPhotos.size();
-        if (remaining <= 0) { Toast.makeText(this, "Bu kayıtta en fazla 5 fotoğraf olabilir.", Toast.LENGTH_SHORT).show(); return; }
-        new MaterialAlertDialogBuilder(this).setTitle("Fotoğraf ekle")
-                .setItems(new String[]{"Fotoğraf çek", "Galeriden seç"}, (dialog, which) -> {
+        if (remaining <= 0) { Toast.makeText(this, R.string.runtime_record_photo_limit, Toast.LENGTH_SHORT).show(); return; }
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.runtime_add_photo)
+                .setItems(new String[]{
+                        getString(R.string.runtime_take_photo),
+                        getString(R.string.runtime_choose_gallery)
+                }, (dialog, which) -> {
                     if (which == 0) extraPhotoCamera.launch(null);
                     else extraPhotoPicker.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
                 }).show();
@@ -192,21 +200,36 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
                 photoGroupId = "journal_record_" + UUID.randomUUID();
                 store.updateRelatedApplicationId(selectedPhotoRecord.getId(), photoGroupId);
             }
-            if (bitmap != null) store.save(bitmap, zoneId, currentDetail, photoGroupId);
+            if (bitmap != null) persistPhotoMetadata(store,
+                    store.save(bitmap, zoneId, currentDetail, photoGroupId));
             else if (uris != null) {
-                for (int i = 0; i < Math.min(remaining, uris.size()); i++) store.save(uris.get(i), zoneId, currentDetail, photoGroupId);
+                for (int i = 0; i < Math.min(remaining, uris.size()); i++) {
+                    persistPhotoMetadata(store,
+                            store.save(uris.get(i), zoneId, currentDetail, photoGroupId));
+                }
             }
             renderPhotosAndAnalysis();
-            Toast.makeText(this, "Fotoğraf kayda eklendi.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.runtime_photo_added, Toast.LENGTH_SHORT).show();
         } catch (Exception error) {
-            Toast.makeText(this, "Fotoğraf eklenemedi.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.runtime_photo_add_failed, Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void persistPhotoMetadata(LocalGardenPhotoStore store, GardenPhoto photo) {
+        if (!seasonId.isBlank()) {
+            photo.setSeason_id(seasonId);
+            store.updateSeasonId(photo.getId(), seasonId);
+        }
+        repository.saveGardenPhotoMetadata(photo).addOnSuccessListener(unused ->
+                store.updateSeasonId(photo.getId(), photo.getSeason_id())
+        );
+    }
+
     private void showPhoto(GardenPhoto photo) {
         ImageView full = new ImageView(this);
         full.setAdjustViewBounds(true);
         full.setImageURI(Uri.fromFile(new File(photo.getLocal_path())));
-        new MaterialAlertDialogBuilder(this).setTitle("Gelişim fotoğrafı").setView(full).setPositiveButton("Kapat", null).show();
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.runtime_growth_photo).setView(full).setPositiveButton(R.string.runtime_close, null).show();
     }
 
     private void renderLinks() {
@@ -214,18 +237,18 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         int count = 0;
         for (FertilizerApplication item : fertilizers) {
             if (!zoneId.equals(item.getZone_id()) || isSameRecord(item.getApplied_at_epoch())) continue;
-            addLinkedCard("🌿", "Gübreleme", safe(item.getProduct_name()) + " · " + trimNumber(item.getApplied_dose()) + " " + safe(item.getDose_unit()), item.getApplied_at_epoch());
+            addLinkedCard("🌿", getString(R.string.notification_category_fertilization), safe(item.getProduct_name()) + " · " + trimNumber(item.getApplied_dose()) + " " + safe(item.getDose_unit()), item.getApplied_at_epoch());
             if (++count == 2) return;
         }
         for (WateringHistory item : waterings) {
             long when = parseWateringTime(item.getFinishedAt());
             if (!zoneId.equals(item.getZoneId()) || !item.isCompleted() || isSameRecord(when)) continue;
-            addLinkedCard(getString(R.string.symbol_water_drop), "Sulama", "Süre: " + item.getDuration() + " sn", when);
+            addLinkedCard(getString(R.string.symbol_water_drop), getString(R.string.notification_category_irrigation), getString(R.string.runtime_duration_seconds, item.getDuration()), when);
             if (++count == 2) return;
         }
         if (count == 0) {
             TextView empty = new TextView(this);
-            empty.setText("Bu kayıtla ilişkili sulama veya gübreleme kaydı yok.");
+            empty.setText(R.string.runtime_no_linked_records);
             empty.setTextColor(getColor(R.color.textSecondary));
             empty.setTextSize(12);
             empty.setPadding(dp(6), dp(10), dp(6), dp(6));
@@ -264,6 +287,8 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     private void openLinkedRecord(String title, String detail, String icon, long epoch) {
         Intent intent = new Intent(this, JournalRecordDetailActivity.class);
         intent.putExtra("title", title); intent.putExtra("detail", detail); intent.putExtra("icon", icon); intent.putExtra("time", epoch); intent.putExtra("zone_id", zoneId);
+        intent.putExtra("season_id", seasonId);
+        intent.putExtra("season_read_only", seasonReadOnly);
         startActivity(intent);
     }
 
@@ -275,28 +300,32 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     }
 
     private void editManualRecord() {
+        if (seasonReadOnly) return;
         EditText input = new EditText(this); input.setText(currentDetail); input.setMinLines(3);
-        new MaterialAlertDialogBuilder(this).setTitle("Kaydı düzenle").setView(input).setNegativeButton("İptal", null).setPositiveButton("Kaydet", (d, w) -> {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.fertilizer_history_edit).setView(input).setNegativeButton(R.string.settings_quick_cancel, null).setPositiveButton(R.string.settings_quick_save, (d, w) -> {
             String newNote = String.valueOf(input.getText());
             if (new LocalGardenEventStore(this).update(manualEventId, manualEventType, newNote)) {
                 GardenEvent event = new GardenEvent(); event.setId(manualEventId); event.setZone_id(zoneId); event.setType(manualEventType); event.setNote(newNote); event.setOccurred_at_epoch(recordEpoch);
+                event.setSeason_id(seasonId);
                 repository.saveGardenEvent(event); finish();
             }
         }).show();
     }
 
     private void updateDeleteAction() {
-        boolean userRecord = !manualEventId.isBlank() || selectedPhotoRecord != null;
+        boolean userRecord = !seasonReadOnly
+                && (!manualEventId.isBlank() || selectedPhotoRecord != null);
         findViewById(R.id.btnRecordDelete).setVisibility(userRecord ? View.VISIBLE : View.GONE);
     }
 
     private void confirmDelete() {
+        if (seasonReadOnly) return;
         if (manualEventId.isBlank() && selectedPhotoRecord == null) return;
         String message = !manualEventId.isBlank()
-                ? "Bu kullanıcı kaydı silinecek. Otomatik sulama ve gübreleme geçmişi etkilenmez."
-                : "Bu kullanıcı fotoğraf kaydı ve telefonunuzdaki kopyası silinecek.";
-        new MaterialAlertDialogBuilder(this).setTitle("Kaydı sil?").setMessage(message)
-                .setNegativeButton("Vazgeç", null).setPositiveButton("Sil", (d, w) -> {
+                ? getString(R.string.runtime_delete_user_record_message)
+                : getString(R.string.runtime_delete_photo_record_message);
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.runtime_delete_record_title).setMessage(message)
+                .setNegativeButton(R.string.manual_relay_test_cancel, null).setPositiveButton(R.string.notification_center_action_delete, (d, w) -> {
                     if (!manualEventId.isBlank()) {
                         if (new LocalGardenEventStore(this).delete(manualEventId)) {
                             repository.deleteGardenEvent(manualEventId);
@@ -311,7 +340,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
                 }).show();
     }
 
-    private String dateTime(long epoch) { return new SimpleDateFormat("dd MMMM yyyy · HH:mm", Locale.forLanguageTag("tr-TR")).format(new Date(Math.max(epoch, 1L) * 1000L)); }
+    private String dateTime(long epoch) { return new SimpleDateFormat("dd MMMM yyyy · HH:mm", Locale.getDefault()).format(new Date(Math.max(epoch, 1L) * 1000L)); }
     private String trimNumber(double value) { return Math.abs(value - Math.rint(value)) < 0.01 ? String.valueOf((long) value) : String.format(Locale.US, "%.1f", value); }
     private String safe(String value) { return value == null ? "" : value.trim(); }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

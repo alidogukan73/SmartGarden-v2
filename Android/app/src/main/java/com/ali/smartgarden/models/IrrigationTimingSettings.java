@@ -1,6 +1,7 @@
 package com.ali.smartgarden.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
+import java.util.Locale;
 
 /**
  * Açık alan sulamasında uygun zaman penceresini yöneten kullanıcı tercihleri.
@@ -71,6 +72,6 @@ public class IrrigationTimingSettings {
     public void setUpdatedAtEpoch(long value) { updatedAtEpoch = Math.max(0, value); }
 
     private static String safeCode(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value.trim().toUpperCase();
+        return value == null || value.isBlank() ? fallback : value.trim().toUpperCase(Locale.ROOT);
     }
 }

@@ -12,20 +12,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
-import java.util.Date;
 
 /** Converts meaningful weather, device and watering changes into deduplicated AVORA alerts. */
 public final class NotificationSignalCoordinator {
     private static final long WEATHER_MAX_AGE_SECONDS = 12L * 60L * 60L;
-    private static final long DEVICE_OFFLINE_AFTER_SECONDS = 90L;
-    private static final long DEVICE_OFFLINE_CONFIRMATION_MILLIS = 15_000L;
     private static final long IRRIGATION_AI_MAX_AGE_MILLIS = 30L * 60L * 1000L;
     private static final String AI_STATE_PREFS = "avora_ai_notification_state";
     private static final String DEVICE_CONNECTION_PREFS = "avora_device_connection_state";
     private static final String DEVICE_OFFLINE_CANDIDATE_SINCE = "offline_candidate_since";
     private static final String DEVICE_OFFLINE_CANDIDATE_HEARTBEAT = "offline_candidate_heartbeat";
+    private static final String DEVICE_RECOVERY_CANDIDATE_SINCE = "recovery_candidate_since";
+    private static final String DEVICE_RECOVERY_CANDIDATE_HEARTBEAT = "recovery_candidate_heartbeat";
+    private static final String DEVICE_ERROR_RECOVERY_CANDIDATE_SINCE =
+            "device_error_recovery_candidate_since";
+    private static final String DEVICE_NEWEST_HEARTBEAT = "newest_heartbeat_epoch";
     private static final Object AI_STATE_LOCK = new Object();
     private static final Object DEVICE_CONNECTION_LOCK = new Object();
 
@@ -79,6 +80,10 @@ public final class NotificationSignalCoordinator {
             return;
         }
 
+        if (!acceptDeviceSnapshot(context, status)) {
+            return;
+        }
+
         GardenNotificationManager notifications =
                 new GardenNotificationManager(context);
 
@@ -93,9 +98,12 @@ public final class NotificationSignalCoordinator {
                 : Math.max(0L, nowEpoch - lastSeenEpoch);
 
         boolean deviceOffline = NotificationPolicy.isDeviceOffline(
-                status.isOnline(), lastSeenEpoch, nowEpoch, DEVICE_OFFLINE_AFTER_SECONDS);
+                status.isOnline(), lastSeenEpoch, nowEpoch,
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
 
         if (deviceOffline) {
+
+            clearRecoveryCandidate(context);
 
             if (!confirmOfflineObservation(context, lastSeenEpoch, nowMillis)) {
                 return;
@@ -133,29 +141,22 @@ public final class NotificationSignalCoordinator {
 
         if (notifications.isIncidentActive("device_offline")) {
 
-            SimpleDateFormat formatter =
-                    new SimpleDateFormat(
-                            "HH:mm",
-                            Locale.getDefault()
-                    );
+            if (!confirmRecoveryObservation(context, lastSeenEpoch, nowMillis)) {
+                return;
+            }
 
-            String restoredAt =
-                    formatter.format(
-                            new Date(lastSeenEpoch * 1000L)
-                    );
 
             notifications.publishOnce(
                     "DEVICE",
                     "NORMAL",
                     "",
                     context.getString(R.string.notification_device_recovered_title),
-                    context.getString(
-                            R.string.notification_device_recovered_description,
-                            restoredAt),
+                    context.getString(R.string.notification_device_recovered_description),
                     "device-recovered:" + lastSeenEpoch
             );
         }
 
+        clearRecoveryCandidate(context);
         notifications.resetIncident("device_offline");
     }
 
@@ -166,17 +167,30 @@ public final class NotificationSignalCoordinator {
      */
     public static void synchronizeDeviceConnection(Context context, Status status) {
         if (status == null) return;
+        if (!acceptDeviceSnapshot(context, status)) return;
         long nowMillis = System.currentTimeMillis();
         long nowEpoch = nowMillis / 1000L;
         boolean offline = NotificationPolicy.isDeviceOffline(
                 status.isOnline(), status.getLastSeenEpoch(), nowEpoch,
-                DEVICE_OFFLINE_AFTER_SECONDS);
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
         if (offline) {
+            clearRecoveryCandidate(context);
             rememberOfflineCandidate(context, status.getLastSeenEpoch(), nowMillis);
         } else {
             clearOfflineCandidate(context);
+            clearRecoveryCandidate(context);
+            DeviceConnectionVerificationWorker.cancel(context);
             new GardenNotificationManager(context).resetIncident("device_offline");
         }
+    }
+
+    /**
+     * Drops an outage candidate when this Android client cannot reach Firebase.
+     * A confirmed Pi incident stays active until a trustworthy recovery arrives.
+     */
+    public static void discardDeviceConnectionCandidates(Context context) {
+        clearOfflineCandidate(context);
+        clearRecoveryCandidate(context);
     }
 
     private static boolean confirmOfflineObservation(Context context,
@@ -197,7 +211,41 @@ public final class NotificationSignalCoordinator {
                 return false;
             }
             return NotificationPolicy.isOfflineConfirmationDue(
-                    candidateSince, nowMillis, DEVICE_OFFLINE_CONFIRMATION_MILLIS);
+                    candidateSince, nowMillis,
+                    NotificationPolicy.DEVICE_OFFLINE_CONFIRMATION_MILLIS);
+        }
+    }
+
+    private static boolean confirmRecoveryObservation(Context context,
+                                                       long heartbeatEpoch,
+                                                       long nowMillis) {
+        synchronized (DEVICE_CONNECTION_LOCK) {
+            SharedPreferences preferences = context.getSharedPreferences(
+                    DEVICE_CONNECTION_PREFS, Context.MODE_PRIVATE);
+            long candidateSince = preferences.getLong(
+                    DEVICE_RECOVERY_CANDIDATE_SINCE, 0L);
+            long candidateHeartbeat = preferences.getLong(
+                    DEVICE_RECOVERY_CANDIDATE_HEARTBEAT, Long.MIN_VALUE);
+            /*
+             * A healthy heartbeat normally increases every few seconds. Keep the
+             * original recovery window while it moves forward; only a backward
+             * snapshot invalidates the observation.
+             */
+            if (candidateSince <= 0L || heartbeatEpoch < candidateHeartbeat) {
+                preferences.edit()
+                        .putLong(DEVICE_RECOVERY_CANDIDATE_SINCE, nowMillis)
+                        .putLong(DEVICE_RECOVERY_CANDIDATE_HEARTBEAT, heartbeatEpoch)
+                        .apply();
+                return false;
+            }
+            if (heartbeatEpoch > candidateHeartbeat) {
+                preferences.edit()
+                        .putLong(DEVICE_RECOVERY_CANDIDATE_HEARTBEAT, heartbeatEpoch)
+                        .apply();
+            }
+            return NotificationPolicy.isOfflineConfirmationDue(
+                    candidateSince, nowMillis,
+                    NotificationPolicy.DEVICE_RECOVERY_CONFIRMATION_MILLIS);
         }
     }
 
@@ -230,6 +278,37 @@ public final class NotificationSignalCoordinator {
         }
     }
 
+    private static void clearRecoveryCandidate(Context context) {
+        synchronized (DEVICE_CONNECTION_LOCK) {
+            context.getSharedPreferences(DEVICE_CONNECTION_PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .remove(DEVICE_RECOVERY_CANDIDATE_SINCE)
+                    .remove(DEVICE_RECOVERY_CANDIDATE_HEARTBEAT)
+                    .apply();
+        }
+    }
+
+    private static boolean acceptDeviceSnapshot(Context context, Status status) {
+        synchronized (DEVICE_CONNECTION_LOCK) {
+            SharedPreferences preferences = context.getSharedPreferences(
+                    DEVICE_CONNECTION_PREFS, Context.MODE_PRIVATE);
+            long newestHeartbeat = preferences.getLong(DEVICE_NEWEST_HEARTBEAT, 0L);
+            long incomingHeartbeat = status.getLastSeenEpoch();
+            long nowEpoch = System.currentTimeMillis() / 1000L;
+            if (!NotificationPolicy.shouldAcceptDeviceSnapshot(
+                    incomingHeartbeat, newestHeartbeat, nowEpoch)) {
+                return false;
+            }
+            if (incomingHeartbeat > newestHeartbeat
+                    || newestHeartbeat > nowEpoch + 5L * 60L) {
+                preferences.edit()
+                        .putLong(DEVICE_NEWEST_HEARTBEAT, incomingHeartbeat)
+                        .apply();
+            }
+            return true;
+        }
+    }
+
     public static void evaluateDevice(Context context, Status status, Health health) {
 
         if (status == null) {
@@ -252,12 +331,15 @@ public final class NotificationSignalCoordinator {
 
         boolean deviceOffline =
                 !status.isOnline()
-                        || heartbeatAge > DEVICE_OFFLINE_AFTER_SECONDS;
+                        || heartbeatAge
+                        > NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS;
 
         if (deviceOffline) {
 
             GardenNotificationManager notifications =
                     new GardenNotificationManager(context);
+
+            clearDeviceErrorRecoveryCandidate(context);
 
             notifications.resetIncident(
                     "device_error"
@@ -269,9 +351,13 @@ public final class NotificationSignalCoordinator {
         GardenNotificationManager notifications =
                 new GardenNotificationManager(context);
 
+        long nowMillis = System.currentTimeMillis();
+
         String error = status.getLastError();
 
         if (error != null && !error.isBlank()) {
+
+            clearDeviceErrorRecoveryCandidate(context);
 
             boolean sensorFailure = isSensorFailure(error);
             String incidentId = status.getErrorIncidentId();
@@ -299,7 +385,12 @@ public final class NotificationSignalCoordinator {
             );
 
         } else {
-            notifications.resetIncident("device_error");
+            if (!notifications.isIncidentActive("device_error")) {
+                clearDeviceErrorRecoveryCandidate(context);
+            } else if (confirmDeviceErrorRecovery(context, nowMillis)) {
+                notifications.resetIncident("device_error");
+                clearDeviceErrorRecoveryCandidate(context);
+            }
         }
 
         if (health != null) {
@@ -336,6 +427,42 @@ public final class NotificationSignalCoordinator {
                 || normalized.contains("wireless") || normalized.contains("mqtt")
                 || normalized.contains("soil moisture") || normalized.contains("measurement")
                 || normalized.contains("ölçüm");
+    }
+
+    private static boolean confirmDeviceErrorRecovery(
+            Context context,
+            long nowMillis
+    ) {
+        synchronized (DEVICE_CONNECTION_LOCK) {
+            SharedPreferences preferences = context.getSharedPreferences(
+                    DEVICE_CONNECTION_PREFS,
+                    Context.MODE_PRIVATE
+            );
+            long candidateSince = preferences.getLong(
+                    DEVICE_ERROR_RECOVERY_CANDIDATE_SINCE,
+                    0L
+            );
+            if (candidateSince <= 0L || nowMillis < candidateSince) {
+                preferences.edit()
+                        .putLong(DEVICE_ERROR_RECOVERY_CANDIDATE_SINCE, nowMillis)
+                        .apply();
+                return false;
+            }
+            return NotificationPolicy.isOfflineConfirmationDue(
+                    candidateSince,
+                    nowMillis,
+                    NotificationPolicy.DEVICE_ERROR_RECOVERY_CONFIRMATION_MILLIS
+            );
+        }
+    }
+
+    private static void clearDeviceErrorRecoveryCandidate(Context context) {
+        synchronized (DEVICE_CONNECTION_LOCK) {
+            context.getSharedPreferences(DEVICE_CONNECTION_PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .remove(DEVICE_ERROR_RECOVERY_CANDIDATE_SINCE)
+                    .apply();
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 //
-// AVORA Wireless Soil Sensors v2.1.0
+// AVORA Wireless Soil Sensors v2.1.2
 // Two ADS1115 modules, up to eight capacitive soil sensors.
 //
 #include <WiFi.h>
@@ -20,9 +20,18 @@ constexpr uint16_t MQTT_PORT = 1883;
 constexpr unsigned long PUBLISH_INTERVAL_MS = 5000;
 constexpr uint8_t FILTER_SAMPLE_COUNT = 10;
 constexpr uint16_t FILTER_SAMPLE_DELAY_MS = 50;
+constexpr uint16_t I2C_TIMEOUT_MS = 100;
+constexpr unsigned long ADS_READ_TIMEOUT_MS = 100;
+constexpr unsigned long ADS_RETRY_INTERVAL_MS = 30000;
+constexpr uint16_t ADS_SINGLE_ENDED_MUX[] = {
+    ADS1X15_REG_CONFIG_MUX_SINGLE_0,
+    ADS1X15_REG_CONFIG_MUX_SINGLE_1,
+    ADS1X15_REG_CONFIG_MUX_SINGLE_2,
+    ADS1X15_REG_CONFIG_MUX_SINGLE_3,
+};
 
 const char* MQTT_BROKER = "192.168.1.99";
-const char* FIRMWARE_VERSION = "2.1.0";
+const char* FIRMWARE_VERSION = "2.1.2";
 const char* SENSOR_CONFIG_TOPIC_FILTER =
         "smartgarden/config/esp32/sensors/#";
 const char* CALIBRATION_CONFIG_TOPIC_FILTER =
@@ -38,6 +47,7 @@ WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
 bool adsAvailable[] = {false, false};
+unsigned long lastAdsRetryMillis[] = {0, 0};
 unsigned long lastPublishMillis = 0;
 
 struct SensorConfig {
@@ -201,16 +211,62 @@ Adafruit_ADS1115& adsFor(uint8_t adsIndex) {
     return adsIndex == 0 ? adsPrimary : adsSecondary;
 }
 
-int16_t readFilteredRaw(const SensorConfig& sensor) {
+bool readSingleEndedWithTimeout(
+        Adafruit_ADS1115& ads,
+        uint8_t channel,
+        int16_t& raw
+) {
+    if (channel >= 4) {
+        return false;
+    }
+
+    ads.startADCReading(ADS_SINGLE_ENDED_MUX[channel], false);
+    unsigned long startedAt = millis();
+
+    while (!ads.conversionComplete()) {
+        if (millis() - startedAt >= ADS_READ_TIMEOUT_MS) {
+            return false;
+        }
+        delay(1);
+    }
+
+    raw = ads.getLastConversionResults();
+    return true;
+}
+
+bool readFilteredRaw(const SensorConfig& sensor, int16_t& filteredRaw) {
     long total = 0;
+    int16_t minimum = INT16_MAX;
+    int16_t maximum = INT16_MIN;
     Adafruit_ADS1115& ads = adsFor(sensor.adsIndex);
 
     for (uint8_t sample = 0; sample < FILTER_SAMPLE_COUNT; sample++) {
-        total += ads.readADC_SingleEnded(sensor.channel);
+        int16_t raw = 0;
+        if (!readSingleEndedWithTimeout(ads, sensor.channel, raw)) {
+            return false;
+        }
+
+        total += raw;
+        minimum = min(minimum, raw);
+        maximum = max(maximum, raw);
         delay(FILTER_SAMPLE_DELAY_MS);
     }
 
-    return static_cast<int16_t>(total / FILTER_SAMPLE_COUNT);
+    // Drop the largest and smallest samples so a single electrical spike
+    // cannot distort the moisture value.
+    if (FILTER_SAMPLE_COUNT >= 3) {
+        total -= minimum;
+        total -= maximum;
+        filteredRaw = static_cast<int16_t>(
+                total / (FILTER_SAMPLE_COUNT - 2)
+        );
+    } else {
+        filteredRaw = static_cast<int16_t>(
+                total / FILTER_SAMPLE_COUNT
+        );
+    }
+
+    return true;
 }
 
 void connectToWiFi() {
@@ -259,8 +315,24 @@ void connectToMqtt() {
     }
 }
 
+void markAdsUnavailable(uint8_t adsIndex, const char* sensorId) {
+    adsAvailable[adsIndex] = false;
+    lastAdsRetryMillis[adsIndex] = millis();
+
+    Serial.print("HATA: ADS1115 #");
+    Serial.print(adsIndex + 1);
+    Serial.print(" okuma zaman asimi; sensor=");
+    Serial.print(sensorId);
+    Serial.println(". Diger ADS modulu calismaya devam edecek.");
+}
+
 void publishSensorData(const SensorConfig& sensor) {
-    int16_t raw = readFilteredRaw(sensor);
+    int16_t raw = 0;
+    if (!readFilteredRaw(sensor, raw)) {
+        markAdsUnavailable(sensor.adsIndex, sensor.id);
+        return;
+    }
+
     float voltage = adsFor(sensor.adsIndex).computeVolts(raw);
     int moisture = calculateMoisturePercent(raw, sensor);
 
@@ -291,24 +363,49 @@ void publishSensorData(const SensorConfig& sensor) {
     }
 }
 
-void initializeAds() {
-    adsAvailable[0] = adsPrimary.begin(ADS_PRIMARY_ADDRESS, &Wire);
-    if (adsAvailable[0]) {
-        adsPrimary.setGain(GAIN_ONE);
-        Serial.println("ADS1115 #1 bulundu: 0x48");
-    } else {
-        Serial.println("HATA: Zorunlu ADS1115 #1 (0x48) bulunamadi.");
-        while (true) {
-            delay(1000);
-        }
+bool initializeAdsModule(uint8_t adsIndex) {
+    uint8_t address = adsIndex == 0
+            ? ADS_PRIMARY_ADDRESS
+            : ADS_SECONDARY_ADDRESS;
+    Adafruit_ADS1115& ads = adsFor(adsIndex);
+
+    bool found = ads.begin(address, &Wire);
+    adsAvailable[adsIndex] = found;
+    lastAdsRetryMillis[adsIndex] = millis();
+
+    Serial.print("ADS1115 #");
+    Serial.print(adsIndex + 1);
+
+    if (found) {
+        ads.setGain(GAIN_ONE);
+        Serial.print(" bulundu: 0x");
+        Serial.println(address, HEX);
+        return true;
     }
 
-    adsAvailable[1] = adsSecondary.begin(ADS_SECONDARY_ADDRESS, &Wire);
-    if (adsAvailable[1]) {
-        adsSecondary.setGain(GAIN_ONE);
-        Serial.println("ADS1115 #2 bulundu: 0x49");
-    } else {
-        Serial.println("ADS1115 #2 (0x49) bekleniyor; soil-005..soil-008 pasif.");
+    Serial.print(" bulunamadi: 0x");
+    Serial.print(address, HEX);
+    Serial.println("; ilgili sensor kanallari pasif, MQTT devam ediyor.");
+    return false;
+}
+
+void initializeAds() {
+    initializeAdsModule(0);
+    initializeAdsModule(1);
+}
+
+void retryUnavailableAds(unsigned long now) {
+    for (uint8_t adsIndex = 0; adsIndex < 2; adsIndex++) {
+        if (adsAvailable[adsIndex]) {
+            continue;
+        }
+        if (now - lastAdsRetryMillis[adsIndex] < ADS_RETRY_INTERVAL_MS) {
+            continue;
+        }
+
+        Serial.print("ADS1115 yeniden deneniyor: #");
+        Serial.println(adsIndex + 1);
+        initializeAdsModule(adsIndex);
     }
 }
 
@@ -318,6 +415,7 @@ void setup() {
     Serial.println("AVORA 8 kanalli sensor baslatiliyor...");
 
     Wire.begin(SDA_PIN, SCL_PIN);
+    Wire.setTimeOut(I2C_TIMEOUT_MS);
     initializeAds();
     connectToWiFi();
     mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
@@ -335,6 +433,7 @@ void loop() {
     mqttClient.loop();
 
     unsigned long now = millis();
+    retryUnavailableAds(now);
     if (now - lastPublishMillis < PUBLISH_INTERVAL_MS) {
         return;
     }

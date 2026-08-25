@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.ArrayList;
@@ -33,9 +34,7 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
 
     public void submitList(List<GardenZone> items) {
         zones.clear();
-        if (items != null) {
-            zones.addAll(items);
-        }
+        zones.addAll(ZoneCapacityPolicy.activeZones(items));
         notifyDataSetChanged();
     }
 
@@ -119,7 +118,7 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         void bind(GardenZone zone) {
             Context context = itemView.getContext();
             String emoji = zone.getEmoji() == null || zone.getEmoji().isBlank() ? "🌱" : zone.getEmoji();
-            String zoneName = zone.getName() == null ? "Bölge" : zone.getName();
+            String zoneName = zone.getName() == null ? context.getString(R.string.zone_fallback_name) : zone.getName();
             String sensorId = zone.getSensor_id() == null ? "—" : zone.getSensor_id();
 
             name.setText(emoji + " " + zoneName);
@@ -137,7 +136,7 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
 
         private void bindConnected(Context context, GardenZone zone) {
             int value = Math.max(0, Math.min(100, zone.getMoisture()));
-            badge.setText("AKTİF");
+            badge.setText(R.string.sensor_active);
             badge.setTextColor(color(context, R.color.primary));
             moisture.setText(context.getString(R.string.sensor_moisture_format, value));
             progress.setProgress(value);
@@ -146,13 +145,13 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
             String statusText;
             if (value < 35) {
                 statusColor = color(context, R.color.moistureLow);
-                statusText = "Düşük nem";
+                statusText = context.getString(R.string.runtime_moisture_low);
             } else if (value > 70) {
                 statusColor = color(context, R.color.info);
-                statusText = "Yüksek nem";
+                statusText = context.getString(R.string.runtime_moisture_high);
             } else {
                 statusColor = color(context, R.color.moistureIdeal);
-                statusText = "İdeal nem";
+                statusText = context.getString(R.string.runtime_moisture_ideal);
             }
             moisture.setTextColor(statusColor);
             moistureState.setText(statusText);
@@ -164,19 +163,19 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         }
 
         private void bindWaiting(Context context) {
-            badge.setText("BEKLİYOR");
+            badge.setText(R.string.ai_runtime_validation_waiting);
             badge.setTextColor(color(context, R.color.textSecondary));
             moisture.setText("—");
             moisture.setTextColor(color(context, R.color.textSecondary));
-            moistureState.setText("Sensör bekleniyor");
+            moistureState.setText(R.string.home_zone_sensor_waiting);
             moistureState.setTextColor(color(context, R.color.textSecondary));
             progress.setProgress(0);
             progress.setIndicatorColor(color(context, R.color.textSecondary));
             progress.setTrackColor(color(context, R.color.divider));
-            idealState.setText("Veri bekleniyor");
+            idealState.setText(R.string.plant_list_waiting);
             idealRange.setText("—");
-            wateringValue.setText("Değerlendirilemedi");
-            wateringDetail.setText("Sensör verisi yok");
+            wateringValue.setText(R.string.runtime_cannot_evaluate);
+            wateringDetail.setText(R.string.runtime_sensor_no_data);
         }
 
         private void bindPaused(Context context) {
@@ -189,10 +188,10 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
             progress.setProgress(0);
             progress.setIndicatorColor(color(context, R.color.textSecondary));
             progress.setTrackColor(color(context, R.color.divider));
-            idealState.setText("Sensör kapalı");
+            idealState.setText(R.string.runtime_sensor_off);
             idealRange.setText("—");
-            wateringValue.setText("Değerlendirilemedi");
-            wateringDetail.setText("Sensör kapalı");
+            wateringValue.setText(R.string.runtime_cannot_evaluate);
+            wateringDetail.setText(R.string.runtime_sensor_off);
         }
 
         private boolean isConnected(GardenZone zone) {
@@ -206,8 +205,8 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         private void bindIdealRange(Context context, GardenZone zone, int value, int statusColor) {
             int lower = Math.max(0, zone.getMoisture_limit());
             int upper = Math.min(100, lower + 20);
-            String label = value < lower ? "Nem düşük"
-                    : value > upper ? "Nem yüksek" : "İdeal aralık";
+            String label = value < lower ? context.getString(R.string.runtime_moisture_low_short)
+                    : value > upper ? context.getString(R.string.runtime_moisture_high_short) : context.getString(R.string.runtime_ideal_range);
             idealState.setText(label);
             idealState.setTextColor(statusColor);
             idealRange.setText("%" + lower + " – %" + upper);
@@ -217,26 +216,32 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         private void bindWateringState(Context context, GardenZone zone) {
             ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
             if (irrigation != null && irrigation.isWatering_active()) {
-                wateringValue.setText("Sulama yapılıyor");
-                wateringDetail.setText("Pompa ve vana aktif");
+                wateringValue.setText(R.string.runtime_irrigation_running);
+                wateringDetail.setText(R.string.runtime_pump_valve_active);
                 wateringValue.setTextColor(color(context, R.color.info));
                 return;
             }
             if (irrigation != null && irrigation.isCooldown_active()) {
                 int minutes = Math.max(1, (irrigation.getCooldown_remaining() + 59) / 60);
-                wateringValue.setText(minutes + " dk bekleme");
-                wateringDetail.setText("Nem yeniden ölçülecek");
+                wateringValue.setText(context.getString(R.string.runtime_wait_minutes, minutes));
+                wateringDetail.setText(R.string.runtime_moisture_will_remeasure);
                 wateringValue.setTextColor(color(context, R.color.warning));
                 return;
             }
             if (zone.getMoisture() < zone.getMoisture_limit()) {
-                wateringValue.setText(zone.isIrrigation_enabled() ? "Sulamaya hazırlanıyor" : "Nem düşük");
-                wateringDetail.setText(zone.isIrrigation_enabled() ? "Otomatik mod izliyor" : "Otomatik mod kapalı");
+                wateringValue.setText(zone.isIrrigation_enabled()
+                        ? R.string.runtime_irrigation_preparing
+                        : R.string.runtime_moisture_low_short);
+                wateringDetail.setText(zone.isIrrigation_enabled()
+                        ? R.string.runtime_automatic_monitoring
+                        : R.string.runtime_automatic_off);
                 wateringValue.setTextColor(color(context, R.color.warning));
                 return;
             }
-            wateringValue.setText("Sulama gerekmiyor");
-            wateringDetail.setText(zone.isIrrigation_enabled() ? "Otomatik mod açık" : "Otomatik mod kapalı");
+            wateringValue.setText(R.string.runtime_irrigation_not_needed);
+            wateringDetail.setText(zone.isIrrigation_enabled()
+                    ? R.string.runtime_automatic_on
+                    : R.string.runtime_automatic_off);
             wateringValue.setTextColor(color(context, R.color.primary));
         }
 

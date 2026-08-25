@@ -4,6 +4,7 @@ package com.ali.smartgarden.models;
 public class GardenEvent {
     private String id = "";
     private String zone_id = "";
+    private String season_id = "";
     private String type = "";
     private String note = "";
     private String source = "MANUAL";
@@ -14,6 +15,8 @@ public class GardenEvent {
     public void setId(String id) { this.id = id == null ? "" : id; }
     public String getZone_id() { return zone_id; }
     public void setZone_id(String zoneId) { this.zone_id = zoneId == null ? "" : zoneId; }
+    public String getSeason_id() { return season_id; }
+    public void setSeason_id(String seasonId) { this.season_id = seasonId == null ? "" : seasonId; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type == null ? "" : type; }
     public String getNote() { return note; }

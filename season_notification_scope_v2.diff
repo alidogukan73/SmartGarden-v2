@@ -1,0 +1,76 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/notifications/LocalGardenNotificationStore.java b/Android/app/src/main/java/com/ali/smartgarden/notifications/LocalGardenNotificationStore.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/notifications/LocalGardenNotificationStore.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/notifications/LocalGardenNotificationStore.java
+@@ -293,6 +293,24 @@ public final class LocalGardenNotificationStore {
+         return false;
+     }
+ 
++    /** Persists the season resolved asynchronously by Firebase without recreating the alert. */
++    public boolean updateSeasonId(String id, String seasonId) {
++        if (id == null || id.isBlank() || seasonId == null || seasonId.isBlank()) return false;
++        synchronized (LocalGardenNotificationStore.class) {
++            JSONArray items = read();
++            for (int i = 0; i < items.length(); i++) {
++                try {
++                    JSONObject item = items.getJSONObject(i);
++                    if (!id.equals(item.optString("id"))) continue;
++                    item.put("season_id", seasonId);
++                    save(items);
++                    return true;
++                } catch (Exception ignored) { }
++            }
++            return false;
++        }
++    }
++
+     public int removeAll(List<String> ids) {
+         synchronized (LocalGardenNotificationStore.class) {
+             return removeAllUnlocked(ids);
+@@ -725,9 +743,9 @@ public final class LocalGardenNotificationStore {
+             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                     .putString(PENDING_DELETIONS, items.toString()).apply();
+         }
+     }
+-    private JSONObject toJson(GardenNotification v) { try { JSONObject o = new JSONObject(); o.put("id", v.getId()); o.put("type", v.getType()); o.put("priority", v.getPriority()); o.put("zone_id", v.getZone_id()); o.put("title", v.getTitle()); o.put("description", v.getDescription()); o.put("source_key", v.getSource_key()); o.put("created_at_epoch", v.getCreated_at_epoch()); o.put("read", v.isRead()); o.put("saved", v.isSaved()); return o; } catch (Exception e) { throw new IllegalStateException(e); } }
+-    private GardenNotification fromJson(JSONObject o) { GardenNotification v = new GardenNotification(); v.setId(o.optString("id")); v.setType(o.optString("type", "SYSTEM")); v.setPriority(o.optString("priority", "NORMAL")); v.setZone_id(o.optString("zone_id")); v.setTitle(o.optString("title")); v.setDescription(o.optString("description")); v.setSource_key(o.optString("source_key")); v.setCreated_at_epoch(o.optLong("created_at_epoch")); v.setRead(o.optBoolean("read")); v.setSaved(o.optBoolean("saved")); return v; }
++    private JSONObject toJson(GardenNotification v) { try { JSONObject o = new JSONObject(); o.put("id", v.getId()); o.put("type", v.getType()); o.put("priority", v.getPriority()); o.put("zone_id", v.getZone_id()); o.put("season_id", v.getSeason_id()); o.put("title", v.getTitle()); o.put("description", v.getDescription()); o.put("source_key", v.getSource_key()); o.put("created_at_epoch", v.getCreated_at_epoch()); o.put("read", v.isRead()); o.put("saved", v.isSaved()); return o; } catch (Exception e) { throw new IllegalStateException(e); } }
++    private GardenNotification fromJson(JSONObject o) { GardenNotification v = new GardenNotification(); v.setId(o.optString("id")); v.setType(o.optString("type", "SYSTEM")); v.setPriority(o.optString("priority", "NORMAL")); v.setZone_id(o.optString("zone_id")); v.setSeason_id(o.optString("season_id")); v.setTitle(o.optString("title")); v.setDescription(o.optString("description")); v.setSource_key(o.optString("source_key")); v.setCreated_at_epoch(o.optLong("created_at_epoch")); v.setRead(o.optBoolean("read")); v.setSaved(o.optBoolean("saved")); return v; }
+     private JSONArray read() { String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, "[]"); try { return new JSONArray(raw == null ? "[]" : raw); } catch (Exception ignored) { return new JSONArray(); } }
+     private void save(JSONArray items) { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, items.toString()).apply(); }
+ }
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/notifications/GardenNotificationManager.java b/Android/app/src/main/java/com/ali/smartgarden/notifications/GardenNotificationManager.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/notifications/GardenNotificationManager.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/notifications/GardenNotificationManager.java
+@@ -46,7 +46,7 @@ public final class GardenNotificationManager {
+         GardenNotification value =
+                 store.add(type, priority, zoneId, title, description, sourceKey);
+ 
+-        repository.saveGardenNotification(value);
++        persistNotification(value);
+ 
+         notifyNotificationsChanged();
+ 
+@@ -62,7 +62,7 @@ public final class GardenNotificationManager {
+                 store.addOnce(type, priority, zoneId, title, description, sourceKey);
+ 
+         if (value != null) {
+-            repository.saveGardenNotification(value);
++            persistNotification(value);
+ 
+             notifyNotificationsChanged();
+ 
+@@ -72,5 +72,14 @@ public final class GardenNotificationManager {
+         return value;
+     }
++
++    private void persistNotification(GardenNotification value) {
++        repository.saveGardenNotification(value).addOnSuccessListener(ignored -> {
++            if (store.updateSeasonId(value.getId(), value.getSeason_id())) {
++                notifyNotificationsChanged();
++            }
++        });
++    }
++
+     /**
+      * Publishes the first alert of an incident immediately, then at most one reminder
+      * per interval. State is persisted so the foreground listener, WorkManager and

@@ -87,8 +87,8 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
         holder.info.setText(
                 holder.itemView.getContext().getString(
                         R.string.fertilizer_product_info,
-                        formLabel(product.getForm()),
-                        emptyFallback(product.getNpk())
+                        formLabel(holder.itemView.getContext(), product.getForm()),
+                        emptyFallback(holder.itemView.getContext(), product.getNpk())
                 )
         );
         String functionLabel = functionalTagLabel(holder.itemView, product);
@@ -229,16 +229,16 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
                 String.join(", ", labels)
         );
     }
-    private static String formLabel(String form) {
+    private static String formLabel(android.content.Context context, String form) {
         if ("GRANULAR".equals(form)) {
-            return "Granül";
+            return context.getString(R.string.runtime_form_granular);
         }
-        return "POWDER".equals(form) ? "Toz" : "Sıvı";
+        return context.getString("POWDER".equals(form) ? R.string.runtime_form_powder : R.string.runtime_form_liquid);
     }
 
-    private static String emptyFallback(String value) {
+    private static String emptyFallback(android.content.Context context, String value) {
         return value == null || value.isBlank()
-                ? "NPK belirtilmedi"
+                ? context.getString(R.string.runtime_npk_missing)
                 : "NPK " + value;
     }
 

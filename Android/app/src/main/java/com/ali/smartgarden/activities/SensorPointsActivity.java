@@ -94,6 +94,14 @@ public class SensorPointsActivity extends AppCompatActivity {
 
         adapter.setOnZoneClickListener(
                 zone -> {
+                    if (zone.getZone_id() == null
+                            || zone.getZone_id().isBlank()) {
+                        startActivity(new Intent(
+                                this,
+                                ZoneManagementActivity.class
+                        ));
+                        return;
+                    }
                     Intent intent = new Intent(
                             this,
                             ZoneDetailActivity.class
@@ -116,9 +124,13 @@ public class SensorPointsActivity extends AppCompatActivity {
                                 SensorPointsViewModel.class
                         );
 
-        viewModel.getZones().observe(
+        viewModel.getSensorPoints().observe(
                 this,
-                this::renderZones
+                this::renderSensorPoints
+        );
+        viewModel.getConfiguredZones().observe(
+                this,
+                this::renderConfiguredZones
         );
     }
 
@@ -140,20 +152,24 @@ public class SensorPointsActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    private void renderZones(
+    private void renderSensorPoints(
+            List<GardenZone> zones
+    ) {
+        adapter.submitZones(
+                zones == null ? new ArrayList<>() : zones
+        );
+
+        updateSummary();
+    }
+
+    private void renderConfiguredZones(
             List<GardenZone> zones
     ) {
         latestZones.clear();
-
         if (zones != null) {
             latestZones.addAll(zones);
         }
 
-        adapter.submitZones(
-                latestZones
-        );
-
-        updateSummary();
         renderIrrigationQueue();
     }
 

@@ -1,0 +1,189 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/activities/SeasonReportActivity.java
+@@
+ import com.ali.smartgarden.models.FertilizerApplication;
++import com.ali.smartgarden.models.GardenSeason;
+ import com.ali.smartgarden.models.GardenZone;
+@@
+ import com.ali.smartgarden.models.SeasonOutcome;
++import com.ali.smartgarden.models.SeasonStatus;
+ import com.ali.smartgarden.models.WeatherForecast;
+ import com.ali.smartgarden.models.WateringHistory;
++import com.ali.smartgarden.models.ZoneSeasonState;
+ import com.ali.smartgarden.journal.LocalGardenEventStore;
+ import com.ali.smartgarden.journal.LocalSeasonOutcomeStore;
++import com.ali.smartgarden.season.SeasonRepository;
++import com.ali.smartgarden.season.SeasonScope;
+@@
+ import java.text.SimpleDateFormat;
++import java.time.Instant;
++import java.time.LocalDateTime;
++import java.time.OffsetDateTime;
++import java.time.ZoneId;
+ import java.util.ArrayList;
+@@
+ public class SeasonReportActivity extends AppCompatActivity {
+     private final FirebaseRepository repository = new FirebaseRepository();
++    private final SeasonRepository seasonRepository = new SeasonRepository();
+@@
+     private LocalGardenEventStore gardenEventStore;
+     private List<SeasonOutcome> seasonOutcomes = new ArrayList<>();
++    private List<GardenSeason> seasons = new ArrayList<>();
+     private String selectedZoneId = "";
++    private String selectedSeasonId = "";
+@@
+         selectedZoneId = getIntent().getStringExtra("zone_id");
+         if (selectedZoneId == null) selectedZoneId = "";
++        selectedSeasonId = getIntent().getStringExtra("season_id");
++        if (selectedSeasonId == null) selectedSeasonId = "";
+@@
+         findViewById(R.id.btnExportSeasonPdf).setOnClickListener(view ->
+                 pdfCreator.launch("AVORA-Sezon-Raporu-" + new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()) + ".pdf"));
++        scopeView.setOnClickListener(view -> showSeasonSelector());
+@@
+         repository.observeWateringHistory().observe(this, value -> { wateringHistory = value == null ? new ArrayList<>() : value; render(); });
+         repository.observeWeatherForecast().observe(this, value -> { weather = value; render(); });
++        seasonRepository.observeAllSeasons().observe(this, value -> {
++            seasons = value == null ? new ArrayList<>() : value;
++            ensureSelectedSeason();
++            render();
++        });
+     }
+@@
+     private void render() {
++        ensureSelectedSeason();
+         seasonOutcomes = selectedOutcomes();
+         renderOutcomeSummary();
+-        GardenHealthSummary health = GardenHealthCalculator.calculate(zones, System.currentTimeMillis() / 1000L);
++        GardenSeason season = selectedSeason();
++        if (season == null) {
++            reportText = "AVORA Sezon Özeti\n\nHenüz görüntülenecek bir sezon bulunamadı.";
++            reportView.setText(reportText);
++            return;
++        }
++        GardenHealthSummary health = GardenHealthCalculator.calculate(selectedZoneList(), System.currentTimeMillis() / 1000L);
+         String weatherText = weather == null || weather.getTomorrowTemperatureMax() == null ? "Henüz hava tahmini yok"
+                 : "Yarın " + Math.round(weather.getTomorrowTemperatureMax()) + "°C"
+                 + (weather.getTomorrowRainProbability() == null ? "" : " · Yağış olasılığı %" + Math.round(weather.getTomorrowRainProbability()));
++        int wateringCount = seasonWateringCount(season);
++        long wateringSeconds = seasonWateringSeconds(season);
++        int fertilizerCount = seasonFertilizerCount(season);
+         reportText = "AVORA Sezon Özeti\n\n"
++                + zoneName(season.getZone_id()) + " · " + seasonLabel(season) + "\n"
++                + "Durum: " + seasonStatusLabel(season) + "\n"
++                + (season.getPlanting_date().isBlank() ? "" : "Dikim tarihi: " + season.getPlanting_date() + "\n")
+                 + "Rapor tarihi: " + new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()) + "\n\n"
+-                + "Sulama\nToplam sulama: " + statistics.getTotalWaterings() + "\n"
+-                + "Toplam çalışma süresi: " + formatDuration(statistics.getTotalWateringSeconds()) + "\n"
+-                + "Başarı oranı: %" + statistics.getSuccessRate() + "\n\n"
+-                + "Gübreleme\nKayıtlı uygulama: " + fertilizerHistory.size() + "\n\n"
+-                + fertilizerLearningSummary() + "\n\n"
++                + "Sulama\nToplam sulama: " + wateringCount + "\n"
++                + "Toplam çalışma süresi: " + formatDuration(wateringSeconds) + "\n\n"
++                + "Gübreleme\nKayıtlı uygulama: " + fertilizerCount + "\n\n"
++                + fertilizerLearningSummary(season) + "\n\n"
++                + "Sezon günlüğü\nKayıt: " + season.getJournal_event_count()
++                + " · Fotoğraf: " + season.getPhoto_count()
++                + " · Bitki Asistanı analizi: " + season.getPlant_assistant_analysis_count() + "\n\n"
+                 + "Bahçe sağlığı\n" + health.getScore() + "/100 · " + health.getTitle() + "\n" + health.getDetail() + "\n\n"
+-                + "Hava görünümü\n" + weatherText;
++                + "Hava görünümü\n" + (SeasonStatus.isClosed(season.getStatus())
++                ? "Bu, kapanışta arşivlenmiş bir sezondur; canlı hava bilgisi rapora uygulanmaz."
++                : weatherText);
+         reportView.setText(reportText);
+     }
+@@
+     private void renderOutcomeSummary() {
+-        scopeView.setText(selectedZoneId.isEmpty()
+-                ? "Tüm bahçe bölgeleri"
+-                : zoneName(selectedZoneId) + " bölgesinin sezon kayıtları");
+-        if (seasonOutcomes.isEmpty()) {
++        GardenSeason season = selectedSeason();
++        scopeView.setText(season == null
++                ? "Sezon seçmek için dokunun"
++                : zoneName(season.getZone_id()) + " · " + seasonLabel(season) + " · "
++                + seasonStatusLabel(season) + "\nBaşka bir sezon seçmek için dokunun");
++        SeasonOutcome selectedOutcome = selectedOutcome();
++        if (selectedOutcome == null && season != null && !season.getResult().isBlank()) {
++            selectedOutcome = outcomeFromSeason(season);
++        }
++        if (selectedOutcome == null) {
+             outcomeSummary.setText("Henüz hasat sonucu yok. Sezon sonunda miktarı, sonucu ve gelecek yıl notunu ekleyin.");
+-            comparisonView.setText("Önceki sezon karşılaştırması için en az iki sezon sonucu kaydedin.");
++            comparisonView.setText(seasonComparison());
+             return;
+         }
+-        SeasonOutcome latest = seasonOutcomes.get(0);
+-        comparisonView.setText(seasonClosureDetails(latest) + "\n\n" + seasonComparison());
+-        String result = latest.getResult().isBlank() ? "Sonuç kaydedildi" : latest.getResult();
+-        String amount = latest.getHarvest_amount().isBlank() ? "Miktar girilmedi" : latest.getHarvest_amount();
+-        outcomeSummary.setText("Son kayıt: " + zoneName(latest.getZone_id()) + " · " + result + "\nHasat: " + amount
+-                + (latest.getNext_season_note().isBlank() ? "" : "\nGelecek sezon: " + latest.getNext_season_note()));
++        comparisonView.setText(seasonClosureDetails(selectedOutcome) + "\n\n" + seasonComparison());
++        String result = selectedOutcome.getResult().isBlank() ? "Sonuç kaydedildi" : selectedOutcome.getResult();
++        String amount = selectedOutcome.getHarvest_amount().isBlank() ? "Miktar girilmedi" : selectedOutcome.getHarvest_amount();
++        outcomeSummary.setText("Sezon sonucu: " + result + "\nHasat: " + amount
++                + (selectedOutcome.getNext_season_note().isBlank() ? "" : "\nGelecek sezon: " + selectedOutcome.getNext_season_note()));
+     }
+@@
+     private List<SeasonOutcome> selectedOutcomes() {
+         List<SeasonOutcome> values = new ArrayList<>();
+         for (SeasonOutcome outcome : seasonOutcomeStore.load()) {
+             if (selectedZoneId.isEmpty() || selectedZoneId.equals(outcome.getZone_id())) values.add(outcome);
+         }
+         return values;
+     }
++
++    private SeasonOutcome selectedOutcome() {
++        for (SeasonOutcome outcome : seasonOutcomes) {
++            if (selectedSeasonId.equals(outcome.getSeason_id())) return outcome;
++        }
++        return null;
++    }
+@@
+     private String waterSummary(String zoneId) {
+-        int count = 0; long seconds = 0L;
+-        for (WateringHistory item : wateringHistory) {
+-            if (zoneId.equals(item.getZoneId()) && item.isCompleted()) { count++; seconds += item.getDuration(); }
+-        }
++        GardenSeason season = selectedSeason();
++        int count = season == null ? 0 : seasonWateringCount(season);
++        long seconds = season == null ? 0L : seasonWateringSeconds(season);
+         return count + " sulama · " + formatDuration(seconds);
+     }
+@@
+     private String fertilizerSummary(String zoneId) {
+-        int count = 0;
+-        for (FertilizerApplication item : fertilizerHistory) if (zoneId.equals(item.getZone_id())) count++;
++        GardenSeason season = selectedSeason();
++        int count = season == null ? 0 : seasonFertilizerCount(season);
+         return count + " gübre uygulaması";
+     }
+@@
+     private String seasonComparison() {
+-        if (seasonOutcomes.size() < 2) return "Önceki sezon karşılaştırması için en az iki sezon sonucu kaydedin.";
+-        SeasonOutcome current = seasonOutcomes.get(0);
+-        SeasonOutcome previous = seasonOutcomes.get(1);
+-        String currentYear = new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date(current.getRecorded_at_epoch() * 1000L));
+-        String previousYear = new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date(previous.getRecorded_at_epoch() * 1000L));
+-        String note = previous.getNext_season_note().isBlank() ? "Önceki sezon notu girilmedi." : previous.getNext_season_note();
+-        return currentYear + " sezonu, " + previousYear + " sezonuyla karşılaştırılmaya hazır. Önceki not: " + note;
++        GardenSeason current = selectedSeason();
++        if (current == null) return "Karşılaştırma için bir sezon seçin.";
++        GardenSeason previous = previousSeason(current);
++        if (previous == null) return "Önceki sezon karşılaştırması için aynı bölgede en az iki sezon gerekir.";
++        String note = previous.getNext_season_note().isBlank()
++                ? "Önceki sezon notu girilmedi."
++                : previous.getNext_season_note();
++        return seasonLabel(current) + ", " + seasonLabel(previous)
++                + " ile karşılaştırılmaya hazır. Önceki not: " + note;
+     }
+@@
+-    private String fertilizerLearningSummary() {
++    private String fertilizerLearningSummary(GardenSeason season) {
+@@
+         Map<String, int[]> byProduct = new HashMap<>();
+         for (FertilizerApplication value : fertilizerHistory) {
++            if (!belongsToSeason(value.getSeason_id(), value.getApplied_at_epoch(), season)) continue;
+             String status = value.getOutcome_status();

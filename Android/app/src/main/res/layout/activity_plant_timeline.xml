@@ -23,27 +23,27 @@
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.AVORA.BackButton"
                     android:id="@+id/btnTimelineBack"
-                    android:contentDescription="Geri" />
+                    android:contentDescription="@string/notification_detail_back" />
                 <TextView
                     android:id="@+id/txtTimelineTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Bitki Günlüğü"
+                    android:text="@string/nav_plant_journal"
                     android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
                 <TextView
                     android:layout_width="30dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="▣"
+                    android:text="@string/symbol_timeline_note"
                     android:textColor="@color/textPrimary"
                     android:textSize="17sp" />
                 <TextView
                     android:layout_width="22dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="⋮"
+                    android:text="@string/symbol_more_options"
                     android:textColor="@color/textPrimary"
                     android:textSize="21sp" />
             </LinearLayout>
@@ -116,7 +116,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="Zaman Çizelgesi"
+                    android:text="@string/timeline_title"
                     android:textColor="@color/primary"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -128,7 +128,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="Fotoğraflar"
+                    android:text="@string/photos_title"
                     android:textColor="@color/textSecondary"
                     android:textSize="11sp" />
                 <TextView
@@ -139,7 +139,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="Notlar"
+                    android:text="@string/notes_title"
                     android:textColor="@color/textSecondary"
                     android:textSize="11sp" />
                 <TextView
@@ -150,7 +150,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="Karşılaştır"
+                    android:text="@string/compare_title"
                     android:textColor="@color/textSecondary"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -177,7 +177,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text="▦  Tümü"
+                            android:text="@string/filter_all"
                             android:textColor="@color/primary"
                             android:textSize="10sp"
                             android:textStyle="bold" />
@@ -235,7 +235,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text="✦  AI Analiz"
+                            android:text="@string/filter_ai_analysis"
                             android:textColor="@color/textPrimary"
                             android:textSize="10sp" />
                     </com.google.android.material.card.MaterialCardView>
@@ -255,7 +255,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text="▲  Olay"
+                            android:text="@string/filter_event"
                             android:textColor="@color/textPrimary"
                             android:textSize="10sp" />
                     </com.google.android.material.card.MaterialCardView>
@@ -279,7 +279,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
                 android:gravity="center"
-                android:text="Henüz bu bitki için günlük kaydı yok."
+                android:text="@string/timeline_empty"
                 android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -290,7 +290,7 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="88dp"
-        android:text="+"
+        android:text="@string/symbol_add"
         android:textSize="28sp"
         app:backgroundTint="@color/primary"
         app:cornerRadius="29dp" />

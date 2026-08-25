@@ -29,9 +29,13 @@ public class GardenZone {
     private int raw;
     private double voltage;
     private long updated_at_epoch;
+    private String lifecycle_status;
+    private long created_at_epoch;
+    private long archived_at_epoch;
     private ZoneIrrigationStatus irrigation_status;
     private FertilizationProfile fertilization;
     private ZoneAIState ai;
+    private ZoneSeasonState season;
 
     public GardenZone() {
         // Firebase için boş constructor
@@ -259,6 +263,13 @@ public class GardenZone {
         this.updated_at_epoch = updatedAtEpoch;
     }
 
+    public String getLifecycle_status() { return lifecycle_status; }
+    public void setLifecycle_status(String value) { lifecycle_status = value; }
+    public long getCreated_at_epoch() { return created_at_epoch; }
+    public void setCreated_at_epoch(long value) { created_at_epoch = value; }
+    public long getArchived_at_epoch() { return archived_at_epoch; }
+    public void setArchived_at_epoch(long value) { archived_at_epoch = value; }
+
     public ZoneIrrigationStatus getIrrigation_status() {
         return irrigation_status;
     }
@@ -286,4 +297,12 @@ public class GardenZone {
     public void setAi(ZoneAIState ai) {
         this.ai = ai;
     }
+    public ZoneSeasonState getSeason() {
+        return season;
+    }
+
+    public void setSeason(ZoneSeasonState season) {
+        this.season = season;
+    }
+
 }

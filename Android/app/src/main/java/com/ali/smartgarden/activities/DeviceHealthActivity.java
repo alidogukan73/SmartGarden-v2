@@ -404,27 +404,21 @@ public class DeviceHealthActivity extends AppCompatActivity {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(
                 this
         )
-                .setTitle(
-                        "Cihaz yeniden başlatılsın mı?"
-                )
-                .setMessage(
-                        "Raspberry Pi yeniden başlatılacak. "
-                                + "Bu sırada sulama ve sensör bağlantısı "
-                                + "kısa süreliğine kesilecektir."
-                )
+                .setTitle(R.string.runtime_restart_title)
+                .setMessage(R.string.runtime_restart_message)
                 .setNegativeButton(
-                        "İptal",
+                        R.string.settings_quick_cancel,
                         (dialog, which) -> dialog.dismiss()
                 )
                 .setPositiveButton(
-                        "Yeniden Başlat",
+                        R.string.runtime_restart_action,
                         (dialog, which) -> {
 
                             viewModel.restartDevice();
 
                             Toast.makeText(
                                     this,
-                                    "Yeniden başlatma komutu gönderildi.",
+                                    getString(R.string.runtime_restart_sent),
                                     Toast.LENGTH_SHORT
                             ).show();
                         }
@@ -594,9 +588,9 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         if (configured == 0) {
             setEsp32SensorCard(
-                    "İZLEME KAPALI",
-                    "Sensör izleme kapalı",
-                    "Bu bölgeler için etkin kablosuz sensör yok.",
+                    getString(R.string.runtime_monitoring_off_badge),
+                    getString(R.string.runtime_monitoring_off),
+                    getString(R.string.runtime_monitoring_no_sensor),
                     "",
                     R.color.textSecondary,
                     R.color.surfaceSoft
@@ -605,36 +599,35 @@ public class DeviceHealthActivity extends AppCompatActivity {
         }
 
         String lastSeen = newestEpoch <= 0L
-                ? "Henüz ESP32 verisi alınmadı"
-                : "Son ESP32 verisi: "
-                + formatSensorAge(Math.max(0L, nowEpoch - newestEpoch))
-                + (newest != null && newest.getRssi() != 0
-                ? " · Wi‑Fi " + newest.getRssi() + " dBm"
-                : "");
+                ? getString(R.string.runtime_no_esp32_data)
+                : getString(R.string.runtime_last_esp32_data,
+                        formatSensorAge(Math.max(0L, nowEpoch - newestEpoch)),
+                        newest != null && newest.getRssi() != 0
+                                ? getString(R.string.runtime_wifi_suffix, newest.getRssi()) : "");
 
         if (connected == 0) {
             setEsp32SensorCard(
-                    "BAĞLANTI YOK",
-                    "0 / " + configured + " sensör canlı",
-                    "ESP32 kapalı olabilir veya Wi‑Fi / MQTT bağlantısı bekleniyor.",
+                    getString(R.string.runtime_no_connection_badge),
+                    getString(R.string.runtime_live_sensor_count, 0, configured),
+                    getString(R.string.runtime_esp32_waiting),
                     lastSeen,
                     R.color.offline,
                     R.color.offlineBackground
             );
         } else if (connected < configured) {
             setEsp32SensorCard(
-                    "KISMİ BAĞLI",
-                    connected + " / " + configured + " sensör canlı",
-                    "Bazı ESP32 sensörlerinden güncel veri bekleniyor.",
+                    getString(R.string.runtime_partial_connection_badge),
+                    getString(R.string.runtime_live_sensor_count, connected, configured),
+                    getString(R.string.runtime_esp32_partial),
                     lastSeen,
                     R.color.warning,
                     R.color.warningBackground
             );
         } else {
             setEsp32SensorCard(
-                    "BAĞLI",
-                    connected + " / " + configured + " sensör canlı",
-                    "ESP32 kablosuz sensör ağı düzenli veri gönderiyor.",
+                    getString(R.string.runtime_connected_badge),
+                    getString(R.string.runtime_live_sensor_count, connected, configured),
+                    getString(R.string.runtime_esp32_healthy),
                     lastSeen,
                     R.color.online,
                     R.color.onlineBackground
@@ -668,12 +661,12 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
     private String formatSensorAge(long ageSeconds) {
         if (ageSeconds < 5L) {
-            return "az önce";
+            return getString(R.string.runtime_just_now);
         }
         if (ageSeconds < 60L) {
-            return ageSeconds + " sn önce";
+            return getString(R.string.runtime_seconds_ago, ageSeconds);
         }
-        return (ageSeconds / 60L) + " dk önce";
+        return getString(R.string.runtime_minutes_ago, ageSeconds / 60L);
     }
 
     private void addDiagnosticRow(
@@ -1168,29 +1161,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
     }
 
     private void updateSoilLastUpdate(long age) {
-
-        if(age < 5) {
-
-            txtSoilLastUpdate.setText(
-                    "Az önce"
-            );
-
-        }
-        else if(age < 60) {
-
-            txtSoilLastUpdate.setText(
-                    age + " sn önce"
-            );
-
-        }
-        else {
-
-            long minutes = age / 60;
-
-            txtSoilLastUpdate.setText(
-                    minutes + " dk önce"
-            );
-        }
+        txtSoilLastUpdate.setText(formatSensorAge(age));
     }
 
     private void updateSoilConnectionStatus(long age) {
@@ -1199,7 +1170,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         if(age < 20) {
 
             txtSoilConnection.setText(
-                    "● Bağlı"
+                    R.string.runtime_connection_connected
             );
 
             cardSoilConnection.setCardBackgroundColor(
@@ -1211,7 +1182,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         else if(age < 60) {
 
             txtSoilConnection.setText(
-                    "● Beklemede"
+                    R.string.runtime_connection_waiting
             );
 
             cardSoilConnection.setCardBackgroundColor(
@@ -1223,7 +1194,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
         else {
 
             txtSoilConnection.setText(
-                    "● Bağlantı Yok"
+                    R.string.runtime_connection_none
             );
 
             cardSoilConnection.setCardBackgroundColor(
@@ -1555,19 +1526,19 @@ public class DeviceHealthActivity extends AppCompatActivity {
 
         if (rssi >= -55) {
 
-            return "Mükemmel (" + rssi + " dBm)";
+            return getString(R.string.runtime_rssi_excellent, rssi);
 
         } else if (rssi >= -70) {
 
-            return "İyi (" + rssi + " dBm)";
+            return getString(R.string.runtime_rssi_good, rssi);
 
         } else if (rssi >= -80) {
 
-            return "Zayıf (" + rssi + " dBm)";
+            return getString(R.string.runtime_rssi_weak, rssi);
 
         } else {
 
-            return "Çok zayıf (" + rssi + " dBm)";
+            return getString(R.string.runtime_rssi_very_weak, rssi);
         }
     }
 

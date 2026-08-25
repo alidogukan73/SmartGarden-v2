@@ -1,0 +1,52 @@
+diff --git a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+--- a/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
++++ b/Android/app/src/main/java/com/ali/smartgarden/firebase/FirebaseRepository.java
+@@ -890,0 +891,48 @@
++   private String ensureActiveSeasonForWrite(MutableData root, String zoneId, long now) {
++      if (zoneId == null || zoneId.isBlank()) {
++         throw new IllegalStateException("Bölge bilgisi gerekli.");
++      }
++      MutableData zone = root.child("zones").child(zoneId);
++      MutableData state = zone.child("season");
++      String status = stringValue(state.child("status"));
++      String existingId = stringValue(state.child("active_season_id"));
++      if (SeasonStatus.isActive(status) && !existingId.isBlank()) {
++         return existingId;
++      }
++      if (SeasonStatus.isClosed(status)) {
++         throw new IllegalStateException("Bu bölgenin sezonu kapalı. Önce yeni sezon başlatın.");
++      }
++
++      String seasonId = SeasonScope.createSeasonId(zoneId, now);
++      String zoneName = stringValue(zone.child("name"));
++      String plantType = stringValue(zone.child("plant_type"));
++      String plantingDate = stringValue(zone.child("fertilization").child("planting_date"));
++      String year = new java.text.SimpleDateFormat("yyyy", Locale.getDefault())
++            .format(new java.util.Date(now * 1000L));
++      String label = year + " " + zoneName;
++
++      state.child("active_season_id").setValue(seasonId);
++      state.child("status").setValue(SeasonStatus.ACTIVE);
++      state.child("label").setValue(label);
++      state.child("started_at_epoch").setValue(now);
++      state.child("ended_at_epoch").setValue(0L);
++      state.child("include_legacy_records").setValue(true);
++      state.child("updated_at_epoch").setValue(now);
++
++      MutableData manifest = root.child("garden_journal").child("seasons").child(seasonId);
++      manifest.child("season_id").setValue(seasonId);
++      manifest.child("zone_id").setValue(zoneId);
++      manifest.child("zone_name").setValue(zoneName);
++      manifest.child("plant_type").setValue(plantType);
++      manifest.child("label").setValue(label);
++      manifest.child("status").setValue(SeasonStatus.ACTIVE);
++      manifest.child("planting_date").setValue(plantingDate);
++      manifest.child("started_at_epoch").setValue(now);
++      manifest.child("ended_at_epoch").setValue(0L);
++      manifest.child("includes_legacy_records").setValue(true);
++      manifest.child("created_at_epoch").setValue(now);
++      manifest.child("updated_at_epoch").setValue(now);
++      zone.child("ai").child("season_id").setValue(seasonId);
++      return seasonId;
++   }
++

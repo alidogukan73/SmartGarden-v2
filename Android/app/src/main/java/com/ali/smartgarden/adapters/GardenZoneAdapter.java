@@ -187,17 +187,32 @@ public class GardenZoneAdapter
         }
 
         void bind(GardenZone zone) {
+            if (isUnassignedSensorPoint(zone)) {
+                name.setText(R.string.sensor_unassigned_point_title);
+                sensorId.setText(zone.getSensor_id());
+                measurement.setVisibility(View.GONE);
+                sensorMetrics.setVisibility(View.GONE);
+                waiting.setVisibility(View.VISIBLE);
+                lastUpdate.setVisibility(View.GONE);
+                irrigationStatus.setVisibility(View.GONE);
+                waiting.setText(R.string.sensor_unassigned_point_description);
+                setStatus(
+                        R.string.sensor_status_unassigned,
+                        R.color.textSecondary
+                );
+                return;
+            }
             String emoji =
                     zone.getEmoji() == null
                             ? "🌱"
                             : zone.getEmoji();
             String zoneName =
                     zone.getName() == null
-                            ? "İsimsiz bölge"
+                            ? itemView.getContext().getString(R.string.runtime_zone_unnamed)
                             : zone.getName();
             String sensor =
                     zone.getSensor_id() == null
-                            ? "Sensör atanmamış"
+                            ? itemView.getContext().getString(R.string.runtime_sensor_unassigned)
                             : zone.getSensor_id();
 
             name.setText(emoji + " " + zoneName);
@@ -295,6 +310,14 @@ public class GardenZoneAdapter
                     age
             );
             bindIrrigationStatus(zone);
+        }
+
+        private boolean isUnassignedSensorPoint(GardenZone zone) {
+            return zone != null
+                    && (zone.getZone_id() == null
+                    || zone.getZone_id().isBlank())
+                    && zone.getSensor_id() != null
+                    && !zone.getSensor_id().isBlank();
         }
 
         private int moistureColorResource(
