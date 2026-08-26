@@ -27,6 +27,13 @@ __pycache__/
 logs/
 *.log
 
+# Local patch and recovery artifacts
+*.diff
+*.patch
+*.rej
+*.orig
+*.new.java
+
 # Ruff
 .ruff_cache/
 
