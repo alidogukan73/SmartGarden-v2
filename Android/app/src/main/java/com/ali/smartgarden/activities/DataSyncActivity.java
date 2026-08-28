@@ -11,7 +11,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -21,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.config.AppInfo;
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.google.android.gms.tasks.Task;
@@ -29,10 +29,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -55,7 +53,6 @@ public class DataSyncActivity extends AppCompatActivity {
     private final FirebaseDatabase database = FirebaseDatabase.getInstance();
     private final DatabaseReference deviceRef = database.getReference("devices")
             .child(AppInfo.DEVICE_ID);
-    private final DatabaseReference connectionRef = database.getReference(".info/connected");
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private TextView headline;
@@ -68,7 +65,6 @@ public class DataSyncActivity extends AppCompatActivity {
     private MaterialButton syncButton;
     private LinearProgressIndicator progress;
     private SharedPreferences preferences;
-    private ValueEventListener connectionListener;
     private boolean firebaseConnected;
     private boolean manualSyncPending;
     private boolean remoteReadInFlight;
@@ -171,30 +167,23 @@ public class DataSyncActivity extends AppCompatActivity {
     }
 
     private void observeConnection() {
-        connectionListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                firebaseConnected = Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
-                renderConnection();
-                if (firebaseConnected && manualSyncPending) {
-                    performRemoteRead();
-                }
+        new FirebaseRepository().observeFirebaseConnection(error -> {
+            firebaseConnected = false;
+            renderConnection();
+            if (manualSyncPending) {
+                manualSyncPending = false;
+                handler.removeCallbacks(connectionTimeout);
+                setSyncing(false);
+                showOperation(getString(R.string.data_sync_read_error,
+                        safeMessage(error.getMessage())), R.color.warning);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                firebaseConnected = false;
-                renderConnection();
-                if (manualSyncPending) {
-                    manualSyncPending = false;
-                    handler.removeCallbacks(connectionTimeout);
-                    setSyncing(false);
-                    showOperation(getString(R.string.data_sync_read_error,
-                            safeMessage(error.getMessage())), R.color.warning);
-                }
+        }).observe(this, connected -> {
+            firebaseConnected = Boolean.TRUE.equals(connected);
+            renderConnection();
+            if (firebaseConnected && manualSyncPending) {
+                performRemoteRead();
             }
-        };
-        connectionRef.addValueEventListener(connectionListener);
+        });
     }
 
     private void startManualSync() {
@@ -384,9 +373,6 @@ public class DataSyncActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         handler.removeCallbacks(connectionTimeout);
-        if (connectionListener != null) {
-            connectionRef.removeEventListener(connectionListener);
-        }
         super.onDestroy();
     }
 }

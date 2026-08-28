@@ -20,10 +20,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-import androidx.annotation.NonNull;
 
 public class ZoneDetailActivity extends AppCompatActivity {
 
@@ -67,7 +63,6 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private int originalSensorDryRaw = 12650;
     private int originalSensorWetRaw = 505;
     private boolean zoneTestActive;
-    private ValueEventListener commandsListener;
 
     @Override
     protected void onCreate(
@@ -92,27 +87,12 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 this::render
         );
 
-        commandsListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(
-                            @NonNull DataSnapshot snapshot
-                    ) {
-                        zoneTestActive = Boolean.TRUE.equals(
-                                snapshot.child("zone_test")
-                                        .child("active")
-                                        .getValue(Boolean.class)
-                        );
-                        updateZoneTestUi();
-                    }
-
-                    @Override
-                    public void onCancelled(
-                            @NonNull DatabaseError error
-                    ) {
-                        // The zone listener keeps the screen usable.
-                    }
-                };
-        repository.observeCommands(commandsListener);
+        repository.observeZoneTestActive(error -> {
+            // The zone listener keeps the screen usable if this auxiliary read fails.
+        }).observe(this, active -> {
+            zoneTestActive = Boolean.TRUE.equals(active);
+            updateZoneTestUi();
+        });
     }
 
     private void bindViews() {
@@ -772,12 +752,4 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 .show();
     }
 
-    @Override
-    protected void onDestroy() {
-        if (commandsListener != null) {
-            repository.removeCommandsObserver(commandsListener);
-            commandsListener = null;
-        }
-        super.onDestroy();
-    }
 }

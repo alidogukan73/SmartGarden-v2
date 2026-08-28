@@ -11,12 +11,31 @@ import com.google.firebase.database.ValueEventListener;
  * Reopening a screen therefore does not leave an orphaned Firebase listener behind.
  */
 public final class FirebaseLiveData<T> extends MutableLiveData<T> {
-    private final Query query;
+    interface ListenerRegistration {
+        void add(ValueEventListener listener);
+        void remove(ValueEventListener listener);
+    }
+
+    private final ListenerRegistration registration;
     private ValueEventListener eventListener;
     private boolean listening;
 
     public FirebaseLiveData(@NonNull Query query) {
-        this.query = query;
+        this(new ListenerRegistration() {
+            @Override
+            public void add(ValueEventListener listener) {
+                query.addValueEventListener(listener);
+            }
+
+            @Override
+            public void remove(ValueEventListener listener) {
+                query.removeEventListener(listener);
+            }
+        });
+    }
+
+    FirebaseLiveData(@NonNull ListenerRegistration registration) {
+        this.registration = registration;
     }
 
     public FirebaseLiveData<T> setEventListener(@NonNull ValueEventListener listener) {
@@ -44,14 +63,14 @@ public final class FirebaseLiveData<T> extends MutableLiveData<T> {
 
     private void startListening() {
         if (!listening && eventListener != null) {
-            query.addValueEventListener(eventListener);
+            registration.add(eventListener);
             listening = true;
         }
     }
 
     private void stopListening() {
         if (listening && eventListener != null) {
-            query.removeEventListener(eventListener);
+            registration.remove(eventListener);
             listening = false;
         }
     }

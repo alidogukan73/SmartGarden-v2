@@ -7,6 +7,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
+import com.ali.smartgarden.models.AIDecision;
+import com.ali.smartgarden.models.AIExplanation;
+import com.ali.smartgarden.models.Command;
 import com.ali.smartgarden.models.CropCatalogItem;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
@@ -17,15 +20,19 @@ import com.ali.smartgarden.models.GardenAISummary;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.Health;
 import com.ali.smartgarden.models.MoisturePrediction;
 import com.ali.smartgarden.models.PredictionAccuracy;
 import com.ali.smartgarden.models.PredictionValidationStatus;
 import com.ali.smartgarden.models.SeasonOutcome;
 import com.ali.smartgarden.models.SeasonStatus;
+import com.ali.smartgarden.models.Sensor;
 import com.ali.smartgarden.season.SeasonRepository;
 import com.ali.smartgarden.season.SeasonScope;
 import com.ali.smartgarden.season.SeasonRecordPolicy;
 import com.ali.smartgarden.models.SoilLearningProfile;
+import com.ali.smartgarden.models.Statistics;
+import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.WeatherDay;
@@ -44,6 +51,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
@@ -62,7 +70,9 @@ import java.util.function.Consumer;
 public class FirebaseRepository {
    private static final String TAG = "FirebaseRepository";
    private static final String DEVICE_ID = "smartgarden-001";
-   private final DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("devices").child("smartgarden-001");
+   private final DatabaseReference deviceRef = FirebaseDatabase.getInstance()
+         .getReference("devices")
+         .child(DEVICE_ID);
    private final DatabaseReference primaryZoneRef;
    private final DatabaseReference statusRef;
    private final DatabaseReference commandsRef;
@@ -119,44 +129,12 @@ public class FirebaseRepository {
       this.pushTokensRef = this.deviceRef.child("push_tokens");
    }
 
-   public DatabaseReference getStatusRef() {
-      return this.statusRef;
-   }
-
-   public DatabaseReference getCommandsRef() {
-      return this.commandsRef;
-   }
-
-   public DatabaseReference getHistoryRef() {
-      return this.historyRef;
-   }
-
-   public DatabaseReference getHealthRef() {
-      return this.healthRef;
-   }
-
-   public DatabaseReference getStatisticsRef() {
-      return this.statisticsRef;
-   }
-
-   public DatabaseReference getAdaptiveRecommendationRef() {
-      return this.adaptiveRecommendationRef;
-   }
-
-   public DatabaseReference getAIDecisionRef() {
-      return this.aiDecisionRef;
-   }
-
-   public DatabaseReference getAIExplanationRef() {
-      return this.aiExplanationRef;
-   }
-
-   public void observeSensor(ValueEventListener listener) {
-      this.primaryZoneRef.addValueEventListener(listener);
-   }
-
-   public void removeSensorObserver(ValueEventListener listener) {
-      this.primaryZoneRef.removeEventListener(listener);
+   public LiveData<Sensor> observeSensor(Consumer<DatabaseError> errorHandler) {
+      return observeModel(
+            this.primaryZoneRef,
+            Sensor.class,
+            "Primary zone sensor",
+            errorHandler);
    }
 
    public LiveData<List<GardenZone>> observeGardenZones() {
@@ -185,6 +163,60 @@ public class FirebaseRepository {
          }
       });
       return liveData;
+   }
+
+   private <T> LiveData<T> observeModel(
+         Query query,
+         Class<T> modelClass,
+         String logLabel,
+         Consumer<DatabaseError> errorHandler
+   ) {
+      final FirebaseLiveData<T> liveData = new FirebaseLiveData<>(query);
+      liveData.setEventListener(new ValueEventListener() {
+         @Override
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            liveData.setValue(snapshot.getValue(modelClass));
+         }
+
+         @Override
+         public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, logLabel + " read failed", error.toException());
+            if (errorHandler != null) errorHandler.accept(error);
+         }
+      });
+      return liveData;
+   }
+
+   public LiveData<DataSnapshot> observeDeviceSnapshot(
+         Consumer<DatabaseError> errorHandler
+   ) {
+      final FirebaseLiveData<DataSnapshot> liveData =
+            new FirebaseLiveData<>(this.deviceRef);
+      liveData.setEventListener(new ValueEventListener() {
+         @Override
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            liveData.setValue(snapshot);
+         }
+
+         @Override
+         public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, "Device snapshot read failed", error.toException());
+            if (errorHandler != null) errorHandler.accept(error);
+         }
+      });
+      return liveData;
+   }
+
+   public LiveData<Boolean> observeFirebaseConnection(
+         Consumer<DatabaseError> errorHandler
+   ) {
+      Query connection = FirebaseDatabase.getInstance()
+            .getReference(".info/connected");
+      return observeModel(
+            connection,
+            Boolean.class,
+            "Firebase connection state",
+            errorHandler);
    }
 
    public LiveData<GardenAISummary> observeGardenAISummary() {
@@ -1498,74 +1530,85 @@ public class FirebaseRepository {
       return this.commandsRef.child("irrigation_assistant_reset").setValue(command);
    }
 
-   public void observeStatus(ValueEventListener listener) {
-      this.statusRef.addValueEventListener(listener);
+   public LiveData<Status> observeStatus(Consumer<DatabaseError> errorHandler) {
+      return observeModel(this.statusRef, Status.class, "Device status", errorHandler);
    }
 
-   public void removeStatusObserver(ValueEventListener listener) {
-      this.statusRef.removeEventListener(listener);
+   public LiveData<Command> observeCommands(Consumer<DatabaseError> errorHandler) {
+      return observeModel(this.commandsRef, Command.class, "Commands", errorHandler);
    }
 
-   public void observeCommands(ValueEventListener listener) {
-      this.commandsRef.addValueEventListener(listener);
+   public LiveData<Health> observeHealth(Consumer<DatabaseError> errorHandler) {
+      return observeModel(this.healthRef, Health.class, "Device health", errorHandler);
    }
 
-   public void removeCommandsObserver(ValueEventListener listener) {
-      this.commandsRef.removeEventListener(listener);
+   public LiveData<Statistics> observeStatistics(Consumer<DatabaseError> errorHandler) {
+      return observeModel(this.statisticsRef, Statistics.class, "Statistics", errorHandler);
    }
 
-   public void observeHealth(ValueEventListener listener) {
-      this.healthRef.addValueEventListener(listener);
+   public LiveData<AdaptiveRecommendation> observeAdaptiveRecommendationData(
+         Consumer<DatabaseError> errorHandler) {
+      return observeModel(
+            this.adaptiveRecommendationRef,
+            AdaptiveRecommendation.class,
+            "Adaptive recommendation",
+            errorHandler);
    }
 
-   public void removeHealthObserver(ValueEventListener listener) {
-      this.healthRef.removeEventListener(listener);
+   public LiveData<AIDecision> observeAIDecision(Consumer<DatabaseError> errorHandler) {
+      return observeModel(this.aiDecisionRef, AIDecision.class, "AI decision", errorHandler);
    }
 
-   public void observeStatistics(ValueEventListener listener) {
-      this.statisticsRef.addValueEventListener(listener);
+   public LiveData<AIExplanation> observeAIExplanation(
+         Consumer<DatabaseError> errorHandler) {
+      return observeModel(
+            this.aiExplanationRef,
+            AIExplanation.class,
+            "AI explanation",
+            errorHandler);
    }
 
-   public void removeStatisticsObserver(ValueEventListener listener) {
-      this.statisticsRef.removeEventListener(listener);
+   public LiveData<Boolean> observeZoneTestActive(Consumer<DatabaseError> errorHandler) {
+      return observeModel(
+            this.commandsRef.child("zone_test").child("active"),
+            Boolean.class,
+            "Zone test state",
+            errorHandler);
    }
 
-   public ValueEventListener observeAdaptiveRecommendation(
-         final Consumer<AdaptiveRecommendation> consumer) {
-      ValueEventListener listener = new ValueEventListener() {
+   public LiveData<List<WateringHistory>> observeRecentWateringHistory(
+         int limit,
+         Consumer<DatabaseError> errorHandler
+   ) {
+      Query query = this.historyRef.orderByKey().limitToLast(Math.max(1, limit));
+      final FirebaseLiveData<List<WateringHistory>> liveData =
+            new FirebaseLiveData<>(query);
+      liveData.setEventListener(new ValueEventListener() {
+         @Override
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            AdaptiveRecommendation recommendation = (AdaptiveRecommendation)snapshot.getValue(AdaptiveRecommendation.class);
-            if (recommendation != null) {
-               consumer.accept(recommendation);
+            List<WateringHistory> values = new ArrayList<>();
+            for (DataSnapshot child : snapshot.getChildren()) {
+               WateringHistory item = child.getValue(WateringHistory.class);
+               if (item == null) continue;
+               item.setRecordId(child.getKey());
+               values.add(item);
             }
-
+            java.util.Collections.reverse(values);
+            liveData.setValue(values);
          }
 
+         @Override
          public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, "Recent watering history read failed", error.toException());
+            if (errorHandler != null) errorHandler.accept(error);
          }
-      };
-      this.adaptiveRecommendationRef.addValueEventListener(listener);
-      return listener;
+      });
+      return liveData;
    }
 
-   public void removeAdaptiveRecommendationObserver(ValueEventListener listener) {
-      this.adaptiveRecommendationRef.removeEventListener(listener);
-   }
-
-   public void observeAIDecision(ValueEventListener listener) {
-      this.aiDecisionRef.addValueEventListener(listener);
-   }
-
-   public void removeAIDecisionObserver(ValueEventListener listener) {
-      this.aiDecisionRef.removeEventListener(listener);
-   }
-
-   public void observeAIExplanation(ValueEventListener listener) {
-      this.aiExplanationRef.addValueEventListener(listener);
-   }
-
-   public void removeAIExplanationObserver(ValueEventListener listener) {
-      this.aiExplanationRef.removeEventListener(listener);
+   /** Application-lifetime status listener used only by the global outage monitor. */
+   public void observeApplicationStatus(ValueEventListener listener) {
+      this.statusRef.addValueEventListener(listener);
    }
 
    public void setRelay(boolean value) {

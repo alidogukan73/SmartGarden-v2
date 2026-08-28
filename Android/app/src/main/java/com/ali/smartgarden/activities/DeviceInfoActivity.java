@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
@@ -19,16 +18,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.config.AppInfo;
+import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.Health;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -43,10 +39,6 @@ import java.util.Set;
 public class DeviceInfoActivity extends AppCompatActivity {
     private static final long CONNECTION_FRESHNESS_MS = 180_000L;
 
-    private final DatabaseReference deviceRef = FirebaseDatabase.getInstance()
-            .getReference("devices")
-            .child(AppInfo.DEVICE_ID);
-
     private TextView connectionStatus;
     private TextView connectionSummary;
     private TextView deviceId;
@@ -58,7 +50,6 @@ public class DeviceInfoActivity extends AppCompatActivity {
     private TextView zoneCount;
     private TextView sensorCount;
     private TextView physicalValveCount;
-    private ValueEventListener deviceListener;
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
@@ -152,21 +143,12 @@ public class DeviceInfoActivity extends AppCompatActivity {
     }
 
     private void observeDevice() {
-        deviceListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                render(snapshot);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                connectionStatus.setText(R.string.device_info_status_offline);
-                connectionStatus.setTextColor(ContextCompat.getColor(
-                        DeviceInfoActivity.this, R.color.offline));
-                connectionSummary.setText(R.string.device_info_read_error);
-            }
-        };
-        deviceRef.addValueEventListener(deviceListener);
+        new FirebaseRepository().observeDeviceSnapshot(error -> {
+            connectionStatus.setText(R.string.device_info_status_offline);
+            connectionStatus.setTextColor(ContextCompat.getColor(
+                    DeviceInfoActivity.this, R.color.offline));
+            connectionSummary.setText(R.string.device_info_read_error);
+        }).observe(this, this::render);
     }
 
     private void render(DataSnapshot snapshot) {
@@ -314,11 +296,4 @@ public class DeviceInfoActivity extends AppCompatActivity {
                 });
     }
 
-    @Override
-    protected void onDestroy() {
-        if (deviceListener != null) {
-            deviceRef.removeEventListener(deviceListener);
-        }
-        super.onDestroy();
-    }
 }

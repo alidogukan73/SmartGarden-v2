@@ -159,10 +159,13 @@ public final class DeviceConnectionNotificationMonitor {
                 @Override
                 public void run() {
 
-                    if (!firebaseConnected || statusReadCancelled) {
-                        // The phone's own network loss is not proof that the Pi
-                        // recovered. Preserve any pending outage verification.
-                    } else if (receivedStatus && connectionStateInitialized) {
+                    // Losing the phone's Firebase connection is not proof that
+                    // the Raspberry Pi is offline or has recovered.
+                    if (firebaseConnected
+                            && !statusReadCancelled
+                            && receivedStatus
+                            && connectionStateInitialized) {
+
                         evaluateLatestStatus();
                     }
 
@@ -234,7 +237,7 @@ public final class DeviceConnectionNotificationMonitor {
                 .getReference(".info/connected")
                 .addValueEventListener(firebaseConnectionListener);
 
-        repository.observeStatus(statusListener);
+        repository.observeApplicationStatus(statusListener);
 
         handler.postDelayed(
                 heartbeatChecker,

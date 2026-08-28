@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="firebase_connection_error">Firebase bağlantı hatası.</string>
+    <string name="device_health_read_error">Cihaz sağlık bilgileri alınamadı.</string>
+    <string name="settings_read_error">Ayarlar alınamadı.</string>
+    <string name="settings_save_error">Ayarlar kaydedilemedi.</string>
+    <string name="watering_history_read_error">Sulama geçmişi alınamadı.</string>
+    <string name="statistics_read_error">İstatistikler alınamadı.</string>
+</resources>

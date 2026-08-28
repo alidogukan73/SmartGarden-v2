@@ -1,130 +1,42 @@
 package com.ali.smartgarden.viewmodels;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import android.app.Application;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.Health;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
+/** Lifecycle-aware device health state and device commands. */
+public class DeviceHealthViewModel extends AndroidViewModel {
+    private final FirebaseRepository repository = new FirebaseRepository();
+    private final MediatorLiveData<Health> health = new MediatorLiveData<>();
+    private final MutableLiveData<Boolean> loading = new MutableLiveData<>(true);
+    private final MutableLiveData<String> error = new MutableLiveData<>();
 
-public class DeviceHealthViewModel extends ViewModel {
-
-    private final FirebaseRepository repository;
-
-    private final MutableLiveData<Health> health =
-            new MutableLiveData<>();
-
-    private final MutableLiveData<Boolean> loading =
-            new MutableLiveData<>(true);
-
-    private final MutableLiveData<String> error =
-            new MutableLiveData<>();
-
-    private ValueEventListener healthListener;
-
-
-    public DeviceHealthViewModel() {
-
-        repository = new FirebaseRepository();
-
-        observeHealth();
+    public DeviceHealthViewModel(@NonNull Application application) {
+        super(application);
+        LiveData<Health> source = repository.observeHealth(databaseError -> {
+            loading.setValue(false);
+            error.setValue(AvoraLanguageManager.localizedContext(
+                    getApplication()).getString(
+                    R.string.device_health_read_error));
+        });
+        health.addSource(source, value -> {
+            health.setValue(value);
+            error.setValue(null);
+            loading.setValue(false);
+        });
     }
 
-
-    /**
-     * Firebase health düğümünü gerçek zamanlı dinler.
-     */
-    private void observeHealth() {
-
-        loading.setValue(true);
-
-        healthListener = new ValueEventListener() {
-
-            @Override
-            public void onDataChange(
-                    @NonNull DataSnapshot snapshot
-            ) {
-
-                Health value =
-                        snapshot.getValue(
-                                Health.class
-                        );
-
-                health.setValue(value);
-                error.setValue(null);
-                loading.setValue(false);
-            }
-
-            @Override
-            public void onCancelled(
-                    @NonNull DatabaseError databaseError
-            ) {
-
-                loading.setValue(false);
-
-                String message =
-                        databaseError.getMessage();
-
-                if (
-                        message == null
-                                || message.isBlank()
-                ) {
-                    message =
-                            "Cihaz sağlık bilgileri alınamadı.";
-                }
-
-                error.setValue(message);
-            }
-        };
-
-        repository
-                .getHealthRef()
-                .addValueEventListener(
-                        healthListener
-                );
-    }
-
-    public LiveData<Health> getHealth() {
-
-        return health;
-    }
-
-    public LiveData<Boolean> getLoading() {
-
-        return loading;
-    }
-
-
-    public LiveData<String> getError() {
-
-        return error;
-    }
-
-
-    public void restartDevice() {
-
-        repository.restartDevice();
-
-    }
-
-    @Override
-    protected void onCleared() {
-
-        super.onCleared();
-
-        if (healthListener != null) {
-
-            repository
-                    .getHealthRef()
-                    .removeEventListener(
-                            healthListener
-                    );
-        }
-
-    }
+    public LiveData<Health> getHealth() { return health; }
+    public LiveData<Boolean> getLoading() { return loading; }
+    public LiveData<String> getError() { return error; }
+    public void restartDevice() { repository.restartDevice(); }
 }

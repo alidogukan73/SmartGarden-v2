@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="firebase_connection_error">Firebase connection error.</string>
+    <string name="device_health_read_error">Device health information could not be retrieved.</string>
+    <string name="settings_read_error">Settings could not be loaded.</string>
+    <string name="settings_save_error">Settings could not be saved.</string>
+    <string name="watering_history_read_error">Watering history could not be retrieved.</string>
+    <string name="statistics_read_error">Statistics could not be retrieved.</string>
+</resources>

@@ -10,8 +10,8 @@ import com.ali.smartgarden.theme.AvoraThemeManager;
 
 public class AvoraApplication extends Application {
 
-    private DeviceConnectionNotificationMonitor
-            deviceConnectionMonitor;
+    @SuppressWarnings("FieldCanBeLocal")
+    private DeviceConnectionNotificationMonitor deviceConnectionMonitor;
 
     @Override
     public void onCreate() {

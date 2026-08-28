@@ -1,178 +1,48 @@
 package com.ali.smartgarden.viewmodels;
 
+import android.app.Application;
+
 import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
+import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.WateringHistory;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class WateringHistoryViewModel extends ViewModel {
-
+/** Lifecycle-aware view of the latest watering records. */
+public class WateringHistoryViewModel extends AndroidViewModel {
     private static final int HISTORY_LIMIT = 50;
+    private final MediatorLiveData<List<WateringHistory>> history =
+            new MediatorLiveData<>();
+    private final MutableLiveData<Boolean> loading = new MutableLiveData<>(true);
+    private final MutableLiveData<String> error = new MutableLiveData<>();
 
-    private final FirebaseRepository repository;
-
-    private final MutableLiveData<List<WateringHistory>> history =
-            new MutableLiveData<>(Collections.emptyList());
-
-    private final MutableLiveData<Boolean> loading =
-            new MutableLiveData<>(true);
-
-    private final MutableLiveData<String> error =
-            new MutableLiveData<>();
-
-    private Query historyQuery;
-    private ValueEventListener historyListener;
-
-
-    public WateringHistoryViewModel() {
-
-        repository = new FirebaseRepository();
-
-        observeHistory();
+    public WateringHistoryViewModel(@NonNull Application application) {
+        super(application);
+        history.setValue(Collections.emptyList());
+        FirebaseRepository repository = new FirebaseRepository();
+        LiveData<List<WateringHistory>> source =
+                repository.observeRecentWateringHistory(HISTORY_LIMIT, databaseError -> {
+                    loading.setValue(false);
+                    error.setValue(AvoraLanguageManager.localizedContext(
+                            getApplication()).getString(
+                            R.string.watering_history_read_error));
+                });
+        history.addSource(source, values -> {
+            history.setValue(values == null ? Collections.emptyList() : values);
+            error.setValue(null);
+            loading.setValue(false);
+        });
     }
 
-
-    /**
-     * Firebase'deki son sulama kayıtlarını gerçek zamanlı dinler.
-     */
-    private void observeHistory() {
-
-        loading.setValue(true);
-
-        /*
-         * Kayıt anahtarları tarih tabanlı olduğu için
-         * key üzerinden sıralayıp son 50 kaydı alıyoruz.
-         */
-        historyQuery = repository
-                .getHistoryRef()
-                .orderByKey()
-                .limitToLast(HISTORY_LIMIT);
-
-        historyListener = new ValueEventListener() {
-
-            @Override
-            public void onDataChange(
-                    @NonNull DataSnapshot snapshot
-            ) {
-
-                List<WateringHistory> historyItems =
-                        new ArrayList<>();
-
-                for (DataSnapshot childSnapshot
-                        : snapshot.getChildren()) {
-
-                    WateringHistory item =
-                            childSnapshot.getValue(
-                                    WateringHistory.class
-                            );
-
-                    if (item == null) {
-                        continue;
-                    }
-
-                    item.setRecordId(
-                            childSnapshot.getKey()
-                    );
-
-                    historyItems.add(
-                            item
-                    );
-                }
-
-                /*
-                 * Firebase ascending sıralı döndürür.
-                 * En yeni kayıt üstte görünsün diye ters çeviriyoruz.
-                 */
-                Collections.reverse(
-                        historyItems
-                );
-
-                history.setValue(
-                        historyItems
-                );
-
-                loading.setValue(
-                        false
-                );
-            }
-
-            @Override
-            public void onCancelled(
-                    @NonNull DatabaseError databaseError
-            ) {
-
-                loading.setValue(false);
-
-                String message = databaseError.getMessage();
-
-                if (message == null || message.isBlank()) {
-                    message = "Sulama geçmişi alınamadı.";
-                }
-
-                error.setValue(message);
-            }
-        };
-
-        historyQuery.addValueEventListener(
-                historyListener
-        );
-    }
-
-
-    /**
-     * Sulama geçmişi listesi.
-     */
-    public LiveData<List<WateringHistory>> getHistory() {
-
-        return history;
-    }
-
-
-    /**
-     * Yükleniyor durumu.
-     */
-    public LiveData<Boolean> getLoading() {
-
-        return loading;
-    }
-
-
-    /**
-     * Firebase hata mesajı.
-     */
-    public LiveData<String> getError() {
-
-        return error;
-    }
-
-
-    /**
-     * ViewModel yok edilirken Firebase listener temizlenir.
-     */
-    @Override
-    protected void onCleared() {
-
-        super.onCleared();
-
-        if (
-                historyQuery != null
-                        && historyListener != null
-        ) {
-
-            historyQuery.removeEventListener(
-                    historyListener
-            );
-        }
-    }
+    public LiveData<List<WateringHistory>> getHistory() { return history; }
+    public LiveData<Boolean> getLoading() { return loading; }
+    public LiveData<String> getError() { return error; }
 }
