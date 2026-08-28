@@ -26,6 +26,7 @@ import com.ali.smartgarden.fertilization.FertilizerAdvice;
 import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
 import com.ali.smartgarden.fertilization.OrganicFertilizerAiAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerExperiencePresenter;
+import com.ali.smartgarden.fertilization.FertilizationScheduleView;
 import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
 import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
 import com.ali.smartgarden.fertilization.FertilizerSafetyPolicy;
@@ -85,17 +86,12 @@ public class FertilizationZoneDetailActivity
     private MaterialButton btnSave;
     private MaterialCardView cardUnsaved;
     private MaterialCardView cardFertilizerRecommendation;
-    private MaterialCardView cardZoneApplicationSchedule;
     private MaterialButton btnUseFertilizerRecommendation;
     private MaterialButton btnRecordFertilizerApplication;
     private MaterialButton btnAdvanceGrowthStage;
     private MaterialButton btnWaterAnalysis;
     private MaterialButton btnZonePhoto;
     private MaterialButton btnZonePlantAssistant;
-    private TextView txtNutritionSchedule;
-    private TextView txtOrganicSchedule;
-    private TextView txtConditionerSchedule;
-    private TextView txtBiostimulantSchedule;
     private MaterialCardView cardZoneAiAdvice;
     private TextView txtZoneAiAdviceStatus;
     private TextView txtZoneAiAdviceReason;
@@ -105,11 +101,8 @@ public class FertilizationZoneDetailActivity
     private TextView txtZoneAiExperience;
     private TextView txtZoneAiAdviceRisks;
     private TextView txtWaterAnalysisSummary;
-    private TextView txtPlanStatus;
-    private TextView txtScheduleSummary;
-    private TextView txtScheduleToggle;
-    private View layoutScheduleDetails;
     private MaterialButton btnDiscardChanges;
+    private FertilizationScheduleView fertilizationScheduleView;
 
     private String zoneId;
     private boolean rendering;
@@ -117,7 +110,6 @@ public class FertilizationZoneDetailActivity
     private boolean remoteLoaded;
     private boolean saveAndExit;
     private boolean originalEnabled;
-    private boolean scheduleExpanded;
     private boolean originalReminder = true;
     private String originalPlantingDate = "";
     private String originalStage = "NOT_SET";
@@ -247,12 +239,8 @@ public class FertilizationZoneDetailActivity
         txtWaterAnalysisSummary = findViewById(
                 R.id.txtWaterAnalysisSummary
         );
-        txtNutritionSchedule = findViewById(R.id.txtNutritionSchedule);
-        txtOrganicSchedule = findViewById(R.id.txtOrganicSchedule);
-        txtConditionerSchedule = findViewById(R.id.txtConditionerSchedule);
-        txtBiostimulantSchedule = findViewById(
-                R.id.txtBiostimulantSchedule
-        );
+        fertilizationScheduleView = new FertilizationScheduleView(
+                findViewById(android.R.id.content));
         cardZoneAiAdvice = findViewById(R.id.cardZoneAiAdvice);
         txtZoneAiAdviceStatus = findViewById(R.id.txtZoneAiAdviceStatus);
         txtZoneAiAdviceReason = findViewById(R.id.txtZoneAiAdviceReason);
@@ -261,11 +249,6 @@ public class FertilizationZoneDetailActivity
         cardZoneAiExperience = findViewById(R.id.cardZoneAiExperience);
         txtZoneAiExperience = findViewById(R.id.txtZoneAiExperience);
         txtZoneAiAdviceRisks = findViewById(R.id.txtZoneAiAdviceRisks);
-        cardZoneApplicationSchedule = findViewById(R.id.cardZoneApplicationSchedule);
-        txtPlanStatus = findViewById(R.id.txtPlanStatus);
-        txtScheduleSummary = findViewById(R.id.txtScheduleSummary);
-        txtScheduleToggle = findViewById(R.id.txtScheduleToggle);
-        layoutScheduleDetails = findViewById(R.id.layoutScheduleDetails);
         btnDiscardChanges = findViewById(R.id.btnDiscardChanges);
 
 
@@ -388,8 +371,6 @@ public class FertilizationZoneDetailActivity
         btnDiscardChanges.setOnClickListener(
                 view -> discardUnsavedChanges()
         );
-        findViewById(R.id.layoutScheduleHeader).setOnClickListener(
-                view -> toggleScheduleDetails());
         btnUseFertilizerRecommendation.setOnClickListener(
                 view -> useRecommendedProduct()
         );
@@ -1378,155 +1359,19 @@ public class FertilizationZoneDetailActivity
     }
 
     private void updateApplicationSchedules() {
-        if (txtNutritionSchedule == null) {
-            return;
-        }
-        FertilizerAdvice advice = currentFertilizerAdvice;
-        if (advice == null) {
-            txtScheduleSummary.setText(
-                    R.string.fertilization_unified_plan_preparing
-            );
-            txtNutritionSchedule.setText(
-                    R.string.fertilization_unified_plan_preparing_detail
-            );
-            txtOrganicSchedule.setVisibility(View.GONE);
-            txtConditionerSchedule.setVisibility(View.GONE);
-            txtBiostimulantSchedule.setVisibility(View.GONE);
-            return;
-        }
-
-        FertilizerAdvice.Recommendation recommendation =
-                advice.getRecommendation();
-        txtNutritionSchedule.setText(getString(
-                R.string.fertilization_unified_need,
-                recommendation.isAvailable()
-                        ? recommendation.getNeed()
-                        : advice.getStatus()
-        ));
-        txtOrganicSchedule.setVisibility(View.VISIBLE);
-        txtOrganicSchedule.setText(getString(
-                R.string.fertilization_unified_product,
-                recommendation.isAvailable()
-                        ? recommendation.getProductName()
-                        : getString(R.string.fertilization_unified_no_product)
-        ));
-        txtConditionerSchedule.setVisibility(View.VISIBLE);
-        txtConditionerSchedule.setText(
-                unifiedTimingText(advice, recommendation)
-        );
-        txtBiostimulantSchedule.setVisibility(View.VISIBLE);
-        txtBiostimulantSchedule.setText(getString(
-                R.string.fertilization_unified_basis,
-                advice.getContext() == null || advice.getContext().isBlank()
-                        ? advice.getReason()
-                        : advice.getContext()
-        ));
-        updateScheduleSummary(advice, recommendation);
+        fertilizationScheduleView.renderAdvice(currentFertilizerAdvice);
     }
 
     private void updatePlanStatus() {
-        if (txtPlanStatus == null || switchEnabled == null) {
+        if (switchEnabled == null) {
             return;
         }
         boolean seasonEnded = isSeasonEndStage();
-        if (cardZoneApplicationSchedule != null) {
-            cardZoneApplicationSchedule.setVisibility(
-                    seasonEnded ? View.GONE : View.VISIBLE
-            );
-            if (seasonEnded) {
-                scheduleExpanded = false;
-                layoutScheduleDetails.setVisibility(View.GONE);
-            }
-        }
-        int message;
-        int color = R.color.textSecondary;
-        if (seasonEnded) {
-            message = R.string.fertilization_plan_season_end_description;
-        } else if (!switchEnabled.isChecked()) {
-            message = R.string.fertilization_plan_disabled_description;
-        } else if (currentPlantingDate().isBlank()
-                || "NOT_SET".equals(selectedStage)) {
-            message = R.string.fertilization_plan_missing_description;
-            color = R.color.warning;
-        } else {
-            message = R.string.fertilization_plan_active_description;
-            color = R.color.primary;
-        }
-        txtPlanStatus.setText(message);
-        txtPlanStatus.setTextColor(getColor(color));
-    }
-
-    private void updateScheduleSummary(
-            FertilizerAdvice advice,
-            FertilizerAdvice.Recommendation recommendation
-    ) {
-        if (txtScheduleSummary == null) {
-            return;
-        }
-        if (isApplicationDecisionReady(advice, recommendation)) {
-            txtScheduleSummary.setText(getString(
-                    R.string.fertilization_unified_summary_today,
-                    recommendation.getNeed()
-            ));
-            txtScheduleSummary.setTextColor(getColor(R.color.warning));
-        } else if (recommendation.isAvailable()
-                && recommendation.getWaitDays() > 0L) {
-            txtScheduleSummary.setText(getString(
-                    R.string.fertilization_unified_summary_wait,
-                    recommendation.getNeed(),
-                    recommendation.getWaitDays()
-            ));
-            txtScheduleSummary.setTextColor(getColor(R.color.textSecondary));
-        } else {
-            txtScheduleSummary.setText(getString(
-                    R.string.fertilization_unified_summary_status,
-                    advice.getStatus()
-            ));
-            txtScheduleSummary.setTextColor(getColor(R.color.textSecondary));
-        }
-    }
-
-    private boolean isApplicationDecisionReady(
-            FertilizerAdvice advice,
-            FertilizerAdvice.Recommendation recommendation
-    ) {
-        return "BUGÜNKÜ ÖNERİ".equals(advice.getStatus())
-                && recommendation.isAvailable()
-                && recommendation.isApplicationReady();
-    }
-
-    private String unifiedTimingText(
-            FertilizerAdvice advice,
-            FertilizerAdvice.Recommendation recommendation
-    ) {
-        if (recommendation.isAvailable()
-                && recommendation.getWaitDays() > 0L) {
-            LocalDate next = LocalDate.now().plusDays(
-                    recommendation.getWaitDays()
-            );
-            return getString(
-                    R.string.fertilization_unified_timing_wait,
-                    recommendation.getWaitDays(),
-                    next.format(displayDateFormat())
-            );
-        }
-        if (isApplicationDecisionReady(advice, recommendation)) {
-            return getString(R.string.fertilization_unified_timing_today);
-        }
-        return getString(
-                R.string.fertilization_unified_timing_safety,
-                advice.getReason()
-        );
-    }
-
-    private void toggleScheduleDetails() {
-        scheduleExpanded = !scheduleExpanded;
-        layoutScheduleDetails.setVisibility(
-                scheduleExpanded ? View.VISIBLE : View.GONE
-        );
-        txtScheduleToggle.setText(scheduleExpanded
-                ? R.string.fertilization_schedule_hide
-                : R.string.fertilization_schedule_show);
+        fertilizationScheduleView.renderPlanStatus(
+                seasonEnded,
+                switchEnabled.isChecked(),
+                !currentPlantingDate().isBlank()
+                        && !"NOT_SET".equals(selectedStage));
     }
 
     private void discardUnsavedChanges() {

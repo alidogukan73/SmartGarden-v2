@@ -26,6 +26,7 @@ import com.ali.smartgarden.models.AIExplanation;
 import com.ali.smartgarden.ui.DecisionFlowFactory;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.ui.irrigationassistant.IrrigationAssistantFormatter;
+import com.ali.smartgarden.ui.irrigationassistant.PredictionValidationRenderer;
 import com.ali.smartgarden.ui.irrigationassistant.SelectedZoneSummaryRenderer;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.models.PredictionValidationStatus;
@@ -74,8 +75,6 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardAIWateringSettings;
     private MaterialCardView cardAISensorPoints;
     private MaterialCardView cardAIRestartProcess;
-    private MaterialCardView cardPredictionValidationStatusBadge;
-    private MaterialCardView cardPredictionValidation;
     private MaterialCardView cardMoisturePrediction;
     private MaterialCardView cardMoisturePredictionStatusBadge;
     private MaterialCardView cardPredictionAccuracy;
@@ -83,15 +82,6 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardUnifiedConfidence;
     private MaterialCardView cardUnifiedConfidenceStatusBadge;
     private SelectedZoneSummaryRenderer selectedZoneSummaryRenderer;
-
-    private TextView txtPredictionValidationStatus;
-    private TextView txtPredictionValidationRemaining;
-    private TextView txtPredictionValidationPercent;
-    private TextView txtPredictionValidationTarget;
-    private TextView txtPredictionValidationPending;
-    private TextView txtPredictionValidationNextTime;
-    private TextView txtPredictionValidationUpdatedAt;
-
 
     private TextView txtAIDecisionTitle;
     private TextView txtAIAnalysisScope;
@@ -169,12 +159,12 @@ public class AIAssistantActivity extends AppCompatActivity {
     private LinearProgressIndicator progressAILearningWatering;
     private LinearProgressIndicator progressPredictionAccuracy;
     private LinearProgressIndicator progressUnifiedConfidence;
-    private LinearProgressIndicator progressPredictionValidation;
 
     private final View[] progressSegments = new View[5];
 
     private MainViewModel viewModel;
     private IrrigationAssistantFormatter assistantFormatter;
+    private PredictionValidationRenderer predictionValidationRenderer;
 
     private ValueAnimator progressAnimator;
     private int currentLearningProgress = 0;
@@ -387,57 +377,14 @@ public class AIAssistantActivity extends AppCompatActivity {
                         R.id.txtAIWateringEfficiencyStatus
                 );
 
-        txtPredictionValidationStatus =
-                findViewById(
-                        R.id.txtPredictionValidationStatus
-                );
-
-        txtPredictionValidationRemaining =
-                findViewById(
-                        R.id.txtPredictionValidationRemaining
-                );
-
-        txtPredictionValidationPercent =
-                findViewById(
-                        R.id.txtPredictionValidationPercent
-                );
-
-        progressPredictionValidation =
-                findViewById(
-                        R.id.progressPredictionValidation
+        predictionValidationRenderer =
+                new PredictionValidationRenderer(
+                        findViewById(android.R.id.content),
+                        assistantFormatter
                 );
         progressPredictionAccuracy =
                 findViewById(
                         R.id.progressPredictionAccuracy
-                );
-
-        txtPredictionValidationTarget =
-                findViewById(
-                        R.id.txtPredictionValidationTarget
-                );
-
-        txtPredictionValidationPending =
-                findViewById(
-                        R.id.txtPredictionValidationPending
-                );
-
-        txtPredictionValidationNextTime =
-                findViewById(
-                        R.id.txtPredictionValidationNextTime
-                );
-
-        txtPredictionValidationUpdatedAt =
-                findViewById(
-                        R.id.txtPredictionValidationUpdatedAt
-                );
-        cardPredictionValidation =
-                findViewById(
-                        R.id.cardPredictionValidation
-                );
-
-        cardPredictionValidationStatusBadge =
-                findViewById(
-                        R.id.cardPredictionValidationStatusBadge
                 );
 
         cardPredictionAccuracy =
@@ -784,7 +731,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
         cardPredictionAccuracy.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
         cardUnifiedConfidence.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
-        cardPredictionValidation.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
+        predictionValidationRenderer.setVisible(visible && hasZoneAI);
         cardAITechnicalSummary.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
 
         btnAIAdvancedDetails.setText(
@@ -2705,7 +2652,7 @@ public class AIAssistantActivity extends AppCompatActivity {
             renderMoisturePredictionData(latestMoisturePrediction);
             renderPredictionAccuracy(fallbackPredictionAccuracy);
             renderUnifiedConfidence(fallbackUnifiedConfidence);
-            renderPredictionValidationStatus(fallbackPredictionValidationStatus);
+            predictionValidationRenderer.render(fallbackPredictionValidationStatus);
             renderSoilLearningProfile(fallbackSoilLearningProfile);
             setAdvancedDetailsVisible(advancedDetailsVisible);
             renderWeatherGuidance();
@@ -2741,7 +2688,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         renderMoisturePredictionData(zoneAI.getMoisturePrediction());
         renderPredictionAccuracy(zoneAI.getPredictionAccuracy());
         renderUnifiedConfidence(zoneAI.getConfidence());
-        renderPredictionValidationStatus(zoneAI.getPredictionValidation());
+        predictionValidationRenderer.render(zoneAI.getPredictionValidation());
         renderSoilLearningProfile(zoneAI.getLearningProfile());
         setAdvancedDetailsVisible(advancedDetailsVisible);
         renderWeatherGuidance();
@@ -2765,7 +2712,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         renderZonePredictionWaiting(zone);
         renderPredictionAccuracy(null);
         renderUnifiedConfidence(null);
-        renderPredictionValidationStatus(null);
+        predictionValidationRenderer.render(null);
     }
 
     private void renderZonePredictionWaiting(GardenZone zone) {
@@ -3703,350 +3650,6 @@ public class AIAssistantActivity extends AppCompatActivity {
                 primary
         );
     }
-    private void renderPredictionValidationStatus(
-            PredictionValidationStatus status
-    ) {
-
-        if (status == null) {
-            renderPredictionValidationIdle();
-            return;
-        }
-
-        String validationStatus =
-                assistantFormatter.safeText(
-                        status.getValidation_status(),
-                        IDLE
-                )
-                        .trim()
-                        .toUpperCase(Locale.ROOT);
-
-        long pendingCount =
-                Math.max(
-                        0,
-                        status.getPending_count()
-                );
-
-        long targetMinutes =
-                Math.max(
-                        0,
-                        status.getTarget_minutes()
-                );
-
-        long remainingSeconds =
-                Math.max(
-                        0,
-                        status.getRemaining_seconds()
-                );
-
-        boolean waiting =
-                WAITING.equals(validationStatus)
-                        && pendingCount > 0;
-
-        if (!waiting) {
-            renderPredictionValidationIdle();
-
-            txtPredictionValidationUpdatedAt.setText(
-                    formatPredictionValidationDateTime(
-                            status.getUpdated_at()
-                    )
-            );
-
-            return;
-        }
-
-        txtPredictionValidationStatus.setText(
-                getString(R.string.ai_runtime_validation_waiting)
-        );
-
-        txtPredictionValidationRemaining.setText(
-                formatRemainingTime(
-                        remainingSeconds
-                )
-        );
-
-        txtPredictionValidationTarget.setText(
-                getString(R.string.ai_runtime_target_minutes, targetMinutes)
-        );
-
-        txtPredictionValidationPending.setText(
-                String.valueOf(
-                        pendingCount
-                )
-        );
-
-        txtPredictionValidationNextTime.setText(
-                formatPredictionValidationTime(
-                        status.getNext_validation_at()
-                )
-        );
-
-        txtPredictionValidationUpdatedAt.setText(
-                formatPredictionValidationDateTime(
-                        status.getUpdated_at()
-                )
-        );
-
-        int progress =
-                calculateValidationProgress(
-                        targetMinutes,
-                        remainingSeconds
-                );
-
-        progressPredictionValidation.setProgressCompat(
-                progress,
-                true
-        );
-
-        txtPredictionValidationPercent.setText(
-                progress + "%"
-        );
-
-        applyPredictionValidationWaitingStyle();
-    }
-
-    private void renderPredictionValidationIdle() {
-
-        txtPredictionValidationStatus.setText(
-                getString(R.string.ai_runtime_idle_upper)
-        );
-
-        txtPredictionValidationRemaining.setText(
-                getString(R.string.ai_runtime_no_pending_validation)
-        );
-
-        txtPredictionValidationPercent.setText(
-                assistantFormatter.unavailableValue()
-        );
-
-        txtPredictionValidationTarget.setText(
-                assistantFormatter.unavailableValue()
-        );
-
-        txtPredictionValidationPending.setText(
-                "0"
-        );
-
-        txtPredictionValidationNextTime.setText(
-                assistantFormatter.unavailableValue()
-        );
-
-        txtPredictionValidationUpdatedAt.setText(
-                getString(R.string.ai_runtime_waiting)
-        );
-
-        progressPredictionValidation.setProgressCompat(
-                0,
-                false
-        );
-
-        applyPredictionValidationIdleStyle();
-    }
-
-    private int calculateValidationProgress(
-            long targetMinutes,
-            long remainingSeconds
-    ) {
-
-        if (targetMinutes <= 0) {
-            return 0;
-        }
-
-        long totalSeconds =
-                targetMinutes * 60L;
-
-        long elapsedSeconds =
-                totalSeconds - remainingSeconds;
-
-        if (elapsedSeconds < 0) {
-            elapsedSeconds = 0;
-        }
-
-        if (elapsedSeconds > totalSeconds) {
-            elapsedSeconds = totalSeconds;
-        }
-
-        return (int) Math.round(
-                (
-                        elapsedSeconds
-                                / (double) totalSeconds
-                ) * 100.0
-        );
-    }
-
-    private String formatRemainingTime(
-            long remainingSeconds
-    ) {
-
-        long safeSeconds =
-                Math.max(
-                        0,
-                        remainingSeconds
-                );
-
-        long hours =
-                safeSeconds / 3600;
-
-        long minutes =
-                (
-                        safeSeconds % 3600
-                ) / 60;
-
-        long seconds =
-                safeSeconds % 60;
-
-        if (hours > 0) {
-            return String.format(
-                    Locale.getDefault(),
-                    getString(R.string.ai_runtime_hours_minutes_seconds),
-                    hours,
-                    minutes,
-                    seconds
-            );
-        }
-
-        return String.format(
-                Locale.getDefault(),
-                getString(R.string.ai_runtime_minutes_seconds),
-                minutes,
-                seconds
-        );
-    }
-
-    private String formatPredictionValidationTime(
-            String isoDateTime
-    ) {
-
-        if (
-                isoDateTime == null
-                        || isoDateTime.trim().isEmpty()
-        ) {
-            return assistantFormatter.unavailableValue();
-        }
-
-        try {
-
-            java.time.LocalDateTime dateTime =
-                    java.time.LocalDateTime.parse(
-                            isoDateTime
-                    );
-
-            return dateTime.format(
-                    java.time.format.DateTimeFormatter
-                            .ofPattern(
-                                    "HH:mm",
-                                    java.util.Locale.getDefault()
-                            )
-            );
-
-        } catch (Exception exception) {
-
-            Log.w(
-                    TAG,
-                    "Prediction validation time could not be formatted.",
-                    exception
-            );
-
-            return assistantFormatter.unavailableValue();
-        }
-    }
-
-    private String formatPredictionValidationDateTime(
-            String isoDateTime
-    ) {
-
-        if (
-                isoDateTime == null
-                        || isoDateTime.trim().isEmpty()
-        ) {
-            return getString(R.string.ai_runtime_waiting);
-        }
-
-        try {
-
-            java.time.LocalDateTime dateTime =
-                    java.time.LocalDateTime.parse(
-                            isoDateTime
-                    );
-
-            return dateTime.format(
-                    java.time.format.DateTimeFormatter
-                            .ofPattern(
-                                    "dd-MM-yyyy HH:mm:ss",
-                                    java.util.Locale.getDefault()
-                            )
-            );
-
-        } catch (Exception exception) {
-
-            Log.w(
-                    TAG,
-                    "Prediction validation update time "
-                            + "could not be formatted.",
-                    exception
-            );
-
-            return getString(R.string.ai_runtime_waiting);
-        }
-    }
-
-    private void applyPredictionValidationWaitingStyle() {
-
-        int primary =
-                ContextCompat.getColor(
-                        this,
-                        R.color.primary
-                );
-
-        int primaryLight =
-                ContextCompat.getColor(
-                        this,
-                        R.color.primaryLight
-                );
-
-        cardPredictionValidationStatusBadge
-                .setCardBackgroundColor(
-                        primaryLight
-                );
-
-        cardPredictionValidationStatusBadge
-                .setStrokeColor(
-                        primary
-                );
-
-        txtPredictionValidationStatus.setTextColor(
-                primary
-        );
-    }
-
-    private void applyPredictionValidationIdleStyle() {
-
-        int textSecondary =
-                ContextCompat.getColor(
-                        this,
-                        R.color.textSecondary
-                );
-
-        int surfaceSoft =
-                ContextCompat.getColor(
-                        this,
-                        R.color.surfaceSoft
-                );
-
-        cardPredictionValidationStatusBadge
-                .setCardBackgroundColor(
-                        surfaceSoft
-                );
-
-        cardPredictionValidationStatusBadge
-                .setStrokeColor(
-                        textSecondary
-                );
-
-        txtPredictionValidationStatus.setTextColor(
-                textSecondary
-        );
-    }
-
     @Override
     protected void onDestroy() {
 
