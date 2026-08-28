@@ -408,10 +408,14 @@ public class WateringControlActivity extends AppCompatActivity {
             boolean zonePhysical = "PHYSICAL".equalsIgnoreCase(
                     zone.getValve_mode()
             );
-            name.setText(emoji + " " + zone.getName());
+            name.setText(getString(
+                    R.string.runtime_icon_label,
+                    emoji,
+                    zone.getName()));
             detail.setText(
-                    zone.getValve_id()
-                            + (
+                    getString(
+                            R.string.runtime_value_suffix,
+                            zone.getValve_id(),
                             zonePhysical
                                     ? getString(R.string.runtime_physical_suffix)
                                     : getString(R.string.runtime_simulation_suffix)
@@ -532,14 +536,19 @@ public class WateringControlActivity extends AppCompatActivity {
                             zone.getValve_gpio_physical_pin())
                     : getString(R.string.runtime_connection_loading);
             label.setText(
-                    zone.getEmoji() + " " + zone.getName()
-                            + "\n" + valveId + " · "
-                            + getString(
-                            physical
-                                    ? R.string.valve_setup_physical
-                                    : R.string.valve_setup_simulation
-                    )
-                            + "\n" + wiring
+                    getString(
+                            R.string.runtime_three_lines,
+                            getString(
+                                    R.string.runtime_icon_label,
+                                    zone.getEmoji(),
+                                    zone.getName()),
+                            getString(
+                                    R.string.runtime_sensor_valve,
+                                    valveId,
+                                    getString(physical
+                                            ? R.string.valve_setup_physical
+                                            : R.string.valve_setup_simulation)),
+                            wiring)
             );
 
             MaterialSwitch modeSwitch = new MaterialSwitch(this);

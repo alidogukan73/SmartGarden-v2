@@ -399,7 +399,10 @@ public class MainActivity extends AppCompatActivity {
                 ? forecast.getCity()
                 : forecast.getDistrict() + " / " + forecast.getCity();
         txtHomeWeatherTitle.setText(R.string.home_weather_title);
-        txtHomeWeatherLocation.setText(getString(R.string.symbol_middle_dot) + " " + location);
+        txtHomeWeatherLocation.setText(getString(
+                R.string.runtime_icon_label,
+                getString(R.string.symbol_middle_dot),
+                location));
         txtHomeWeatherIcon.setText(getString(R.string.symbol_sun));
         txtHomeWeatherUpdated.setText(
                 getString(R.string.runtime_weather_updated, new SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -821,7 +824,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         TextView page = new TextView(this);
-        page.setText((Math.max(0, selected) + 1) + " / " + count);
+        page.setText(getString(
+                R.string.runtime_pair_slash,
+                String.valueOf(Math.max(0, selected) + 1),
+                String.valueOf(count)));
         page.setTextColor(color(R.color.textPrimary));
         page.setTextSize(12f);
         page.setGravity(android.view.Gravity.CENTER);

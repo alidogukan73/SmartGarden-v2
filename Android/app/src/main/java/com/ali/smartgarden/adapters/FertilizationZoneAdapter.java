@@ -111,7 +111,10 @@ public class FertilizationZoneAdapter extends RecyclerView.Adapter<
             if (emoji == null || emoji.isBlank()) {
                 emoji = "🌱";
             }
-            txtZoneName.setText(emoji + " " + zone.getName());
+            txtZoneName.setText(itemView.getContext().getString(
+                    R.string.runtime_icon_label,
+                    emoji,
+                    zone.getName()));
 
             FertilizationProfile profile = zone.getFertilization();
             boolean configured = profile != null && profile.isEnabled();

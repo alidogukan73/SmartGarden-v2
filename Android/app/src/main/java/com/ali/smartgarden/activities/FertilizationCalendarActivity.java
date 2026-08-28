@@ -1103,8 +1103,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                         String content = compact
                                 ? result.compactText() : result.fullText(FertilizationCalendarActivity.this);
                         target.setText(getString(
-                                R.string.fertilizer_organic_ai_heading)
-                                + "\n" + content);
+                                R.string.runtime_two_lines,
+                                getString(R.string.fertilizer_organic_ai_heading),
+                                content));
                     }
 
                     @Override

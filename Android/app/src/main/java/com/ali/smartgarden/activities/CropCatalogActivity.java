@@ -22,6 +22,7 @@ import com.ali.smartgarden.season.SeasonStartConfiguration;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 /** Manages reusable products without mutating any already archived season snapshot. */
@@ -118,8 +119,8 @@ public final class CropCatalogActivity extends AppCompatActivity {
         form.addView(min);
         form.addView(max);
         if (existing == null) {
-            min.setText(Integer.toString(40));
-            max.setText(Integer.toString(60));
+            min.setText(NumberFormat.getIntegerInstance().format(40));
+            max.setText(NumberFormat.getIntegerInstance().format(60));
         } else {
             name.setText(existing.getName());
             emoji.setText(existing.getEmoji());

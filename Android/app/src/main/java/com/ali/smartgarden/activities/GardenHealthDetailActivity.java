@@ -110,8 +110,14 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         text.setLayoutParams(new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         TextView title = new TextView(this);
-        title.setText((zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji()) + " "
-                + (zone.getName() == null ? getString(R.string.zone_fallback_name) : zone.getName()));
+        title.setText(getString(
+                R.string.runtime_icon_label,
+                zone.getEmoji() == null
+                        ? getString(R.string.symbol_plant)
+                        : zone.getEmoji(),
+                zone.getName() == null
+                        ? getString(R.string.zone_fallback_name)
+                        : zone.getName()));
         title.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
         title.setTextSize(16);
         title.setTypeface(null, android.graphics.Typeface.BOLD);

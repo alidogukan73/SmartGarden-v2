@@ -527,19 +527,20 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         }
         usageSummary.setText(
                 getString(
-                        R.string.fertilizer_history_usage_total,
-                        formatAmount(totalGram),
-                        formatAmount(totalMilliliter)
-                ) + "\n" + getString(
-                        R.string.fertilizer_history_usage_30d,
-                        formatAmount(last30Gram),
-                        formatAmount(last30Milliliter)
-                ) + "\n" + getString(
-                        R.string.fertilizer_history_usage_methods,
-                        drip,
-                        soil,
-                        foliar
-                )
+                        R.string.runtime_three_lines,
+                        getString(
+                                R.string.fertilizer_history_usage_total,
+                                formatAmount(totalGram),
+                                formatAmount(totalMilliliter)),
+                        getString(
+                                R.string.fertilizer_history_usage_30d,
+                                formatAmount(last30Gram),
+                                formatAmount(last30Milliliter)),
+                        getString(
+                                R.string.fertilizer_history_usage_methods,
+                                drip,
+                                soil,
+                                foliar))
         );
     }
 
@@ -625,7 +626,10 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                     ? R.string.fertilizer_outcome_trend_positive
                     : R.string.fertilizer_outcome_trend_mixed);
         }
-        outcomeSummary.setText(learning + "\n" + statistics);
+        outcomeSummary.setText(getString(
+                R.string.runtime_two_lines,
+                learning,
+                statistics));
     }
     private String formatAmount(double value) {
         return value == Math.rint(value)

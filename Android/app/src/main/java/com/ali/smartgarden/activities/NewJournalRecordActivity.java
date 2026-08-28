@@ -160,9 +160,13 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private void showSelectedPhotoState() {
         if (photoState == null) return;
         int count = selectedPhotos.size() + selectedPhotoBitmaps.size();
-        photoState.setText(getString(R.string.symbol_check) + " "
-                + getResources().getQuantityString(
-                        R.plurals.runtime_photos_selected_limit, count, count));
+        photoState.setText(getString(
+                R.string.runtime_icon_label,
+                getString(R.string.symbol_check),
+                getResources().getQuantityString(
+                        R.plurals.runtime_photos_selected_limit,
+                        count,
+                        count)));
     }
 
     private void refreshDateTime() {

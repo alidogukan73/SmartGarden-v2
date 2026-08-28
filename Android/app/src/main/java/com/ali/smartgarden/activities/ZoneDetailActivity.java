@@ -472,17 +472,24 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
         currentZone = zone;
         sensorIdValue.setText(
-                getString(R.string.zone_sensor_id_label)
-                        + ": "
-                        + zone.getSensor_id()
+                getString(
+                        R.string.runtime_label_value,
+                        getString(R.string.zone_sensor_id_label),
+                        zone.getSensor_id())
         );
         title.setText(
-                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
-                        + " "
-                        + zone.getName()
+                getString(
+                        R.string.runtime_icon_label,
+                        zone.getEmoji() == null
+                                ? getString(R.string.symbol_plant)
+                                : zone.getEmoji(),
+                        zone.getName())
         );
         subtitle.setText(
-                zone.getSensor_id() + " · " + zone.getValve_id()
+                getString(
+                        R.string.runtime_sensor_valve,
+                        zone.getSensor_id(),
+                        zone.getValve_id())
         );
         if (!hasLocalChanges) {
             renderingRemoteValues = true;

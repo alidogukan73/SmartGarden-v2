@@ -149,7 +149,9 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         boolean hasAdvice = !advice.isBlank() || !title.isBlank();
         assistantHeading.setVisibility(hasAdvice ? View.VISIBLE : View.GONE);
         findViewById(R.id.cardRecordAssistant).setVisibility(hasAdvice ? View.VISIBLE : View.GONE);
-        assistantText.setText((title.isBlank() ? "" : title + "\n\n") + advice);
+        assistantText.setText(title.isBlank()
+                ? advice
+                : getString(R.string.runtime_two_sections, title, advice));
         findViewById(R.id.txtFollowupHeading).setVisibility(View.GONE);
         findViewById(R.id.cardRecordFollowup).setVisibility(View.GONE);
     }
@@ -273,7 +275,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         TextView mark = new TextView(this); mark.setText(icon); mark.setTextSize(19); mark.setGravity(Gravity.CENTER);
         row.addView(mark, new LinearLayout.LayoutParams(dp(38), dp(38)));
         LinearLayout info = new LinearLayout(this); info.setOrientation(LinearLayout.VERTICAL);
-        TextView heading = new TextView(this); heading.setText(title + " · " + dateTime(epoch)); heading.setTextColor(getColor(R.color.textPrimary)); heading.setTextSize(12); heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        TextView heading = new TextView(this); heading.setText(getString(R.string.runtime_title_datetime, title, dateTime(epoch))); heading.setTextColor(getColor(R.color.textPrimary)); heading.setTextSize(12); heading.setTypeface(null, android.graphics.Typeface.BOLD);
         TextView text = new TextView(this); text.setText(detail); text.setTextColor(getColor(R.color.textSecondary)); text.setTextSize(12);
         info.addView(heading); info.addView(text);
         row.addView(info, new LinearLayout.LayoutParams(0, -2, 1));

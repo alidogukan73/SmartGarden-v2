@@ -395,9 +395,12 @@ public class FertilizationZoneDetailActivity
         }
 
         ((TextView) findViewById(R.id.txtTitle)).setText(
-                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
-                        + " "
-                        + zone.getName()
+                getString(
+                        R.string.runtime_icon_label,
+                        zone.getEmoji() == null
+                                ? getString(R.string.symbol_plant)
+                                : zone.getEmoji(),
+                        zone.getName())
         );
         zonePlantType = safe(zone.getPlant_type());
         zoneName = safe(zone.getName());
@@ -573,8 +576,10 @@ public class FertilizationZoneDetailActivity
         } else {
             txtZoneAiAdviceProducts.setVisibility(View.VISIBLE);
             txtZoneAiAdviceProducts.setText(
-                    getString(R.string.fertilizer_recommended_products)
-                            + "\n" + String.join("\n\n", advice.getCandidates()));
+                    getString(
+                            R.string.runtime_two_lines,
+                            getString(R.string.fertilizer_recommended_products),
+                            String.join("\n\n", advice.getCandidates())));
         }
         FertilizerExperiencePresenter.bind(
                 this,
@@ -589,9 +594,10 @@ public class FertilizationZoneDetailActivity
         } else {
             txtZoneAiAdviceRisks.setVisibility(View.VISIBLE);
             txtZoneAiAdviceRisks.setText(
-                    getString(R.string.fertilization_risks_title)
-                            + "\n• "
-                            + String.join("\n• ", advice.getRisks()));
+                    getString(
+                            R.string.runtime_heading_bullets,
+                            getString(R.string.fertilization_risks_title),
+                            String.join("\n• ", advice.getRisks())));
         }
     }
 
@@ -605,8 +611,9 @@ public class FertilizationZoneDetailActivity
                         if (isFinishing() || isDestroyed()
                                 || currentZone != requestedZone) return;
                         txtZoneAiAdviceProducts.setText(getString(
-                                R.string.fertilizer_organic_ai_heading)
-                                + "\n" + result.fullText(FertilizationZoneDetailActivity.this));
+                                R.string.runtime_two_lines,
+                                getString(R.string.fertilizer_organic_ai_heading),
+                                result.fullText(FertilizationZoneDetailActivity.this)));
                     }
 
                     @Override

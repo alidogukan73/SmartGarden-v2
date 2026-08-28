@@ -275,15 +275,16 @@ public class SensorPointsActivity extends AppCompatActivity {
 
         TextView name = new TextView(this);
         name.setText(
-                (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji())
-                        + " "
-                        + zone.getName()
-                        + "\n"
-                        + getString(
+                getString(
+                        R.string.runtime_zone_sensor_detail,
+                        zone.getEmoji() == null
+                                ? getString(R.string.symbol_plant)
+                                : zone.getEmoji(),
+                        zone.getName(),
+                        getString(
                                 R.string.queue_zone_detail,
                                 zone.getMoisture(),
-                                status.getMoisture_deficit()
-                        )
+                                status.getMoisture_deficit()))
         );
         name.setTextColor(
                 ContextCompat.getColor(

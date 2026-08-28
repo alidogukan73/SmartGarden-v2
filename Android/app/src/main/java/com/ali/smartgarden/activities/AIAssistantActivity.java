@@ -1149,23 +1149,21 @@ public class AIAssistantActivity extends AppCompatActivity {
 
 
         txtAILearningSensorCount.setText(
-                profile.getSensor_history_count()
-                        + " / "
-                        + (
-                        profile.getSensor_history_count()
-                                +
-                                profile.getRemaining_sensor_samples()
+                getString(
+                        R.string.runtime_pair_slash,
+                        String.valueOf(profile.getSensor_history_count()),
+                        String.valueOf(profile.getSensor_history_count()
+                                + profile.getRemaining_sensor_samples())
                 )
         );
 
 
         txtAILearningWateringCount.setText(
-                profile.getWatering_count_analyzed()
-                        + " / "
-                        + (
-                        profile.getWatering_count_analyzed()
-                                +
-                                profile.getRemaining_auto_waterings()
+                getString(
+                        R.string.runtime_pair_slash,
+                        String.valueOf(profile.getWatering_count_analyzed()),
+                        String.valueOf(profile.getWatering_count_analyzed()
+                                + profile.getRemaining_auto_waterings())
                 )
         );
         String sensorStatus =
@@ -1523,9 +1521,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtUnifiedConfidenceUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        confidence.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(confidence.getGenerated_at())
                 )
         );
 
@@ -1581,9 +1579,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtUnifiedConfidenceUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        confidence.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(confidence.getGenerated_at())
                 )
         );
 
@@ -2119,7 +2117,10 @@ public class AIAssistantActivity extends AppCompatActivity {
                 safeProgress;
 
         txtAIProgressPercent.setText(
-                "%" + safeProgress
+                getString(
+                        R.string.runtime_percentage_value,
+                        String.valueOf(safeProgress)
+                )
         );
 
         updateProgressSegments(
@@ -2806,16 +2807,17 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionLimitReachedAt.setText(
-                getString(R.string.ai_runtime_prediction_limit_prefix)
-                        + formatPredictionDateTime(
-                        prediction.getEstimated_limit_reached_at()
+                getString(
+                        R.string.ai_runtime_prediction_limit_prefix,
+                        formatPredictionDateTime(
+                                prediction.getEstimated_limit_reached_at())
                 )
         );
 
         txtMoisturePredictionUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        prediction.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(prediction.getGenerated_at())
                 )
         );
 
@@ -2913,9 +2915,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionAccuracyUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        accuracy.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(accuracy.getGenerated_at())
                 )
         );
 
@@ -2992,9 +2994,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtPredictionAccuracyUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        accuracy.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(accuracy.getGenerated_at())
                 )
         );
 
@@ -3392,9 +3394,9 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
 
         txtMoisturePredictionUpdatedAt.setText(
-                getString(R.string.ai_runtime_last_updated_prefix)
-                        + formatPredictionDateTime(
-                        prediction.getGenerated_at()
+                getString(
+                        R.string.ai_runtime_last_updated_prefix,
+                        formatPredictionDateTime(prediction.getGenerated_at())
                 )
         );
 

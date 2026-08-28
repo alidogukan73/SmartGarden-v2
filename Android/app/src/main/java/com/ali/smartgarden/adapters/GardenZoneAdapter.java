@@ -215,7 +215,10 @@ public class GardenZoneAdapter
                             ? itemView.getContext().getString(R.string.runtime_sensor_unassigned)
                             : zone.getSensor_id();
 
-            name.setText(emoji + " " + zoneName);
+            name.setText(itemView.getContext().getString(
+                    R.string.runtime_icon_label,
+                    emoji,
+                    zoneName));
             sensorId.setText(sensor);
 
             waiting.setText(R.string.sensor_waiting_description);

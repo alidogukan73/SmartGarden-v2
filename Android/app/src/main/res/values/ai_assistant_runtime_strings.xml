@@ -11,7 +11,7 @@
   <string name="ai_runtime_learning_upper">ÖĞRENİYOR</string>
   <string name="ai_runtime_not_started_upper">BAŞLAMADI</string>
   <string name="ai_runtime_completed_upper">TAMAMLANDI</string>
-  <string name="ai_runtime_last_updated_prefix">Son güncelleme: </string>
+  <string name="ai_runtime_last_updated_prefix">Son güncelleme: %1$s</string>
   <string name="ai_runtime_data_waiting">Veri bekleniyor</string>
   <string name="ai_runtime_very_high">Çok yüksek</string>
   <string name="ai_runtime_high">Yüksek</string>
@@ -60,7 +60,7 @@
   <string name="ai_runtime_badge_critical">KRİTİK</string>
   <string name="ai_runtime_badge_info">BİLGİ</string>
   <string name="ai_runtime_ready_upper">HAZIR</string>
-  <string name="ai_runtime_prediction_limit_prefix">Tahmini sınır zamanı: </string>
+  <string name="ai_runtime_prediction_limit_prefix">Tahmini sınır zamanı: %1$s</string>
   <string name="ai_runtime_calculating">Hesaplanıyor</string>
   <string name="ai_runtime_cannot_calculate">Hesaplanamıyor</string>
   <string name="ai_runtime_learning">Öğreniliyor</string>

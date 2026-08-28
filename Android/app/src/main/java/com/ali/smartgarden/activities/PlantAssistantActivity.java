@@ -291,13 +291,32 @@ public class PlantAssistantActivity extends AppCompatActivity {
         meta.setText(getString(R.string.runtime_visual_confidence_urgency,
                 visual.optInt("confidence", 0),
                 visual.optString("urgency", getString(R.string.runtime_urgency_low))));
-        context.setText(findings + (causes.isEmpty() ? ""
-                : "\n\n" + getString(R.string.runtime_possible_causes) + "\n" + causes));
-        advice.setText((steps.isEmpty() ? ""
-                : getString(R.string.runtime_recommended_observation) + "\n" + steps + "\n\n")
-                + (redFlags.isEmpty() ? ""
-                : getString(R.string.runtime_red_flags) + "\n" + redFlags + "\n\n")
-                + visual.optString("disclaimer", getString(R.string.runtime_not_diagnosis)));
+        context.setText(causes.isEmpty()
+                ? findings
+                : getString(
+                        R.string.runtime_two_sections,
+                        findings,
+                        getString(
+                                R.string.runtime_two_lines,
+                                getString(R.string.runtime_possible_causes),
+                                causes)));
+        List<String> adviceSections = new ArrayList<>();
+        if (!steps.isEmpty()) {
+            adviceSections.add(getString(
+                    R.string.runtime_two_lines,
+                    getString(R.string.runtime_recommended_observation),
+                    steps));
+        }
+        if (!redFlags.isEmpty()) {
+            adviceSections.add(getString(
+                    R.string.runtime_two_lines,
+                    getString(R.string.runtime_red_flags),
+                    redFlags));
+        }
+        adviceSections.add(visual.optString(
+                "disclaimer",
+                getString(R.string.runtime_not_diagnosis)));
+        advice.setText(String.join("\n\n", adviceSections));
         resultCard.setVisibility(View.VISIBLE);
         archiveAnalysis(String.valueOf(title.getText()), String.valueOf(meta.getText()),
                 String.valueOf(context.getText()), String.valueOf(advice.getText()));
@@ -318,8 +337,12 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private void renderLiveData(GardenZone zone) {
         if (zone == null) return;
         soilData.setText(getString(R.string.format_assistant_soil_data, "%" + zone.getMoisture()));
-        weatherTemperatureData.setText(getString(R.string.weather_temperature_label) + "\n"
-                + number(currentWeather == null ? null : currentWeather.getCurrentTemperature(), "°C"));
+        weatherTemperatureData.setText(getString(
+                R.string.runtime_two_lines,
+                getString(R.string.weather_temperature_label),
+                number(currentWeather == null
+                        ? null
+                        : currentWeather.getCurrentTemperature(), "°C")));
         sunData.setText(getString(R.string.format_assistant_sun_data, sunLabel(currentWeather)));
         windData.setText(getString(R.string.runtime_wind_format,
                 number(currentWeather == null ? null : currentWeather.getCurrentWind(), " km/sa")));

@@ -30,6 +30,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 public class FertilizerProductsActivity extends AppCompatActivity {
@@ -221,7 +222,8 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         if (existing == null) {
             dropdownForm.setText(forms[0], false);
             dropdownUnit.setText(units[0], false);
-            inputInterval.setText(Integer.toString(14));
+            inputInterval.setText(
+                    NumberFormat.getIntegerInstance().format(14));
             dropdownStockUnit.setText(stockUnits[0], false);
             dropdownApplicationType.setText(applicationTypes[0], false);
             switchOrganicFarmingEligible.setChecked(false);
@@ -515,10 +517,16 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 : product;
         FertilizerAiProfile profile = FertilizerAiAdvisor.profileFor(source);
         target.setText(
-                getString(R.string.runtime_product_suitability, profile.getSuitability())
-                        + "\n" + getString(R.string.runtime_reason_label, profile.getReason())
-                        + "\n" + getString(R.string.runtime_fruit_stage, profile.getFruitStageAdvice())
-                        + "\n" + getString(R.string.runtime_safety_label, profile.getSafetyNote())
+                getString(
+                        R.string.runtime_four_lines,
+                        getString(R.string.runtime_product_suitability,
+                                profile.getSuitability()),
+                        getString(R.string.runtime_reason_label,
+                                profile.getReason()),
+                        getString(R.string.runtime_fruit_stage,
+                                profile.getFruitStageAdvice()),
+                        getString(R.string.runtime_safety_label,
+                                profile.getSafetyNote()))
         );
     }
 

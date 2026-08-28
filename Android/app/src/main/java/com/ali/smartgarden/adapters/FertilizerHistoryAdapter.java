@@ -72,11 +72,12 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
                 )
         );
         holder.zone.setText(
-                value.getZone_name() + " · "
-                        + applicationTypeLabel(
+                holder.itemView.getContext().getString(
+                        R.string.runtime_sensor_valve,
+                        value.getZone_name(),
+                        applicationTypeLabel(
                                 holder.itemView,
-                                value.getApplication_type()
-                        )
+                                value.getApplication_type()))
         );
         holder.dose.setText(
                 holder.itemView.getContext().getString(

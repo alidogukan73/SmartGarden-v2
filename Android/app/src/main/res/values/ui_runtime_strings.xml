@@ -285,4 +285,19 @@ Fotoğraf ekle</string>
     <string name="runtime_weather_wind_card">%1$s  %2$s km/sa</string>
     <string name="runtime_weather_missing_value">~ —</string>
     <string name="runtime_weather_approximate_value">~ %1$d</string>
+    <string name="runtime_pair_slash">%1$s / %2$s</string>
+    <string name="runtime_icon_label">%1$s %2$s</string>
+    <string name="runtime_two_lines">%1$s\n%2$s</string>
+    <string name="runtime_two_sections">%1$s\n\n%2$s</string>
+    <string name="runtime_three_lines">%1$s\n%2$s\n%3$s</string>
+    <string name="runtime_four_lines">%1$s\n%2$s\n%3$s\n%4$s</string>
+    <string name="runtime_heading_bullets">%1$s\n• %2$s</string>
+    <string name="runtime_title_datetime">%1$s · %2$s</string>
+    <string name="runtime_percentage_value">%%%1$s</string>
+    <string name="runtime_temperature_text">%1$s°C</string>
+    <string name="runtime_label_value">%1$s: %2$s</string>
+    <string name="runtime_sensor_valve">%1$s · %2$s</string>
+    <string name="runtime_zone_sensor_detail">%1$s %2$s\n%3$s</string>
+    <string name="home_zone_ideal_range">%%%1$d – %%%2$d</string>
+    <string name="runtime_value_suffix">%1$s%2$s</string>
 </resources>

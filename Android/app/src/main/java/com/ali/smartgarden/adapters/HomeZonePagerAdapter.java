@@ -121,7 +121,10 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
             String zoneName = zone.getName() == null ? context.getString(R.string.zone_fallback_name) : zone.getName();
             String sensorId = zone.getSensor_id() == null ? "—" : zone.getSensor_id();
 
-            name.setText(emoji + " " + zoneName);
+            name.setText(context.getString(
+                    R.string.runtime_icon_label,
+                    emoji,
+                    zoneName));
             sensor.setText(context.getString(R.string.home_zone_sensor_subtitle, sensorId));
 
             if (!zone.isSensor_enabled()) {
@@ -209,7 +212,10 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
                     : value > upper ? context.getString(R.string.runtime_moisture_high_short) : context.getString(R.string.runtime_ideal_range);
             idealState.setText(label);
             idealState.setTextColor(statusColor);
-            idealRange.setText("%" + lower + " – %" + upper);
+            idealRange.setText(context.getString(
+                    R.string.home_zone_ideal_range,
+                    lower,
+                    upper));
             idealRange.setTextColor(color(context, R.color.textSecondary));
         }
 

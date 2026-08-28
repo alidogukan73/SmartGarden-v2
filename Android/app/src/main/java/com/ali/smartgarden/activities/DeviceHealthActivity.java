@@ -681,7 +681,12 @@ public class DeviceHealthActivity extends AppCompatActivity {
             String message
     ) {
         TextView row = new TextView(this);
-        row.setText(getString(healthy ? R.string.symbol_check : R.string.symbol_warning) + " " + message);
+        row.setText(getString(
+                R.string.runtime_icon_label,
+                getString(healthy
+                        ? R.string.symbol_check
+                        : R.string.symbol_warning),
+                message));
         row.setTextColor(
                 color(
                         healthy

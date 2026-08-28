@@ -145,8 +145,14 @@ public class PlantTimelineActivity extends AppCompatActivity {
         season.setText(seasonHeader);
         season.setContentDescription(getString(
                 R.string.runtime_timeline_season_selector_description, seasonHeader));
-        planting.setText("● " + plantingDateText());
-        status.setText("● " + liveSeasonStatus());
+        planting.setText(getString(
+                R.string.runtime_icon_label,
+                "●",
+                plantingDateText()));
+        status.setText(getString(
+                R.string.runtime_icon_label,
+                "●",
+                liveSeasonStatus()));
         String archiveEmoji = selected == null ? "" : selected.getEmoji();
         emoji.setText(archiveEmoji == null || archiveEmoji.isBlank()
                 ? zone == null || zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji() : archiveEmoji);
