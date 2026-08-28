@@ -35,5 +35,4 @@
     <string name="device_info_duration_days">%1$d gün %2$d sa</string>
     <string name="device_info_duration_hours">%1$d sa %2$d dk</string>
     <string name="device_info_duration_minutes">%1$d dk</string>
-    <string name="device_info_chevron">&#8250;</string>
 </resources>

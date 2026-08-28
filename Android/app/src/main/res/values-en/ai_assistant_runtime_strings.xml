@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ai_runtime_learning_stage_prefix">Learning Stage </string>
     <string name="ai_runtime_decimal_hours">%1$.1f hours</string>
     <string name="ai_runtime_minutes">%1$.0f min</string>
     <string name="ai_runtime_drying_rate_minute">%1$.3f %%/min</string>
@@ -49,7 +48,6 @@
     <string name="ai_runtime_very_fast_drying">Very fast drying</string>
     <string name="ai_runtime_collecting_data">Collecting data</string>
     <string name="ai_runtime_update_waiting">Waiting for latest update</string>
-    <string name="ai_runtime_badge_learning">LEARNING</string>
     <string name="ai_runtime_badge_sensor">SENSOR</string>
     <string name="ai_runtime_badge_watering">WATERING</string>
     <string name="ai_runtime_badge_suitable">SUITABLE</string>
@@ -82,11 +80,9 @@
     <string name="ai_runtime_unknown">Unknown</string>
     <string name="ai_runtime_balanced">Balanced</string>
     <string name="ai_runtime_normal">Normal</string>
-    <string name="ai_runtime_confidence_percent">%1$s · %%%2$d</string>
     <string name="ai_runtime_prediction_limit_unavailable">Estimated limit time: —</string>
     <string name="ai_runtime_last_updated_unavailable">Last updated: —</string>
     <string name="ai_runtime_target_minutes">%1$d min</string>
-    <string name="ai_runtime_percent_value">%1$d%%</string>
     <string name="ai_runtime_decimal_rate_per_minute">%1$.3f/min</string>
     <string name="ai_runtime_decimal_value">%1$.2f</string>
     <string name="ai_runtime_error_percent">%%%1$.2f</string>

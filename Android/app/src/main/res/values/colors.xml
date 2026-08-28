@@ -12,8 +12,6 @@
     <color
         name="primaryLight">#E8F5E9</color>
     <color
-        name="primaryContainerStrong">#DDF1DF</color>
-    <color
         name="accent">#66BB6A</color>
     <color
         name="accentLight">#C8E6C9</color>
@@ -28,8 +26,6 @@
         name="surfaceElevated">#FFFFFF</color>
     <color
         name="surfaceSoft">#F2F7F3</color>
-    <color
-        name="surfaceMuted">#F3F5F3</color>
     <color
         name="surfaceGreen">#EEF7EF</color>
     <color
@@ -72,8 +68,6 @@
     <color
         name="successBackground">#EAF6EC</color>
     <color
-        name="neutral">#6F756F</color>
-    <color
         name="neutralBackground">#F1F3F1</color>
     <color
         name="accentOrange">#FB8C00</color>
@@ -85,34 +79,14 @@
     <color
         name="moistureLowBackground">#FDECEC</color>
     <color
-        name="moistureWarning">#F59E0B</color>
-    <color
-        name="moistureWarningBackground">#FFF4DB</color>
-    <color
         name="moistureIdeal">#2E7D32</color>
     <color
         name="moistureIdealBackground">#E8F5E9</color>
-    <color
-        name="moistureHigh">#1976D2</color>
-    <color
-        name="moistureHighBackground">#EAF3FD</color>
     <!-- ========================================================= -->
     <!-- POMPA VE BUTON DURUMLARI                                 -->
     <!-- ========================================================= -->
     <color
-        name="pumpRunning">#2E7D32</color>
-    <color
-        name="pumpRunningBackground">#F1F8F2</color>
-    <color
-        name="pumpStopped">#E53935</color>
-    <color
-        name="pumpStoppedBackground">#FDECEC</color>
-    <color
         name="buttonStart">#2E7D32</color>
-    <color
-        name="buttonStop">#D32F2F</color>
-    <color
-        name="buttonDisabled">#BDBDBD</color>
     <!-- ========================================================= -->
     <!-- METİNLER                                                 -->
     <!-- ========================================================= -->
@@ -124,15 +98,11 @@
         name="textTertiary">#989D98</color>
     <color
         name="textOnPrimary">#FFFFFF</color>
-    <color
-        name="textOnDark">#FFFFFF</color>
     <!-- ========================================================= -->
     <!-- KENARLIK VE AYIRICILAR                                   -->
     <!-- ========================================================= -->
     <color
         name="border">#D9E3DA</color>
-    <color
-        name="borderStrong">#C8CEC8</color>
     <color
         name="divider">#E8ECE8</color>
     <color
@@ -142,8 +112,6 @@
     <!-- ========================================================= -->
     <color
         name="iconBackground">#EAF6EC</color>
-    <color
-        name="iconBackgroundNeutral">#F0F2F0</color>
     <!-- ========================================================= -->
     <!-- SWITCH                                                   -->
     <!-- ========================================================= -->
@@ -158,12 +126,6 @@
     <!-- ========================================================= -->
     <!-- GÖLGE VE OVERLAY                                         -->
     <!-- ========================================================= -->
-    <color
-        name="shadowSoft">#14000000</color>
-    <color
-        name="overlayLight">#0D000000</color>
-    <color
-        name="scrim">#66000000</color>
     <!-- ========================================================= -->
     <!-- BOTTOM SHEET                                             -->
     <!-- ========================================================= -->

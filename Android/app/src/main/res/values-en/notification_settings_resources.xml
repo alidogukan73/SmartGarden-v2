@@ -32,7 +32,5 @@
     <string name="reminder_quiet_title">Quiet hours</string>
     <string name="reminder_quiet_subtitle">Phone alerts pause during this period; Notification Center records are preserved.</string>
     <string name="reminder_quiet_separator">to</string>
-    <string name="reminder_save">Save settings</string>
-    <string name="reminder_settings_saved">Reminder settings saved.</string>
     <string name="reminder_settings_save_failed">Reminder settings could not be backed up. Local settings are preserved.</string>
 </resources>

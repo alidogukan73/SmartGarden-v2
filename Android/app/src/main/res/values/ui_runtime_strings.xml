@@ -215,7 +215,6 @@ Fotoğraf ekle</string>
     <string name="runtime_soil_values_invalid">pH 0–14, EC 0–20 aralığında olmalıdır.</string>
     <string name="runtime_active_harvest_note">Aktif hasatta: Yalnız ürün etiketinde hasada kadar kullanım açıkça belirtiliyorsa ve hasat öncesi kısıt yoksa değerlendirin.</string>
     <string name="runtime_application_wait_days">Uygulama zamanı: Tekrar uygulama için %1$d gün bekleyin.</string>
-    <string name="runtime_days_ago">%1$d gün önce.</string>
     <string name="runtime_history_photo_prompt">İsterseniz bu gözleme ait bir bitki fotoğrafını da yerel arşive ekleyebilirsiniz.</string>
     <string name="runtime_not_now">Şimdi değil</string>
     <string name="runtime_valid_date_amount">Geçerli tarih ve miktar girin.</string>

@@ -3,7 +3,6 @@
     <string name="season_cancel">Cancel</string>
     <string name="season_management_title">Season Management</string>
     <string name="season_management_subtitle">Safely start, close, and archive each zone season</string>
-    <string name="season_management_menu_subtitle">Start, close, and archive seasons</string>
     <string name="season_management_info_title">Your records are protected</string>
     <string name="season_management_info_body">A new season resets only the seasonal plan for the zone. Previous watering, fertilizing, journal, photo, and Plant Assistant records remain in the season archive.</string>
     <string name="season_management_zones_title">Active zones and seasons</string>
@@ -55,50 +54,15 @@
     <string name="season_closed_event_title">Season completed</string>
     <string name="season_harvest_short">Harvest: %1$s</string>
     <string name="season_operation_wait">Processing…</string>
-    <string name="season_operation_done">Updating…</string>
     <string name="season_archive_action">Open season archive and comparison</string>
     <string name="season_reactivate_zone_action">Open Zone Management</string>
 
     <string name="season_start_crop_label">Crop to grow in the new season</string>
-    <string name="season_start_custom_crop_hint">Other crop name</string>
-    <string name="season_start_custom_emoji_hint">Crop icon (optional, for example 🥕)</string>
     <string name="season_start_stage_label">Initial growth stage</string>
     <string name="season_start_valve_note">The valve remains assigned to this physical zone: %1$s</string>
     <string name="season_start_no_valve">No valve assigned</string>
     <string name="season_crop_required">Select a crop for the new season.</string>
 
-    <string-array name="season_crop_labels">
-        <item>🍅 Tomato</item>
-        <item>🌶️ Pepper</item>
-        <item>🥒 Cucumber</item>
-        <item>🍆 Eggplant</item>
-        <item>🫘 Bean</item>
-        <item>🌱 Other crop…</item>
-    </string-array>
-    <string-array name="season_crop_names">
-        <item>Tomato</item>
-        <item>Pepper</item>
-        <item>Cucumber</item>
-        <item>Eggplant</item>
-        <item>Bean</item>
-        <item></item>
-    </string-array>
-    <string-array name="season_crop_codes">
-        <item>tomato</item>
-        <item>pepper</item>
-        <item>cucumber</item>
-        <item>eggplant</item>
-        <item>bean</item>
-        <item>custom</item>
-    </string-array>
-    <string-array name="season_crop_emojis">
-        <item>🍅</item>
-        <item>🌶️</item>
-        <item>🥒</item>
-        <item>🍆</item>
-        <item>🫘</item>
-        <item>🌱</item>
-    </string-array>
     <string-array name="season_growth_stage_labels">
         <item>Soil preparation</item>
         <item>Seedling / planting</item>

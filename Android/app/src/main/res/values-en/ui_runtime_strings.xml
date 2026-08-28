@@ -215,7 +215,6 @@ Add photo</string>
     <string name="runtime_soil_values_invalid">pH must be 0–14 and EC must be 0–20.</string>
     <string name="runtime_active_harvest_note">During active harvest: Consider only products whose label explicitly permits use until harvest and has no pre-harvest restriction.</string>
     <string name="runtime_application_wait_days">Application timing: Wait %1$d days before applying again.</string>
-    <string name="runtime_days_ago">%1$d days ago.</string>
     <string name="runtime_history_photo_prompt">You can also add a plant photo for this observation to the local archive.</string>
     <string name="runtime_not_now">Not now</string>
     <string name="runtime_valid_date_amount">Enter a valid date and amount.</string>

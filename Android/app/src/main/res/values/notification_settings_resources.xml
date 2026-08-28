@@ -33,7 +33,5 @@
     <string name="reminder_quiet_title">Sessiz saatler</string>
     <string name="reminder_quiet_subtitle">Telefon uyarıları bu aralıkta durur; Bildirim Merkezi kayıtları korunur.</string>
     <string name="reminder_quiet_separator">ile</string>
-    <string name="reminder_save">Ayarları kaydet</string>
-    <string name="reminder_settings_saved">Hatırlatma ayarları kaydedildi.</string>
     <string name="reminder_settings_save_failed">Hatırlatma ayarları yedeklenemedi. Yerel ayarlar korunuyor.</string>
 </resources>

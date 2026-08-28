@@ -6,10 +6,6 @@
     <string name="notification_detail_priority">Öncelik</string>
     <string name="notification_detail_zone">İlgili bölge</string>
     <string name="notification_detail_description">Açıklama</string>
-    <string name="notification_detail_save">Kaydet</string>
-    <string name="notification_detail_saved">Kaydedildi</string>
-    <string name="notification_detail_mark_read">Okundu işaretle</string>
-    <string name="notification_detail_read">Okundu</string>
     <string name="notification_detail_general">Genel</string>
     <string name="notification_detail_zone_loading">Bölge bilgisi yükleniyor</string>
     <string name="notification_category_photo">Fotoğraf takibi</string>

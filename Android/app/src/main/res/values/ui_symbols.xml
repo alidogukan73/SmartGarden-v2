@@ -19,24 +19,12 @@
     <string
         name="symbol_notification">🔔</string>
     <string
-        name="symbol_flower">🌼</string>
-    <string
         name="symbol_heart">❤</string>
     <!-- Ortak simgeli arayüz metinleri -->
     <string
         name="ui_photo_add_step">📷  1. Fotoğraf Ekle</string>
     <string
-        name="ui_take_photo">📷  Fotoğraf Çek</string>
-    <string
         name="ui_photo_add_limit">📷\nFotoğraf ekle\nMaks. 5 fotoğraf</string>
-    <string
-        name="ui_setting_irrigation">💧 Sulama</string>
-    <string
-        name="ui_setting_fertilization">🌱 Gübreleme</string>
-    <string
-        name="ui_setting_weather">☀ Hava durumu</string>
-    <string
-        name="ui_setting_stock_warning">⚠ Stok uyarıları</string>
     <string
         name="ui_symptom_wilting">🌱  Solma</string>
     <string
@@ -69,10 +57,6 @@
     <string
         name="symbol_wind">≋</string>
     <string
-        name="symbol_pressure">⌁</string>
-    <string
-        name="symbol_tomato">🍅</string>
-    <string
         name="ui_symptom_fruit_cracking">🍅  Meyve Çatlaması</string>
     <string
         name="symbol_leaf">🌿</string>
@@ -80,8 +64,6 @@
         name="symbol_sparkle">✦</string>
     <string
         name="symbol_bullet">•</string>
-    <string
-        name="symbol_event">▲</string>
     <string name="ui_wind_empty">≋  ~ — km/sa</string>
     <string
         name="ui_assistant_wind">≋\nRüzgar</string>

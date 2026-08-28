@@ -16,8 +16,6 @@
     <string name="ai_zone_prediction_not_ready">Bu bölgenin tahmini henüz oluşmadı</string>
     <string name="ai_zone_decision_preparing">Bölgesel karar hazırlanıyor</string>
     <string name="ai_zone_analysis_scope">Bu analiz %1$s sensörünün bölgesel verisine dayanır</string>
-    <string name="ai_garden_summary_title">Bahçe geneli</string>
-    <string name="ai_garden_summary_detail">%1$d/%2$d bölge analiz edildi · %3$d sulama önerisi · %4$d uyarı · güven %5$d%%</string>
     <string name="ai_zone_learning_status">ÖĞRENİYOR</string>
     <string name="ai_zone_low_confidence" formatted="false">DÜŞÜK · %0</string>
     <string name="ai_zone_limit_time_waiting">Tahmini sınır zamanı: —</string>
@@ -38,11 +36,9 @@
     <string name="ai_weather_wind_delay_summary">%1$s. 35 km/sa ve üzerindeki rüzgârda yalnızca küçük nem açığı olan bölgeler kısa süre ertelenebilir.</string>
     <string name="ai_weather_wind_delay_safety">Nem açığı büyüdüğünde sulama, sensör ve donanım korumaları uygunsa yeniden değerlendirilir.</string>
     <string name="ai_weather_heat_title">Sıcaklık ayarlaması etkin</string>
-    <string name="ai_weather_heat_dry_summary">%1$s. %2$d bölge nem sınırında; gerekli sulamanın süresi güvenli sınırlar içinde %%15 artırılabilir.</string>
     <string name="ai_weather_heat_normal_summary">%1$s. Nem ihtiyacı oluşursa gerekli sulamanın süresi güvenli sınırlar içinde %%15 artırılabilir.</string>
     <string name="ai_weather_heat_safety">Hava tek başına sulama başlatmaz; kararı güncel ve kararlı sensör ölçümü verir.</string>
     <string name="ai_weather_neutral_title">Hava kaynaklı ek işlem yok</string>
-    <string name="ai_weather_neutral_dry_summary">%1$s. %2$d bölge nem sınırında; bölgesel sensör kararı izleniyor.</string>
     <string name="ai_weather_neutral_summary">%1$s. Belirgin yağış, kuvvetli rüzgâr veya aşırı sıcaklık ayarlaması gerekmiyor.</string>
     <string name="ai_weather_neutral_safety">Sulama yalnızca nem ihtiyacı ve mevcut çevrim, bekleme, pompa ve vana korumaları uygunsa yapılır.</string>
     <string name="ai_zone_duration_learned">Öğrenilmiş çevrim süresi: %1$s → %2$s · %3$d kayıt, güven %4$d%%</string>

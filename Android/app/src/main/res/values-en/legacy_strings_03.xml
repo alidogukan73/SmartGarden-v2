@@ -20,7 +20,6 @@
     <string name="percentage_format">%1$d%%</string>
     <string name="signed_percentage_format">%1$+d%%</string>
     <string name="back_to_main">Return to home</string>
-    <string name="open_statistics">Open statistics</string>
     <string name="history_default_date">-- --- ----</string>
     <string name="history_default_time">--:--</string>
     <string name="history_status_completed">COMPLETED</string>
@@ -51,11 +50,6 @@
     <string name="history_empty_title">No irrigation records yet</string>
     <string name="history_empty_description">Completed irrigation cycles will appear here.</string>
     <string name="history_zone_all">All</string>
-    <string name="history_zone_tomato">🍅 Tomato</string>
-    <string name="history_zone_pepper">🌶️ Pepper</string>
-    <string name="history_zone_cucumber">🥒 Cucumber</string>
-    <string name="history_zone_eggplant">🍆 Eggplant</string>
-    <string name="history_zone_bean">🫘 Bean</string>
     <string name="history_zone_legacy">Legacy record</string>
     <string name="history_empty_zone_description">No irrigation records for this zone yet.</string>
     <string name="history_statistics_title">Selected zone summary</string>
@@ -67,7 +61,6 @@
     <string name="history_stat_duration">%1$s\nTotal duration</string>
     <string name="history_stat_success">%%%1$d\nSuccess</string>
     <string name="history_stat_delta">%1$+.1f%%\nAvg. change</string>
-    <string name="open_watering_history">Open irrigation history</string>
     <string name="title_device_health">Device Health</string>
     <string name="subtitle_device_health">Raspberry Pi system status and resource usage</string>
     <string name="health_overall_label">Raspberry Pi hardware status</string>
@@ -82,7 +75,6 @@
     <string name="diagnostics_relay_ok">Pump relay is safely off</string>
     <string name="diagnostics_relay_active">Pump relay is currently active</string>
     <string name="diagnostics_valve_simulation">Valve simulation protection is active</string>
-    <string name="diagnostics_valve_physical">Physical valve mode is active</string>
     <string name="diagnostics_valve_physical_ready">Physical valve control is ready</string>
     <string name="diagnostics_error_clear">No active backend error</string>
     <string name="diagnostics_error_active">Backend error: %1$s</string>
@@ -133,10 +125,7 @@
     <string name="health_uptime_minutes_format">%1$d min</string>
     <string name="health_last_update_format">Last update: %1$s</string>
     <string name="health_firmware_unavailable">Not present in backend data</string>
-    <string name="open_device_health">Open device health</string>
     <string name="title_settings">Settings</string>
-    <string name="subtitle_settings">Configure AVORA operating parameters</string>
-    <string name="settings_unsaved_changes">There are unsaved changes</string>
     <string name="settings_irrigation_title">Irrigation Settings</string>
     <string name="settings_irrigation_subtitle">Limits that determine automatic irrigation behavior</string>
     <string name="settings_moisture_limit">Moisture threshold</string>

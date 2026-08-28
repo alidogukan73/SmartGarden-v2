@@ -4,7 +4,6 @@
     <color name="primaryLogo">#F1F6F1</color>
     <color name="primaryDark">#D7EED9</color>
     <color name="primaryLight">#183A20</color>
-    <color name="primaryContainerStrong">#214A2B</color>
     <color name="accent">#9CCC65</color>
     <color name="accentLight">#2B5131</color>
 
@@ -12,7 +11,6 @@
     <color name="card">#172019</color>
     <color name="surfaceElevated">#1C261E</color>
     <color name="surfaceSoft">#1B251D</color>
-    <color name="surfaceMuted">#202722</color>
     <color name="surfaceGreen">#162C1B</color>
     <color name="surfacePurple">#29223A</color>
     <color name="error">#FF6B6B</color>
@@ -33,47 +31,30 @@
     <color name="microbialBackground">#153632</color>
     <color name="success">#81C784</color>
     <color name="successBackground">#17351E</color>
-    <color name="neutral">#AAB3AB</color>
     <color name="neutralBackground">#252D27</color>
     <color name="accentOrange">#FFB74D</color>
 
     <color name="moistureLow">#FF6B6B</color>
     <color name="moistureLowBackground">#3B1D20</color>
-    <color name="moistureWarning">#FFB74D</color>
-    <color name="moistureWarningBackground">#3B2D16</color>
     <color name="moistureIdeal">#81C784</color>
     <color name="moistureIdealBackground">#17351E</color>
-    <color name="moistureHigh">#64B5F6</color>
-    <color name="moistureHighBackground">#172D40</color>
 
-    <color name="pumpRunning">#81C784</color>
-    <color name="pumpRunningBackground">#17351E</color>
-    <color name="pumpStopped">#FF6B6B</color>
-    <color name="pumpStoppedBackground">#3B1D20</color>
     <color name="buttonStart">#81C784</color>
-    <color name="buttonStop">#EF6C6C</color>
-    <color name="buttonDisabled">#4B554D</color>
 
     <color name="textPrimary">#F1F6F1</color>
     <color name="textSecondary">#B8C2B9</color>
     <color name="textTertiary">#8F9A90</color>
     <color name="textOnPrimary">#102014</color>
-    <color name="textOnDark">#FFFFFF</color>
 
     <color name="border">#344238</color>
-    <color name="borderStrong">#4A5A4D</color>
     <color name="divider">#27322A</color>
     <color name="focusRing">#6681C784</color>
     <color name="iconBackground">#203C26</color>
-    <color name="iconBackgroundNeutral">#252D27</color>
 
     <color name="switchTrackActive">#4E7655</color>
     <color name="switchThumbActive">#A5D6A7</color>
     <color name="switchTrackInactive">#404A42</color>
     <color name="switchThumbInactive">#AAB3AB</color>
-    <color name="shadowSoft">#66000000</color>
-    <color name="overlayLight">#1AFFFFFF</color>
-    <color name="scrim">#99000000</color>
     <color name="bottomSheetBackground">#151E17</color>
     <!-- AI hızlı menüsü -->
     <color name="aiPlantSurface">#282139</color>

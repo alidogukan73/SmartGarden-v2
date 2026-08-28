@@ -10,8 +10,6 @@
     <string name="fertilization_product_advice_title">Ürün ve AVORA önerisi</string>
     <string name="fertilization_schedule_reminder_title">AVORA besleme planı</string>
     <string name="fertilization_schedule_summary_empty">Henüz uygulama kaydı yok</string>
-    <string name="fertilization_schedule_summary_due">Uygulama zamanı gelmiş bir kayıt var</string>
-    <string name="fertilization_schedule_summary_next">Sonraki uygulama: %1$s</string>
     <string name="fertilization_schedule_show">Planı göster</string>
     <string name="fertilization_schedule_hide">Planı gizle</string>
     <string name="fertilization_supporting_data_title">Karara yardımcı veriler</string>
@@ -23,7 +21,6 @@
     <string name="fertilization_zone_assistant_action">AI Bitki Asistanı</string>
     <string name="fertilization_discard_changes">Vazgeç</string>
     <string name="fertilization_unsaved_short">Kaydedilmemiş değişiklikler</string>
-    <string name="fertilization_ai_advice_title">AVORA gübre önerisi</string>
     <string name="fertilization_risks_title">Dikkat edilmesi gerekenler</string>
     <string name="fertilization_unified_plan_preparing">AVORA değerlendirmesi hazırlanıyor</string>
     <string name="fertilization_unified_plan_preparing_detail">Bitki, dönem, nem, hava, geçmiş uygulama ve stok bilgileri değerlendiriliyor.</string>

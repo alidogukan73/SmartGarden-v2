@@ -4,8 +4,4 @@
     <string name="irrigation_settings_auto_mode_active">Active — Irrigation runs automatically according to moisture and safety conditions</string>
     <string name="irrigation_settings_auto_mode_inactive">Off — Only manual irrigation can be used</string>
     <string name="irrigation_settings_auto_mode_blocked">Waiting — Automatic mode will be available when the system is enabled</string>
-    <string name="irrigation_settings_sync_title">Apply to all zones?</string>
-    <string name="irrigation_settings_sync_message">The moisture limit, irrigation duration, cooldown and restart difference will be applied to all zones. Automatic irrigation and system status will be saved as global settings. You can still change each zone separately later.</string>
-    <string name="irrigation_settings_sync_confirm">Apply to all zones</string>
-    <string name="irrigation_settings_unsaved_sync_message">Changes have not been saved yet. Saving will apply the irrigation values to all zones.</string>
 </resources>

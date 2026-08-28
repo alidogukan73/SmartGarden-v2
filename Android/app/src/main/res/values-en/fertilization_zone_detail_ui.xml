@@ -10,8 +10,6 @@
     <string name="fertilization_product_advice_title">Product and AVORA advice</string>
     <string name="fertilization_schedule_reminder_title">AVORA nutrition plan</string>
     <string name="fertilization_schedule_summary_empty">No application has been recorded yet</string>
-    <string name="fertilization_schedule_summary_due">An application is due</string>
-    <string name="fertilization_schedule_summary_next">Next application: %1$s</string>
     <string name="fertilization_schedule_show">Show plan</string>
     <string name="fertilization_schedule_hide">Hide plan</string>
     <string name="fertilization_supporting_data_title">Supporting information</string>
@@ -23,7 +21,6 @@
     <string name="fertilization_zone_assistant_action">AI Plant Assistant</string>
     <string name="fertilization_discard_changes">Discard</string>
     <string name="fertilization_unsaved_short">Unsaved changes</string>
-    <string name="fertilization_ai_advice_title">AVORA fertilizer advice</string>
     <string name="fertilization_risks_title">Things to consider</string>
     <string name="fertilization_unified_plan_preparing">AVORA is preparing the evaluation</string>
     <string name="fertilization_unified_plan_preparing_detail">Plant, stage, moisture, weather, application history and stock are being evaluated.</string>

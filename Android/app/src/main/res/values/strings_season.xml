@@ -3,7 +3,6 @@
     <string name="season_cancel">İptal</string>
     <string name="season_management_title">Sezon Yönetimi</string>
     <string name="season_management_subtitle">Her bölgenin sezonunu güvenle başlatın, kapatın ve arşivleyin</string>
-    <string name="season_management_menu_subtitle">Sezonları başlatın, kapatın ve arşivleyin</string>
     <string name="season_management_info_title">Kayıtlarınız korunur</string>
     <string name="season_management_info_body">Yeni sezon yalnız bölgenin dönemsel planını sıfırlar. Eski sulama, gübreleme, günlük, fotoğraf ve Bitki Asistanı kayıtları sezon arşivinde kalır.</string>
     <string name="season_management_zones_title">Etkin bölgeler ve sezonlar</string>
@@ -55,50 +54,15 @@
     <string name="season_closed_event_title">Sezon tamamlandı</string>
     <string name="season_harvest_short">Hasat: %1$s</string>
     <string name="season_operation_wait">İşlem yapılıyor…</string>
-    <string name="season_operation_done">Güncelleniyor…</string>
     <string name="season_archive_action">Sezon arşivini ve karşılaştırmayı aç</string>
     <string name="season_reactivate_zone_action">Bölge Yönetimi’ni aç</string>
 
     <string name="season_start_crop_label">Yeni sezonda yetiştirilecek ürün</string>
-    <string name="season_start_custom_crop_hint">Diğer ürünün adı</string>
-    <string name="season_start_custom_emoji_hint">Ürün simgesi (isteğe bağlı, ör. 🥕)</string>
     <string name="season_start_stage_label">Sezonun başlangıç gelişim dönemi</string>
     <string name="season_start_valve_note">Vana bu fiziksel bölgeye bağlı kalır: %1$s</string>
     <string name="season_start_no_valve">Vana atanmamış</string>
     <string name="season_crop_required">Yeni sezon için ürün adını girin.</string>
 
-    <string-array name="season_crop_labels">
-        <item>🍅 Domates</item>
-        <item>🌶️ Biber</item>
-        <item>🥒 Salatalık</item>
-        <item>🍆 Patlıcan</item>
-        <item>🫘 Fasulye</item>
-        <item>🌱 Diğer ürün…</item>
-    </string-array>
-    <string-array name="season_crop_names">
-        <item>Domates</item>
-        <item>Biber</item>
-        <item>Salatalık</item>
-        <item>Patlıcan</item>
-        <item>Fasulye</item>
-        <item></item>
-    </string-array>
-    <string-array name="season_crop_codes">
-        <item>tomato</item>
-        <item>pepper</item>
-        <item>cucumber</item>
-        <item>eggplant</item>
-        <item>bean</item>
-        <item>custom</item>
-    </string-array>
-    <string-array name="season_crop_emojis">
-        <item>🍅</item>
-        <item>🌶️</item>
-        <item>🥒</item>
-        <item>🍆</item>
-        <item>🫘</item>
-        <item>🌱</item>
-    </string-array>
     <string-array name="season_growth_stage_labels">
         <item>Toprak hazırlığı</item>
         <item>Fide / dikim</item>

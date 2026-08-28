@@ -27,16 +27,11 @@
     <string name="irrigation_timing_start_hour">Start hour</string>
     <string name="irrigation_timing_end_hour">End hour</string>
     <string name="irrigation_timing_hour_format">%1$02d:00</string>
-    <string name="irrigation_timing_saved">Smart irrigation timing settings saved.</string>
 
     <string name="ai_timing_scheduled">Best irrigation time: %1$s</string>
-    <string name="ai_timing_scheduled_reason">A cooler, lower-sun and safer open-field window was selected. Moisture and hardware will be checked again before irrigation.</string>
     <string name="ai_timing_critical_immediate">Moisture is critical; safety checks started without waiting for a preferred time.</string>
     <string name="ai_timing_ready_recheck">The planned time has arrived. Moisture, rain, sensor, valve and pump are being checked again.</string>
     <string name="ai_timing_weather_postponed">Irrigation was delayed by weather conditions. Soil moisture monitoring continues.</string>
     <string name="ai_timing_immediate">There is no timing delay; the irrigation decision will follow safety checks.</string>
     <string name="ai_timing_recheck_note">Moisture, rain, sensor, valve and pump safety are always checked again immediately before irrigation starts.</string>
-    <string name="ai_timing_today_format">today %1$s</string>
-    <string name="ai_timing_tomorrow_format">tomorrow %1$s</string>
-    <string name="ai_timing_date_format">%1$s %2$s</string>
 </resources>
