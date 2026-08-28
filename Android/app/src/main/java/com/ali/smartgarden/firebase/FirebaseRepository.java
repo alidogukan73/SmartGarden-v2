@@ -65,9 +65,11 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -203,7 +205,7 @@ public class FirebaseRepository {
             Status status = snapshot.child("status").getValue(Status.class);
             Health health = snapshot.child("health").getValue(Health.class);
             List<GardenZone> zones = new ArrayList<>();
-            java.util.Set<String> firmwareVersions = new java.util.LinkedHashSet<>();
+            Set<String> firmwareVersions = new LinkedHashSet<>();
             for (DataSnapshot child : snapshot.child("zones").getChildren()) {
                GardenZone zone = child.getValue(GardenZone.class);
                if (zone == null) continue;

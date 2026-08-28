@@ -97,22 +97,32 @@ public final class MvvmBoundaryTest {
             String name = file.getFileName().toString();
             if (VIEWMODEL_FREE_UI_ONLY.contains(name)) continue;
             String source = Files.readString(file, StandardCharsets.UTF_8);
-            if (!source.contains("ViewModelProvider")) violations.add(name);
+            if (!source.contains("new ViewModelProvider(")) violations.add(name);
         }
         assertTrue("Stateful Activities without a ViewModel: " + violations,
                 violations.isEmpty());
     }
 
     @Test
-    public void viewModelsDoNotAccessFirebaseSdkDirectly() throws Exception {
+    public void viewModelsDoNotAccessFirebaseOrUiFrameworkDirectly() throws Exception {
         List<String> violations = new ArrayList<>();
+        List<String> forbidden = Arrays.asList(
+                "com.google.firebase.",
+                "android.app.Activity",
+                "android.view.",
+                "android.widget.",
+                "androidx.appcompat.",
+                "androidx.fragment."
+        );
         for (Path file : viewModelFiles()) {
             String source = Files.readString(file, StandardCharsets.UTF_8);
-            if (source.contains("com.google.firebase.")) {
-                violations.add(file.getFileName().toString());
+            for (String token : forbidden) {
+                if (source.contains(token)) {
+                    violations.add(file.getFileName() + " -> " + token);
+                }
             }
         }
-        assertTrue("ViewModels with direct Firebase SDK access: " + violations,
+        assertTrue("ViewModels with backend or UI framework access: " + violations,
                 violations.isEmpty());
     }
 
