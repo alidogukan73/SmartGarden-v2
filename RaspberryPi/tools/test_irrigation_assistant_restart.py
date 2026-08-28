@@ -25,6 +25,10 @@ except ModuleNotFoundError:
     sys.modules["RPi"] = rpi
     sys.modules["RPi.GPIO"] = gpio
 
+from tools.hardware_test_stubs import install_hardware_import_stubs
+
+install_hardware_import_stubs()
+
 from controllers.multi_zone_decision_engine import MultiZoneDecisionEngine
 from services.irrigation_service import IrrigationService
 
@@ -200,4 +204,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

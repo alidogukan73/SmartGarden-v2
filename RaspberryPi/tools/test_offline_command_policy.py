@@ -6,6 +6,10 @@ from __future__ import annotations
 
 import time
 
+from tools.hardware_test_stubs import install_hardware_import_stubs
+
+install_hardware_import_stubs()
+
 from services.irrigation_service import IrrigationService
 
 

@@ -25,6 +25,10 @@ except ModuleNotFoundError:
     sys.modules["RPi"] = rpi
     sys.modules["RPi.GPIO"] = gpio
 
+from tools.hardware_test_stubs import install_hardware_import_stubs
+
+install_hardware_import_stubs()
+
 from services.irrigation_service import IrrigationService
 from hardware.mqtt_sensor import MqttSensorReading
 from hardware.sensor_provider import SoilMoistureSensorProvider
