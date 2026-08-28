@@ -24,6 +24,7 @@ public class GardenSeason {
     private long watering_seconds;
     private int fertilizer_application_count;
     private int journal_event_count;
+    private int manual_journal_event_count;
     private int photo_count;
     private int plant_assistant_analysis_count;
     private int notification_count;
@@ -78,6 +79,8 @@ public class GardenSeason {
     public void setFertilizer_application_count(int value) { fertilizer_application_count = Math.max(0, value); }
     public int getJournal_event_count() { return journal_event_count; }
     public void setJournal_event_count(int value) { journal_event_count = Math.max(0, value); }
+    public int getManual_journal_event_count() { return manual_journal_event_count; }
+    public void setManual_journal_event_count(int value) { manual_journal_event_count = Math.max(0, value); }
     public int getPhoto_count() { return photo_count; }
     public void setPhoto_count(int value) { photo_count = Math.max(0, value); }
     public int getPlant_assistant_analysis_count() { return plant_assistant_analysis_count; }

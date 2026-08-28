@@ -11,6 +11,7 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerApplicationSchedule;
@@ -51,7 +52,7 @@ public class FertilizerReminderWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Context context = getApplicationContext();
+        Context context = AvoraLanguageManager.localizedContext(getApplicationContext());
         NotificationSettingsStore notificationSettings =
                 new NotificationSettingsStore(context);
         if (!(notificationSettings.isCategoryEnabled("fertilization")
@@ -120,13 +121,14 @@ public class FertilizerReminderWorker extends Worker {
                         || zone.getZone_id().isBlank())) {
                     zone.setZone_id(child.getKey());
                 }
+                List<FertilizerApplication> zoneHistory = historyForActiveSeason(zone, history);
                 FertilizerAdvice advice = zone == null
                         ? null
                         : FertilizerDecisionEngine.advise(
                         zone,
                         new ArrayList<>(products.values()),
                         null,
-                        history,
+                        zoneHistory,
                         Instant.now().getEpochSecond(),
                         new FertilizationPreferenceStore(context)
                                 .preferOrganicInputs()
@@ -138,9 +140,9 @@ public class FertilizerReminderWorker extends Worker {
                         recommendations,
                         advice
                 );
-                notifyAiAdvice(context, zone, history, advice);
+                notifyAiAdvice(context, zone, zoneHistory, advice);
             }
-            notifyOutcomeFollowUps(context, historySnapshot, snapshot);
+            notifyOutcomeFollowUps(context, history, snapshot);
             return Result.success();
         } catch (Exception error) {
             return Result.retry();
@@ -187,8 +189,9 @@ public class FertilizerReminderWorker extends Worker {
         }
     }
 
-    private void notifyOutcomeFollowUps(            Context context,
-            DataSnapshot historySnapshot,
+    private void notifyOutcomeFollowUps(
+            Context context,
+            List<FertilizerApplication> history,
             DataSnapshot zonesSnapshot
     ) {
         NotificationSettingsStore settings = new NotificationSettingsStore(context);
@@ -197,19 +200,15 @@ public class FertilizerReminderWorker extends Worker {
 
         long now = Instant.now().getEpochSecond();
         GardenNotificationManager manager = new GardenNotificationManager(context);
-        for (DataSnapshot child : historySnapshot.getChildren()) {
-            FertilizerApplication application = child.getValue(FertilizerApplication.class);
-            if (application == null) continue;
-            if (application.getApplication_id() == null
-                    || application.getApplication_id().isBlank()) {
-                application.setApplication_id(child.getKey());
-            }
-            if (!FertilizerOutcomeFollowUpPolicy.isDue(application, now)) continue;
+        for (FertilizerApplication application :
+                FertilizerOutcomeFollowUpPolicy.latestDuePerZone(history, now)) {
             String sourceKey = FertilizerOutcomeFollowUpPolicy.sourceKey(application);
             if (sourceKey.isBlank()) continue;
 
             String zoneId = safe(application.getZone_id(), "");
             GardenZone zone = zonesSnapshot.child(zoneId).getValue(GardenZone.class);
+            if (!isActiveSeasonTarget(zone)
+                    || !applicationBelongsToActiveSeason(zone, application)) continue;
             String zoneName = zone == null
                     ? safe(application.getZone_name(), zoneId)
                     : safe(zone.getName(), safe(application.getZone_name(), zoneId));
@@ -236,7 +235,7 @@ public class FertilizerReminderWorker extends Worker {
             List<FertilizerRecommendation> recommendations,
             FertilizerAdvice advice
     ) {
-        if (zone == null || !zone.isEnabled()) {
+        if (!isActiveSeasonTarget(zone)) {
             return;
         }
         FertilizationProfile profile = zone.getFertilization();
@@ -529,7 +528,10 @@ public class FertilizerReminderWorker extends Worker {
             List<FertilizerApplication> history,
             FertilizerAdvice advice
     ) {
-        if (zone == null || !zone.isEnabled() || advice == null) return;
+        if (!isActiveSeasonTarget(zone) || advice == null) return;
+        FertilizationProfile profile = zone.getFertilization();
+        if (profile == null || !profile.isEnabled()
+                || !profile.isReminder_enabled()) return;
         NotificationSettingsStore settings = new NotificationSettingsStore(context);
         if (!settings.isCategoryEnabled("fertilization")
                 || !settings.isReminderEnabled("fertilization")) {
@@ -548,9 +550,7 @@ public class FertilizerReminderWorker extends Worker {
             return;
         }
 
-        String stage = zone.getFertilization() == null
-                ? ""
-                : safe(zone.getFertilization().getGrowth_stage(), "");
+        String stage = safe(profile.getGrowth_stage(), "");
         String leadingCandidate = advice.getCandidates().isEmpty()
                 ? ""
                 : safe(advice.getCandidates().get(0), "");
@@ -601,6 +601,37 @@ public class FertilizerReminderWorker extends Worker {
         state.edit().putString(stateKey, fingerprint).apply();
     }
 
+
+    private static boolean isActiveSeasonTarget(GardenZone zone) {
+        if (zone == null || zone.getSeason() == null) return false;
+        return NotificationPolicy.isActiveSeasonNotificationTarget(
+                zone.isEnabled(),
+                zone.getSeason().isActive(),
+                zone.getSeason().getActive_season_id());
+    }
+
+    private static boolean applicationBelongsToActiveSeason(
+            GardenZone zone,
+            FertilizerApplication application) {
+        return zone != null && zone.getSeason() != null && application != null
+                && NotificationPolicy.recordBelongsToActiveSeason(
+                zone.isEnabled(),
+                zone.getSeason().isActive(),
+                zone.getSeason().getActive_season_id(),
+                zone.getSeason().isInclude_legacy_records(),
+                application.getSeason_id());
+    }
+
+    private static List<FertilizerApplication> historyForActiveSeason(
+            GardenZone zone,
+            List<FertilizerApplication> history) {
+        List<FertilizerApplication> result = new ArrayList<>();
+        if (history == null) return result;
+        for (FertilizerApplication application : history) {
+            if (applicationBelongsToActiveSeason(zone, application)) result.add(application);
+        }
+        return result;
+    }
     private static long latestApplicationEpoch(
             List<FertilizerApplication> history,
             String zoneId

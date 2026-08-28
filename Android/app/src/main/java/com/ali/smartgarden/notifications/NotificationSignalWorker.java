@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.Health;
 import com.ali.smartgarden.models.Status;
@@ -26,7 +27,7 @@ public final class NotificationSignalWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Context context = getApplicationContext();
+        Context context = AvoraLanguageManager.localizedContext(getApplicationContext());
         publishDuePlantFollowUps(context);
         try {
             Tasks.await(new GardenNotificationManager(context).syncPendingCloudDeletions(),
@@ -35,9 +36,17 @@ public final class NotificationSignalWorker extends Worker {
             // Local tombstones already prevent deleted alerts from returning.
         }
         try {
+            if (!FirebaseConnectionProbe.awaitConnected(15, TimeUnit.SECONDS)) {
+                return Result.retry();
+            }
+
             DataSnapshot device = Tasks.await(FirebaseDatabase.getInstance()
                     .getReference("devices").child("smartgarden-001").get(),
                     20, TimeUnit.SECONDS);
+
+            if (!FirebaseConnectionProbe.awaitConnected(10, TimeUnit.SECONDS)) {
+                return Result.retry();
+            }
             DataSnapshot forecast = device.child("weather").child("forecast");
             NotificationSignalCoordinator.evaluateWeather(context,
                     number(forecast.child("tomorrow_temperature_max")),
@@ -59,38 +68,32 @@ public final class NotificationSignalWorker extends Worker {
 
             Status status =
                     device.child("status").getValue(Status.class);
+            if (status == null) return Result.retry();
 
             Health health =
                     device.child("health").getValue(Health.class);
 
-            DataSnapshot connection = Tasks.await(FirebaseDatabase.getInstance()
-                            .getReference(".info/connected").get(),
-                    10, TimeUnit.SECONDS);
-            boolean firebaseConnected = Boolean.TRUE.equals(
-                    connection.getValue(Boolean.class));
 
             long nowEpoch = System.currentTimeMillis() / 1000L;
-            boolean deviceOffline = status != null
-                    && NotificationPolicy.isDeviceOfflineObservation(
-                    firebaseConnected, status.isOnline(), status.getLastSeenEpoch(), nowEpoch,
+            boolean deviceOffline = NotificationPolicy.isDeviceOffline(
+                    status.isOnline(), status.getLastSeenEpoch(), nowEpoch,
                     NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
 
             /*
-             * A WorkManager run can start the application process and therefore
-             * the foreground monitor at the same time. Seed the shared state here
-             * instead of publishing from the worker's first snapshot. A separate
-             * one-shot verification publishes only if the outage remains real.
+             * The full scan only seeds a suspected outage. A separate live
+             * verification publishes after the confirmation window.
              */
-            if (!firebaseConnected) {
-                NotificationSignalCoordinator
-                        .discardDeviceConnectionCandidates(context);
-                DeviceConnectionVerificationWorker.cancel(context);
-            } else if (deviceOffline) {
+            if (deviceOffline) {
                 NotificationSignalCoordinator.synchronizeDeviceConnection(context, status);
                 DeviceConnectionVerificationWorker.schedule(context);
             } else {
-                NotificationSignalCoordinator.synchronizeDeviceConnection(context, status);
-                DeviceConnectionVerificationWorker.cancel(context);
+                NotificationSignalCoordinator.evaluateDeviceConnection(context, status);
+                if (new GardenNotificationManager(context)
+                        .isIncidentActive("device_offline")) {
+                    DeviceConnectionVerificationWorker.scheduleRecovery(context);
+                } else {
+                    DeviceConnectionVerificationWorker.cancel(context);
+                }
             }
 
             NotificationSignalCoordinator.evaluateDevice(
@@ -106,7 +109,7 @@ public final class NotificationSignalWorker extends Worker {
                     watering.add(record);
                 }
             }
-            NotificationSignalCoordinator.evaluateWatering(context, watering);
+            NotificationSignalCoordinator.evaluateWatering(context, watering, zones);
             return Result.success();
         } catch (Exception ignored) {
             return Result.retry();

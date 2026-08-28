@@ -9,6 +9,7 @@ import com.ali.smartgarden.models.FertilizerApplication;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class FertilizerOutcomeFollowUpPolicyTest {
 
@@ -78,6 +79,41 @@ public class FertilizerOutcomeFollowUpPolicyTest {
                 Arrays.asList(first, second, otherZone), "zone-001", "product-001"
         ));
     }
+
+    @Test
+    public void onlyNewestDueApplicationPerZoneCreatesAFollowUp() {
+        FertilizerApplication older = application("app-001", "zone-001", "product-001");
+        older.setApplied_at_epoch(NOW - 6L * 86_400L);
+        FertilizerApplication newest = application("app-002", "zone-001", "product-001");
+        newest.setApplied_at_epoch(NOW - 4L * 86_400L);
+        FertilizerApplication otherZone = application("app-003", "zone-002", "product-002");
+        otherZone.setApplied_at_epoch(NOW - 5L * 86_400L);
+
+        List<FertilizerApplication> due =
+                FertilizerOutcomeFollowUpPolicy.latestDuePerZone(
+                        Arrays.asList(older, newest, otherZone), NOW);
+
+        assertEquals(2, due.size());
+        assertFalse(due.contains(older));
+        assertTrue(due.contains(newest));
+        assertTrue(due.contains(otherZone));
+    }
+
+    @Test
+    public void evaluatedNewestApplicationDoesNotReplayOlderZoneBacklog() {
+        FertilizerApplication older = application("app-001", "zone-001", "product-001");
+        older.setApplied_at_epoch(NOW - 6L * 86_400L);
+        FertilizerApplication newest = application("app-002", "zone-001", "product-001");
+        newest.setApplied_at_epoch(NOW - 4L * 86_400L);
+        newest.setOutcome_status("IMPROVED");
+
+        List<FertilizerApplication> due =
+                FertilizerOutcomeFollowUpPolicy.latestDuePerZone(
+                        Arrays.asList(older, newest), NOW);
+
+        assertTrue(due.isEmpty());
+    }
+
 
     private static FertilizerApplication application(String id, String zoneId, String productId) {
         FertilizerApplication value = new FertilizerApplication();

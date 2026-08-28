@@ -3,6 +3,9 @@ package com.ali.smartgarden.fertilization;
 import com.ali.smartgarden.models.FertilizerApplication;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Rules for the single post-application observation requested by AVORA. */
 public final class FertilizerOutcomeFollowUpPolicy {
@@ -43,6 +46,53 @@ public final class FertilizerOutcomeFollowUpPolicy {
                 && dueAt <= nowEpoch
                 && recentEnough
                 && !isEvaluated(value);
+    }
+
+    /**
+     * Returns at most one actionable follow-up per zone. Only the newest
+     * application in a zone may create a reminder, so installing or opening
+     * the app cannot replay an old backlog as a notification storm.
+     */
+    public static List<FertilizerApplication> latestDuePerZone(
+            List<FertilizerApplication> history, long nowEpoch) {
+        List<FertilizerApplication> result = new ArrayList<>();
+        if (history == null || history.isEmpty()) return result;
+
+        Map<String, FertilizerApplication> latestByZone = new LinkedHashMap<>();
+        for (FertilizerApplication value : history) {
+            if (value == null || value.getApplied_at_epoch() <= 0L) continue;
+            String zoneKey = zoneKey(value);
+            FertilizerApplication current = latestByZone.get(zoneKey);
+            if (current == null || isNewer(value, current)) {
+                latestByZone.put(zoneKey, value);
+            }
+        }
+
+        for (FertilizerApplication value : latestByZone.values()) {
+            if (isDue(value, nowEpoch)) result.add(value);
+        }
+        return result;
+    }
+
+    private static boolean isNewer(FertilizerApplication value,
+                                   FertilizerApplication current) {
+        if (value.getApplied_at_epoch() != current.getApplied_at_epoch()) {
+            return value.getApplied_at_epoch() > current.getApplied_at_epoch();
+        }
+        return safe(value.getApplication_id()).compareTo(
+                safe(current.getApplication_id())) > 0;
+    }
+
+    private static String zoneKey(FertilizerApplication value) {
+        String zoneId = safe(value.getZone_id());
+        if (!zoneId.isEmpty()) return "zone:" + zoneId;
+        String zoneName = safe(value.getZone_name());
+        if (!zoneName.isEmpty()) return "name:" + zoneName;
+        return "application:" + safe(value.getApplication_id());
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 
     public static String sourceKey(FertilizerApplication value) {

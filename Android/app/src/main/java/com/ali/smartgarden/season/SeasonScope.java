@@ -65,11 +65,21 @@ public final class SeasonScope {
             return false;
         }
         if (!season.isIncludes_legacy_records()) return true;
-        return season.getWatering_count() > 0
+        return hasRecordedActivity(season);
+    }
+
+    public static boolean hasRecordedActivity(GardenSeason season) {
+        return season != null && (season.getWatering_count() > 0
                 || season.getFertilizer_application_count() > 0
-                || season.getJournal_event_count() > 0
+                || season.getManual_journal_event_count() > 0
                 || season.getPhoto_count() > 0
-                || season.getPlant_assistant_analysis_count() > 0;
+                || season.getPlant_assistant_analysis_count() > 0
+                || SeasonRecordPolicy.hasMeaningfulOutcomeValues(
+                season.getHarvest_amount(),
+                season.getYield_note(),
+                season.getIssues_note(),
+                season.getSuccessful_practices(),
+                "", "", season.getNext_season_note()));
     }
 
     /**

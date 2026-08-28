@@ -64,9 +64,10 @@ public final class DeviceConnectionNotificationMonitor {
                     receivedStatus = true;
                     statusReadCancelled = false;
 
-                    // Cached status is not proof that the Pi is offline.
+                    // Cached status is not proof that the Pi is offline. Pausing
+                    // here must not erase an outage window that was already
+                    // observed while Firebase was connected.
                     if (!firebaseConnected) {
-                        discardUnverifiableCandidate();
                         return;
                     }
 
@@ -95,7 +96,6 @@ public final class DeviceConnectionNotificationMonitor {
                         @NonNull DatabaseError error
                 ) {
                     statusReadCancelled = true;
-                    discardUnverifiableCandidate();
                 }
             };
 
@@ -114,7 +114,6 @@ public final class DeviceConnectionNotificationMonitor {
                     startupEvaluationScheduled = false;
 
                     if (!connected) {
-                        discardUnverifiableCandidate();
                         return;
                     }
 
@@ -127,7 +126,6 @@ public final class DeviceConnectionNotificationMonitor {
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     firebaseConnected = false;
-                    discardUnverifiableCandidate();
                 }
             };
 
@@ -140,23 +138,11 @@ public final class DeviceConnectionNotificationMonitor {
 
                     if (!firebaseConnected || statusReadCancelled
                             || !receivedStatus || latestStatus == null) {
-                        discardUnverifiableCandidate();
                         return;
                     }
 
-                    NotificationSignalCoordinator
-                            .synchronizeDeviceConnection(
-                                    context,
-                                    latestStatus
-                            );
-
                     connectionStateInitialized = true;
-
-                    if (isLatestStatusOffline()) {
-                        DeviceConnectionVerificationWorker.schedule(context);
-                    } else {
-                        DeviceConnectionVerificationWorker.cancel(context);
-                    }
+                    evaluateLatestStatus();
 
                     NotificationSignalCoordinator
                             .evaluateDevice(
@@ -174,7 +160,8 @@ public final class DeviceConnectionNotificationMonitor {
                 public void run() {
 
                     if (!firebaseConnected || statusReadCancelled) {
-                        discardUnverifiableCandidate();
+                        // The phone's own network loss is not proof that the Pi
+                        // recovered. Preserve any pending outage verification.
                     } else if (receivedStatus && connectionStateInitialized) {
                         evaluateLatestStatus();
                     }
@@ -202,7 +189,6 @@ public final class DeviceConnectionNotificationMonitor {
 
     private void evaluateLatestStatus() {
         if (latestStatus == null || !firebaseConnected || statusReadCancelled) {
-            discardUnverifiableCandidate();
             return;
         }
 
@@ -215,9 +201,14 @@ public final class DeviceConnectionNotificationMonitor {
             return;
         }
 
-        DeviceConnectionVerificationWorker.cancel(context);
         NotificationSignalCoordinator.evaluateDeviceConnection(
                 context, latestStatus);
+        if (new GardenNotificationManager(context)
+                .isIncidentActive("device_offline")) {
+            DeviceConnectionVerificationWorker.scheduleRecovery(context);
+        } else {
+            DeviceConnectionVerificationWorker.cancel(context);
+        }
     }
 
     private boolean isLatestStatusOffline() {
@@ -230,10 +221,6 @@ public final class DeviceConnectionNotificationMonitor {
                 NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
     }
 
-    private void discardUnverifiableCandidate() {
-        NotificationSignalCoordinator.discardDeviceConnectionCandidates(context);
-        DeviceConnectionVerificationWorker.cancel(context);
-    }
 
     public void start() {
 

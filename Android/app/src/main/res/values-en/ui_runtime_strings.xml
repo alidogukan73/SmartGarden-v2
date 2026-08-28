@@ -254,6 +254,9 @@ Add photo</string>
     <string name="runtime_delete_photo_record_message">This user photo record and its copy on your phone will be deleted.</string>
 
     <string name="runtime_timeline_named_title">%1$s Journal</string>
+    <string name="runtime_timeline_season_year">%1$d Season</string>
+    <string name="runtime_timeline_season_header">%1$s · %2$s</string>
+    <string name="runtime_timeline_season_selector_description">Season selection: %1$s</string>
     <string name="runtime_compare_empty">Add at least two photos from this season to compare them.</string>
     <string name="runtime_view_empty">No records for this view yet.</string>
     <string name="runtime_growth_photos">Growth photos</string>

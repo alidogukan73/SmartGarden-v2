@@ -24,6 +24,7 @@ import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -97,7 +98,7 @@ public class PlantListActivity extends AppCompatActivity {
         // The refresh task can pass the same cached list back here; copy before clearing it.
         List<GardenZone> incoming = zones == null ? new ArrayList<>() : new ArrayList<>(zones);
         latestZones.clear();
-        latestZones.addAll(incoming);
+        latestZones.addAll(ZoneCapacityPolicy.activeZones(incoming));
         List<GardenZone> visibleZones = new ArrayList<>(latestZones);
         sortZones(visibleZones);
         list.removeAllViews();

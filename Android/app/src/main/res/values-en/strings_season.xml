@@ -11,7 +11,7 @@
     <string name="season_management_no_zones">There are no garden zones to manage yet.</string>
     <string name="season_management_no_active_zones">There are no active garden zones. Reactivate a zone in Zone Management before starting a new season.</string>
     <string name="season_management_inactive_title">Inactive zone archives (%1$d)</string>
-    <string name="season_management_inactive_description">These zones cannot start a new season. You can review previous seasons or reactivate the zone in Zone Management.</string>
+    <string name="season_management_inactive_description">These zones cannot start a new season. You can review previous seasons or add a new zone from Zone Management.</string>
     <string name="season_management_preparing">Linking existing records to the first season archive…</string>
     <string name="season_bootstrap_failed">Existing records could not be linked to the season archive.</string>
     <string name="season_status_preparing">PREPARING</string>
@@ -57,23 +57,15 @@
     <string name="season_operation_wait">Processing…</string>
     <string name="season_operation_done">Updating…</string>
     <string name="season_archive_action">Open season archive and comparison</string>
-    <string name="season_reactivate_zone_action">Reactivate in Zone Management</string>
+    <string name="season_reactivate_zone_action">Open Zone Management</string>
 
     <string name="season_start_crop_label">Crop to grow in the new season</string>
     <string name="season_start_custom_crop_hint">Other crop name</string>
     <string name="season_start_custom_emoji_hint">Crop icon (optional, for example 🥕)</string>
     <string name="season_start_stage_label">Initial growth stage</string>
-    <string name="season_start_sensor_label">Sensor to use this season</string>
-    <string name="season_start_custom_sensor_hint">Sensor ID (for example, soil-006)</string>
-    <string name="season_start_sensor_current">Continue with current sensor · %1$s</string>
-    <string name="season_start_sensor_available">Available sensor · %1$s</string>
-    <string name="season_start_sensor_later">I will connect a sensor later</string>
-    <string name="season_start_sensor_custom">Another sensor ID…</string>
     <string name="season_start_valve_note">The valve remains assigned to this physical zone: %1$s</string>
     <string name="season_start_no_valve">No valve assigned</string>
     <string name="season_crop_required">Select a crop for the new season.</string>
-    <string name="season_sensor_required">Enter the sensor ID when choosing another sensor.</string>
-    <string name="season_sensor_already_used">Sensor %1$s is assigned to another zone. Select a different sensor.</string>
 
     <string-array name="season_crop_labels">
         <item>🍅 Tomato</item>

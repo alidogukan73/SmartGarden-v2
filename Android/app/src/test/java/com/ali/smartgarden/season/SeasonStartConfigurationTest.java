@@ -23,27 +23,17 @@ public class SeasonStartConfigurationTest {
     }
 
     @Test
-    public void blankSensorCanNeverBeEnabled() {
+    public void cropConfigurationIsValidWithoutOwningHardwareAssignment() {
         SeasonStartConfiguration configuration = new SeasonStartConfiguration(
-                "Havuç", "havuc", "🥕", "", true
+                "Havuç", "havuc", "🥕"
         );
 
         assertTrue(configuration.isValid());
-        assertFalse(configuration.isSensorEnabled());
     }
 
     @Test
-    public void sensorIdentityOrEnabledStateChangeIsDetected() {
-        SeasonStartConfiguration same = new SeasonStartConfiguration(
-                "Domates", "tomato", "🍅", "soil-001", true
-        );
-        SeasonStartConfiguration changed = new SeasonStartConfiguration(
-                "Domates", "tomato", "🍅", "soil-002", true
-        );
-
-        assertFalse(same.changesSensor("soil-001", true));
-        assertTrue(same.changesSensor("soil-001", false));
-        assertTrue(changed.changesSensor("soil-001", true));
+    public void missingZoneCannotProduceAValidSeasonConfiguration() {
+        assertFalse(SeasonStartConfiguration.fromZone(null).isValid());
     }
 
     @Test
@@ -59,7 +49,5 @@ public class SeasonStartConfigurationTest {
 
         assertEquals("Biber", configuration.getCropName());
         assertEquals("pepper", configuration.getPlantType());
-        assertEquals("soil-002", configuration.getSensorId());
-        assertTrue(configuration.isSensorEnabled());
     }
 }

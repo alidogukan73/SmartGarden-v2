@@ -321,28 +321,10 @@ public final class SeasonRepository {
             ));
         }
 
-        if (configuration.isSensorEnabled()) {
-            String requestedSensorId = configuration.getSensorId();
-            for (DataSnapshot otherZone : root.child("zones").getChildren()) {
-                if (safe(otherZone.getKey()).equals(zoneId)) continue;
-                if (requestedSensorId.equalsIgnoreCase(
-                        stringValue(otherZone.child("sensor_id")).trim()
-                )) {
-                    return Tasks.forException(new IllegalStateException(
-                            requestedSensorId + " sensörü başka bir bölgeye atanmış."
-                    ));
-                }
-            }
-        }
-
         long now = nowEpoch();
         String seasonId = SeasonScope.createSeasonId(zoneId, now);
         String label = safe(requestedLabel).trim();
         if (label.isBlank()) label = seasonLabel(zone, now);
-        boolean sensorChanged = configuration.changesSensor(
-                stringValue(zoneData.child("sensor_id")),
-                booleanValue(zoneData.child("sensor_enabled"))
-        );
         String zonePath = "zones/" + zoneId + "/";
         String manifestPath = "garden_journal/seasons/" + seasonId + "/";
         Map<String, Object> updates = new HashMap<>();
@@ -350,19 +332,6 @@ public final class SeasonRepository {
         updates.put(zonePath + "name", configuration.getCropName());
         updates.put(zonePath + "plant_type", configuration.getPlantType());
         updates.put(zonePath + "emoji", configuration.getEmoji());
-        updates.put(zonePath + "sensor_id", configuration.getSensorId());
-        updates.put(zonePath + "sensor_enabled", configuration.isSensorEnabled());
-        updates.put(zonePath + "sensor_config_updated_at_epoch", now);
-        if (!configuration.isSensorEnabled() || sensorChanged) {
-            updates.put(zonePath + "irrigation_enabled", false);
-        }
-        if (sensorChanged) {
-            updates.put(zonePath + "moisture", 0);
-            updates.put(zonePath + "raw", 0);
-            updates.put(zonePath + "voltage", 0.0d);
-            updates.put(zonePath + "rssi", 0);
-            updates.put(zonePath + "updated_at_epoch", 0L);
-        }
 
         putNewSeasonState(updates, zonePath, seasonId, label, now);
         putNewSeasonManifest(
@@ -413,8 +382,8 @@ public final class SeasonRepository {
         updates.put(path + "zone_name", configuration.getCropName());
         updates.put(path + "plant_type", configuration.getPlantType());
         updates.put(path + "emoji", configuration.getEmoji());
-        updates.put(path + "sensor_id", configuration.getSensorId());
-        updates.put(path + "sensor_enabled", configuration.isSensorEnabled());
+        updates.put(path + "sensor_id", stringValue(zoneData.child("sensor_id")));
+        updates.put(path + "sensor_enabled", booleanValue(zoneData.child("sensor_enabled")));
         updates.put(path + "valve_id", stringValue(zoneData.child("valve_id")));
         updates.put(path + "valve_mode", stringValue(zoneData.child("valve_mode")));
         updates.put(path + "label", label);
@@ -766,6 +735,7 @@ public final class SeasonRepository {
         updates.put(manifest + "watering_seconds", counts.wateringSeconds);
         updates.put(manifest + "fertilizer_application_count", counts.fertilizerCount);
         updates.put(manifest + "journal_event_count", counts.eventCount);
+        updates.put(manifest + "manual_journal_event_count", counts.eventCount);
         updates.put(manifest + "photo_count", counts.photoCount);
         updates.put(manifest + "plant_assistant_analysis_count", counts.analysisCount);
         updates.put(manifest + "notification_count", counts.notificationCount);
@@ -1014,8 +984,10 @@ public final class SeasonRepository {
         for (MutableData record : root.child("watering_history").getChildren()) {
             if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
             if (!belongs(record, state)) continue;
+            long duration = Math.max(0L, longValue(record.child("duration")));
+            if (!SeasonRecordPolicy.hasMeaningfulWatering(duration)) continue;
             counts.wateringCount++;
-            counts.wateringSeconds += Math.max(0L, longValue(record.child("duration")));
+            counts.wateringSeconds += duration;
         }
         for (MutableData record : root.child("fertilizer_history").getChildren()) {
             if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
@@ -1024,6 +996,10 @@ public final class SeasonRepository {
         for (MutableData record : root.child("garden_journal").child("events").getChildren()) {
             if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
             if (!belongs(record, state)) continue;
+            if (!SeasonRecordPolicy.isFieldJournalEvent(
+                    stringValue(record.child("type")),
+                    stringValue(record.child("source")),
+                    stringValue(record.child("source_key")))) continue;
             counts.eventCount++;
             String type = stringValue(record.child("type")).toUpperCase(Locale.ROOT);
             if (type.contains("AI") || type.contains("ASSISTANT") || type.contains("ANALYSIS")) {
@@ -1052,8 +1028,10 @@ public final class SeasonRepository {
         SeasonCounts counts = new SeasonCounts();
         for (DataSnapshot record : root.child("watering_history").getChildren()) {
             if (!zoneId.equals(stringValue(record.child("zone_id"))) || !belongs(record, state)) continue;
+            long duration = Math.max(0L, longValue(record.child("duration")));
+            if (!SeasonRecordPolicy.hasMeaningfulWatering(duration)) continue;
             counts.wateringCount++;
-            counts.wateringSeconds += Math.max(0L, longValue(record.child("duration")));
+            counts.wateringSeconds += duration;
         }
         if (includePending) {
             for (DataSnapshot pending : root.child("irrigation_runtime")
@@ -1063,8 +1041,10 @@ public final class SeasonRepository {
                 String pendingSeasonId = stringValue(record.child("season_id"));
                 if (!pendingSeasonId.isBlank()
                         && !state.getActive_season_id().equals(pendingSeasonId)) continue;
+                long duration = Math.max(0L, longValue(record.child("duration")));
+                if (!SeasonRecordPolicy.hasMeaningfulWatering(duration)) continue;
                 counts.wateringCount++;
-                counts.wateringSeconds += Math.max(0L, longValue(record.child("duration")));
+                counts.wateringSeconds += duration;
             }
         }
         for (DataSnapshot record : root.child("fertilizer_history").getChildren()) {
@@ -1074,6 +1054,10 @@ public final class SeasonRepository {
         }
         for (DataSnapshot record : root.child("garden_journal").child("events").getChildren()) {
             if (!zoneId.equals(stringValue(record.child("zone_id"))) || !belongs(record, state)) continue;
+            if (!SeasonRecordPolicy.isFieldJournalEvent(
+                    stringValue(record.child("type")),
+                    stringValue(record.child("source")),
+                    stringValue(record.child("source_key")))) continue;
             counts.eventCount++;
             String type = stringValue(record.child("type")).toUpperCase(Locale.ROOT);
             if (type.contains("AI") || type.contains("ASSISTANT") || type.contains("ANALYSIS")) {

@@ -2,6 +2,7 @@ package com.ali.smartgarden.zones;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
 
 import com.ali.smartgarden.models.GardenZone;
@@ -32,6 +33,18 @@ public class ZoneCapacityPolicyTest {
         List<GardenZone> zones = new ArrayList<>();
         for (int slot = 1; slot <= 8; slot++) zones.add(zone(slot, true));
         assertEquals(-1, ZoneCapacityPolicy.nextAvailableSlot(zones));
+        assertTrue(ZoneCapacityPolicy.availableSlots(zones).isEmpty());
+    }
+
+    @Test
+    public void channelPickerContainsOnlyMissingOrInactiveSlots() {
+        GardenZone inactive = zone(3, false);
+        inactive.setLifecycle_status(ZoneCapacityPolicy.LIFECYCLE_INACTIVE);
+
+        List<Integer> available = ZoneCapacityPolicy.availableSlots(
+                List.of(zone(1, true), zone(2, true), inactive, zone(5, true)));
+
+        assertEquals(List.of(3, 4, 6, 7, 8), available);
     }
 
     @Test
@@ -93,6 +106,14 @@ public class ZoneCapacityPolicyTest {
         assertEquals(true, ZoneCapacityPolicy.hasProtectedSeason("", "season-legacy"));
         assertEquals(false, ZoneCapacityPolicy.hasProtectedSeason("CLOSED", "season-1"));
         assertEquals(false, ZoneCapacityPolicy.hasProtectedSeason("", ""));
+    }
+
+    @Test
+    public void onlyAZoneWithoutLocalOrCloudHistoryIsDeletedOnDeactivate() {
+        assertTrue(ZoneCapacityPolicy.shouldDeleteOnDeactivate(false, false));
+        assertFalse(ZoneCapacityPolicy.shouldDeleteOnDeactivate(true, false));
+        assertFalse(ZoneCapacityPolicy.shouldDeleteOnDeactivate(false, true));
+        assertFalse(ZoneCapacityPolicy.shouldDeleteOnDeactivate(true, true));
     }
 
 

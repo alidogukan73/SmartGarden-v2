@@ -25,6 +25,7 @@ import com.ali.smartgarden.models.SeasonOutcome;
 import com.ali.smartgarden.models.SeasonStatus;
 import com.ali.smartgarden.season.SeasonRepository;
 import com.ali.smartgarden.season.SeasonScope;
+import com.ali.smartgarden.season.SeasonRecordPolicy;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.WateringHistory;
@@ -467,10 +468,14 @@ public class FirebaseRepository {
 
    /** Saves a zone only after validating the shared eight-channel hardware map. */
    public Task<Void> createGardenZone(GardenZone zone) {
-      return saveGardenZone(zone);
+      return saveGardenZone(zone, true);
    }
 
    public Task<Void> saveGardenZone(GardenZone zone) {
+      return saveGardenZone(zone, false);
+   }
+
+   private Task<Void> saveGardenZone(GardenZone zone, boolean requireAvailableSlot) {
       return this.zonesRef.get().continueWithTask(task -> {
          if (!task.isSuccessful()) {
             Exception error = task.getException();
@@ -487,12 +492,22 @@ public class FirebaseRepository {
             }
             zones.add(existing);
          }
-         ZoneCapacityPolicy.validateCandidate(zone, zones);
 
          String zoneId = zone.getZone_id();
          GardenZone storedZone = zonesSnapshot.child(zoneId).getValue(GardenZone.class);
+         if (requireAvailableSlot
+               && storedZone != null
+               && !ZoneCapacityPolicy.isInactive(storedZone)) {
+            return Tasks.forException(
+                  new IllegalStateException(ZoneCapacityPolicy.ERROR_ZONE_IN_USE));
+         }
+         ZoneCapacityPolicy.validateCandidate(zone, zones);
+
          boolean initializeWithoutSeason = storedZone == null
                || ZoneCapacityPolicy.isInactive(storedZone);
+          boolean hasActiveSeason = storedZone != null && storedZone.getSeason() != null
+                && storedZone.getSeason().isActive()
+                && !clean(storedZone.getSeason().getActive_season_id()).isEmpty();
          String sensorId = clean(zone.getSensor_id());
          String valveId = clean(zone.getValve_id());
           String previousSensorId = storedZone == null
@@ -524,7 +539,7 @@ public class FirebaseRepository {
          updates.put(path + "valve_mode", valveId.isEmpty() ? "SIMULATION" : "PHYSICAL");
          updates.put(path + "enabled", true);
          updates.put(path + "irrigation_enabled",
-               hardwareReady && zone.isIrrigation_enabled());
+               hasActiveSeason && hardwareReady && zone.isIrrigation_enabled());
          updates.put(path + "moisture_limit", zone.getMoisture_limit());
          updates.put(path + "pump_duration", zone.getPump_duration());
          updates.put(path + "cooldown_seconds", zone.getCooldown_seconds());
@@ -563,8 +578,8 @@ public class FirebaseRepository {
       });
    }
 
-   /** Archives the configuration while preserving history and completed seasons. */
-   public Task<Void> deactivateGardenZone(String zoneId) {
+   /** Removes a disposable empty zone; otherwise archives it without losing history. */
+   public Task<Boolean> deactivateGardenZone(String zoneId, boolean hasLocalHistory) {
       if (!ZoneCapacityPolicy.isValidZoneId(zoneId)) {
          return Tasks.forException(
                new IllegalArgumentException(ZoneCapacityPolicy.ERROR_INVALID_ZONE));
@@ -591,7 +606,22 @@ public class FirebaseRepository {
             return Tasks.forException(
                   new IllegalStateException(ZoneCapacityPolicy.ERROR_IRRIGATION_BUSY));
          }
+         boolean removeEmpty = ZoneCapacityPolicy.shouldDeleteOnDeactivate(
+               hasLocalHistory, hasZoneCloudHistory(root, zoneId));
          long now = System.currentTimeMillis() / 1000L;
+         if (removeEmpty) {
+            String removalId = now + "-" + UUID.randomUUID();
+            String recyclePath = "zone_recycle_bin/" + zoneId + "/" + removalId + "/";
+            Map<String, Object> removalUpdates = new HashMap<>();
+            removalUpdates.put(recyclePath + "zone", zone.getValue());
+            removalUpdates.put(recyclePath + "removed_at_epoch", now);
+            removalUpdates.put(recyclePath + "reason", "EMPTY_ZONE_REMOVED");
+            appendZoneNotificationRemovalUpdates(
+                  root, zoneId, now, recyclePath, removalUpdates);
+            removalUpdates.put("zones/" + zoneId, null);
+            return zoneRemovalResult(
+                  this.deviceRef.updateChildren(removalUpdates), true);
+         }
          String path = "zones/" + zoneId + "/";
          Map<String, Object> updates = new HashMap<>();
          updates.put(path + "enabled", false);
@@ -609,7 +639,7 @@ public class FirebaseRepository {
          updates.put(path + "irrigation_status/watering_active", false);
          updates.put(path + "irrigation_status/selected_for_watering", false);
          updates.put(path + "irrigation_status/queue_position", 0);
-         return this.deviceRef.updateChildren(updates);
+         return zoneRemovalResult(this.deviceRef.updateChildren(updates), false);
       });
    }
 
@@ -1296,6 +1326,92 @@ public class FirebaseRepository {
          }
       }
       return false;
+   }
+
+   private static boolean hasZoneCloudHistory(DataSnapshot root, String zoneId) {
+      for (DataSnapshot record : root.child("watering_history").getChildren()) {
+         if (zoneId.equals(snapshotString(record.child("zone_id")))
+               && SeasonRecordPolicy.hasMeaningfulWatering(
+               snapshotLong(record.child("duration")))) return true;
+      }
+      if (containsZoneRecord(root.child("fertilizer_history"), zoneId)) return true;
+
+      DataSnapshot journal = root.child("garden_journal");
+      for (DataSnapshot record : journal.child("events").getChildren()) {
+         if (!zoneId.equals(snapshotString(record.child("zone_id")))) continue;
+         if (SeasonRecordPolicy.isFieldJournalEvent(
+               snapshotString(record.child("type")),
+               snapshotString(record.child("source")),
+               snapshotString(record.child("source_key")))) return true;
+      }
+      if (containsZoneRecord(journal.child("photo_metadata"), zoneId)) return true;
+      for (DataSnapshot outcome : journal.child("season_outcomes").getChildren()) {
+         if (!zoneId.equals(snapshotString(outcome.child("zone_id")))) continue;
+         if (SeasonRecordPolicy.hasMeaningfulOutcomeValues(
+               snapshotString(outcome.child("harvest_amount")),
+               snapshotString(outcome.child("yield_note")),
+               snapshotString(outcome.child("issues_note")),
+               snapshotString(outcome.child("successful_practices")),
+               snapshotString(outcome.child("water_summary")),
+               snapshotString(outcome.child("fertilizer_summary")),
+               snapshotString(outcome.child("next_season_note")))) return true;
+      }
+      return false;
+   }
+
+   private static boolean containsZoneRecord(
+         DataSnapshot collection, String zoneId) {
+      for (DataSnapshot record : collection.getChildren()) {
+         if (zoneId.equals(snapshotString(record.child("zone_id")))) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   private static boolean containsZoneReference(
+         DataSnapshot node, String zoneId) {
+      if (!node.exists()) return false;
+      if (zoneId.equals(snapshotString(node.child("zone_id")))
+            || zoneId.equals(snapshotString(node.child("analysis_zone_id")))) {
+         return true;
+      }
+      for (DataSnapshot child : node.getChildren()) {
+         if (containsZoneReference(child, zoneId)) return true;
+      }
+      return false;
+   }
+
+   private static void appendZoneNotificationRemovalUpdates(
+         DataSnapshot root,
+         String zoneId,
+         long removedAtEpoch,
+         String recyclePath,
+         Map<String, Object> updates) {
+      for (DataSnapshot record : root.child("notifications").getChildren()) {
+         if (!zoneId.equals(snapshotString(record.child("zone_id")))) continue;
+         String id = record.getKey();
+         if (id == null || id.isBlank()) continue;
+         updates.put(recyclePath + "notifications/" + id, record.getValue());
+         updates.put("notifications/" + id, null);
+         updates.put("notification_deletions/" + id + "/source_key",
+               snapshotString(record.child("source_key")));
+         updates.put("notification_deletions/" + id + "/deleted_at_epoch",
+               removedAtEpoch);
+      }
+   }
+
+   private static Task<Boolean> zoneRemovalResult(
+         Task<Void> writeTask, boolean removed) {
+      return writeTask.continueWith(task -> {
+         if (!task.isSuccessful()) {
+            Exception error = task.getException();
+            throw error == null
+                  ? new IllegalStateException("ZONE_WRITE_FAILED")
+                  : error;
+         }
+         return removed;
+      });
    }
 
    private static boolean snapshotBoolean(DataSnapshot data) {

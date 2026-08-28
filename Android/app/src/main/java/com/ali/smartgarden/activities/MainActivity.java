@@ -33,6 +33,7 @@ import com.ali.smartgarden.notifications.NotificationPolicy;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
 import com.ali.smartgarden.models.Status;
+import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
@@ -114,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     private HomeZonePagerAdapter homeZonePagerAdapter;
     private boolean homeZonePagerPositioned = false;
     private List<GardenZone> latestZones;
+    private List<WateringHistory> latestWateringHistory = new ArrayList<>();
     private WeatherForecast latestWeather;
 
     private static final long CONNECTION_SETTLE_MILLIS = 15_000L;
@@ -328,7 +330,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewModel.getWeatherForecast().observe(this, this::renderHomeWeather);
-        viewModel.getWateringHistory().observe(this, values -> NotificationSignalCoordinator.evaluateWatering(this, values));
+        viewModel.getWateringHistory().observe(this, values -> {
+            latestWateringHistory = values == null ? new ArrayList<>() : values;
+            NotificationSignalCoordinator.evaluateWatering(this, latestWateringHistory, latestZones);
+        });
 
         viewModel.getError().observe(
                 this,
@@ -523,6 +528,7 @@ public class MainActivity extends AppCompatActivity {
     private void renderGardenZones(List<GardenZone> zones) {
         List<GardenZone> activeZones = ZoneCapacityPolicy.activeZones(zones);
         latestZones = activeZones;
+        NotificationSignalCoordinator.evaluateWatering(this, latestWateringHistory, activeZones);
         NotificationSignalCoordinator.evaluateIrrigationAi(this, activeZones);
 
         if (zones == null) {

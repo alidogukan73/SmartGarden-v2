@@ -17,6 +17,7 @@ import com.ali.smartgarden.R;
 import com.ali.smartgarden.activities.FertilizerHistoryActivity;
 import com.ali.smartgarden.activities.NotificationDetailActivity;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.activities.MainActivity;
@@ -37,7 +38,12 @@ public final class GardenNotificationManager {
     private final Context context;
     private final LocalGardenNotificationStore store;
     private final FirebaseRepository repository;
-    public GardenNotificationManager(Context context) { this.context = context.getApplicationContext(); store = new LocalGardenNotificationStore(this.context); repository = new FirebaseRepository(); }
+    public GardenNotificationManager(Context context) {
+        this.context = AvoraLanguageManager.localizedContext(
+                context.getApplicationContext());
+        store = new LocalGardenNotificationStore(this.context);
+        repository = new FirebaseRepository();
+    }
 
     public GardenNotification publish(String type, String priority, String zoneId,
                                       String title, String description, String sourceKey) {

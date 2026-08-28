@@ -20,6 +20,7 @@ public final class ZoneCapacityPolicy {
     public static final String ERROR_IRRIGATION_BUSY = "IRRIGATION_BUSY";
     public static final String ERROR_ACTIVE_SEASON = "ACTIVE_SEASON";
     public static final String ERROR_ZONE_NOT_FOUND = "ZONE_NOT_FOUND";
+    public static final String ERROR_ZONE_IN_USE = "ZONE_IN_USE";
 
     private ZoneCapacityPolicy() { }
 
@@ -60,6 +61,23 @@ public final class ZoneCapacityPolicy {
         return result;
     }
 
+    /** Returns every hardware channel that is not currently used by an active zone. */
+    public static List<Integer> availableSlots(List<GardenZone> zones) {
+        boolean[] active = new boolean[MAX_ZONES + 1];
+        if (zones != null) {
+            for (GardenZone zone : zones) {
+                if (zone == null || isInactive(zone)) continue;
+                int value = slot(zone.getZone_id(), "zone");
+                if (value > 0) active[value] = true;
+            }
+        }
+        List<Integer> result = new java.util.ArrayList<>();
+        for (int index = 1; index <= MAX_ZONES; index++) {
+            if (!active[index]) result.add(index);
+        }
+        return result;
+    }
+
     public static boolean hasProtectedSeason(String status, String activeSeasonId) {
         String normalizedStatus = safe(status).toUpperCase(Locale.US);
         String seasonId = safe(activeSeasonId);
@@ -69,6 +87,11 @@ public final class ZoneCapacityPolicy {
         return !seasonId.isEmpty() && !"CLOSED".equals(normalizedStatus);
     }
 
+    /** Deletes only a disposable zone; any local or cloud history keeps an archive. */
+    public static boolean shouldDeleteOnDeactivate(
+            boolean hasLocalHistory, boolean hasCloudHistory) {
+        return !hasLocalHistory && !hasCloudHistory;
+    }
 
 
     /** Returns an unused channel, preferring a never-created slot over an archived slot. */

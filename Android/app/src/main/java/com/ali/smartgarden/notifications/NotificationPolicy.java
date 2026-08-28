@@ -8,9 +8,9 @@ import java.util.Locale;
 
 /** Pure notification rules shared by settings, background scans and unit tests. */
 public final class NotificationPolicy {
-    public static final long DEVICE_HEARTBEAT_MAX_AGE_SECONDS = 5L * 60L;
+    public static final long DEVICE_HEARTBEAT_MAX_AGE_SECONDS = 3L * 60L;
     /** A single stale Firebase read is not enough to declare the Pi offline. */
-    public static final long DEVICE_OFFLINE_CONFIRMATION_MILLIS = 2L * 60L * 1000L;
+    public static final long DEVICE_OFFLINE_CONFIRMATION_MILLIS = 60_000L;
     /** Recovery must also remain stable before a recovery notification is emitted. */
     public static final long DEVICE_RECOVERY_CONFIRMATION_MILLIS = 60_000L;
     /** A brief sensor-data recovery must not split one outage into many incidents. */
@@ -121,6 +121,16 @@ public final class NotificationPolicy {
                 && nowMillis - candidateSinceMillis >= Math.max(0L, confirmationMillis);
     }
 
+    /**
+     * Verification continues while the observed device state and the durable
+     * incident state disagree. Disabled device alerts deliberately do not retry.
+     */
+    public static boolean shouldRetryDeviceConnectionVerification(
+            boolean deviceAlertsEnabled, boolean deviceOffline, boolean incidentActive) {
+        return deviceAlertsEnabled && deviceOffline != incidentActive;
+    }
+
+
     public static boolean shouldNotifyIrrigationAi(
             boolean zoneEnabled,
             boolean irrigationEnabled,
@@ -164,6 +174,28 @@ public final class NotificationPolicy {
                 && !"ZERO_DURATION".equals(reason);
     }
 
+
+    public static boolean isActiveSeasonNotificationTarget(
+            boolean zoneEnabled,
+            boolean seasonActive,
+            String activeSeasonId) {
+        return zoneEnabled && seasonActive
+                && activeSeasonId != null && !activeSeasonId.isBlank();
+    }
+
+    public static boolean recordBelongsToActiveSeason(
+            boolean zoneEnabled,
+            boolean seasonActive,
+            String activeSeasonId,
+            boolean includeLegacyRecords,
+            String recordSeasonId) {
+        if (!isActiveSeasonNotificationTarget(
+                zoneEnabled, seasonActive, activeSeasonId)) return false;
+        String recordId = recordSeasonId == null ? "" : recordSeasonId.trim();
+        return recordId.isBlank()
+                ? includeLegacyRecords
+                : activeSeasonId.trim().equals(recordId);
+    }
     private static int normalizeHour(int hour) {
         int normalized = hour % 24;
         return normalized < 0 ? normalized + 24 : normalized;

@@ -254,6 +254,9 @@ Fotoğraf ekle</string>
     <string name="runtime_delete_photo_record_message">Bu kullanıcı fotoğraf kaydı ve telefonunuzdaki kopyası silinecek.</string>
 
     <string name="runtime_timeline_named_title">%1$s Günlüğü</string>
+    <string name="runtime_timeline_season_year">%1$d Sezonu</string>
+    <string name="runtime_timeline_season_header">%1$s · %2$s</string>
+    <string name="runtime_timeline_season_selector_description">Sezon seçimi: %1$s</string>
     <string name="runtime_compare_empty">Karşılaştırmak için bu sezondan en az iki fotoğraf ekleyin.</string>
     <string name="runtime_view_empty">Bu görünüm için henüz kayıt yok.</string>
     <string name="runtime_growth_photos">Gelişim fotoğrafları</string>

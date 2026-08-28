@@ -3,6 +3,7 @@ package com.ali.smartgarden.notifications;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
@@ -12,6 +13,7 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.ali.smartgarden.models.Status;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
@@ -28,14 +30,22 @@ public final class DeviceConnectionVerificationWorker extends Worker {
     }
 
     static void schedule(Context context) {
+        schedule(context, NotificationPolicy.DEVICE_OFFLINE_CONFIRMATION_MILLIS);
+    }
+
+    static void scheduleRecovery(Context context) {
+        schedule(context, NotificationPolicy.DEVICE_RECOVERY_CONFIRMATION_MILLIS);
+    }
+
+    private static void schedule(Context context, long delayMillis) {
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(
                 DeviceConnectionVerificationWorker.class)
                 .setConstraints(new Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
                         .build())
-                .setInitialDelay(
-                        NotificationPolicy.DEVICE_OFFLINE_CONFIRMATION_MILLIS,
-                        TimeUnit.MILLISECONDS)
+                .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
+                .setBackoffCriteria(
+                        BackoffPolicy.LINEAR, 30L, TimeUnit.SECONDS)
                 .build();
         WorkManager.getInstance(context.getApplicationContext())
                 .enqueueUniqueWork(UNIQUE_WORK, ExistingWorkPolicy.KEEP, request);
@@ -49,16 +59,10 @@ public final class DeviceConnectionVerificationWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Context context = getApplicationContext();
+        Context context = AvoraLanguageManager.localizedContext(getApplicationContext());
         try {
-            DataSnapshot connection = Tasks.await(FirebaseDatabase.getInstance()
-                            .getReference(".info/connected")
-                            .get(),
-                    10, TimeUnit.SECONDS);
-            if (!Boolean.TRUE.equals(connection.getValue(Boolean.class))) {
-                NotificationSignalCoordinator
-                        .discardDeviceConnectionCandidates(context);
-                return Result.success();
+            if (!FirebaseConnectionProbe.awaitConnected(15, TimeUnit.SECONDS)) {
+                return Result.retry();
             }
 
             DataSnapshot snapshot = Tasks.await(FirebaseDatabase.getInstance()
@@ -70,15 +74,25 @@ public final class DeviceConnectionVerificationWorker extends Worker {
             Status status = snapshot.getValue(Status.class);
             if (status == null) return Result.retry();
 
+            // Do not act on a cache fallback if the Firebase socket was lost
+            // while the status request was in flight.
+            if (!FirebaseConnectionProbe.awaitConnected(10, TimeUnit.SECONDS)) {
+                return Result.retry();
+            }
+
             long nowEpoch = System.currentTimeMillis() / 1000L;
             boolean offline = NotificationPolicy.isDeviceOffline(
                     status.isOnline(), status.getLastSeenEpoch(), nowEpoch,
                     NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
-            if (offline) {
-                NotificationSignalCoordinator.evaluateDeviceConnection(context, status);
-            } else {
-                // A transient stale read recovered before confirmation. Clear it silently.
-                NotificationSignalCoordinator.synchronizeDeviceConnection(context, status);
+            NotificationSignalCoordinator.evaluateDeviceConnection(context, status);
+
+            boolean alertsEnabled = new NotificationSettingsStore(context)
+                    .isCategoryEnabled("DEVICE");
+            boolean incidentActive = new GardenNotificationManager(context)
+                    .isIncidentActive("device_offline");
+            if (NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                    alertsEnabled, offline, incidentActive)) {
+                return Result.retry();
             }
             return Result.success();
         } catch (Exception ignored) {

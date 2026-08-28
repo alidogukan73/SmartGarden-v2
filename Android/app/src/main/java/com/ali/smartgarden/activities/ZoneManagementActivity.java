@@ -22,9 +22,18 @@ import androidx.core.content.ContextCompat;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.crop.CropCatalog;
 import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.journal.LocalGardenEventStore;
+import com.ali.smartgarden.journal.LocalSeasonOutcomeStore;
 import com.ali.smartgarden.models.CropCatalogItem;
+import com.ali.smartgarden.models.GardenEvent;
+import com.ali.smartgarden.models.GardenNotification;
+import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.models.SeasonOutcome;
+import com.ali.smartgarden.notifications.LocalGardenNotificationStore;
+import com.ali.smartgarden.photos.LocalGardenPhotoStore;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
+import com.ali.smartgarden.season.SeasonRecordPolicy;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -51,7 +60,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(view -> finish());
         findViewById(R.id.btnOpenCropCatalog).setOnClickListener(view ->
                 startActivity(new Intent(this, CropCatalogActivity.class)));
-        addButton.setOnClickListener(view -> addNextZone());
+        addButton.setOnClickListener(view -> showNewZoneEditor());
 
         crops = CropCatalog.merge(null);
         repository.observeGardenZones().observe(this, value -> {
@@ -64,13 +73,13 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         });
     }
 
-    private void addNextZone() {
-        int slot = ZoneCapacityPolicy.nextAvailableSlot(zones);
-        if (slot < 1) {
+    private void showNewZoneEditor() {
+        List<Integer> availableSlots = ZoneCapacityPolicy.availableSlots(zones);
+        if (availableSlots.isEmpty()) {
             Toast.makeText(this, R.string.zone_management_capacity_full, Toast.LENGTH_LONG).show();
             return;
         }
-        showEditor(findZone(ZoneCapacityPolicy.zoneId(slot)), slot);
+        showEditor(null, availableSlots.get(0), availableSlots);
     }
 
     private void render() {
@@ -83,6 +92,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         for (int slot = 1; slot <= ZoneCapacityPolicy.MAX_ZONES; slot++) {
             String zoneId = ZoneCapacityPolicy.zoneId(slot);
             GardenZone zone = findZone(zoneId);
+            if (zone == null || ZoneCapacityPolicy.isInactive(zone)) continue;
             addZoneCard(zone, slot);
         }
     }
@@ -171,6 +181,38 @@ public final class ZoneManagementActivity extends AppCompatActivity {
     }
 
     private void showEditor(@Nullable GardenZone existing, int slot) {
+        showEditor(existing, slot, null);
+    }
+
+    private void showEditor(
+            @Nullable GardenZone existing,
+            int slot,
+            @Nullable List<Integer> selectableSlots
+    ) {
+        boolean channelSelectable = selectableSlots != null && !selectableSlots.isEmpty();
+        List<ZoneChannelOption> channelOptions = new ArrayList<>();
+        if (channelSelectable) {
+            for (int availableSlot : selectableSlots) {
+                channelOptions.add(new ZoneChannelOption(
+                        availableSlot,
+                        getString(
+                                R.string.zone_management_channel_option,
+                                availableSlot,
+                                ZoneCapacityPolicy.zoneId(availableSlot)
+                        )
+                ));
+            }
+        } else {
+            channelOptions.add(new ZoneChannelOption(
+                    slot,
+                    getString(
+                            R.string.zone_management_channel_option,
+                            slot,
+                            ZoneCapacityPolicy.zoneId(slot)
+                    )
+            ));
+        }
+
         List<CropCatalogItem> editorCrops = new ArrayList<>(crops);
         int cropPosition = cropPosition(editorCrops, existing);
         if (cropPosition < 0 && existing != null) {
@@ -186,6 +228,12 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(4), dp(4), dp(4), 0);
+
+        Spinner channelSpinner = spinner(channelOptions);
+        if (channelSelectable) {
+            form.addView(label(R.string.zone_management_channel_select));
+            form.addView(channelSpinner, fieldParams());
+        }
 
         Spinner cropSpinner = spinner(editorCrops);
         form.addView(label(R.string.zone_management_product));
@@ -232,8 +280,10 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                 .setTitle(existing == null || ZoneCapacityPolicy.isInactive(existing)
                         ? R.string.zone_management_add_dialog
                         : R.string.zone_management_edit_dialog)
-                .setMessage(getString(R.string.zone_management_dialog_channel,
-                        ZoneCapacityPolicy.zoneId(slot)))
+                .setMessage(channelSelectable
+                        ? getString(R.string.zone_management_dialog_choose_channel)
+                        : getString(R.string.zone_management_dialog_channel,
+                                ZoneCapacityPolicy.zoneId(slot)))
                 .setView(form)
                 .setNegativeButton(R.string.settings_cancel, null)
                 .setPositiveButton(R.string.settings_save, null)
@@ -243,10 +293,17 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                     CropCatalogItem crop = editorCrops.get(cropSpinner.getSelectedItemPosition());
                     HardwareOption sensor = sensorOptions.get(sensorSpinner.getSelectedItemPosition());
                     HardwareOption valve = valveOptions.get(valveSpinner.getSelectedItemPosition());
-                    GardenZone candidate = candidate(existing, slot, crop,
+                    int selectedSlot = channelOptions
+                            .get(channelSpinner.getSelectedItemPosition()).slot;
+                    GardenZone selectedExisting = channelSelectable
+                            ? findZone(ZoneCapacityPolicy.zoneId(selectedSlot))
+                            : existing;
+                    GardenZone candidate = candidate(selectedExisting, selectedSlot, crop,
                             value(name), sensor.id, valve.id, irrigation.isChecked());
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                    repository.saveGardenZone(candidate)
+                    (channelSelectable
+                            ? repository.createGardenZone(candidate)
+                            : repository.saveGardenZone(candidate))
                             .addOnSuccessListener(unused -> {
                                 boolean ready = !sensor.id.isEmpty() && !valve.id.isEmpty();
                                 Toast.makeText(this, ready
@@ -300,19 +357,61 @@ public final class ZoneManagementActivity extends AppCompatActivity {
     }
 
     private void confirmDeactivate(GardenZone zone) {
+        String zoneId = safe(zone.getZone_id());
+        boolean hasLocalHistory = hasLocalZoneHistory(zoneId);
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.zone_management_deactivate_title)
                 .setMessage(getString(R.string.zone_management_deactivate_message,
                         safeName(zone, zone.getOrder())))
                 .setNegativeButton(R.string.settings_cancel, null)
                 .setPositiveButton(R.string.zone_management_deactivate, (dialog, which) ->
-                        repository.deactivateGardenZone(zone.getZone_id())
-                                .addOnSuccessListener(unused -> Toast.makeText(this,
-                                        R.string.zone_management_deactivated,
-                                        Toast.LENGTH_LONG).show())
+                        repository.deactivateGardenZone(zoneId, hasLocalHistory)
+                                .addOnSuccessListener(deleted -> {
+                                    if (Boolean.TRUE.equals(deleted)) {
+                                        removeLocalZoneData(zoneId);
+                                    }
+                                    Toast.makeText(this, Boolean.TRUE.equals(deleted)
+                                                    ? R.string.zone_management_deleted_empty
+                                                    : R.string.zone_management_deactivated,
+                                            Toast.LENGTH_LONG).show();
+                                })
                                 .addOnFailureListener(error -> Toast.makeText(this,
                                         friendlyError(error), Toast.LENGTH_LONG).show()))
                 .show();
+    }
+
+    private boolean hasLocalZoneHistory(String zoneId) {
+        for (GardenEvent event : new LocalGardenEventStore(this).load()) {
+            if (zoneId.equals(safe(event.getZone_id()))
+                    && SeasonRecordPolicy.isFieldJournalEvent(
+                    event.getType(), event.getSource(), event.getSource_key())) return true;
+        }
+        for (GardenPhoto photo : new LocalGardenPhotoStore(this).load()) {
+            if (zoneId.equals(safe(photo.getZone_id()))) return true;
+        }
+        for (SeasonOutcome outcome : new LocalSeasonOutcomeStore(this).load()) {
+            if (zoneId.equals(safe(outcome.getZone_id()))
+                    && SeasonRecordPolicy.hasMeaningfulOutcome(outcome)) return true;
+        }
+        return false;
+    }
+
+    private void removeLocalZoneData(String zoneId) {
+        new LocalGardenEventStore(this).removeByZone(zoneId);
+        new LocalSeasonOutcomeStore(this).removeByZone(zoneId);
+        LocalGardenNotificationStore store =
+                new LocalGardenNotificationStore(this);
+        List<GardenNotification> matches = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+        for (GardenNotification notification : store.load()) {
+            if (notification == null
+                    || !zoneId.equals(safe(notification.getZone_id()))
+                    || safe(notification.getId()).isEmpty()) continue;
+            matches.add(notification);
+            ids.add(notification.getId());
+        }
+        store.rememberDeleted(matches);
+        store.removeAll(ids);
     }
 
     private List<HardwareOption> hardwareOptions(boolean sensor, @Nullable GardenZone current) {
@@ -380,6 +479,8 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                 return getString(R.string.zone_management_error_irrigation_busy);
             case ZoneCapacityPolicy.ERROR_ACTIVE_SEASON:
                 return getString(R.string.zone_management_error_active_season);
+            case ZoneCapacityPolicy.ERROR_ZONE_IN_USE:
+                return getString(R.string.zone_management_error_zone_used);
             case ZoneCapacityPolicy.ERROR_INVALID_ZONE:
             case ZoneCapacityPolicy.ERROR_SENSOR_INVALID:
             case ZoneCapacityPolicy.ERROR_VALVE_INVALID:
@@ -466,6 +567,21 @@ public final class ZoneManagementActivity extends AppCompatActivity {
 
         HardwareOption(String id, String label) {
             this.id = id;
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    private static final class ZoneChannelOption {
+        final int slot;
+        final String label;
+
+        ZoneChannelOption(int slot, String label) {
+            this.slot = slot;
             this.label = label;
         }
 

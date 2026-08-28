@@ -6,7 +6,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -255,7 +254,13 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     .append(safe(season.getSeason_id())).append('|')
                     .append(safe(season.getStatus())).append('|')
                     .append(safe(season.getResult())).append('|')
-                    .append(season.getEnded_at_epoch()).append(';');
+                    .append(season.getEnded_at_epoch()).append('|')
+                    .append(season.getWatering_count()).append('|')
+                    .append(season.getFertilizer_application_count()).append('|')
+                    .append(season.getJournal_event_count()).append('|')
+                    .append(season.getManual_journal_event_count()).append('|')
+                    .append(season.getPhoto_count()).append('|')
+                    .append(season.getPlant_assistant_analysis_count()).append(';');
         }
         return value.toString();
     }
@@ -414,9 +419,10 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         LinearLayout content = vertical();
         content.setPadding(dp(16), dp(15), dp(16), dp(15));
         card.addView(content);
+        GardenSeason archiveIdentity = latestCompletedSeason(seasonsFor(zone), true);
 
         LinearLayout heading = horizontal();
-        heading.addView(text(zoneLabel(zone), 18, R.color.textPrimary, Typeface.BOLD), weighted());
+        heading.addView(text(archiveZoneLabel(zone, archiveIdentity), 18, R.color.textPrimary, Typeface.BOLD), weighted());
         TextView badge = text(
                 getString(R.string.season_status_zone_inactive),
                 10,
@@ -432,7 +438,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         content.addView(label);
 
         List<GardenSeason> history = seasonsFor(zone);
-        TextView historyText = text(historySummary(history), 12, R.color.textSecondary, Typeface.NORMAL);
+        TextView historyText = text(historySummary(history, true), 12, R.color.textSecondary, Typeface.NORMAL);
         historyText.setPadding(0, dp(8), 0, 0);
         content.addView(historyText);
 
@@ -451,7 +457,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         );
         archiveParams.topMargin = dp(13);
         archive.setLayoutParams(archiveParams);
-        GardenSeason latestCompleted = latestCompletedSeason(history);
+        GardenSeason latestCompleted = latestCompletedSeason(history, true);
         if (latestCompleted != null) {
             archive.setOnClickListener(view -> openSeasonArchive(zone, latestCompleted));
             content.addView(archive);
@@ -509,10 +515,14 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     }
 
     private String historySummary(List<GardenSeason> history) {
+        return historySummary(history, false);
+    }
+
+    private String historySummary(List<GardenSeason> history, boolean requireRecordedActivity) {
         int closed = 0;
         GardenSeason latestClosed = null;
         for (GardenSeason season : history) {
-            if (!SeasonScope.isRealCompletedArchive(season)) continue;
+            if (!isCompletedArchiveForDisplay(season, requireRecordedActivity)) continue;
             closed++;
             if (latestClosed == null || season.getEnded_at_epoch() > latestClosed.getEnded_at_epoch()) {
                 latestClosed = season;
@@ -526,14 +536,27 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     }
 
     private GardenSeason latestCompletedSeason(List<GardenSeason> history) {
+        return latestCompletedSeason(history, false);
+    }
+
+    private GardenSeason latestCompletedSeason(
+            List<GardenSeason> history,
+            boolean requireRecordedActivity) {
         GardenSeason latest = null;
         for (GardenSeason season : history) {
-            if (!SeasonScope.isRealCompletedArchive(season)) continue;
+            if (!isCompletedArchiveForDisplay(season, requireRecordedActivity)) continue;
             if (latest == null || season.getEnded_at_epoch() > latest.getEnded_at_epoch()) {
                 latest = season;
             }
         }
         return latest;
+    }
+
+    private boolean isCompletedArchiveForDisplay(
+            GardenSeason season,
+            boolean requireRecordedActivity) {
+        return SeasonScope.isRealCompletedArchive(season)
+                && (!requireRecordedActivity || SeasonScope.hasRecordedActivity(season));
     }
 
     private List<GardenSeason> seasonsFor(GardenZone zone) {
@@ -550,7 +573,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     private boolean hasCompletedSeasonArchive(String zoneId) {
         for (GardenSeason season : seasons) {
             if (season == null || !zoneId.equals(season.getZone_id())) continue;
-            if (SeasonScope.isRealCompletedArchive(season)) {
+            if (SeasonScope.isRealCompletedArchive(season)
+                    && SeasonScope.hasRecordedActivity(season)) {
                 return true;
             }
         }
@@ -600,31 +624,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item
         ));
 
-        List<SensorChoice> sensorChoices = sensorChoicesFor(zone);
-        Spinner sensor = spinnerWithLabel(form, R.string.season_start_sensor_label);
-        List<String> sensorLabels = new ArrayList<>();
-        for (SensorChoice choice : sensorChoices) sensorLabels.add(choice.label);
-        sensor.setAdapter(new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                sensorLabels
-        ));
-        EditText customSensor = field(R.string.season_start_custom_sensor_hint, InputType.TYPE_CLASS_TEXT);
-        customSensor.setVisibility(View.GONE);
-        form.addView(customSensor);
-        sensor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                boolean custom = position >= 0
-                        && position < sensorChoices.size()
-                        && sensorChoices.get(position).custom;
-                customSensor.setVisibility(custom ? View.VISIBLE : View.GONE);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
-        });
-
         String valve = blank(zone.getValve_id())
                 ? getString(R.string.season_start_no_valve)
                 : zone.getValve_id();
@@ -661,35 +660,13 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     }
                     String plantType = selectedCrop.getPlant_type();
                     String emoji = selectedCrop.getEmoji();
-                    int sensorIndex = Math.min(
-                            Math.max(0, sensor.getSelectedItemPosition()),
-                            sensorChoices.size() - 1
-                    );
-                    SensorChoice selectedSensor = sensorChoices.get(sensorIndex);
-                    String sensorId = selectedSensor.custom
-                            ? value(customSensor).toLowerCase(Locale.ROOT)
-                            : selectedSensor.sensorId;
-                    if (selectedSensor.custom && blank(sensorId)) {
-                        Toast.makeText(this, R.string.season_sensor_required, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    if (!blank(sensorId) && sensorAssignedToOtherZone(sensorId, zone.getZone_id())) {
-                        Toast.makeText(
-                                this,
-                                getString(R.string.season_sensor_already_used, sensorId),
-                                Toast.LENGTH_LONG
-                        ).show();
-                        return;
-                    }
 
                     String[] codes = getResources().getStringArray(R.array.season_growth_stage_codes);
                     String code = codes[Math.min(stage.getSelectedItemPosition(), codes.length - 1)];
                     SeasonStartConfiguration configuration = new SeasonStartConfiguration(
                             cropName,
                             plantType,
-                            emoji,
-                            sensorId,
-                            selectedSensor.enabled
+                            emoji
                     );
                     setBusy(action, true);
                     dialog.dismiss();
@@ -744,71 +721,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
             }
         }
         return fallback;
-    }
-
-    private List<SensorChoice> sensorChoicesFor(GardenZone currentZone) {
-        List<SensorChoice> result = new ArrayList<>();
-        String currentId = safe(currentZone.getSensor_id()).trim();
-        boolean currentEnabled = currentZone.isSensor_enabled() && !currentId.isEmpty();
-        if (!currentEnabled) {
-            result.add(SensorChoice.later(getString(R.string.season_start_sensor_later)));
-        }
-        if (!currentId.isEmpty()) {
-            result.add(SensorChoice.assigned(
-                    getString(R.string.season_start_sensor_current, currentId),
-                    currentId
-            ));
-        }
-        for (int index = 1; index <= 8; index++) {
-            String candidate = String.format(Locale.ROOT, "soil-%03d", index);
-            if (candidate.equalsIgnoreCase(currentId)) continue;
-            if (sensorAssignedToOtherZone(candidate, currentZone.getZone_id())) continue;
-            result.add(SensorChoice.assigned(
-                    getString(R.string.season_start_sensor_available, candidate),
-                    candidate
-            ));
-        }
-        if (currentEnabled) {
-            result.add(SensorChoice.later(getString(R.string.season_start_sensor_later)));
-        }
-        result.add(SensorChoice.custom(getString(R.string.season_start_sensor_custom)));
-        return result;
-    }
-
-    private boolean sensorAssignedToOtherZone(String sensorId, String currentZoneId) {
-        String expected = safe(sensorId).trim();
-        if (expected.isEmpty()) return false;
-        for (GardenZone candidate : zones) {
-            if (candidate == null || safe(candidate.getZone_id()).equals(currentZoneId)) continue;
-            if (expected.equalsIgnoreCase(safe(candidate.getSensor_id()).trim())) return true;
-        }
-        return false;
-    }
-
-    private static final class SensorChoice {
-        final String label;
-        final String sensorId;
-        final boolean enabled;
-        final boolean custom;
-
-        private SensorChoice(String label, String sensorId, boolean enabled, boolean custom) {
-            this.label = label;
-            this.sensorId = sensorId;
-            this.enabled = enabled;
-            this.custom = custom;
-        }
-
-        static SensorChoice assigned(String label, String sensorId) {
-            return new SensorChoice(label, sensorId, true, false);
-        }
-
-        static SensorChoice later(String label) {
-            return new SensorChoice(label, "", false, false);
-        }
-
-        static SensorChoice custom(String label) {
-            return new SensorChoice(label, "", true, true);
-        }
     }
 
     private void showCancelNewSeasonDialog(GardenZone zone, MaterialButton action) {
@@ -879,11 +791,12 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     seasonRepository.closeSeason(zone.getZone_id(), outcome)
                             .addOnSuccessListener(ignored -> {
                                 outcomeStore.addForSeason(outcome);
-                                GardenEvent event = eventStore.addForSeason(
+                                GardenEvent event = eventStore.addSystemForSeason(
                                         zone.getZone_id(),
                                         state.getActive_season_id(),
                                         getString(R.string.season_closed_event_title),
-                                        closeEventNote(outcome)
+                                        closeEventNote(outcome),
+                                        "season_closed:" + state.getActive_season_id()
                                 );
                                 firebaseRepository.saveGardenEvent(event);
                                 setBusy(action, false);
@@ -982,6 +895,13 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     private String zoneLabel(GardenZone zone) {
         String emoji = safe(zone.getEmoji()).trim();
         return (emoji.isEmpty() ? "" : emoji + " ") + safe(zone.getName());
+    }
+
+    private String archiveZoneLabel(GardenZone zone, GardenSeason season) {
+        if (season == null) return zoneLabel(zone);
+        String emoji = blank(season.getEmoji()) ? safe(zone.getEmoji()).trim() : season.getEmoji().trim();
+        String name = blank(season.getZone_name()) ? safe(zone.getName()) : season.getZone_name().trim();
+        return (emoji.isEmpty() ? "" : emoji + " ") + name;
     }
 
     private String formatEpoch(long epoch) {

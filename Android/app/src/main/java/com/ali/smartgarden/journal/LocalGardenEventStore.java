@@ -32,6 +32,13 @@ public final class LocalGardenEventStore {
         replaceSeasonId(event.getId(), seasonId);
         return event;
     }
+
+    public GardenEvent addSystemForSeason(String zoneId, String seasonId, String type, String note, String sourceKey) {
+        GardenEvent event = addInternal(zoneId, type, note, "SYSTEM", sourceKey);
+        event.setSeason_id(seasonId);
+        replaceSeasonId(event.getId(), seasonId);
+        return event;
+    }
     public GardenEvent add(String zoneId, String type, String note, long occurredAtEpoch) {
         GardenEvent event = addInternal(zoneId, type, note, "MANUAL", "");
         if (occurredAtEpoch > 0L) {
@@ -145,6 +152,24 @@ public final class LocalGardenEventStore {
             if (id.equals(item.optString("id"))) removed = true; else remaining.put(item);
         } catch (Exception ignored) { }
         if (removed) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_INDEX, remaining.toString()).apply();
+        return removed;
+    }
+
+    public int removeByZone(String zoneId) {
+        if (zoneId == null || zoneId.isBlank()) return 0;
+        JSONArray current = read();
+        JSONArray remaining = new JSONArray();
+        int removed = 0;
+        for (int i = 0; i < current.length(); i++) {
+            JSONObject item = current.optJSONObject(i);
+            if (item == null) continue;
+            if (zoneId.equals(item.optString("zone_id"))) {
+                removed++;
+            } else {
+                remaining.put(item);
+            }
+        }
+        if (removed > 0) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_INDEX, remaining.toString()).apply();
         return removed;
     }
 

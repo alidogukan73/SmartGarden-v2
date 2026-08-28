@@ -38,6 +38,13 @@ public class NotificationPolicyTest {
         assertFalse(NotificationPolicy.isFreshEpochSeconds(9_000L, now, 600L));
         assertFalse(NotificationPolicy.isFreshEpochSeconds(0L, now, 600L));
     }
+
+    @Test
+    public void outageNotificationUsesFourMinuteSafetyWindow() {
+        assertEquals(3L * 60L, NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+        assertEquals(60_000L, NotificationPolicy.DEVICE_OFFLINE_CONFIRMATION_MILLIS);
+    }
+
     @Test
     public void deviceOfflineRuleHandlesHeartbeatAgeAndClockSkew() {
         long now = 10_000L;
@@ -100,6 +107,20 @@ public class NotificationPolicyTest {
     }
 
     @Test
+    public void verificationRetriesUntilOutageOrRecoveryTransitionCompletes() {
+        assertTrue(NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                true, true, false));
+        assertFalse(NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                true, true, true));
+        assertTrue(NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                true, false, true));
+        assertFalse(NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                true, false, false));
+        assertFalse(NotificationPolicy.shouldRetryDeviceConnectionVerification(
+                false, true, false));
+    }
+
+    @Test
     public void irrigationAiRequiresAnEnabledZoneAndFreshActionableDecision() {
         long now = 1_800_000L;
         String fresh = "1970-01-01T00:29:00Z";
@@ -134,5 +155,19 @@ public class NotificationPolicyTest {
                 false, 0, "ERROR"));
         assertFalse(NotificationPolicy.shouldNotifyInterruptedWatering(
                 false, 4, "VALVE_SIMULATION"));
+    }
+
+    @Test
+    public void notificationsRequireTheCurrentActiveSeason() {
+        assertTrue(NotificationPolicy.recordBelongsToActiveSeason(
+                true, true, "season-new", false, "season-new"));
+        assertFalse(NotificationPolicy.recordBelongsToActiveSeason(
+                true, false, "season-new", false, "season-new"));
+        assertFalse(NotificationPolicy.recordBelongsToActiveSeason(
+                true, true, "season-new", false, "season-old"));
+        assertFalse(NotificationPolicy.recordBelongsToActiveSeason(
+                true, true, "season-new", false, ""));
+        assertTrue(NotificationPolicy.recordBelongsToActiveSeason(
+                true, true, "season-legacy", true, ""));
     }
 }

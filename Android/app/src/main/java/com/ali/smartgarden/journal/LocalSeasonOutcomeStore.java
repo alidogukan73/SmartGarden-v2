@@ -84,6 +84,24 @@ public final class LocalSeasonOutcomeStore {
         } catch (Exception ignored) { }
         Collections.sort(values, Comparator.comparingLong(SeasonOutcome::getRecorded_at_epoch).reversed()); return values;
     }
+
+    public int removeByZone(String zoneId) {
+        if (zoneId == null || zoneId.isBlank()) return 0;
+        JSONArray current = read();
+        JSONArray remaining = new JSONArray();
+        int removed = 0;
+        for (int i = 0; i < current.length(); i++) {
+            JSONObject item = current.optJSONObject(i);
+            if (item == null) continue;
+            if (zoneId.equals(item.optString("zone_id"))) {
+                removed++;
+            } else {
+                remaining.put(item);
+            }
+        }
+        if (removed > 0) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_ITEMS, remaining.toString()).apply();
+        return removed;
+    }
     private JSONArray read() {
         String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_ITEMS, "[]");
         try { return new JSONArray(raw == null ? "[]" : raw); } catch (Exception ignored) { return new JSONArray(); }

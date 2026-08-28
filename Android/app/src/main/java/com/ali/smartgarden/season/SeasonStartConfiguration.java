@@ -5,36 +5,28 @@ import com.ali.smartgarden.models.GardenZone;
 import java.text.Normalizer;
 import java.util.Locale;
 
-/** Crop and sensor identity selected explicitly when a new zone season starts. */
+/** Crop identity selected explicitly when a new zone season starts. */
 public final class SeasonStartConfiguration {
     private final String cropName;
     private final String plantType;
     private final String emoji;
-    private final String sensorId;
-    private final boolean sensorEnabled;
 
     public SeasonStartConfiguration(
             String cropName,
             String plantType,
-            String emoji,
-            String sensorId,
-            boolean sensorEnabled
+            String emoji
     ) {
         this.cropName = safe(cropName).trim();
         this.plantType = safe(plantType).trim();
         this.emoji = safe(emoji).trim().isEmpty() ? "🌱" : safe(emoji).trim();
-        this.sensorId = safe(sensorId).trim();
-        this.sensorEnabled = sensorEnabled && !this.sensorId.isEmpty();
     }
 
     public static SeasonStartConfiguration fromZone(GardenZone zone) {
-        if (zone == null) return new SeasonStartConfiguration("", "", "🌱", "", false);
+        if (zone == null) return new SeasonStartConfiguration("", "", "🌱");
         return new SeasonStartConfiguration(
                 zone.getName(),
                 zone.getPlant_type(),
-                zone.getEmoji(),
-                zone.getSensor_id(),
-                zone.isSensor_enabled()
+                zone.getEmoji()
         );
     }
 
@@ -76,15 +68,9 @@ public final class SeasonStartConfiguration {
     public String getCropName() { return cropName; }
     public String getPlantType() { return plantType; }
     public String getEmoji() { return emoji; }
-    public String getSensorId() { return sensorId; }
-    public boolean isSensorEnabled() { return sensorEnabled; }
 
     public boolean isValid() {
         return !cropName.isEmpty() && !plantType.isEmpty();
-    }
-
-    public boolean changesSensor(String previousSensorId, boolean previousEnabled) {
-        return !sensorId.equals(safe(previousSensorId).trim()) || sensorEnabled != previousEnabled;
     }
 
     private static String normalizedCropName(String cropName) {

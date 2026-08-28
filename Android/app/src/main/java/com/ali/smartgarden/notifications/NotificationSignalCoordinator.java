@@ -3,6 +3,7 @@ package com.ali.smartgarden.notifications;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.ali.smartgarden.R;
+import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.AIDecision;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.Health;
@@ -40,6 +41,7 @@ public final class NotificationSignalCoordinator {
 
     public static void evaluateWeather(Context context, Double temperature, Double rain,
                                        Double wind, String forecastDate, long updatedAtEpoch) {
+        context = AvoraLanguageManager.localizedContext(context);
         long nowEpoch = System.currentTimeMillis() / 1000L;
         if (!NotificationPolicy.isFreshEpochSeconds(
                 updatedAtEpoch, nowEpoch, WEATHER_MAX_AGE_SECONDS)) {
@@ -74,11 +76,12 @@ public final class NotificationSignalCoordinator {
 
 
 
-    public static void evaluateDeviceConnection(Context context, Status status) {
+    public static synchronized void evaluateDeviceConnection(Context context, Status status) {
 
         if (status == null) {
             return;
         }
+        context = AvoraLanguageManager.localizedContext(context);
 
         if (!acceptDeviceSnapshot(context, status)) {
             return;
@@ -161,11 +164,11 @@ public final class NotificationSignalCoordinator {
     }
 
     /**
-     * Seeds the foreground monitor after Firebase cache/server reconciliation.
-     * An online launch silently clears an old incident; it never manufactures a
-     * recovery alert merely because the application process was recreated.
+     * Seeds a suspected outage after Firebase cache/server reconciliation.
+     * A healthy observation never clears a confirmed incident; recovery must
+     * pass through evaluateDeviceConnection and its stability window.
      */
-    public static void synchronizeDeviceConnection(Context context, Status status) {
+    public static synchronized void synchronizeDeviceConnection(Context context, Status status) {
         if (status == null) return;
         if (!acceptDeviceSnapshot(context, status)) return;
         long nowMillis = System.currentTimeMillis();
@@ -178,20 +181,14 @@ public final class NotificationSignalCoordinator {
             rememberOfflineCandidate(context, status.getLastSeenEpoch(), nowMillis);
         } else {
             clearOfflineCandidate(context);
-            clearRecoveryCandidate(context);
+            if (!new GardenNotificationManager(context)
+                    .isIncidentActive("device_offline")) {
+                clearRecoveryCandidate(context);
+            }
             DeviceConnectionVerificationWorker.cancel(context);
-            new GardenNotificationManager(context).resetIncident("device_offline");
         }
     }
 
-    /**
-     * Drops an outage candidate when this Android client cannot reach Firebase.
-     * A confirmed Pi incident stays active until a trustworthy recovery arrives.
-     */
-    public static void discardDeviceConnectionCandidates(Context context) {
-        clearOfflineCandidate(context);
-        clearRecoveryCandidate(context);
-    }
 
     private static boolean confirmOfflineObservation(Context context,
                                                       long heartbeatEpoch,
@@ -314,6 +311,7 @@ public final class NotificationSignalCoordinator {
         if (status == null) {
             return;
         }
+        context = AvoraLanguageManager.localizedContext(context);
 
         long nowEpoch =
                 System.currentTimeMillis() / 1000L;
@@ -471,6 +469,7 @@ public final class NotificationSignalCoordinator {
      * assistant but deliberately do not become phone notifications.
      */
     public static void evaluateIrrigationAi(Context context, List<GardenZone> zones) {
+        context = AvoraLanguageManager.localizedContext(context);
         NotificationSettingsStore settings = new NotificationSettingsStore(context);
         if (zones == null || !settings.isCategoryEnabled("irrigation")
                 || !settings.isReminderEnabled("irrigation")) return;
@@ -491,7 +490,7 @@ public final class NotificationSignalCoordinator {
                 if (updatedAt.isBlank() && zone.getAi() != null) {
                     updatedAt = safe(zone.getAi().getUpdatedAt(), "");
                 }
-                boolean actionable = decision != null
+                boolean actionable = isActiveSeasonTarget(zone) && decision != null
                         && NotificationPolicy.shouldNotifyIrrigationAi(
                         zone.isEnabled(), zone.isIrrigation_enabled(),
                         decision.isShouldWater(), updatedAt, nowMillis,
@@ -543,8 +542,12 @@ public final class NotificationSignalCoordinator {
     }
 
     /** Sends only newly completed cycles; opening a journal never replays old watering alerts. */
-    public static void evaluateWatering(Context context, List<WateringHistory> records) {
-        if (records == null
+    public static void evaluateWatering(
+            Context context,
+            List<WateringHistory> records,
+            List<GardenZone> zones) {
+        context = AvoraLanguageManager.localizedContext(context);
+        if (records == null || zones == null
                 || !new NotificationSettingsStore(context).isReminderEnabled("irrigation")) {
             return;
         }
@@ -552,6 +555,7 @@ public final class NotificationSignalCoordinator {
         GardenNotificationManager notifications = new GardenNotificationManager(context);
         for (WateringHistory record : records) {
             if (record == null) continue;
+            if (!recordBelongsToCurrentSeason(record, zones)) continue;
             long completedAt = parseTime(record.getFinishedAt());
             if (completedAt <= 0L || now < completedAt
                     || now - completedAt > 20L * 60L * 1000L) continue;
@@ -573,6 +577,32 @@ public final class NotificationSignalCoordinator {
                         "watering-interrupted:" + zoneId + ":" + id);
             }
         }
+    }
+
+    private static boolean isActiveSeasonTarget(GardenZone zone) {
+        if (zone == null || zone.getSeason() == null) return false;
+        return NotificationPolicy.isActiveSeasonNotificationTarget(
+                zone.isEnabled(),
+                zone.getSeason().isActive(),
+                zone.getSeason().getActive_season_id());
+    }
+
+    private static boolean recordBelongsToCurrentSeason(
+            WateringHistory record,
+            List<GardenZone> zones) {
+        String zoneId = record.getZoneId() == null ? "" : record.getZoneId().trim();
+        for (GardenZone zone : zones) {
+            if (zone == null || zone.getZone_id() == null
+                    || !zoneId.equals(zone.getZone_id().trim())
+                    || zone.getSeason() == null) continue;
+            return NotificationPolicy.recordBelongsToActiveSeason(
+                    zone.isEnabled(),
+                    zone.getSeason().isActive(),
+                    zone.getSeason().getActive_season_id(),
+                    zone.getSeason().isInclude_legacy_records(),
+                    record.getSeasonId());
+        }
+        return false;
     }
 
     private static long parseTime(String raw) {

@@ -2,10 +2,13 @@ package com.ali.smartgarden.language;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
+import java.util.Locale;
+
 
 /** Stores and applies AVORA's phone-local language preference. */
 public final class AvoraLanguageManager {
@@ -49,6 +52,29 @@ public final class AvoraLanguageManager {
     public static boolean isEnglishAvailable() {
         return true;
     }
+
+    /**
+     * Returns a resource context that follows AVORA's saved language even when
+     * the caller is WorkManager or a background service without an Activity.
+     */
+    @NonNull
+    public static Context localizedContext(@NonNull Context context) {
+        String languageTag = explicitLanguageTag(getLanguageMode(context));
+        if (languageTag.isEmpty()) return context;
+
+        Locale locale = Locale.forLanguageTag(languageTag);
+        Configuration configuration = new Configuration(
+                context.getResources().getConfiguration());
+        configuration.setLocale(locale);
+        configuration.setLayoutDirection(locale);
+        return context.createConfigurationContext(configuration);
+    }
+
+    static String explicitLanguageTag(String mode) {
+        String normalized = normalize(mode);
+        return MODE_SYSTEM.equals(normalized) ? "" : normalized;
+    }
+
 
     private static SharedPreferences preferences(Context context) {
         return context.getApplicationContext()

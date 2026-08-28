@@ -11,7 +11,7 @@
     <string name="season_management_no_zones">Henüz yönetilecek bir bahçe bölgesi yok.</string>
     <string name="season_management_no_active_zones">Şu anda etkin bir bahçe bölgesi yok. Yeni sezon başlatmak için önce Bölge Yönetimi’nden bir bölgeyi etkinleştirin.</string>
     <string name="season_management_inactive_title">Kullanım dışı bölge arşivleri (%1$d)</string>
-    <string name="season_management_inactive_description">Bu bölgeler yeni sezon başlatamaz. Geçmiş sezonları inceleyebilir veya Bölge Yönetimi’nden yeniden etkinleştirebilirsiniz.</string>
+    <string name="season_management_inactive_description">Bu bölgelerde yeni sezon başlatılamaz. Geçmiş sezonları inceleyebilir veya Bölge Yönetimi’nden yeni bir bölge ekleyebilirsiniz.</string>
     <string name="season_management_preparing">Mevcut kayıtlar ilk sezon arşivine bağlanıyor…</string>
     <string name="season_bootstrap_failed">Mevcut kayıtlar sezon arşivine bağlanamadı.</string>
     <string name="season_status_preparing">HAZIRLANIYOR</string>
@@ -57,23 +57,15 @@
     <string name="season_operation_wait">İşlem yapılıyor…</string>
     <string name="season_operation_done">Güncelleniyor…</string>
     <string name="season_archive_action">Sezon arşivini ve karşılaştırmayı aç</string>
-    <string name="season_reactivate_zone_action">Bölge Yönetimi’nde yeniden etkinleştir</string>
+    <string name="season_reactivate_zone_action">Bölge Yönetimi’ni aç</string>
 
     <string name="season_start_crop_label">Yeni sezonda yetiştirilecek ürün</string>
     <string name="season_start_custom_crop_hint">Diğer ürünün adı</string>
     <string name="season_start_custom_emoji_hint">Ürün simgesi (isteğe bağlı, ör. 🥕)</string>
     <string name="season_start_stage_label">Sezonun başlangıç gelişim dönemi</string>
-    <string name="season_start_sensor_label">Bu sezonda kullanılacak sensör</string>
-    <string name="season_start_custom_sensor_hint">Sensör kimliği (ör. soil-006)</string>
-    <string name="season_start_sensor_current">Mevcut sensörle devam · %1$s</string>
-    <string name="season_start_sensor_available">Kullanılabilir sensör · %1$s</string>
-    <string name="season_start_sensor_later">Sensörü daha sonra bağlayacağım</string>
-    <string name="season_start_sensor_custom">Başka sensör kimliği…</string>
     <string name="season_start_valve_note">Vana bu fiziksel bölgeye bağlı kalır: %1$s</string>
     <string name="season_start_no_valve">Vana atanmamış</string>
     <string name="season_crop_required">Yeni sezon için ürün adını girin.</string>
-    <string name="season_sensor_required">Başka sensör seçtiyseniz sensör kimliğini girin.</string>
-    <string name="season_sensor_already_used">%1$s sensörü başka bir bölgeye atanmış. Farklı bir sensör seçin.</string>
 
     <string-array name="season_crop_labels">
         <item>🍅 Domates</item>

@@ -116,7 +116,18 @@ public class SeasonScopeTest {
         assertTrue(SeasonScope.isRealCompletedArchive(userStarted));
     }
 
+    @Test
+    public void completedTestSeasonWithoutFieldRecordsHasNoRecordedActivity() {
+        GardenSeason testSeason = completedSeason(false);
 
+        assertFalse(SeasonScope.hasRecordedActivity(testSeason));
+        testSeason.setJournal_event_count(1);
+        assertFalse(SeasonScope.hasRecordedActivity(testSeason));
+
+
+        testSeason.setManual_journal_event_count(1);
+        assertTrue(SeasonScope.hasRecordedActivity(testSeason));
+    }
     @Test
     public void onlyTheManifestReferencedByZoneCanBeCurrent() {
         ZoneSeasonState active = season("zone-006-2026-200", false, 200L, 0L);

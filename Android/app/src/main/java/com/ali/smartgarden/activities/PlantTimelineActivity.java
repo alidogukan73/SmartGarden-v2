@@ -132,13 +132,24 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     private void render() {
         addAutomaticSignals();
-        String name = zone == null || zone.getName() == null || zone.getName().isBlank() ? getString(R.string.runtime_plant_default) : zone.getName();
         GardenSeason selected = selectedSeason();
+        String name;
+        if (selected != null && selected.getZone_name() != null
+                && !selected.getZone_name().isBlank()) {
+            name = selected.getZone_name().trim();
+        } else {
+            name = zone == null || zone.getName() == null || zone.getName().isBlank() ? getString(R.string.runtime_plant_default) : zone.getName();
+        }
         title.setText(getString(R.string.runtime_timeline_named_title, name));
-        season.setText(seasonHeader(name, selected));
+        String seasonHeader = seasonHeader(name, selected);
+        season.setText(seasonHeader);
+        season.setContentDescription(getString(
+                R.string.runtime_timeline_season_selector_description, seasonHeader));
         planting.setText("● " + plantingDateText());
         status.setText("● " + liveSeasonStatus());
-        emoji.setText(zone == null || zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji());
+        String archiveEmoji = selected == null ? "" : selected.getEmoji();
+        emoji.setText(archiveEmoji == null || archiveEmoji.isBlank()
+                ? zone == null || zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji() : archiveEmoji);
         month.setText(tabHeading());
         month.setVisibility("compare".equals(activeTab) ? View.VISIBLE : View.GONE);
         entries.removeAllViews(); int shown = 0; String lastMonthKey = "";
@@ -480,17 +491,20 @@ public class PlantTimelineActivity extends AppCompatActivity {
     }
 
     private String seasonHeader(String zoneName, GardenSeason selected) {
-        if (selected == null) return zoneName + " - " + selectedYear + " Sezonu  ⌄";
+        if (selected == null) {
+            return getString(R.string.runtime_timeline_season_header, zoneName,
+                    getString(R.string.runtime_timeline_season_year, selectedYear));
+        }
         String label = selected.getLabel().isBlank()
-                ? selectedYear + " Sezonu"
+                ? getString(R.string.runtime_timeline_season_year, selectedYear)
                 : selected.getLabel().trim();
         String normalizedZone = zoneName == null ? "" : zoneName.trim();
         // Compatibility with the first season format: "2026 Domates".
         if (!normalizedZone.isBlank() && (label.endsWith(" " + normalizedZone)
                 || label.equalsIgnoreCase(normalizedZone))) {
-            label = selectedYear + " Sezonu";
+            label = getString(R.string.runtime_timeline_season_year, selectedYear);
         }
-        return zoneName + " - " + label + "  ⌄";
+        return getString(R.string.runtime_timeline_season_header, zoneName, label);
     }
 
     private boolean recordBelongsToSelectedSeason(TimelineItem item) {
