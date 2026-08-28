@@ -24,7 +24,6 @@ public class GardenLocationActivity extends AppCompatActivity {
     private TextInputEditText city, district;
     private MaterialAutoCompleteTextView source;
     private TextView status;
-    private MaterialButton gps;
     private Double savedLatitude, savedLongitude;
 
     private final ActivityResultLauncher<String> permission =
@@ -43,7 +42,7 @@ public class GardenLocationActivity extends AppCompatActivity {
         district = findViewById(R.id.inputLocationDistrict);
         source = findViewById(R.id.inputWeatherSource);
         status = findViewById(R.id.txtLocationStatus);
-        gps = findViewById(R.id.btnUseGpsLocation);
+        MaterialButton gps = findViewById(R.id.btnUseGpsLocation);
         source.setAdapter(new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,

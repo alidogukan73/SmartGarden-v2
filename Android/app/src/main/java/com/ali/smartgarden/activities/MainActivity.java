@@ -6,7 +6,6 @@ import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
@@ -39,7 +38,6 @@ import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.ali.smartgarden.models.GardenNotification;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -60,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
     private long connectionStartedElapsedMillis;
     private MaterialCardView cardOnlineStatus;
     private TextView txtOnline;
-    private TextView txtDevice;
     private MaterialButton btnMainMenu;
     private TextView txtMainNotificationBadge;
     private final android.content.BroadcastReceiver notificationChangedReceiver =
@@ -268,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
 
         cardOnlineStatus = findViewById(R.id.cardOnlineStatus);
         txtOnline = findViewById(R.id.txtOnline);
-        txtDevice = findViewById(R.id.txtDevice);
+        TextView txtDevice = findViewById(R.id.txtDevice);
 
 
 

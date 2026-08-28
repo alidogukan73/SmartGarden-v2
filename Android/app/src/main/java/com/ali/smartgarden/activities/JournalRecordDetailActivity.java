@@ -21,7 +21,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.FertilizerApplication;
-import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;

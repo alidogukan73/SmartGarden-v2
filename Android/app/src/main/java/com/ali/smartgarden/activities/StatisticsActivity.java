@@ -128,7 +128,7 @@ public class StatisticsActivity extends AppCompatActivity {
 
 
     /**
-     * XML bileşenlerini Java değişkenlerine bağlar.
+     * XML ekranındaki öğeleri Java değişkenlerine bağlar.
      */
     private void initializeViews() {
 

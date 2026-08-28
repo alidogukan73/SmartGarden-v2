@@ -417,18 +417,6 @@ public class FertilizerReminderWorker extends Worker {
         return context.getString(R.string.notification_fertilizer_type_nutrition);
     }
 
-    private static String productIdByName(Map<String, FertilizerProduct> products,
-                                          String productName) {
-        if (productName == null || productName.isBlank()) return "";
-        for (Map.Entry<String, FertilizerProduct> entry : products.entrySet()) {
-            FertilizerProduct product = entry.getValue();
-            if (product != null && productName.equalsIgnoreCase(product.getName())) {
-                return entry.getKey();
-            }
-        }
-        return "";
-    }
-
     private static FertilizerApplicationSafety.Dose calculateDose(
             GardenZone zone,
             FertilizationProfile profile,

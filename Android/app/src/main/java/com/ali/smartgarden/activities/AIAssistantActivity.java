@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
@@ -45,7 +44,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +55,6 @@ public class AIAssistantActivity extends AppCompatActivity {
     private static final String TAG = "AIAssistantActivity";
     private static final String ALL_ZONES_RESET_SCOPE = "ALL";
 
-    private RecyclerView recyclerAIDecisionFlow;
     private DecisionStepAdapter decisionStepAdapter;
 
     private MaterialCardView cardAIDecision;
@@ -172,7 +169,6 @@ public class AIAssistantActivity extends AppCompatActivity {
     private boolean learningDataCollectionCompleted = false;
     private int profileLearningStage = 0;
     private final List<GardenZone> predictionZones = new ArrayList<>();
-    private final List<GardenZone> latestGardenZones = new ArrayList<>();
     private int selectedPredictionZoneIndex = 0;
     private MoisturePrediction latestMoisturePrediction;
     private AIDecision fallbackAIDecision;
@@ -214,7 +210,7 @@ public class AIAssistantActivity extends AppCompatActivity {
     }
 
     /**
-     * XML içerisindeki bütün View bileşenlerini Java tarafına bağlar.
+     * XML ekranındaki tüm öğeleri Java tarafına bağlar.
      */
     private void initializeViews() {
 
@@ -556,7 +552,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     /**
      * XML'deki 10 ilerleme segmentini bir diziye bağlar.
-     *
+     * <p>
      * Böylece her segment için ayrı ayrı kod yazmak yerine
      * döngüyle aktif veya pasif görünüm uygulanabilir.
      */
@@ -584,7 +580,7 @@ public class AIAssistantActivity extends AppCompatActivity {
      */
     private void initializeRecyclerView() {
 
-        recyclerAIDecisionFlow =
+        RecyclerView recyclerAIDecisionFlow =
                 findViewById(R.id.recyclerAIDecisionFlow);
 
         decisionStepAdapter =
@@ -985,8 +981,6 @@ public class AIAssistantActivity extends AppCompatActivity {
         List<GardenZone> incomingZones = zones == null
                 ? new ArrayList<>()
                 : new ArrayList<>(zones);
-        latestGardenZones.clear();
-        latestGardenZones.addAll(incomingZones);
         updatePredictionZones(incomingZones);
         renderWeatherGuidance();
     }
@@ -1090,55 +1084,6 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         cardAIWeatherGuidance.setVisibility(View.VISIBLE);
     }
-    private String appendRuntimeDurationExplanation(
-            String detail,
-            ZoneIrrigationStatus status
-    ) {
-        if (
-                status == null
-                        || status.getConfigured_duration_seconds() <= 0
-                        || status.getEffective_duration_seconds() <= 0
-                        || status.getConfigured_duration_seconds()
-                        == status.getEffective_duration_seconds()
-        ) {
-            return detail;
-        }
-
-        String source = status.getDuration_source();
-        String durationLine;
-        if (
-                status.isAdaptive_applied()
-                        && LEARNED_AND_WEATHER.equals(source)
-        ) {
-            durationLine = getString(
-                    R.string.ai_zone_duration_learned_weather,
-                    assistantFormatter.formatZoneDuration(
-                            status.getConfigured_duration_seconds()
-                    ),
-                    assistantFormatter.formatZoneDuration(
-                            status.getEffective_duration_seconds()
-                    ),
-                    status.getAdaptive_watering_count(),
-                    Math.round(status.getAdaptive_confidence() * 100.0)
-            );
-        } else if (status.isAdaptive_applied()) {
-            durationLine = getString(
-                    R.string.ai_zone_duration_learned,
-                    assistantFormatter.formatZoneDuration(status.getConfigured_duration_seconds()),
-                    assistantFormatter.formatZoneDuration(status.getEffective_duration_seconds()),
-                    status.getAdaptive_watering_count(),
-                    Math.round(status.getAdaptive_confidence() * 100.0)
-            );
-        } else {
-            durationLine = getString(
-                    R.string.ai_zone_duration_weather,
-                    assistantFormatter.formatZoneDuration(status.getConfigured_duration_seconds()),
-                    assistantFormatter.formatZoneDuration(status.getEffective_duration_seconds())
-            );
-        }
-        return detail + "\n" + durationLine;
-    }
-
     private void renderSoilLearningProfile(
             SoilLearningProfile profile
     ) {
@@ -2021,7 +1966,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     /**
      * AI nedenleri bölümündeki satırı güvenli biçimde gösterir.
-     *
+     * <p>
      * İlgili indeks boşsa TextView gizlenir.
      */
     private void renderReasonLine(
@@ -2134,7 +2079,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     /**
      * 10 parçalı ilerleme göstergesini yüzdeye göre doldurur.
-     *
+     * <p>
      * Örnek:
      * %40 = 4 aktif segment
      * %75 = 8 aktif segment
@@ -2196,7 +2141,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     /**
      * Öğrenme yüzdesine göre aşama ve açıklama metnini hesaplar.
-     *
+     * <p>
      * %1–20   = Aşama 1
      * %21–40  = Aşama 2
      * %41–60  = Aşama 3
@@ -2416,7 +2361,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
     /**
      * ISO tarih biçiminden saat bilgisini alır.
-     *
+     * <p>
      * Örnek:
      * 2026-07-19T18:45:30
      * sonuç: 18:45
@@ -2611,7 +2556,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         if (zones != null) {
             predictionZones.addAll(zones);
-            Collections.sort(predictionZones, Comparator.comparingInt(GardenZone::getOrder));
+            predictionZones.sort(Comparator.comparingInt(GardenZone::getOrder));
         }
 
         selectedPredictionZoneIndex = 0;
@@ -3071,57 +3016,6 @@ public class AIAssistantActivity extends AppCompatActivity {
         );
     }
 
-    private String formatMinutes(
-            double minutes
-    ) {
-
-        if (
-                Double.isNaN(minutes)
-                        || Double.isInfinite(minutes)
-                        || minutes <= 0
-        ) {
-            return assistantFormatter.unavailableValue();
-        }
-
-
-        if (minutes >= 60) {
-
-            return String.format(
-                    Locale.getDefault(),
-                    "%.1f sa",
-                    minutes / 60.0
-            );
-
-        }
-
-
-        return String.format(
-                Locale.getDefault(),
-                getString(R.string.ai_runtime_minutes),
-                minutes
-        );
-    }
-
-    private String formatDryingRate(
-            double rate
-    ) {
-
-        if (
-                Double.isNaN(rate)
-                        || Double.isInfinite(rate)
-                        || rate <= 0
-        ) {
-            return assistantFormatter.unavailableValue();
-        }
-
-
-        return String.format(
-                Locale.getDefault(),
-                getString(R.string.ai_runtime_decimal_rate_per_minute),
-                rate
-        );
-    }
-
     private String formatEfficiencyStatus(
             double efficiency
     ) {
@@ -3197,26 +3091,6 @@ public class AIAssistantActivity extends AppCompatActivity {
                             )
                     );
         }
-    }
-
-    private String formatLearningValue(
-            double value,
-            String fallback
-    ) {
-
-        if (
-                value <= 0
-                        || Double.isNaN(value)
-                        || Double.isInfinite(value)
-        ) {
-            return fallback;
-        }
-
-        return String.format(
-                Locale.getDefault(),
-                getString(R.string.ai_runtime_decimal_value),
-                value
-        );
     }
 
     private String formatErrorValue(

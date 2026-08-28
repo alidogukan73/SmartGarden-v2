@@ -52,7 +52,7 @@ public class DecisionStepAdapter
 
     /**
      * RecyclerView içeriğini yalnız gerçekten değişen satırlarda yeniler.
-     *
+     * <p>
      * Önceki uygulama her Firebase güncellemesinde bütün satırları kaldırıp
      * yeniden ekliyordu. Bu davranış RecyclerView geçiş animasyonlarını
      * tetiklediği için AI Karar Akışı kartı yanıp sönüyormuş gibi görünüyordu.
@@ -62,9 +62,15 @@ public class DecisionStepAdapter
                 newSteps == null ? new ArrayList<>() : new ArrayList<>(newSteps);
 
         if (decisionSteps.size() != safeSteps.size()) {
+            int previousCount = decisionSteps.size();
             decisionSteps.clear();
+            if (previousCount > 0) {
+                notifyItemRangeRemoved(0, previousCount);
+            }
             decisionSteps.addAll(safeSteps);
-            notifyDataSetChanged();
+            if (!safeSteps.isEmpty()) {
+                notifyItemRangeInserted(0, safeSteps.size());
+            }
             return;
         }
 

@@ -66,7 +66,7 @@ public class NotificationCenterAdapter
             List<GardenNotification> notifications
     ) {
 
-        rows.clear();
+        List<Row> updatedRows = new ArrayList<>();
 
         String lastDay = "";
 
@@ -85,20 +85,28 @@ public class NotificationCenterAdapter
 
                 if (!day.equals(lastDay)) {
 
-                    rows.add(
+                    updatedRows.add(
                             Row.header(day)
                     );
 
                     lastDay = day;
                 }
 
-                rows.add(
+                updatedRows.add(
                         Row.notification(value)
                 );
             }
         }
 
-        notifyDataSetChanged();
+        int previousCount = rows.size();
+        rows.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
+        rows.addAll(updatedRows);
+        if (!rows.isEmpty()) {
+            notifyItemRangeInserted(0, rows.size());
+        }
     }
 
     public GardenNotification getNotificationAt(

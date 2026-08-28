@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Waits for Firebase's live transport signal.
- *
  * <p>The first value of .info/connected can be false while a freshly started
  * process is still opening its socket. A one-shot get therefore cannot
  * distinguish startup from a real network loss.</p>

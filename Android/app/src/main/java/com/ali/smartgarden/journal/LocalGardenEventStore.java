@@ -8,7 +8,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -124,7 +123,7 @@ public final class LocalGardenEventStore {
                 // A malformed local item must not hide the rest of the journal.
             }
         }
-        Collections.sort(events, Comparator.comparingLong(GardenEvent::getOccurred_at_epoch).reversed());
+        events.sort(Comparator.comparingLong(GardenEvent::getOccurred_at_epoch).reversed());
         return events;
     }
 

@@ -7,10 +7,8 @@ import android.content.res.ColorStateList;
 import android.content.Intent;
 import android.view.View;
 import android.widget.TextView;
-import androidx.fragment.app.FragmentActivity;
-import androidx.annotation.ColorRes;
+import androidx.core.widget.TextViewCompat;
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.activities.AIAssistantActivity;
 import com.ali.smartgarden.activities.MainActivity;
 import com.ali.smartgarden.activities.PlantListActivity;
 import com.ali.smartgarden.activities.SettingsHubActivity;
@@ -46,7 +44,10 @@ public final class PrimaryBottomNavigation {
                 top.setBounds(0, 0, iconSize, iconSize);
                 item.setCompoundDrawablesRelative(drawables[0], top, drawables[2], drawables[3]);
             }
-            item.setCompoundDrawableTintList(ColorStateList.valueOf(color));
+            TextViewCompat.setCompoundDrawableTintList(
+                    item,
+                    ColorStateList.valueOf(color)
+            );
             item.setTextColor(color);
             item.setTypeface(null, isActive ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         }

@@ -372,8 +372,7 @@ public final class LocalGardenNotificationStore {
             } catch (Exception ignored) {
             }
         }
-        Collections.sort(values,
-                Comparator.comparingLong(GardenNotification::getCreated_at_epoch).reversed());
+        values.sort(Comparator.comparingLong(GardenNotification::getCreated_at_epoch).reversed());
         return values;
     }
 

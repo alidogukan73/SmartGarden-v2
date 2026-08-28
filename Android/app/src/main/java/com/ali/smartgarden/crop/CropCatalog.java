@@ -60,7 +60,7 @@ public final class CropCatalog {
         }
         List<CropCatalogItem> merged = new ArrayList<>(unique.values());
         merged.sort(Comparator.comparing(CropCatalogItem::getName,
-                java.text.Collator.getInstance(new Locale("tr", "TR"))));
+                java.text.Collator.getInstance(Locale.forLanguageTag("tr-TR"))));
         return merged;
     }
 

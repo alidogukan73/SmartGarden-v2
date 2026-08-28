@@ -6,7 +6,6 @@ import com.ali.smartgarden.models.FertilizerProduct;
 /**
  * Single source of truth for product eligibility in fertilizer recommendations
  * and planned application flows.
- *
  * <p>Historical records are intentionally handled separately by the UI: a
  * farmer must still be able to record what was actually applied, even when it
  * conflicts with this policy. Such records must be saved as an explicit

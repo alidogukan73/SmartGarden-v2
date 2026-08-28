@@ -1,6 +1,5 @@
 package com.ali.smartgarden.models;
 
-import com.google.firebase.database.PropertyName;
 
 public class SoilLearningProfile {
 

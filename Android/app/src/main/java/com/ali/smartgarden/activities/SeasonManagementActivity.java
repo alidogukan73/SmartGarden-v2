@@ -819,12 +819,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         ).show();
     }
 
-    private String displayDate(String rawDate) {
-        Date parsed = parseSupportedDate(rawDate);
-        if (parsed == null) return safe(rawDate).trim();
-        return new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(parsed);
-    }
-
     private Date parseSupportedDate(String rawDate) {
         if (blank(rawDate)) return null;
         String[] patterns = {"dd-MM-yyyy", "yyyy-MM-dd", "dd.MM.yyyy"};

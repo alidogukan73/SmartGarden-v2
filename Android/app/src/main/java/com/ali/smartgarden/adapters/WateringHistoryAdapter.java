@@ -1,7 +1,6 @@
 package com.ali.smartgarden.adapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +59,9 @@ public class WateringHistoryAdapter extends ListAdapter<
         zoneLabels = labels == null
                 ? java.util.Collections.emptyMap()
                 : new java.util.HashMap<>(labels);
-        notifyDataSetChanged();
+        if (getItemCount() > 0) {
+            notifyItemRangeChanged(0, getItemCount());
+        }
     }
 
 

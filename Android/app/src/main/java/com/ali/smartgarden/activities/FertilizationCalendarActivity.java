@@ -30,13 +30,10 @@ import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.viewmodels.FertilizationCalendarViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.gms.tasks.Tasks;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Map;
-import java.time.Instant;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -917,68 +914,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 ))
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
-    }
-    private void renderStockSummary(
-            List<FertilizerProduct> products
-    ) {
-        int tracked = 0;
-        int low = 0;
-        int empty = 0;
-        if (products != null) {
-            for (FertilizerProduct product : products) {
-                if (!product.isEnabled()
-                        || product.getStock_unit() == null
-                        || product.getStock_unit().isBlank()) {
-                    continue;
-                }
-                tracked++;
-                if (product.getStock_amount() <= 0.0) {
-                    empty++;
-                } else if (product.getLow_stock_threshold() > 0.0
-                        && product.getStock_amount()
-                        <= product.getLow_stock_threshold()) {
-                    low++;
-                }
-            }
-        }
-        StringBuilder summary = new StringBuilder();
-        if (tracked == 0) {
-            summary.append(getString(
-                    R.string.fertilizer_stock_summary_empty
-            ));
-        } else {
-            summary.append(getString(
-                    R.string.fertilizer_stock_summary,
-                    tracked,
-                    low,
-                    empty
-            ));
-            for (FertilizerProduct product : products) {
-                if (!product.isEnabled()
-                        || product.getStock_unit() == null
-                        || product.getStock_unit().isBlank()) {
-                    continue;
-                }
-                String status = product.getStock_amount() <= 0.0
-                        ? getString(
-                        R.string.fertilizer_stock_empty_status
-                )
-                        : product.getLow_stock_threshold() > 0.0
-                        && product.getStock_amount()
-                        <= product.getLow_stock_threshold()
-                        ? getString(
-                        R.string.fertilizer_stock_status_low
-                )
-                        : getString(R.string.fertilizer_stock_ok);
-                summary.append("\n").append(getString(
-                        R.string.fertilizer_stock_item,
-                        product.getName(),
-                        formatAmount(product.getStock_amount()),
-                        product.getStock_unit(),
-                        status
-                ));
-            }
-        }
     }
 
     private void requestNotificationPermissionIfNeeded() {

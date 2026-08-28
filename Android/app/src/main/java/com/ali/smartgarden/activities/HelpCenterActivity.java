@@ -1,6 +1,5 @@
 package com.ali.smartgarden.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -143,11 +142,7 @@ public class HelpCenterActivity extends AppCompatActivity {
         String plain = Normalizer.normalize(value, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "")
                 .replace('ı', 'i');
-        return plain.toLowerCase(new Locale("tr", "TR")).trim();
-    }
-
-    private void open(Class<?> target) {
-        startActivity(new Intent(this, target));
+        return plain.toLowerCase(Locale.forLanguageTag("tr-TR")).trim();
     }
 
     private void applyWindowInsets() {

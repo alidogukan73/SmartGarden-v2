@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.TextView;
 import android.widget.LinearLayout;
-import android.view.View;
 import androidx.core.content.ContextCompat;
 
 import androidx.annotation.Nullable;

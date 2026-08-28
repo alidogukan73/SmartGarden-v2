@@ -13,7 +13,6 @@ import java.util.Set;
 
 /**
  * Produces explainable warnings from recorded fertilizer applications.
- *
  * <p>The rules are deliberately conservative. They identify records that
  * deserve review; they never prescribe a fertilizer or start an application.</p>
  */

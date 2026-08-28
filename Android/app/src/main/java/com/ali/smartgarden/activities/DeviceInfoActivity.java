@@ -34,7 +34,6 @@ import java.util.Locale;
 public class DeviceInfoActivity extends AppCompatActivity {
     private TextView connectionStatus;
     private TextView connectionSummary;
-    private TextView deviceId;
     private TextView backendVersion;
     private TextView espFirmware;
     private TextView ipAddress;
@@ -62,7 +61,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
         connectionSummary = findViewById(R.id.txtDeviceInfoConnectionSummary);
 
         LinearLayout identity = findViewById(R.id.layoutDeviceInfoIdentity);
-        deviceId = addValueRow(identity, R.string.device_info_device_id, false);
+        TextView deviceId = addValueRow(identity, R.string.device_info_device_id, false);
         backendVersion = addValueRow(identity, R.string.device_info_backend_version, true);
         espFirmware = addValueRow(identity, R.string.device_info_esp_firmware, true);
 
@@ -189,7 +188,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
     }
 
     private String formatDateTime(long epochMillis) {
-        return new SimpleDateFormat("dd-MM-yyyy HH:mm", new Locale("tr", "TR"))
+        return new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.forLanguageTag("tr-TR"))
                 .format(new Date(epochMillis));
     }
 

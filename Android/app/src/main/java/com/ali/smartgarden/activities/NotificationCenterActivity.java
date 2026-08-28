@@ -32,17 +32,13 @@ import com.ali.smartgarden.viewmodels.NotificationCenterViewModel;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /** Chronological AVORA notification center with state and category filters. */
 public class NotificationCenterActivity extends AppCompatActivity {
     private static final String ALL = "ALL", SAVED = "SAVED", READ = "READ", UNREAD = "UNREAD";
-    private RecyclerView list;
     private NotificationCenterAdapter adapter;
     private TextView summary, empty;
     private NotificationCenterViewModel viewModel;
@@ -62,7 +58,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification_center);
         viewModel = new ViewModelProvider(this).get(NotificationCenterViewModel.class);
         viewModel.getNotifications().observe(this, this::render);
-        list = findViewById(R.id.listNotifications);
+        RecyclerView list = findViewById(R.id.listNotifications);
 
         adapter = new NotificationCenterAdapter(
                 this,
@@ -521,24 +517,6 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 .putExtra("source_key", value.getSource_key())
                 .putExtra("created_at_epoch", value.getCreated_at_epoch()).putExtra("read", value.isRead()).putExtra("saved", value.isSaved());
         startActivity(intent);
-    }
-
-    private String dayLabel(long epoch) {
-        long today = System.currentTimeMillis() / 86400000L;
-        long day = epoch * 1000L / 86400000L;
-        if (day == today) return getString(R.string.notification_center_today);
-        if (day == today - 1) return getString(R.string.notification_center_yesterday);
-        return new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(new Date(epoch * 1000L));
-    }
-    private String icon(String type) {
-        if ("IRRIGATION".equals(type)) return "\uD83D\uDCA7";
-        if ("FERTILIZATION".equals(type)) return "\uD83C\uDF31";
-        if ("STOCK".equals(type)) return "\u26A0";
-        if ("PHOTO_FOLLOW_UP".equals(type)) return "\uD83D\uDCF7";
-        if ("PLANT_ASSISTANT".equals(type)) return "\u2726";
-        if ("WEATHER".equals(type)) return "\u2600";
-        if ("DEVICE".equals(type)) return "\u25A3";
-        return "\u2022";
     }
 
     private void confirmDeleteNotification(

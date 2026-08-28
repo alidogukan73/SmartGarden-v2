@@ -148,7 +148,7 @@ public class FirebaseRepository {
       final FirebaseLiveData<List<GardenZone>> liveData = new FirebaseLiveData<>(zonesRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<GardenZone> zones = new ArrayList();
+            List<GardenZone> zones = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                GardenZone zone = (GardenZone)child.getValue(GardenZone.class);
@@ -288,7 +288,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> updateGardenZoneSettings(String zoneId, boolean irrigationEnabled, int moistureLimit, int pumpDuration, int cooldownSeconds, int restartDelta, boolean sensorEnabled, int sensorDryRaw, int sensorWetRaw) {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put("irrigation_enabled", irrigationEnabled);
       updates.put("moisture_limit", moistureLimit);
       updates.put("pump_duration", pumpDuration);
@@ -347,7 +347,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> saveWeatherLocation(String city, String district, Double latitude, Double longitude, String forecastSource) {
-      Map<String, Object> values = new HashMap();
+      Map<String, Object> values = new HashMap<>();
       values.put("weather/location/city", city.trim());
       values.put("weather/location/district", district.trim());
       values.put("weather/location/latitude", latitude);
@@ -380,7 +380,7 @@ public class FirebaseRepository {
             if (!snapshot.exists()) {
                liveData.setValue(null);
             } else {
-               List<WeatherDay> days = new ArrayList();
+               List<WeatherDay> days = new ArrayList<>();
 
                for(DataSnapshot day : snapshot.child("days").getChildren()) {
                   days.add(new WeatherDay((String)day.child("date").getValue(String.class), (Double)day.child("temperature_max").getValue(Double.class), (Double)day.child("temperature_min").getValue(Double.class), (Double)day.child("rain_probability").getValue(Double.class), (Double)day.child("rain_mm").getValue(Double.class), (Double)day.child("wind_max").getValue(Double.class)));
@@ -504,7 +504,7 @@ public class FirebaseRepository {
    public Task<Void> saveGlobalSettingsAndSyncZones(long moistureLimit, long pumpDuration, long cooldownSeconds, long restartDelta, boolean enabled, boolean autoMode) {
       return this.zonesRef.get().continueWithTask((task) -> {
          if (task.isSuccessful() && task.getResult() != null) {
-            Map<String, Object> updates = new HashMap();
+            Map<String, Object> updates = new HashMap<>();
             updates.put("commands/moisture_limit", moistureLimit);
             updates.put("commands/pump_duration", pumpDuration);
             updates.put("commands/cooldown_seconds", cooldownSeconds);
@@ -532,7 +532,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> updateGardenZoneValveMode(String zoneId, boolean physical) {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put("valve_mode", physical ? "PHYSICAL" : "SIMULATION");
       updates.put("valve_mode_updated_at_epoch", ServerValue.TIMESTAMP);
       return this.zonesRef.child(zoneId).updateChildren(updates);
@@ -715,7 +715,7 @@ public class FirebaseRepository {
 
    public Task<Void> updateFertilizationWaterAnalysis(String zoneId, double ph, double ecMs) {
       String path = "zones/" + zoneId + "/fertilization/";
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put(path + "water_ph", ph);
       updates.put(path + "water_ec_ms", ecMs);
       updates.put(path + "water_analysis_updated_at_epoch", System.currentTimeMillis() / 1000L);
@@ -723,7 +723,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> updateFertilizationProfile(String zoneId, boolean enabled, String plantingDate, String growthStage, boolean reminderEnabled, String productId, int intervalDays, long nextApplicationEpoch, double areaM2, double tankLiters) {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       String profilePath = "zones/" + zoneId + "/fertilization/";
       String planId = "plan-" + zoneId;
       long updatedAt = System.currentTimeMillis() / 1000L;
@@ -755,7 +755,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(fertilizerProductsRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<FertilizerProduct> products = new ArrayList();
+            List<FertilizerProduct> products = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                FertilizerProduct product = (FertilizerProduct)child.getValue(FertilizerProduct.class);
@@ -831,7 +831,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(recommendationsRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<FertilizerRecommendation> values = new ArrayList();
+            List<FertilizerRecommendation> values = new ArrayList<>();
 
             for(DataSnapshot plant : snapshot.getChildren()) {
                for(DataSnapshot stage : plant.getChildren()) {
@@ -864,7 +864,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(stageGuidesRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<FertilizerStageGuide> values = new ArrayList();
+            List<FertilizerStageGuide> values = new ArrayList<>();
 
             for(DataSnapshot plant : snapshot.getChildren()) {
                for(DataSnapshot stage : plant.getChildren()) {
@@ -903,7 +903,7 @@ public class FirebaseRepository {
          if (!task.isSuccessful()) {
             throw (Exception)(task.getException() == null ? new IllegalStateException("Garden zones could not be read") : task.getException());
          } else {
-            List<String> zoneNames = new ArrayList();
+            List<String> zoneNames = new ArrayList<>();
 
             for(DataSnapshot child : ((DataSnapshot)task.getResult()).getChildren()) {
                GardenZone zone = (GardenZone)child.getValue(GardenZone.class);
@@ -919,7 +919,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> deactivateFertilizerProduct(String productId) {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put("enabled", false);
       updates.put("updated_at_epoch", System.currentTimeMillis() / 1000L);
       return this.fertilizerProductsRef.child(productId).updateChildren(updates);
@@ -937,7 +937,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(fertilizerHistoryRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<FertilizerApplication> values = new ArrayList();
+            List<FertilizerApplication> values = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                FertilizerApplication value = (FertilizerApplication)child.getValue(FertilizerApplication.class);
@@ -962,7 +962,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(historyRef);
       liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<WateringHistory> values = new ArrayList();
+            List<WateringHistory> values = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                WateringHistory value = (WateringHistory)child.getValue(WateringHistory.class);
@@ -1540,7 +1540,7 @@ public class FirebaseRepository {
       void apply(MutableData root);
    }
    public Task<Void> requestZoneValveTest(GardenZone zone, int durationSeconds) {
-      Map<String, Object> command = new HashMap();
+      Map<String, Object> command = new HashMap<>();
       command.put("requested", true);
       command.put("request_id", UUID.randomUUID().toString());
       command.put("zone_id", zone.getZone_id());
@@ -1556,7 +1556,7 @@ public class FirebaseRepository {
    }
 
    public Task<Void> requestIrrigationAssistantRestart(String zoneId) {
-      Map<String, Object> command = new HashMap();
+      Map<String, Object> command = new HashMap<>();
       command.put("requested", true);
       command.put("request_id", UUID.randomUUID().toString());
       command.put("zone_id", zoneId == null ? "" : zoneId.trim());
@@ -1646,7 +1646,7 @@ public class FirebaseRepository {
    }
 
    public void setRelay(boolean value) {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put("relay", value);
       updates.put("relay_requested_at", ServerValue.TIMESTAMP);
       this.commandsRef.updateChildren(updates);
@@ -1661,7 +1661,7 @@ public class FirebaseRepository {
    }
 
    public void startManualWatering() {
-      Map<String, Object> updates = new HashMap();
+      Map<String, Object> updates = new HashMap<>();
       updates.put("auto_mode", false);
       updates.put("relay", true);
       updates.put("relay_requested_at", ServerValue.TIMESTAMP);
@@ -1797,7 +1797,7 @@ public class FirebaseRepository {
             if (photo.getSeason_id() == null || photo.getSeason_id().isBlank()) {
                photo.setSeason_id(task.getResult());
             }
-            Map<String, Object> values = new HashMap();
+            Map<String, Object> values = new HashMap<>();
             values.put("id", photo.getId());
             values.put("zone_id", photo.getZone_id());
             values.put("season_id", photo.getSeason_id());
@@ -1949,7 +1949,7 @@ public class FirebaseRepository {
 
    public Task<Void> updateGardenNotificationState(String id, boolean read, boolean saved) {
       if (id != null && !id.isBlank()) {
-         Map<String, Object> values = new HashMap();
+         Map<String, Object> values = new HashMap<>();
          values.put("read", read);
          values.put("saved", saved);
          return this.notificationsRef.child(id).updateChildren(values);
@@ -1963,7 +1963,7 @@ public class FirebaseRepository {
             new FirebaseLiveData<>(notificationsRef);
       live.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<GardenNotification> values = new ArrayList();
+            List<GardenNotification> values = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                GardenNotification value = (GardenNotification)child.getValue(GardenNotification.class);
@@ -1985,7 +1985,7 @@ public class FirebaseRepository {
    public void loadGardenNotifications(final Consumer<List<GardenNotification>> consumer) {
       this.notificationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            List<GardenNotification> values = new ArrayList();
+            List<GardenNotification> values = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                GardenNotification value = (GardenNotification)child.getValue(GardenNotification.class);
@@ -1999,7 +1999,7 @@ public class FirebaseRepository {
          }
 
          public void onCancelled(@NonNull DatabaseError error) {
-            consumer.accept(new ArrayList());
+            consumer.accept(new ArrayList<>());
          }
       });
    }
@@ -2011,7 +2011,7 @@ public class FirebaseRepository {
    public void loadNotificationSettings(final Consumer<Map<String, Object>> consumer) {
       this.notificationSettingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            Map<String, Object> values = new HashMap();
+            Map<String, Object> values = new HashMap<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
                values.put(child.getKey(), child.getValue());

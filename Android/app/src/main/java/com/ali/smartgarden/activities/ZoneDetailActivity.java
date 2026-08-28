@@ -31,10 +31,6 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private GardenZone currentZone;
     private TextView title;
     private TextView subtitle;
-    private TextView moistureValue;
-    private TextView durationValue;
-    private TextView cooldownValue;
-    private TextView restartDeltaValue;
     private TextView valveMode;
     private TextView irrigationDescription;
     private TextView settingsStatus;
@@ -98,10 +94,10 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private void bindViews() {
         title = findViewById(R.id.txtZoneDetailTitle);
         subtitle = findViewById(R.id.txtZoneDetailSubtitle);
-        moistureValue = findViewById(R.id.txtZoneMoistureLimitValue);
-        durationValue = findViewById(R.id.txtZonePumpDurationValue);
-        cooldownValue = findViewById(R.id.txtZoneCooldownValue);
-        restartDeltaValue = findViewById(
+        TextView moistureValue = findViewById(R.id.txtZoneMoistureLimitValue);
+        TextView durationValue = findViewById(R.id.txtZonePumpDurationValue);
+        TextView cooldownValue = findViewById(R.id.txtZoneCooldownValue);
+        TextView restartDeltaValue = findViewById(
                 R.id.txtZoneRestartDeltaValue
         );
         valveMode = findViewById(R.id.txtZoneValveMode);

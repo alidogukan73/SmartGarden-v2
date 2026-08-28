@@ -7,10 +7,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import android.os.Handler;
-import android.os.Looper;
-
-import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,19 +32,12 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Collections;
 
 public class DeviceHealthActivity extends AppCompatActivity {
 
     private DeviceHealthViewModel viewModel;
-
-    private Handler soilHandler =
-            new Handler(Looper.getMainLooper());
-
-    private Runnable soilChecker;
 
     private MaterialButton btnBack;
     private MaterialButton btnRestartDevice;
@@ -95,26 +84,12 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtFirmware;
     private TextView txtUptime;
 
-    private TextView txtSoilSensorId;
-    private TextView txtSoilFirmware;
-    private TextView txtSoilRssi;
-    private TextView txtSoilUptime;
-
-    private TextView txtSoilConnection;
-    private TextView txtSoilLastUpdate;
-
-    private String lastSoilUpdateTime;
-
-
-    private MaterialCardView cardSoilConnection;
-
     private TextView txtCurrentPowerEvents;
     private TextView txtHistoricalPowerEvents;
     private TextView txtThrottlingRaw;
     private TextView txtDiagnosticsSummary;
     private LinearLayout layoutDiagnostics;
     private LinearLayout layoutSensorPointsShortcut;
-    private Health latestHealth;
     private Status latestStatus;
     private List<GardenZone> latestZones =
             Collections.emptyList();
@@ -135,7 +110,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
         observeViewModel();
         initializeActions();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.DEVICE_HEALTH);
-        startSoilConnectionMonitor();
     }
 
     private void applyWindowInsets() {
@@ -430,8 +404,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
         if (health == null) {
             return;
         }
-
-        latestHealth = health;
 
         renderCpu(health);
         renderMemory(health);
@@ -1165,50 +1137,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
         );
     }
 
-    private void updateSoilLastUpdate(long age) {
-        txtSoilLastUpdate.setText(formatSensorAge(age));
-    }
-
-    private void updateSoilConnectionStatus(long age) {
-
-
-        if(age < 20) {
-
-            txtSoilConnection.setText(
-                    R.string.runtime_connection_connected
-            );
-
-            cardSoilConnection.setCardBackgroundColor(
-                    getColor(R.color.online)
-            );
-
-
-        }
-        else if(age < 60) {
-
-            txtSoilConnection.setText(
-                    R.string.runtime_connection_waiting
-            );
-
-            cardSoilConnection.setCardBackgroundColor(
-                    getColor(R.color.warning)
-            );
-
-
-        }
-        else {
-
-            txtSoilConnection.setText(
-                    R.string.runtime_connection_none
-            );
-
-            cardSoilConnection.setCardBackgroundColor(
-                    getColor(R.color.offline)
-            );
-        }
-    }
-
-
     private void renderOverallHealth(Health health) {
 
         boolean critical =
@@ -1405,7 +1333,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
             SimpleDateFormat displayFormat =
                     new SimpleDateFormat(
                             "dd-MM-yyyy HH:mm",
-                            new Locale("tr", "TR")
+                            Locale.forLanguageTag("tr-TR")
                     );
 
             Date date =
@@ -1438,127 +1366,5 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 colorResource
         );
     }
-
-    private long getSecondsSinceUpdate(
-            String updatedAt
-    ) {
-
-        if (updatedAt == null || updatedAt.isBlank()) {
-            return Long.MAX_VALUE;
-        }
-
-
-        try {
-
-            String normalized =
-                    updatedAt.substring(0, 19);
-
-
-            LocalDateTime updateTime =
-                    LocalDateTime.parse(
-                            normalized
-                    );
-
-
-            long updateSeconds =
-                    updateTime.atZone(
-                            ZoneId.systemDefault()
-                    ).toEpochSecond();
-
-
-            long nowSeconds =
-                    Instant.now()
-                            .getEpochSecond();
-
-
-            long age =
-                    nowSeconds - updateSeconds;
-
-
-            if (age < 0) {
-
-                age = 0;
-            }
-
-
-            return age;
-
-
-        } catch (Exception e) {
-
-            Log.e(
-                    "SOIL_TIME",
-                    "Timestamp parse hatası: "
-                            + updatedAt,
-                    e
-            );
-
-            return Long.MAX_VALUE;
-        }
-    }
-
-    private void startSoilConnectionMonitor() {
-
-        soilChecker = new Runnable() {
-
-            @Override
-            public void run() {
-
-                if(lastSoilUpdateTime != null) {
-
-                    long age =
-                            getSecondsSinceUpdate(
-                                    lastSoilUpdateTime
-                            );
-
-                    updateSoilConnectionStatus(age);
-                    updateSoilLastUpdate(age);
-                }
-
-
-                soilHandler.postDelayed(
-                        this,
-                        5000
-                );
-            }
-        };
-
-
-        soilHandler.post(soilChecker);
-    }
-
-    private String getRssiQuality(int rssi) {
-
-        if (rssi >= -55) {
-
-            return getString(R.string.runtime_rssi_excellent, rssi);
-
-        } else if (rssi >= -70) {
-
-            return getString(R.string.runtime_rssi_good, rssi);
-
-        } else if (rssi >= -80) {
-
-            return getString(R.string.runtime_rssi_weak, rssi);
-
-        } else {
-
-            return getString(R.string.runtime_rssi_very_weak, rssi);
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-
-        super.onDestroy();
-
-        if(soilChecker != null) {
-
-            soilHandler.removeCallbacks(
-                    soilChecker
-            );
-        }
-    }
-
 
 }

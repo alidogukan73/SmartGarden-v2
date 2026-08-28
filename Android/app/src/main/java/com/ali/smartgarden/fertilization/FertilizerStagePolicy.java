@@ -36,7 +36,7 @@ public final class FertilizerStagePolicy {
         if (!normalized.isEmpty()) return new ArrayList<>(normalized);
 
         // Verified from the supplied product label: OG Toros is a pre-plant product.
-        String name = safe(product.getName()).toLowerCase(new Locale("tr", "TR"));
+        String name = safe(product.getName()).toLowerCase(Locale.forLanguageTag("tr-TR"));
         if (name.contains("og toros") && name.contains("organik")) {
             return Collections.singletonList(SOIL_PREPARATION);
         }

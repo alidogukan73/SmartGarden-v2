@@ -39,11 +39,17 @@ public class GardenZoneAdapter
     }
 
     public void submitZones(List<GardenZone> values) {
+        int previousCount = zones.size();
         zones.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
         if (values != null) {
             zones.addAll(values);
         }
-        notifyDataSetChanged();
+        if (!zones.isEmpty()) {
+            notifyItemRangeInserted(0, zones.size());
+        }
     }
 
     public int getConnectedCount() {

@@ -242,7 +242,7 @@ public class BackupActivity extends AppCompatActivity {
     }
 
     private String formatDateTime(long epochMillis) {
-        return new SimpleDateFormat("dd-MM-yyyy HH:mm", new Locale("tr", "TR"))
+        return new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.forLanguageTag("tr-TR"))
                 .format(new Date(epochMillis));
     }
 

@@ -29,7 +29,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.DecimalFormat;
-import java.util.Locale;
 
 /** Manages the garden identity while location remains in its dedicated safe workflow. */
 public class GardenInfoActivity extends AppCompatActivity {

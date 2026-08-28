@@ -5,7 +5,6 @@ import com.ali.smartgarden.models.SeasonOutcome;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -82,7 +81,7 @@ public final class LocalSeasonOutcomeStore {
             value.setYield_note(item.optString("yield_note")); value.setIssues_note(item.optString("issues_note")); value.setSuccessful_practices(item.optString("successful_practices"));
             value.setWater_summary(item.optString("water_summary")); value.setFertilizer_summary(item.optString("fertilizer_summary")); values.add(value);
         } catch (Exception ignored) { }
-        Collections.sort(values, Comparator.comparingLong(SeasonOutcome::getRecorded_at_epoch).reversed()); return values;
+        values.sort(Comparator.comparingLong(SeasonOutcome::getRecorded_at_epoch).reversed()); return values;
     }
 
     public int removeByZone(String zoneId) {

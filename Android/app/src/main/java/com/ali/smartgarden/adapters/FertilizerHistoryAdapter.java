@@ -37,11 +37,17 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
             new ArrayList<>();
 
     public void submitList(List<FertilizerApplication> items) {
+        int previousCount = values.size();
         values.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
         if (items != null) {
             values.addAll(items);
         }
-        notifyDataSetChanged();
+        if (!values.isEmpty()) {
+            notifyItemRangeInserted(0, values.size());
+        }
     }
 
     @NonNull
@@ -157,7 +163,7 @@ public class FertilizerHistoryAdapter extends RecyclerView.Adapter<
                         .format(
                                 DateTimeFormatter.ofPattern(
                                         "dd-MM-yyyy · HH:mm",
-                                        new Locale("tr", "TR")
+                                        Locale.forLanguageTag("tr-TR")
                                 )
                         )
         );

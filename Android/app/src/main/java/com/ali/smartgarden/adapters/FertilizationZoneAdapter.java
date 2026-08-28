@@ -41,11 +41,17 @@ public class FertilizationZoneAdapter extends RecyclerView.Adapter<
     }
 
     public void submitList(List<GardenZone> value) {
+        int previousCount = zones.size();
         zones.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
         if (value != null) {
             zones.addAll(value);
         }
-        notifyDataSetChanged();
+        if (!zones.isEmpty()) {
+            notifyItemRangeInserted(0, zones.size());
+        }
     }
 
     @NonNull

@@ -1,5 +1,6 @@
 package com.ali.smartgarden.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,9 +33,12 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         this.listener = listener;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void submitList(List<GardenZone> items) {
         zones.clear();
         zones.addAll(ZoneCapacityPolicy.activeZones(items));
+        // The pager exposes a virtual Integer.MAX_VALUE item range. A zone-count
+        // change alters every virtual position, so a full invalidation is required.
         notifyDataSetChanged();
     }
 

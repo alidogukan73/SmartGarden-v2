@@ -457,7 +457,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                     .format(
                             DateTimeFormatter.ofPattern(
                                     "dd-MM-yyyy",
-                                    new Locale("tr", "TR")
+                                    Locale.forLanguageTag("tr-TR")
                             )
                     );
             last.setText(

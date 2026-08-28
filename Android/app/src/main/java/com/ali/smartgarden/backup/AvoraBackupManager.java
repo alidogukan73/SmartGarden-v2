@@ -27,7 +27,6 @@ import java.util.Set;
 
 /**
  * Creates and restores portable AVORA backups.
- *
  * <p>The backup deliberately contains user configuration and records only. Live sensor
  * measurements, device health, forecasts, access tokens and actuator commands never enter the
  * file. Restore is merge-only and finishes with the pump off and automatic irrigation disabled.</p>

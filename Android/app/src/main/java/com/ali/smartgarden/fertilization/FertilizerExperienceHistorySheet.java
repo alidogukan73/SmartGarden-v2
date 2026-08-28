@@ -37,9 +37,10 @@ public final class FertilizerExperienceHistorySheet {
         }
 
         BottomSheetDialog dialog = new BottomSheetDialog(context);
+        FrameLayout inflationParent = new FrameLayout(context);
         View root = LayoutInflater.from(context).inflate(
                 R.layout.bottom_sheet_fertilizer_experience_history,
-                null,
+                inflationParent,
                 false
         );
         dialog.setContentView(root);

@@ -2,7 +2,7 @@ package com.ali.smartgarden.models;
 
 /**
  * AI karar akışındaki tek bir adımı temsil eder.
- *
+ * <p>
  * Örnek adımlar:
  * 1 - Sensör verisi
  * 2 - Nem analizi

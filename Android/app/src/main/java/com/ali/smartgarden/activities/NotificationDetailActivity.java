@@ -1,6 +1,5 @@
 package com.ali.smartgarden.activities;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.view.View;

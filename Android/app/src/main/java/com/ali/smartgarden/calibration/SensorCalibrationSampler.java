@@ -37,7 +37,7 @@ public final class SensorCalibrationSampler {
             throw new IllegalStateException("CALIBRATION_SAMPLES_INCOMPLETE");
         }
         List<Integer> sorted = new ArrayList<>(samples);
-        Collections.sort(sorted);
+        sorted.sort(null);
         return sorted.get(sorted.size() / 2);
     }
 

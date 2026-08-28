@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
 import com.ali.smartgarden.R;
@@ -26,9 +27,10 @@ public final class AiToolsBottomSheet {
             return;
         }
 
+        FrameLayout inflationParent = new FrameLayout(activity);
         View content = LayoutInflater.from(activity).inflate(
                 R.layout.bottom_sheet_ai_tools,
-                null,
+                inflationParent,
                 false
         );
         int horizontalMargin = dp(activity, 6);

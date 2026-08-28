@@ -29,15 +29,22 @@ public class FertilizerProductAdapter extends RecyclerView.Adapter<
     private OnProductClickListener listener;
 
     public void submitList(List<FertilizerProduct> value) {
-        products.clear();
-        if (value != null) {
-            products.addAll(value);
-        }
-        products.sort(Comparator.comparing(
+        List<FertilizerProduct> sortedProducts = value == null
+                ? new ArrayList<>()
+                : new ArrayList<>(value);
+        sortedProducts.sort(Comparator.comparing(
                 product -> categoryCode(product) + product.getName(),
                 String.CASE_INSENSITIVE_ORDER
         ));
-        notifyDataSetChanged();
+        int previousCount = products.size();
+        products.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
+        products.addAll(sortedProducts);
+        if (!products.isEmpty()) {
+            notifyItemRangeInserted(0, products.size());
+        }
     }
 
     public void setOnProductClickListener(

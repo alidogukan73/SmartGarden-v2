@@ -562,12 +562,15 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void sizeProductDialog(AlertDialog dialog) {
         Window window = dialog.getWindow();
         if (window == null) return;
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
         window.setLayout((int) (width * 0.94f), (int) (height * 0.90f));
+        // Kept for the API 26-29 devices supported by the app. Newer Android
+        // versions still honor this compatibility behavior for dialog windows.
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 

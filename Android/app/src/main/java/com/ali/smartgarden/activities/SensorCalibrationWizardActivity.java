@@ -26,9 +26,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 /** Guided five-sample dry/wet calibration for assigned ADS1115 soil sensors. */
 public class SensorCalibrationWizardActivity extends AppCompatActivity {

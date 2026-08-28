@@ -37,7 +37,6 @@ public class WateringControlActivity extends AppCompatActivity {
     private TextView pumpState;
     private TextView pumpDescription;
     private TextView autoDescription;
-    private TextView safety;
     private MaterialSwitch autoSwitch;
     private MaterialSwitch pumpSwitch;
     private MaterialButton pumpButton;
@@ -49,7 +48,6 @@ public class WateringControlActivity extends AppCompatActivity {
     private List<GardenZone> zones = Collections.emptyList();
     private String activeValveId = "";
     private boolean valveOpen;
-    private boolean physicalValveMode;
     private boolean updatingValveSwitch;
     private boolean relayOn;
     private boolean updatingSwitch;
@@ -85,7 +83,6 @@ public class WateringControlActivity extends AppCompatActivity {
         autoDescription = findViewById(
                 R.id.txtControlAutoDescription
         );
-        safety = findViewById(R.id.txtControlSafety);
         autoSwitch = findViewById(R.id.switchControlAuto);
         pumpSwitch = findViewById(R.id.switchControlPump);
         pumpButton = findViewById(R.id.btnControlPump);
@@ -266,9 +263,6 @@ public class WateringControlActivity extends AppCompatActivity {
                 : status.getActiveValveId();
         valveOpen = status.isValveOpen()
                 && !activeValveId.isBlank();
-        physicalValveMode = "PHYSICAL".equalsIgnoreCase(
-                status.getValveMode()
-        );
         renderPump();
         renderManualValves();
     }
