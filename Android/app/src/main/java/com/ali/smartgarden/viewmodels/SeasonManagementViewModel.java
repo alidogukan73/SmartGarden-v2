@@ -21,6 +21,7 @@ import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.SeasonOutcome;
 import com.ali.smartgarden.models.ZoneSeasonState;
 import com.ali.smartgarden.season.SeasonRepository;
+import com.ali.smartgarden.season.SeasonArchiveRepository;
 import com.ali.smartgarden.season.SeasonScope;
 import com.ali.smartgarden.season.SeasonStartConfiguration;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
@@ -36,6 +37,7 @@ import java.util.Set;
 public final class SeasonManagementViewModel extends AndroidViewModel {
     private final FirebaseRepository firebaseRepository;
     private final SeasonRepository seasonRepository;
+    private final SeasonArchiveRepository archiveRepository;
     private final LocalSeasonOutcomeStore outcomeStore;
     private final LocalGardenEventStore eventStore;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -54,6 +56,7 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
         super(application);
         firebaseRepository = new FirebaseRepository();
         seasonRepository = new SeasonRepository();
+        archiveRepository = new SeasonArchiveRepository();
         outcomeStore = new LocalSeasonOutcomeStore(application);
         eventStore = new LocalGardenEventStore(application);
         zones = firebaseRepository.observeGardenZones();
@@ -179,42 +182,18 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
             GardenZone zone,
             List<GardenSeason> allSeasons
     ) {
-        List<GardenSeason> result = new ArrayList<>();
-        String zoneId = safe(zone == null ? "" : zone.getZone_id());
-        ZoneSeasonState current = zone == null ? null : zone.getSeason();
-        if (allSeasons == null) return result;
-        for (GardenSeason season : allSeasons) {
-            if (season == null || !zoneId.equals(safe(season.getZone_id()))) continue;
-            if (SeasonScope.isVisibleSeason(season, current)) result.add(season);
-        }
-        return result;
+        return archiveRepository.visibleFor(zone, allSeasons);
     }
 
     public List<GardenSeason> completedArchives(
             List<GardenSeason> history,
             boolean requireRecordedActivity
     ) {
-        List<GardenSeason> result = new ArrayList<>();
-        if (history == null) return result;
-        for (GardenSeason season : history) {
-            if (SeasonScope.isRealCompletedArchive(season)
-                    && (!requireRecordedActivity || SeasonScope.hasRecordedActivity(season))) {
-                result.add(season);
-            }
-        }
-        return result;
+        return archiveRepository.completed(history, requireRecordedActivity);
     }
 
     public boolean hasRecordedArchive(String zoneId, List<GardenSeason> allSeasons) {
-        if (allSeasons == null) return false;
-        for (GardenSeason season : allSeasons) {
-            if (season != null && safe(zoneId).equals(safe(season.getZone_id()))
-                    && SeasonScope.isRealCompletedArchive(season)
-                    && SeasonScope.hasRecordedActivity(season)) {
-                return true;
-            }
-        }
-        return false;
+        return archiveRepository.hasRecorded(zoneId, allSeasons);
     }
 
     private String closeEventNote(SeasonOutcome outcome) {

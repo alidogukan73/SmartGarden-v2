@@ -7,6 +7,7 @@ import java.util.Locale;
 
 /** Shared Android rules for the eight physical garden channels. */
 public final class ZoneCapacityPolicy {
+    public enum DeactivationAction { DELETE, ARCHIVE }
     public static final int MAX_ZONES = 8;
     public static final String LIFECYCLE_ACTIVE = "ACTIVE";
     public static final String LIFECYCLE_HARDWARE_PENDING = "HARDWARE_PENDING";
@@ -91,6 +92,29 @@ public final class ZoneCapacityPolicy {
     public static boolean shouldDeleteOnDeactivate(
             boolean hasLocalHistory, boolean hasCloudHistory) {
         return !hasLocalHistory && !hasCloudHistory;
+    }
+
+    /** Complete zone-removal decision shared by Firebase and unit tests. */
+    public static DeactivationAction decideDeactivation(
+            boolean zoneExists,
+            String seasonStatus,
+            String activeSeasonId,
+            boolean irrigationBusy,
+            boolean hasLocalHistory,
+            boolean hasCloudHistory
+    ) {
+        if (!zoneExists) {
+            throw new IllegalStateException(ERROR_ZONE_NOT_FOUND);
+        }
+        if (hasProtectedSeason(seasonStatus, activeSeasonId)) {
+            throw new IllegalStateException(ERROR_ACTIVE_SEASON);
+        }
+        if (irrigationBusy) {
+            throw new IllegalStateException(ERROR_IRRIGATION_BUSY);
+        }
+        return shouldDeleteOnDeactivate(hasLocalHistory, hasCloudHistory)
+                ? DeactivationAction.DELETE
+                : DeactivationAction.ARCHIVE;
     }
 
 

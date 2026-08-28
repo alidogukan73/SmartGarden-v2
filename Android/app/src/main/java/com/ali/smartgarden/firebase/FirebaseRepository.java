@@ -598,22 +598,20 @@ public class FirebaseRepository {
          }
          DataSnapshot root = task.getResult();
          DataSnapshot zone = root.child("zones").child(zoneId);
-         if (!zone.exists()) {
-            return Tasks.forException(
-                  new IllegalStateException(ZoneCapacityPolicy.ERROR_ZONE_NOT_FOUND));
+         final ZoneCapacityPolicy.DeactivationAction action;
+         try {
+            action = ZoneCapacityPolicy.decideDeactivation(
+                  zone.exists(),
+                  snapshotString(zone.child("season").child("status")),
+                  snapshotString(zone.child("season").child("active_season_id")),
+                  isIrrigationBusySnapshot(root),
+                  hasLocalHistory,
+                  hasZoneCloudHistory(root, zoneId));
+         } catch (IllegalStateException error) {
+            return Tasks.forException(error);
          }
-         if (ZoneCapacityPolicy.hasProtectedSeason(
-               snapshotString(zone.child("season").child("status")),
-               snapshotString(zone.child("season").child("active_season_id")))) {
-            return Tasks.forException(
-                  new IllegalStateException(ZoneCapacityPolicy.ERROR_ACTIVE_SEASON));
-         }
-         if (isIrrigationBusySnapshot(root)) {
-            return Tasks.forException(
-                  new IllegalStateException(ZoneCapacityPolicy.ERROR_IRRIGATION_BUSY));
-         }
-         boolean removeEmpty = ZoneCapacityPolicy.shouldDeleteOnDeactivate(
-               hasLocalHistory, hasZoneCloudHistory(root, zoneId));
+         boolean removeEmpty = action
+               == ZoneCapacityPolicy.DeactivationAction.DELETE;
          long now = System.currentTimeMillis() / 1000L;
          if (removeEmpty) {
             String removalId = now + "-" + UUID.randomUUID();
