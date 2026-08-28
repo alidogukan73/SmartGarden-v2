@@ -14,16 +14,17 @@ import android.widget.LinearLayout;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerProductAdapter;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerAiProfile;
 import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
+import com.ali.smartgarden.viewmodels.FertilizerProductsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
@@ -55,8 +56,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             "SULFATE"
     };
 
-    private final FirebaseRepository repository =
-            new FirebaseRepository();
+    private FertilizerProductsViewModel viewModel;
     private final FertilizerProductAdapter adapter =
             new FertilizerProductAdapter();
     private TextView txtEmpty;
@@ -66,6 +66,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fertilizer_products);
+        viewModel = new ViewModelProvider(this).get(FertilizerProductsViewModel.class);
 
         txtEmpty = findViewById(R.id.txtEmpty);
         txtProductStockSummary = findViewById(
@@ -84,7 +85,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
         );
         adapter.setOnProductClickListener(this::showProductDialog);
 
-        repository.observeFertilizerProducts().observe(
+        viewModel.getProducts().observe(
                 this,
                 this::renderProducts
         );
@@ -329,7 +330,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                                 ).show();
                                 return;
                             }
-                            repository.saveFertilizerProduct(product)
+                            viewModel.saveProduct(product)
                                     .addOnSuccessListener(result -> {
                                         dialog.dismiss();
                                         Toast.makeText(
@@ -580,7 +581,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
     ) {
         editDialog.getButton(AlertDialog.BUTTON_NEUTRAL)
                 .setEnabled(false);
-        repository.findActiveZonesUsingFertilizer(
+        viewModel.findActiveZonesUsingProduct(
                 product.getProduct_id()
         ).addOnSuccessListener(zoneNames -> {
             editDialog.getButton(AlertDialog.BUTTON_NEUTRAL)
@@ -633,15 +634,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                         R.string.fertilizer_remove_confirm,
                         (dialog, which) -> {
                             com.google.android.gms.tasks.Task<Void> task =
-                                    systemProduct
-                                            ? repository
-                                            .deactivateFertilizerProduct(
-                                                    product.getProduct_id()
-                                            )
-                                            : repository
-                                            .deleteFertilizerProduct(
-                                                    product.getProduct_id()
-                                            );
+                                    viewModel.removeProduct(product);
                             task.addOnSuccessListener(unused -> {
                                 editDialog.dismiss();
                                 Toast.makeText(

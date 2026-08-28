@@ -13,9 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
 import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
 import com.ali.smartgarden.models.FertilizationProfile;
@@ -23,16 +23,16 @@ import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.FertilizationSettingsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.gms.tasks.Tasks;
 
 import java.util.Collections;
 import java.util.List;
 
 /** Global fertilizer guidance, reminder and inventory preferences. */
 public class FertilizationSettingsActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private FertilizationSettingsViewModel viewModel;
 
     private NotificationSettingsStore settings;
     private FertilizationPreferenceStore fertilizationPreferences;
@@ -57,6 +57,7 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fertilization_settings);
+        viewModel = new ViewModelProvider(this).get(FertilizationSettingsViewModel.class);
         applyWindowInsets();
 
         settings = new NotificationSettingsStore(this);
@@ -138,24 +139,24 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
     }
 
     private void restoreSettingsFromCloud() {
-        repository.loadNotificationSettings(values -> runOnUiThread(() -> {
+        viewModel.getNotificationBackup().observe(this, values -> {
             if (dirty || !settings.applyBackup(values)) return;
             applyStoredSettings();
             status.setText(R.string.fertilization_settings_cloud_loaded);
-        }));
-        repository.loadFertilizationPreferences(values -> runOnUiThread(() -> {
+        });
+        viewModel.getPreferenceBackup().observe(this, values -> {
             if (dirty || !fertilizationPreferences.applyBackup(values)) return;
             applyStoredSettings();
             status.setText(R.string.fertilization_settings_cloud_loaded);
-        }));
+        });
     }
 
     private void observeLiveSummary() {
-        repository.observeGardenZones().observe(this, values -> {
+        viewModel.getZones().observe(this, values -> {
             zones = values == null ? Collections.emptyList() : values;
             renderSummary();
         });
-        repository.observeFertilizerProducts().observe(this, values -> {
+        viewModel.getProducts().observe(this, values -> {
             products = values == null ? Collections.emptyList() : values;
             renderSummary();
         });
@@ -224,10 +225,9 @@ public class FertilizationSettingsActivity extends AppCompatActivity {
         settings.setCategoryEnabled("stock", savedStockWarnings);
         dirty = false;
         status.setText(R.string.settings_status_saving);
-        Tasks.whenAll(
-                        repository.saveNotificationSettings(settings.snapshot()),
-                        repository.saveFertilizationPreferences(
-                                fertilizationPreferences.snapshot()))
+        viewModel.save(
+                        settings.snapshot(),
+                        fertilizationPreferences.snapshot())
                 .addOnSuccessListener(unused -> {
                     FertilizerReminderScheduler.schedule(this);
                     status.setText(R.string.fertilization_settings_saved);

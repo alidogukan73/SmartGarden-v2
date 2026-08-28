@@ -15,15 +15,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.calibration.SensorCalibrationSampler;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
-import com.ali.smartgarden.models.ZoneIrrigationStatus;
+import com.ali.smartgarden.viewmodels.SensorCalibrationViewModel;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -47,7 +45,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
     private static final String STATE_SAMPLES = "calibration_samples";
     private static final String STATE_LAST_SAMPLE_EPOCH = "calibration_last_sample_epoch";
 
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private SensorCalibrationViewModel viewModel;
     private final SensorCalibrationSampler sampler = new SensorCalibrationSampler();
     private final List<GardenZone> sensorZones = new ArrayList<>();
 
@@ -96,7 +94,8 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         restoreState(state);
         configureActions();
         configureBackHandling();
-        repository.observeGardenZones().observe(this, this::renderZones);
+        viewModel = new ViewModelProvider(this).get(SensorCalibrationViewModel.class);
+        viewModel.getZones().observe(this, this::renderZones);
         renderWizardState();
     }
 
@@ -291,32 +290,13 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
     }
 
     private void beginSafeCalibrationSession(CapturePhase firstPhase) {
-        ZoneIrrigationStatus status = selectedZone.getIrrigation_status();
-        if (status != null
-                && (status.isWatering_active() || status.getQueue_position() > 0)) {
-            Toast.makeText(this, R.string.sensor_calibration_irrigation_busy,
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        String zoneId = safe(selectedZone.getZone_id());
-        if (!ZoneCapacityPolicy.isValidZoneId(zoneId)) {
-            Toast.makeText(this, R.string.sensor_calibration_zone_invalid,
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        boolean wasEnabled = selectedZone.isIrrigation_enabled();
         setOperationBusy(true);
-        Task<Void> safetyTask = wasEnabled
-                ? repository.setZoneIrrigationEnabledForCalibration(zoneId, false)
-                : Tasks.forResult(null);
-        safetyTask.addOnSuccessListener(unused -> {
+        viewModel.beginSession(selectedZone).addOnSuccessListener(session -> {
             sessionActive = true;
-            sessionZoneId = zoneId;
-            restoreIrrigationEnabled = wasEnabled;
+            sessionZoneId = session.zoneId;
+            restoreIrrigationEnabled = session.restoreIrrigationEnabled;
             setOperationBusy(false);
-            if (wasEnabled) {
+            if (session.restoreIrrigationEnabled) {
                 Toast.makeText(this,
                         R.string.sensor_calibration_irrigation_paused,
                         Toast.LENGTH_LONG).show();
@@ -324,7 +304,13 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
             startCapture(firstPhase);
         }).addOnFailureListener(error -> {
             setOperationBusy(false);
-            Toast.makeText(this, R.string.sensor_calibration_safety_failed,
+            String code = safe(error.getMessage());
+            int message = SensorCalibrationViewModel.ERROR_IRRIGATION_BUSY.equals(code)
+                    ? R.string.sensor_calibration_irrigation_busy
+                    : SensorCalibrationViewModel.ERROR_INVALID_ZONE.equals(code)
+                    ? R.string.sensor_calibration_zone_invalid
+                    : R.string.sensor_calibration_safety_failed;
+            Toast.makeText(this, message,
                     Toast.LENGTH_LONG).show();
         });
     }
@@ -462,11 +448,10 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         }
 
         setOperationBusy(true);
-        repository.completeSensorCalibration(
-                sessionZoneId,
+        viewModel.save(
+                currentSession(),
                 capturedDryRaw,
-                capturedWetRaw,
-                restoreIrrigationEnabled
+                capturedWetRaw
         ).addOnSuccessListener(unused -> {
             sessionActive = false;
             setOperationBusy(false);
@@ -496,11 +481,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
 
     private void cancelSessionAndFinish() {
         setOperationBusy(true);
-        Task<Void> restoreTask = restoreIrrigationEnabled
-                ? repository.setZoneIrrigationEnabledForCalibration(
-                        sessionZoneId, true)
-                : Tasks.forResult(null);
-        restoreTask.addOnSuccessListener(unused -> {
+        viewModel.cancel(currentSession()).addOnSuccessListener(unused -> {
             sessionActive = false;
             setOperationBusy(false);
             finish();
@@ -509,6 +490,13 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.sensor_calibration_restore_failed,
                     Toast.LENGTH_LONG).show();
         });
+    }
+
+    private SensorCalibrationViewModel.CalibrationSession currentSession() {
+        return new SensorCalibrationViewModel.CalibrationSession(
+                sessionZoneId,
+                restoreIrrigationEnabled
+        );
     }
 
     private void setOperationBusy(boolean busy) {

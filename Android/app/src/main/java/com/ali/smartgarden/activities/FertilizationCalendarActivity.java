@@ -19,7 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.fertilization.FertilizationRepository;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerApplication;
@@ -49,8 +49,7 @@ import java.util.UUID;
 
 public class FertilizationCalendarActivity extends AppCompatActivity {
 
-    private final FirebaseRepository repository =
-            new FirebaseRepository();
+    private FertilizationCalendarViewModel viewModel;
 
     private LinearLayout layoutTodayAdvice;
     private List<GardenZone> currentZones = new ArrayList<>();
@@ -101,24 +100,23 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         findViewById(R.id.btnBulkFertilizerApplication).setOnClickListener(
                 view -> showBulkProductPicker()
         );
-        FertilizationCalendarViewModel viewModel =
-                new ViewModelProvider(this).get(
-                        FertilizationCalendarViewModel.class
-                );
+        viewModel = new ViewModelProvider(this).get(
+                FertilizationCalendarViewModel.class
+        );
         viewModel.getZones().observe(this, this::renderZones);
-        repository.observeFertilizerProducts().observe(this, products -> {
+        viewModel.getProducts().observe(this, products -> {
             currentProducts = products == null
                     ? new ArrayList<>()
                     : products;
             renderTodayAdvice();
         });
-        repository.observeFertilizerHistory().observe(this, history -> {
+        viewModel.getHistory().observe(this, history -> {
             currentHistory = history == null
                     ? new ArrayList<>()
                     : history;
             renderTodayAdvice();
         });
-        repository.observeWeatherForecast().observe(this, weather -> {
+        viewModel.getWeather().observe(this, weather -> {
             currentWeather = weather;
             renderTodayAdvice();
         });
@@ -323,9 +321,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return;
         }
-        List<FirebaseRepository.BulkFertilizerApplication> firstApplications =
+        List<FertilizationRepository.BulkFertilizerApplication> firstApplications =
                 new ArrayList<>();
-        List<FirebaseRepository.BulkFertilizerApplication> secondApplications =
+        List<FertilizationRepository.BulkFertilizerApplication> secondApplications =
                 new ArrayList<>();
         List<String> invalidZones = new ArrayList<>();
         List<String> stageBlockedZones = new ArrayList<>();
@@ -465,7 +463,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         );
     }
 
-    private FirebaseRepository.BulkFertilizerApplication mixApplication(
+    private FertilizationRepository.BulkFertilizerApplication mixApplication(
             GardenZone zone,
             FertilizationProfile profile,
             FertilizerApplicationSafety.Dose dose,
@@ -476,7 +474,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             String mixGroupId,
             String riskLevel
     ) {
-        return new FirebaseRepository.BulkFertilizerApplication(
+        return new FertilizationRepository.BulkFertilizerApplication(
                 zone.getZone_id(),
                 safe(zone.getName()),
                 dose.getAmount(),
@@ -551,9 +549,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             FertilizerProduct first,
             FertilizerProduct second,
             FertilizerMixResult result,
-            List<FirebaseRepository.BulkFertilizerApplication>
+            List<FertilizationRepository.BulkFertilizerApplication>
                     firstApplications,
-            List<FirebaseRepository.BulkFertilizerApplication>
+            List<FertilizationRepository.BulkFertilizerApplication>
                     secondApplications,
             String firstUnit,
             String secondUnit,
@@ -610,21 +608,21 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             dialog.getButton(
                     androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE
             ).setEnabled(false);
-            List<FirebaseRepository.FertilizerApplicationBatch> batches =
+            List<FertilizationRepository.FertilizerApplicationBatch> batches =
                     new ArrayList<>();
-            batches.add(new FirebaseRepository.FertilizerApplicationBatch(
+            batches.add(new FertilizationRepository.FertilizerApplicationBatch(
                     first,
                     firstApplications,
                     firstUnit,
                     true
             ));
-            batches.add(new FirebaseRepository.FertilizerApplicationBatch(
+            batches.add(new FertilizationRepository.FertilizerApplicationBatch(
                     second,
                     secondApplications,
                     secondUnit,
                     true
             ));
-            repository.recordFertilizerApplicationBatchesSafely(batches)
+            viewModel.recordBatches(batches)
                     .addOnSuccessListener(unusedResult -> {
                         dialog.dismiss();
                         Toast.makeText(
@@ -771,7 +769,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             return;
         }
 
-        List<FirebaseRepository.BulkFertilizerApplication> applications =
+        List<FertilizationRepository.BulkFertilizerApplication> applications =
                 new ArrayList<>();
         List<String> invalidZones = new ArrayList<>();
         List<String> stageBlockedZones = new ArrayList<>();
@@ -810,7 +808,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 continue;
             }
             total += dose.getAmount();
-            applications.add(new FirebaseRepository.BulkFertilizerApplication(
+            applications.add(new FertilizationRepository.BulkFertilizerApplication(
                     zone.getZone_id(),
                     zoneName,
                     dose.getAmount(),
@@ -892,8 +890,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.settings_cancel, null)
                 .setPositiveButton(
                         R.string.fertilizer_bulk_confirm_action,
-                        (dialog, which) -> repository
-                                .recordBulkFertilizerApplicationsSafely(
+                        (dialog, which) -> viewModel
+                                .recordBulk(
                                         product,
                                         applications,
                                         finalAppliedUnit,

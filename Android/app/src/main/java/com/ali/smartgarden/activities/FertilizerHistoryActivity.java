@@ -15,16 +15,17 @@ import androidx.annotation.Nullable;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerHistoryAdapter;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.zones.ZoneChipRenderer;
 import com.ali.smartgarden.notifications.GardenNotificationManager;
+import com.ali.smartgarden.viewmodels.FertilizerHistoryViewModel;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -45,8 +46,7 @@ import java.io.OutputStreamWriter;
 
 public class FertilizerHistoryActivity extends AppCompatActivity {
 
-    private final FirebaseRepository repository =
-            new FirebaseRepository();
+    private FertilizerHistoryViewModel viewModel;
     private final FertilizerHistoryAdapter adapter =
             new FertilizerHistoryAdapter();
     private TextView empty;
@@ -78,6 +78,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fertilizer_history);
+        viewModel = new ViewModelProvider(this).get(FertilizerHistoryViewModel.class);
         pendingOutcomeApplicationId = safe(
                 getIntent().getStringExtra("outcome_application_id")
         );
@@ -114,14 +115,14 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         );
         findViewById(R.id.btnExportFertilizerHistory)
                 .setOnClickListener(view -> requestExport());
-        repository.observeFertilizerHistory().observe(
+        viewModel.getHistory().observe(
                 this,
                 this::render
         );
         ChipGroup zoneGroup = findViewById(
                 R.id.chipGroupFertilizerZones
         );
-        repository.observeGardenZones().observe(this, zones ->
+        viewModel.getZones().observe(this, zones ->
                 ZoneChipRenderer.render(
                         this,
                         zoneGroup,
@@ -250,7 +251,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         value.setOutcome_notes(notes.getText().toString().trim());
                         value.setOutcome_observed_at_epoch(observed.atStartOfDay(
                                 ZoneId.systemDefault()).toEpochSecond());
-                        repository.updateFertilizerApplicationSafely(value)
+                        viewModel.update(value)
                                 .addOnSuccessListener(result -> showPhotoPrompt(value))
                                 .addOnFailureListener(error -> showHistoryError(
                                         R.string.fertilizer_history_update_failed,
@@ -358,7 +359,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                                 );
                                 value.setNotes(inputNotes.getText()
                                         .toString().trim());
-                                repository.updateFertilizerApplicationSafely(value)
+                                viewModel.update(value)
                                         .addOnSuccessListener(result ->
                                                 android.widget.Toast.makeText(
                                                         this,
@@ -394,8 +395,8 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(
                         R.string.fertilizer_history_delete,
-                        (dialog, which) -> repository
-                                .deleteFertilizerApplicationSafely(value)
+                        (dialog, which) -> viewModel
+                                .delete(value)
                                 .addOnSuccessListener(result ->
                                         android.widget.Toast.makeText(
                                                 this,

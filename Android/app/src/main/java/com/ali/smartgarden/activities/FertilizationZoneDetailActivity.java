@@ -14,9 +14,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
@@ -33,6 +33,7 @@ import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.viewmodels.FertilizationZoneDetailViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -68,8 +69,7 @@ public class FertilizationZoneDetailActivity
     }
 
 
-    private final FirebaseRepository repository =
-            new FirebaseRepository();
+    private FertilizationZoneDetailViewModel viewModel;
 
     private TextInputEditText inputPlantingDate;
     private TextInputEditText inputFertilizationArea;
@@ -172,30 +172,33 @@ public class FertilizationZoneDetailActivity
             finish();
             return;
         }
+        viewModel = new ViewModelProvider(this).get(
+                FertilizationZoneDetailViewModel.class);
+        viewModel.setZoneId(zoneId);
 
         bindViews();
         bindActions();
-        repository.observeFertilizerProducts().observe(
+        viewModel.getProducts().observe(
                 this,
                 this::renderProducts
         );
-        repository.observeFertilizerRecommendations().observe(
+        viewModel.getRecommendations().observe(
                 this,
                 this::renderRecommendations
         );
-        repository.observeFertilizerStageGuides().observe(
+        viewModel.getStageGuides().observe(
                 this,
                 this::renderStageGuides
         );
-        repository.observeGardenZone(zoneId).observe(
+        viewModel.getZone().observe(
                 this,
                 this::renderZone
         );
-        repository.observeFertilizerHistory().observe(this, history -> {
+        viewModel.getHistory().observe(this, history -> {
             currentHistory = history == null ? new ArrayList<>() : history;
             renderZoneAiAdvice();
         });
-        repository.observeWeatherForecast().observe(this, weather -> {
+        viewModel.getWeather().observe(this, weather -> {
             currentWeather = weather;
             renderZoneAiAdvice();
         });
@@ -513,7 +516,7 @@ public class FertilizationZoneDetailActivity
                         double ph = parseOptionalDecimal(phInput.getText().toString());
                         double ec = parseOptionalDecimal(ecInput.getText().toString());
                         if (ph < 0 || ph > 14 || ec < 0 || ec > 20) throw new IllegalArgumentException();
-                        repository.updateFertilizationWaterAnalysis(zoneId, ph, ec)
+                        viewModel.updateWaterAnalysis(zoneId, ph, ec)
                                 .addOnFailureListener(error -> Toast.makeText(this,
                                         R.string.runtime_water_analysis_save_failed, Toast.LENGTH_LONG).show());
                     } catch (Exception error) {
@@ -1300,7 +1303,7 @@ public class FertilizationZoneDetailActivity
 
         saving = true;
         setControlsEnabled(false);
-        repository.updateFertilizationProfile(
+        viewModel.updateProfile(
                 zoneId,
                 planEnabled,
                 plantingDate,
@@ -2124,7 +2127,7 @@ public class FertilizationZoneDetailActivity
         dialog.getButton(
                 androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE
         ).setEnabled(false);
-        repository.recordFertilizerApplicationSafely(
+        viewModel.recordApplication(
                 zoneId,
                 zoneName,
                 product,
