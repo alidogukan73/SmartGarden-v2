@@ -16,14 +16,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.config.AppInfo;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenProfile;
-import com.ali.smartgarden.settings.GardenProfileStore;
-import com.ali.smartgarden.settings.UnitPreferences;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -34,10 +33,7 @@ import java.util.Locale;
 
 /** Manages the garden identity while location remains in its dedicated safe workflow. */
 public class GardenInfoActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
-
-    private GardenProfileStore profileStore;
-    private UnitPreferences unitPreferences;
+    private GardenSettingsViewModel viewModel;
     private TextInputEditText gardenName;
     private MaterialAutoCompleteTextView gardenType;
     private TextInputEditText gardenArea;
@@ -55,15 +51,14 @@ public class GardenInfoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_garden_info);
         applyWindowInsets();
 
-        profileStore = new GardenProfileStore(this);
-        unitPreferences = new UnitPreferences(this);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         bindViews();
         configureToolbar();
         configureFields();
         configureActions();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
 
-        GardenProfile local = profileStore.load();
+        GardenProfile local = viewModel.loadLocalProfile();
         applyProfile(local);
         observeCloudProfile(local.getUpdated_at_epoch());
         observeLocation();
@@ -95,7 +90,7 @@ public class GardenInfoActivity extends AppCompatActivity {
                 getResources().getStringArray(R.array.garden_type_options)));
         TextInputLayout areaLayout = findViewById(R.id.layoutGardenArea);
         areaLayout.setHint(getString(R.string.garden_info_area_hint,
-                unitPreferences.areaSymbol()));
+                viewModel.areaSymbol()));
         deviceId.setText(AppInfo.DEVICE_ID);
 
         TextWatcher watcher = new TextWatcher() {
@@ -118,17 +113,17 @@ public class GardenInfoActivity extends AppCompatActivity {
     }
 
     private void observeCloudProfile(long localUpdatedAt) {
-        repository.observeGardenProfile().observe(this, cloud -> {
+        viewModel.getCloudProfile().observe(this, cloud -> {
             if (cloud == null || !cloud.hasData() || dirty) return;
             if (cloud.getUpdated_at_epoch() < localUpdatedAt) return;
-            profileStore.save(cloud);
+            viewModel.acceptCloudProfile(cloud);
             applyProfile(cloud);
             status.setText(R.string.garden_info_cloud_loaded);
         });
     }
 
     private void observeLocation() {
-        repository.observeWeatherLocation().observe(this, location -> {
+        viewModel.getWeatherLocation().observe(this, location -> {
             if (location == null || isBlank(location.getCity())) {
                 locationSummary.setText(R.string.garden_info_location_missing);
                 return;
@@ -149,7 +144,7 @@ public class GardenInfoActivity extends AppCompatActivity {
         gardenName.setText(valueOr(profile.getGarden_name(), getString(R.string.garden_info_default_name)));
         gardenType.setText(valueOr(profile.getGarden_type(),
                 getResources().getStringArray(R.array.garden_type_options)[0]), false);
-        double displayedArea = unitPreferences.areaFromSquareMeters(profile.getArea_square_meters());
+        double displayedArea = viewModel.areaFromSquareMeters(profile.getArea_square_meters());
         gardenArea.setText(displayedArea <= 0d ? "" : new DecimalFormat("0.##").format(displayedArea));
         gardenNotes.setText(valueOr(profile.getNotes(), ""));
         applyingValues = false;
@@ -176,12 +171,11 @@ public class GardenInfoActivity extends AppCompatActivity {
         }
 
         GardenProfile profile = new GardenProfile(name, type,
-                unitPreferences.areaToSquareMeters(displayedArea),
+                viewModel.areaToSquareMeters(displayedArea),
                 text(gardenNotes), System.currentTimeMillis() / 1000L);
-        profileStore.save(profile);
         dirty = false;
         status.setText(R.string.settings_status_saving);
-        repository.saveGardenProfile(profile)
+        viewModel.saveGardenProfile(profile)
                 .addOnSuccessListener(unused -> {
                     status.setText(R.string.garden_info_saved);
                     Toast.makeText(this, R.string.garden_info_saved, Toast.LENGTH_SHORT).show();

@@ -12,13 +12,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenNotification;
 import com.ali.smartgarden.models.GardenZone;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.NotificationCenterViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,7 +29,7 @@ import java.util.Locale;
 public class NotificationDetailActivity extends AppCompatActivity {
 
     private GardenNotification value;
-    private GardenNotificationManager manager;
+    private NotificationCenterViewModel viewModel;
     private TextView zoneView;
 
     @Override
@@ -39,13 +39,13 @@ public class NotificationDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification_detail);
         applyWindowInsets();
 
-        manager = new GardenNotificationManager(this);
+        viewModel = new ViewModelProvider(this).get(NotificationCenterViewModel.class);
 
         GardenNotification intentValue =
                 notificationFromIntent();
 
         GardenNotification currentValue =
-                manager.findLocalById(intentValue.getId());
+                viewModel.find(intentValue.getId());
 
         value = currentValue != null
                 ? currentValue
@@ -55,7 +55,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
         observeZoneName();
         configureActions();
 
-        manager.setState(value, true, value.isSaved());
+        viewModel.setState(value, true, value.isSaved());
         value.setRead(true);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.NOTIFICATIONS);
     }
@@ -156,7 +156,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
         String zoneId = value.getZone_id();
         if (zoneId.isBlank()) return;
 
-        new FirebaseRepository().observeGardenZones().observe(this, zones -> {
+        viewModel.getZones().observe(this, zones -> {
             GardenZone zone = findZone(zones, zoneId);
             if (zone == null) {
                 zoneView.setText(readableZoneFallback(zoneId));
@@ -209,7 +209,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
         popupMenu.setOnMenuItemClickListener(item -> {
             value.setSaved(!value.isSaved());
 
-            manager.setState(
+            viewModel.setState(
                     value,
                     true,
                     value.isSaved()

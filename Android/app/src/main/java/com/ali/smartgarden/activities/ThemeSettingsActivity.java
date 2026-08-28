@@ -10,10 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.theme.AvoraThemeManager;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.AppearanceSettingsViewModel;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 
 /** Lets the user switch AVORA's appearance and applies the choice immediately. */
@@ -22,6 +23,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private MaterialRadioButton lightTheme;
     private MaterialRadioButton darkTheme;
     private TextView activeTheme;
+    private AppearanceSettingsViewModel viewModel;
     private boolean binding;
 
     @Override
@@ -29,6 +31,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_theme_settings);
+        viewModel = new ViewModelProvider(this).get(AppearanceSettingsViewModel.class);
         applyWindowInsets();
 
         systemTheme = findViewById(R.id.radioThemeSystem);
@@ -43,23 +46,23 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
 
         bindSelection();
-        systemTheme.setOnClickListener(view -> select(AvoraThemeManager.MODE_SYSTEM));
-        lightTheme.setOnClickListener(view -> select(AvoraThemeManager.MODE_LIGHT));
-        darkTheme.setOnClickListener(view -> select(AvoraThemeManager.MODE_DARK));
+        systemTheme.setOnClickListener(view -> select(AppearanceSettingsViewModel.THEME_SYSTEM));
+        lightTheme.setOnClickListener(view -> select(AppearanceSettingsViewModel.THEME_LIGHT));
+        darkTheme.setOnClickListener(view -> select(AppearanceSettingsViewModel.THEME_DARK));
         ((View) systemTheme.getParent()).setOnClickListener(
-                view -> select(AvoraThemeManager.MODE_SYSTEM));
+                view -> select(AppearanceSettingsViewModel.THEME_SYSTEM));
         ((View) lightTheme.getParent()).setOnClickListener(
-                view -> select(AvoraThemeManager.MODE_LIGHT));
+                view -> select(AppearanceSettingsViewModel.THEME_LIGHT));
         ((View) darkTheme.getParent()).setOnClickListener(
-                view -> select(AvoraThemeManager.MODE_DARK));
+                view -> select(AppearanceSettingsViewModel.THEME_DARK));
     }
 
     private void bindSelection() {
         binding = true;
-        String mode = AvoraThemeManager.getThemeMode(this);
-        systemTheme.setChecked(AvoraThemeManager.MODE_SYSTEM.equals(mode));
-        lightTheme.setChecked(AvoraThemeManager.MODE_LIGHT.equals(mode));
-        darkTheme.setChecked(AvoraThemeManager.MODE_DARK.equals(mode));
+        String mode = viewModel.themeMode();
+        systemTheme.setChecked(AppearanceSettingsViewModel.THEME_SYSTEM.equals(mode));
+        lightTheme.setChecked(AppearanceSettingsViewModel.THEME_LIGHT.equals(mode));
+        darkTheme.setChecked(AppearanceSettingsViewModel.THEME_DARK.equals(mode));
         activeTheme.setText(getString(R.string.theme_active_format,
                 getString(labelFor(mode))));
         binding = false;
@@ -67,15 +70,15 @@ public class ThemeSettingsActivity extends AppCompatActivity {
 
     private void select(String mode) {
         if (binding) return;
-        AvoraThemeManager.setThemeMode(this, mode);
+        viewModel.setThemeMode(mode);
         bindSelection();
     }
 
     private int labelFor(String mode) {
-        if (AvoraThemeManager.MODE_LIGHT.equals(mode)) {
+        if (AppearanceSettingsViewModel.THEME_LIGHT.equals(mode)) {
             return R.string.theme_option_light;
         }
-        if (AvoraThemeManager.MODE_DARK.equals(mode)) {
+        if (AppearanceSettingsViewModel.THEME_DARK.equals(mode)) {
             return R.string.theme_option_dark;
         }
         return R.string.theme_option_system;

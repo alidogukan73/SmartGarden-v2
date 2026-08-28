@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.adapters.WateringHistoryAdapter;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.viewmodels.WateringHistoryViewModel;
@@ -289,7 +288,7 @@ public class WateringHistoryActivity extends AppCompatActivity {
                 view -> finish()
         );
 
-        new FirebaseRepository().observeGardenZones().observe(this, zones -> {
+        viewModel.getZones().observe(this, zones -> {
             adapter.setZoneLabels(zoneLabels(zones));
             ZoneChipRenderer.render(
                     this,

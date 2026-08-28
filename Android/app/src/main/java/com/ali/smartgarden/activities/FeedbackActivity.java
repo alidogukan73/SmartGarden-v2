@@ -14,25 +14,21 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.config.AppInfo;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.FeedbackViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /** Sends structured user feedback without attaching private garden content. */
 public class FeedbackActivity extends AppCompatActivity {
@@ -53,6 +49,7 @@ public class FeedbackActivity extends AppCompatActivity {
     private MaterialButton submitButton;
     private TextView statusView;
     private String[] areaLabels;
+    private FeedbackViewModel viewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
@@ -63,6 +60,7 @@ public class FeedbackActivity extends AppCompatActivity {
         bindViews();
         configureToolbar();
         configureAreaDropdown();
+        viewModel = new ViewModelProvider(this).get(FeedbackViewModel.class);
         submitButton.setOnClickListener(view -> submitFeedback());
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
     }
@@ -122,34 +120,14 @@ public class FeedbackActivity extends AppCompatActivity {
             return;
         }
 
-        String feedbackId = UUID.randomUUID().toString();
         String areaLabel = areaDropdown.getText() == null
                 ? areaLabels[0] : areaDropdown.getText().toString().trim();
         int areaIndex = areaIndex(areaLabel);
-        Map<String, Object> values = new HashMap<>();
-        values.put("id", feedbackId);
-        values.put("type", type);
-        values.put("area", AREA_CODES[areaIndex]);
-        values.put("area_label", areaLabels[areaIndex]);
-        values.put("subject", subject);
-        values.put("description", description);
-        if (!contact.isEmpty()) values.put("contact_email", contact);
-        values.put("status", "new");
-        values.put("created_at", ServerValue.TIMESTAMP);
-        values.put("device_id", AppInfo.DEVICE_ID);
-        values.put("source", "android");
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) values.put("user_id", user.getUid());
-        if (diagnosticsSwitch.isChecked()) values.put("diagnostics", diagnostics());
-
         setSending(true);
-        DatabaseReference target = FirebaseDatabase.getInstance().getReference()
-                .child("devices")
-                .child(AppInfo.DEVICE_ID)
-                .child("user_feedback")
-                .child(feedbackId);
-        target.setValue(values).addOnCompleteListener(task -> {
+        viewModel.submit(type, AREA_CODES[areaIndex], areaLabels[areaIndex],
+                subject, description, contact,
+                diagnosticsSwitch.isChecked() ? diagnostics() : null)
+                .addOnCompleteListener(task -> {
             setSending(false);
             if (task.isSuccessful()) {
                 clearForm();

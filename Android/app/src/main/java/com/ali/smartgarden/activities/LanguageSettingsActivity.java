@@ -10,10 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.AppearanceSettingsViewModel;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 
 /** Controls AVORA's app language without changing stored garden data. */
@@ -22,6 +23,7 @@ public class LanguageSettingsActivity extends AppCompatActivity {
     private MaterialRadioButton turkishLanguage;
     private MaterialRadioButton englishLanguage;
     private TextView activeLanguage;
+    private AppearanceSettingsViewModel viewModel;
     private boolean binding;
 
     @Override
@@ -29,6 +31,7 @@ public class LanguageSettingsActivity extends AppCompatActivity {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_language_settings);
+        viewModel = new ViewModelProvider(this).get(AppearanceSettingsViewModel.class);
         applyWindowInsets();
 
         systemLanguage = findViewById(R.id.radioLanguageSystem);
@@ -48,31 +51,31 @@ public class LanguageSettingsActivity extends AppCompatActivity {
 
     private void configureOptions() {
         systemLanguage.setOnClickListener(
-                view -> select(AvoraLanguageManager.MODE_SYSTEM));
+                view -> select(AppearanceSettingsViewModel.LANGUAGE_SYSTEM));
         turkishLanguage.setOnClickListener(
-                view -> select(AvoraLanguageManager.MODE_TURKISH));
+                view -> select(AppearanceSettingsViewModel.LANGUAGE_TURKISH));
         ((View) systemLanguage.getParent()).setOnClickListener(
-                view -> select(AvoraLanguageManager.MODE_SYSTEM));
+                view -> select(AppearanceSettingsViewModel.LANGUAGE_SYSTEM));
         ((View) turkishLanguage.getParent()).setOnClickListener(
-                view -> select(AvoraLanguageManager.MODE_TURKISH));
+                view -> select(AppearanceSettingsViewModel.LANGUAGE_TURKISH));
 
-        boolean englishAvailable = AvoraLanguageManager.isEnglishAvailable();
+        boolean englishAvailable = viewModel.englishAvailable();
         englishLanguage.setEnabled(englishAvailable);
         ((View) englishLanguage.getParent()).setEnabled(englishAvailable);
         if (englishAvailable) {
             englishLanguage.setOnClickListener(
-                    view -> select(AvoraLanguageManager.MODE_ENGLISH));
+                    view -> select(AppearanceSettingsViewModel.LANGUAGE_ENGLISH));
             ((View) englishLanguage.getParent()).setOnClickListener(
-                    view -> select(AvoraLanguageManager.MODE_ENGLISH));
+                    view -> select(AppearanceSettingsViewModel.LANGUAGE_ENGLISH));
         }
     }
 
     private void bindSelection() {
         binding = true;
-        String mode = AvoraLanguageManager.getLanguageMode(this);
-        systemLanguage.setChecked(AvoraLanguageManager.MODE_SYSTEM.equals(mode));
-        turkishLanguage.setChecked(AvoraLanguageManager.MODE_TURKISH.equals(mode));
-        englishLanguage.setChecked(AvoraLanguageManager.MODE_ENGLISH.equals(mode));
+        String mode = viewModel.languageMode();
+        systemLanguage.setChecked(AppearanceSettingsViewModel.LANGUAGE_SYSTEM.equals(mode));
+        turkishLanguage.setChecked(AppearanceSettingsViewModel.LANGUAGE_TURKISH.equals(mode));
+        englishLanguage.setChecked(AppearanceSettingsViewModel.LANGUAGE_ENGLISH.equals(mode));
         activeLanguage.setText(getString(R.string.language_active_format,
                 getString(labelFor(mode))));
         binding = false;
@@ -80,15 +83,15 @@ public class LanguageSettingsActivity extends AppCompatActivity {
 
     private void select(String mode) {
         if (binding) return;
-        AvoraLanguageManager.setLanguageMode(this, mode);
+        viewModel.setLanguageMode(mode);
         bindSelection();
     }
 
     private int labelFor(String mode) {
-        if (AvoraLanguageManager.MODE_TURKISH.equals(mode)) {
+        if (AppearanceSettingsViewModel.LANGUAGE_TURKISH.equals(mode)) {
             return R.string.language_option_turkish;
         }
-        if (AvoraLanguageManager.MODE_ENGLISH.equals(mode)) {
+        if (AppearanceSettingsViewModel.LANGUAGE_ENGLISH.equals(mode)) {
             return R.string.language_option_english;
         }
         return R.string.language_option_system;

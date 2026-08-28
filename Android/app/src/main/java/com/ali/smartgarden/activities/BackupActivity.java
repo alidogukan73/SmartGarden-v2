@@ -1,10 +1,7 @@
 package com.ali.smartgarden.activities;
 
-import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -20,56 +17,40 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.backup.AvoraBackupManager;
 import com.ali.smartgarden.config.AppInfo;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.BackupViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /** Creates and safely restores portable AVORA backup files. */
 public class BackupActivity extends AppCompatActivity {
-    private static final String PREFS = "backup_preferences";
-    private static final String LAST_BACKUP_TIME = "last_backup_epoch_ms";
-    private static final String LAST_BACKUP_NAME = "last_backup_file_name";
-    private static final String LAST_RESTORE_TIME = "last_restore_epoch_ms";
-    private static final String LAST_RESTORE_NAME = "last_restore_file_name";
-
-    private final ExecutorService fileExecutor = Executors.newSingleThreadExecutor();
     private ActivityResultLauncher<String> createDocumentLauncher;
     private ActivityResultLauncher<String[]> openDocumentLauncher;
-    private AvoraBackupManager backupManager;
-    private SharedPreferences preferences;
+    private BackupViewModel viewModel;
     private MaterialButton createButton;
     private MaterialButton restoreButton;
     private LinearProgressIndicator progress;
     private TextView operationStatus;
     private TextView lastBackupValue;
     private TextView lastRestoreValue;
-    private JSONObject pendingBackup;
-    private String pendingBackupName;
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_backup);
-        backupManager = new AvoraBackupManager(this);
-        preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
+        viewModel = new ViewModelProvider(this).get(BackupViewModel.class);
         registerFileLaunchers();
         applyWindowInsets();
         bindViews();
@@ -130,12 +111,10 @@ public class BackupActivity extends AppCompatActivity {
     private void prepareBackup() {
         setBusy(true);
         showOperation(R.string.backup_preparing, R.color.textSecondary);
-        backupManager.createBackup()
+        viewModel.prepareBackup()
                 .addOnSuccessListener(backup -> {
-                    pendingBackup = backup;
-                    pendingBackupName = buildBackupFileName();
                     setBusy(false);
-                    createDocumentLauncher.launch(pendingBackupName);
+                    createDocumentLauncher.launch(viewModel.pendingFileName());
                 })
                 .addOnFailureListener(error -> {
                     setBusy(false);
@@ -144,40 +123,25 @@ public class BackupActivity extends AppCompatActivity {
     }
 
     private void writeBackupFile(@Nullable Uri uri) {
-        if (uri == null || pendingBackup == null) {
-            pendingBackup = null;
-            pendingBackupName = null;
+        if (uri == null || !viewModel.hasPendingBackup()) {
+            viewModel.clearPendingBackup();
             showOperation(R.string.backup_file_cancelled, R.color.textSecondary);
             return;
         }
-        JSONObject backup = pendingBackup;
-        String fallbackName = pendingBackupName;
         setBusy(true);
         showOperation(R.string.backup_writing, R.color.textSecondary);
-        fileExecutor.execute(() -> {
-            try (OutputStream output = getContentResolver().openOutputStream(uri, "wt")) {
-                if (output == null) {
-                    throw new IllegalStateException(getString(R.string.backup_file_open_error));
-                }
-                output.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
-                output.flush();
-                String name = displayName(uri, fallbackName);
-                runOnUiThread(() -> onBackupWritten(name));
-            } catch (Exception error) {
-                runOnUiThread(() -> {
+        viewModel.writePending(uri, result -> runOnUiThread(() -> {
+            if (result.successful) {
+                onBackupWritten(result.displayName);
+            } else {
                     setBusy(false);
-                    showError(getString(R.string.backup_write_error, safeMessage(error)));
-                });
+                    showError(getString(R.string.backup_write_error,
+                            safeMessage(result.error)));
             }
-        });
+        }));
     }
 
     private void onBackupWritten(String displayName) {
-        long now = System.currentTimeMillis();
-        preferences.edit().putLong(LAST_BACKUP_TIME, now)
-                .putString(LAST_BACKUP_NAME, displayName).apply();
-        pendingBackup = null;
-        pendingBackupName = null;
         setBusy(false);
         renderStoredState();
         showOperation(getString(R.string.backup_create_success, displayName), R.color.online);
@@ -191,32 +155,20 @@ public class BackupActivity extends AppCompatActivity {
         }
         setBusy(true);
         showOperation(R.string.backup_reading, R.color.textSecondary);
-        fileExecutor.execute(() -> {
-            try (InputStream input = getContentResolver().openInputStream(uri)) {
-                if (input == null) {
-                    throw new IllegalStateException(getString(R.string.backup_file_open_error));
-                }
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = input.read(buffer)) >= 0) {
-                    output.write(buffer, 0, read);
-                }
-                JSONObject backup = new JSONObject(output.toString(StandardCharsets.UTF_8.name()));
-                String name = displayName(uri, getString(R.string.backup_unknown_file));
-                runOnUiThread(() -> validateAndConfirm(backup, name));
-            } catch (Exception error) {
-                runOnUiThread(() -> {
+        viewModel.read(uri, result -> runOnUiThread(() -> {
+            if (result.successful) {
+                validateAndConfirm(result.backup, result.displayName);
+            } else {
                     setBusy(false);
-                    showError(getString(R.string.backup_read_error, safeMessage(error)));
-                });
+                    showError(getString(R.string.backup_read_error,
+                            safeMessage(result.error)));
             }
-        });
+        }));
     }
 
     private void validateAndConfirm(JSONObject backup, String displayName) {
         setBusy(false);
-        AvoraBackupManager.ValidationResult result = backupManager.validate(backup);
+        BackupViewModel.BackupValidation result = viewModel.validate(backup);
         if (!result.valid) {
             showError(result.message);
             return;
@@ -240,11 +192,8 @@ public class BackupActivity extends AppCompatActivity {
     private void restoreBackup(JSONObject backup, String displayName) {
         setBusy(true);
         showOperation(R.string.backup_restoring, R.color.textSecondary);
-        backupManager.restoreBackup(backup)
+        viewModel.restore(backup, displayName)
                 .addOnSuccessListener(unused -> {
-                    long now = System.currentTimeMillis();
-                    preferences.edit().putLong(LAST_RESTORE_TIME, now)
-                            .putString(LAST_RESTORE_NAME, displayName).apply();
                     setBusy(false);
                     renderStoredState();
                     showOperation(R.string.backup_restore_success, R.color.online);
@@ -258,13 +207,12 @@ public class BackupActivity extends AppCompatActivity {
     }
 
     private void renderStoredState() {
-        lastBackupValue.setText(formatStoredOperation(LAST_BACKUP_TIME, LAST_BACKUP_NAME));
-        lastRestoreValue.setText(formatStoredOperation(LAST_RESTORE_TIME, LAST_RESTORE_NAME));
+        BackupViewModel.StoredState state = viewModel.storedState();
+        lastBackupValue.setText(formatStoredOperation(state.backupTime, state.backupName));
+        lastRestoreValue.setText(formatStoredOperation(state.restoreTime, state.restoreName));
     }
 
-    private String formatStoredOperation(String timeKey, String nameKey) {
-        long epoch = preferences.getLong(timeKey, 0L);
-        String name = preferences.getString(nameKey, "");
+    private String formatStoredOperation(long epoch, String name) {
         if (epoch <= 0L) {
             return getString(R.string.backup_never);
         }
@@ -293,30 +241,6 @@ public class BackupActivity extends AppCompatActivity {
         operationStatus.setTextColor(ContextCompat.getColor(this, colorRes));
     }
 
-    private String buildBackupFileName() {
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.US)
-                .format(new Date());
-        return "AVORA-" + AppInfo.DEVICE_ID + "-" + timestamp + ".avora.json";
-    }
-
-    private String displayName(Uri uri, String fallback) {
-        try (Cursor cursor = getContentResolver().query(uri,
-                new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                if (index >= 0) {
-                    String name = cursor.getString(index);
-                    if (name != null && !name.isBlank()) {
-                        return name;
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-            // Some content providers do not expose a display name.
-        }
-        return fallback;
-    }
-
     private String formatDateTime(long epochMillis) {
         return new SimpleDateFormat("dd-MM-yyyy HH:mm", new Locale("tr", "TR"))
                 .format(new Date(epochMillis));
@@ -341,9 +265,4 @@ public class BackupActivity extends AppCompatActivity {
                 });
     }
 
-    @Override
-    protected void onDestroy() {
-        fileExecutor.shutdownNow();
-        super.onDestroy();
-    }
 }

@@ -1,7 +1,6 @@
 package com.ali.smartgarden.activities;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,9 +20,11 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
@@ -35,20 +36,20 @@ import java.util.Set;
 /** Central settings dashboard. Detailed screens own and save their own values. */
 public class SettingsHubActivity extends AppCompatActivity {
 
-    private static final String PREFS_NAME = "settings_hub_preferences";
-    private static final String PREF_QUICK_ACTIONS = "quick_actions_order";
     private static final int QUICK_ACTION_COUNT = 4;
     private static final List<String> DEFAULT_QUICK_ACTIONS = Arrays.asList(
             "irrigation", "plants", "notifications", "weather");
 
     private LinearLayout quickActions;
     private LinearLayout sections;
+    private GardenSettingsViewModel viewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_settings_hub);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         applyWindowInsets();
 
         quickActions = findViewById(R.id.layoutSettingsQuickActions);
@@ -274,29 +275,12 @@ public class SettingsHubActivity extends AppCompatActivity {
     }
 
     private List<String> loadQuickActionIds() {
-        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String stored = preferences.getString(PREF_QUICK_ACTIONS, "");
-        if (stored == null || stored.trim().isEmpty()) {
-            return new ArrayList<>(DEFAULT_QUICK_ACTIONS);
-        }
-        List<String> validIds = allQuickActionIds();
-        LinkedHashSet<String> parsed = new LinkedHashSet<>();
-        for (String id : stored.split("\\|")) {
-            if (validIds.contains(id)) {
-                parsed.add(id);
-            }
-        }
-        if (parsed.size() != QUICK_ACTION_COUNT) {
-            return new ArrayList<>(DEFAULT_QUICK_ACTIONS);
-        }
-        return new ArrayList<>(parsed);
+        return viewModel.loadQuickActionIds(
+                DEFAULT_QUICK_ACTIONS, allQuickActionIds(), QUICK_ACTION_COUNT);
     }
 
     private void saveQuickActionIds(List<String> ids) {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .edit()
-                .putString(PREF_QUICK_ACTIONS, String.join("|", ids))
-                .apply();
+        viewModel.saveQuickActionIds(ids);
     }
 
     private List<String> allQuickActionIds() {

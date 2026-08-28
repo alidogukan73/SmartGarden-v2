@@ -19,19 +19,12 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.fertilization.FertilizationRepository;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.fertilization.FertilizerAdvice;
-import com.ali.smartgarden.fertilization.FertilizerApplicationSafety;
-import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
-import com.ali.smartgarden.fertilization.FertilizerSafetyPolicy;
-import com.ali.smartgarden.fertilization.OrganicFertilizerAiAdvisor;
-import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
-import com.ali.smartgarden.fertilization.FertilizerMixAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerMixResult;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.viewmodels.FertilizationCalendarViewModel;
@@ -160,7 +153,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             FertilizerProduct first,
             FertilizerProduct second
     ) {
-        FertilizerMixResult result = FertilizerMixAdvisor.assess(
+        FertilizerMixResult result = viewModel.assessMix(
                 first,
                 second
         );
@@ -201,17 +194,17 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             if (profile == null || !profile.isEnabled()) {
                 continue;
             }
-            if (!FertilizerSafetyPolicy.isEligible(first, profile)
-                    || !FertilizerSafetyPolicy.isEligible(second, profile)) {
+            if (!viewModel.isEligible(first, profile)
+                    || !viewModel.isEligible(second, profile)) {
                 continue;
             }
-            FertilizerApplicationSafety.Dose firstDose =
-                    FertilizerApplicationSafety.calculateDose(
+            FertilizationCalendarViewModel.Dose firstDose =
+                    viewModel.calculateDose(
                             first,
                             profile
                     );
-            FertilizerApplicationSafety.Dose secondDose =
-                    FertilizerApplicationSafety.calculateDose(
+            FertilizationCalendarViewModel.Dose secondDose =
+                    viewModel.calculateDose(
                             second,
                             profile
                     );
@@ -321,9 +314,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return;
         }
-        List<FertilizationRepository.BulkFertilizerApplication> firstApplications =
+        List<FertilizationCalendarViewModel.BulkFertilizerApplication> firstApplications =
                 new ArrayList<>();
-        List<FertilizationRepository.BulkFertilizerApplication> secondApplications =
+        List<FertilizationCalendarViewModel.BulkFertilizerApplication> secondApplications =
                 new ArrayList<>();
         List<String> invalidZones = new ArrayList<>();
         List<String> stageBlockedZones = new ArrayList<>();
@@ -332,8 +325,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         String secondUnit = "";
         double firstTotal = 0.0;
         double secondTotal = 0.0;
-        String firstType = FertilizerApplicationSafety.applicationType(first);
-        String secondType = FertilizerApplicationSafety.applicationType(second);
+        String firstType = viewModel.applicationType(first);
+        String secondType = viewModel.applicationType(second);
         String mixGroupId = "mix-" + UUID.randomUUID();
         String riskLevel = result.getRiskLevel().name();
 
@@ -344,31 +337,30 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             GardenZone zone = zones.get(index);
             FertilizationProfile profile = zone.getFertilization();
             String zoneName = safe(zone.getName());
-            FertilizerApplicationSafety.Dose firstDose =
-                    FertilizerApplicationSafety.calculateDose(first, profile);
-            FertilizerApplicationSafety.Dose secondDose =
-                    FertilizerApplicationSafety.calculateDose(second, profile);
+            FertilizationCalendarViewModel.Dose firstDose =
+                    viewModel.calculateDose(first, profile);
+            FertilizationCalendarViewModel.Dose secondDose =
+                    viewModel.calculateDose(second, profile);
             if (profile == null || !profile.isEnabled()
                     || !firstDose.isSupported()
                     || !secondDose.isSupported()) {
                 invalidZones.add(zoneName);
                 continue;
             }
-            if (!FertilizerSafetyPolicy.isEligible(first, profile)
-                    || !FertilizerSafetyPolicy.isEligible(second, profile)) {
+            if (!viewModel.isEligible(first, profile)
+                    || !viewModel.isEligible(second, profile)) {
                 stageBlockedZones.add(zoneName);
                 continue;
             }
             boolean repeatBlocked =
-                    FertilizerApplicationSafety.isRepeatIntervalBlocked(
+                    viewModel.isRepeatIntervalBlocked(
                             profile,
                             firstType,
                             appliedAt
                     );
             if (!firstType.equals(secondType)) {
                 repeatBlocked = repeatBlocked
-                        || FertilizerApplicationSafety
-                        .isRepeatIntervalBlocked(
+                        || viewModel.isRepeatIntervalBlocked(
                                 profile,
                                 secondType,
                                 appliedAt
@@ -463,10 +455,10 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         );
     }
 
-    private FertilizationRepository.BulkFertilizerApplication mixApplication(
+    private FertilizationCalendarViewModel.BulkFertilizerApplication mixApplication(
             GardenZone zone,
             FertilizationProfile profile,
-            FertilizerApplicationSafety.Dose dose,
+            FertilizationCalendarViewModel.Dose dose,
             FertilizerProduct product,
             FertilizerProduct partner,
             String applicationType,
@@ -474,7 +466,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             String mixGroupId,
             String riskLevel
     ) {
-        return new FertilizationRepository.BulkFertilizerApplication(
+        return new FertilizationCalendarViewModel.BulkFertilizerApplication(
                 zone.getZone_id(),
                 safe(zone.getName()),
                 dose.getAmount(),
@@ -512,7 +504,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return false;
         }
-        if (!FertilizerApplicationSafety.isStockUnitCompatible(
+        if (!viewModel.isStockUnitCompatible(
                 product,
                 appliedUnit
         )) {
@@ -528,7 +520,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return false;
         }
-        if (!FertilizerApplicationSafety.hasEnoughStock(product, total)) {
+        if (!viewModel.hasEnoughStock(product, total)) {
             Toast.makeText(
                     this,
                     getString(
@@ -549,9 +541,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             FertilizerProduct first,
             FertilizerProduct second,
             FertilizerMixResult result,
-            List<FertilizationRepository.BulkFertilizerApplication>
+            List<FertilizationCalendarViewModel.BulkFertilizerApplication>
                     firstApplications,
-            List<FertilizationRepository.BulkFertilizerApplication>
+            List<FertilizationCalendarViewModel.BulkFertilizerApplication>
                     secondApplications,
             String firstUnit,
             String secondUnit,
@@ -608,15 +600,15 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             dialog.getButton(
                     androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE
             ).setEnabled(false);
-            List<FertilizationRepository.FertilizerApplicationBatch> batches =
+            List<FertilizationCalendarViewModel.FertilizerApplicationBatch> batches =
                     new ArrayList<>();
-            batches.add(new FertilizationRepository.FertilizerApplicationBatch(
+            batches.add(new FertilizationCalendarViewModel.FertilizerApplicationBatch(
                     first,
                     firstApplications,
                     firstUnit,
                     true
             ));
-            batches.add(new FertilizationRepository.FertilizerApplicationBatch(
+            batches.add(new FertilizationCalendarViewModel.FertilizerApplicationBatch(
                     second,
                     secondApplications,
                     secondUnit,
@@ -689,10 +681,10 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         List<GardenZone> eligible = new ArrayList<>();
         for (GardenZone zone : currentZones) {
             FertilizationProfile profile = zone.getFertilization();
-            FertilizerApplicationSafety.Dose dose =
-                    FertilizerApplicationSafety.calculateDose(product, profile);
+            FertilizationCalendarViewModel.Dose dose =
+                    viewModel.calculateDose(product, profile);
             if (dose.isSupported()
-                    && FertilizerSafetyPolicy.isEligible(product, profile)) {
+                    && viewModel.isEligible(product, profile)) {
                 eligible.add(zone);
             }
         }
@@ -769,14 +761,14 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             return;
         }
 
-        List<FertilizationRepository.BulkFertilizerApplication> applications =
+        List<FertilizationCalendarViewModel.BulkFertilizerApplication> applications =
                 new ArrayList<>();
         List<String> invalidZones = new ArrayList<>();
         List<String> stageBlockedZones = new ArrayList<>();
         List<String> repeatBlockedZones = new ArrayList<>();
         double total = 0.0;
         String appliedUnit = "";
-        String type = FertilizerApplicationSafety.applicationType(product);
+        String type = viewModel.applicationType(product);
 
         for (int index = 0; index < zones.size(); index++) {
             if (!checked[index]) {
@@ -785,17 +777,17 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             GardenZone zone = zones.get(index);
             FertilizationProfile profile = zone.getFertilization();
             String zoneName = safe(zone.getName());
-            FertilizerApplicationSafety.Dose dose =
-                    FertilizerApplicationSafety.calculateDose(product, profile);
+            FertilizationCalendarViewModel.Dose dose =
+                    viewModel.calculateDose(product, profile);
             if (profile == null || !profile.isEnabled() || !dose.isSupported()) {
                 invalidZones.add(zoneName);
                 continue;
             }
-            if (!FertilizerSafetyPolicy.isEligible(product, profile)) {
+            if (!viewModel.isEligible(product, profile)) {
                 stageBlockedZones.add(zoneName);
                 continue;
             }
-            if (FertilizerApplicationSafety.isRepeatIntervalBlocked(
+            if (viewModel.isRepeatIntervalBlocked(
                     profile, type, appliedAt
             )) {
                 repeatBlockedZones.add(zoneName);
@@ -808,7 +800,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 continue;
             }
             total += dose.getAmount();
-            applications.add(new FertilizationRepository.BulkFertilizerApplication(
+            applications.add(new FertilizationCalendarViewModel.BulkFertilizerApplication(
                     zone.getZone_id(),
                     zoneName,
                     dose.getAmount(),
@@ -853,7 +845,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return;
         }
-        if (!FertilizerApplicationSafety.isStockUnitCompatible(product, appliedUnit)) {
+        if (!viewModel.isStockUnitCompatible(product, appliedUnit)) {
             Toast.makeText(this, getString(
                     R.string.fertilizer_bulk_stock_unit_mismatch,
                     product.getStock_unit(),
@@ -861,7 +853,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ), Toast.LENGTH_LONG).show();
             return;
         }
-        if (!FertilizerApplicationSafety.hasEnoughStock(product, total)) {
+        if (!viewModel.hasEnoughStock(product, total)) {
             Toast.makeText(this, getString(
                     R.string.fertilizer_bulk_stock_insufficient,
                     formatAmount(total),
@@ -1028,10 +1020,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         long now = System.currentTimeMillis() / 1000L;
         for (GardenZone zone : currentZones) {
-            FertilizerAdvice advice = FertilizerDecisionEngine.advise(
-                    zone, currentProducts, currentWeather, currentHistory, now,
-                    new FertilizationPreferenceStore(this).preferOrganicInputs()
-            );
+            FertilizerAdvice advice = viewModel.advise(
+                    zone, currentProducts, currentWeather, currentHistory, now);
             View card = inflater.inflate(R.layout.item_fertilizer_today_advice,
                     layoutTodayAdvice, false);
             card.setOnClickListener(view -> openZoneDetails(zone));
@@ -1054,7 +1044,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             context.setVisibility(support.isBlank() ? View.GONE : View.VISIBLE);
             TextView products = card.findViewById(R.id.txtTodayAdviceProducts);
             if (advice.getCandidates().isEmpty()) {
-                if (OrganicFertilizerAiAdvisor.isRequired(advice)) {
+                if (viewModel.requiresOrganicAi(advice)) {
                     products.setVisibility(View.VISIBLE);
                     products.setText(R.string.fertilizer_organic_ai_loading);
                     requestOrganicAiAdvice(products, zone, true);
@@ -1095,13 +1085,11 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     private void requestOrganicAiAdvice(TextView target,
                                         GardenZone zone,
                                         boolean compact) {
-        OrganicFertilizerAiAdvisor.request(zone,
-                new OrganicFertilizerAiAdvisor.Callback() {
+        viewModel.requestOrganicAdvice(zone, compact,
+                new FertilizationCalendarViewModel.OrganicAdviceCallback() {
                     @Override
-                    public void onResult(OrganicFertilizerAiAdvisor.Result result) {
+                    public void onResult(String content) {
                         if (isFinishing() || isDestroyed()) return;
-                        String content = compact
-                                ? result.compactText() : result.fullText(FertilizationCalendarActivity.this);
                         target.setText(getString(
                                 R.string.runtime_two_lines,
                                 getString(R.string.fertilizer_organic_ai_heading),
@@ -1220,7 +1208,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         }
         if ("BUGÜNKÜ ÖNERİ".equals(advice.getStatus())) {
             boolean organicStage = zone.getFertilization() != null
-                    && FertilizerSafetyPolicy.requiresOrganicProduct(
+                    && viewModel.requiresOrganicProduct(
                     zone.getFertilization()
             );
             return getString(organicStage

@@ -1,6 +1,5 @@
 package com.ali.smartgarden.activities;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,42 +16,23 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.config.AppInfo;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
+import com.ali.smartgarden.viewmodels.DataSyncViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /** Verifies the real Firebase session and refreshes AVORA's essential device summaries. */
 public class DataSyncActivity extends AppCompatActivity {
-    private static final String PREFS = "data_sync_preferences";
-    private static final String PREF_AUTO_SYNC = "automatic_summary_sync";
-    private static final String PREF_LAST_SUCCESS = "last_success_epoch_ms";
-    private static final String PREF_LAST_DEVICE_DATA = "last_device_data_epoch_ms";
-    private static final String PREF_LAST_SCOPE = "last_verified_scope";
     private static final long CONNECTION_TIMEOUT_MS = 12_000L;
 
-    private final FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private final DatabaseReference deviceRef = database.getReference("devices")
-            .child(AppInfo.DEVICE_ID);
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private TextView headline;
@@ -64,7 +44,7 @@ public class DataSyncActivity extends AppCompatActivity {
     private MaterialSwitch automaticSwitch;
     private MaterialButton syncButton;
     private LinearProgressIndicator progress;
-    private SharedPreferences preferences;
+    private DataSyncViewModel viewModel;
     private boolean firebaseConnected;
     private boolean manualSyncPending;
     private boolean remoteReadInFlight;
@@ -84,7 +64,7 @@ public class DataSyncActivity extends AppCompatActivity {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_data_sync);
-        preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
+        viewModel = new ViewModelProvider(this).get(DataSyncViewModel.class);
         applyWindowInsets();
         bindViews();
         configureToolbar();
@@ -135,17 +115,16 @@ public class DataSyncActivity extends AppCompatActivity {
     }
 
     private void configureAutomaticSync() {
-        boolean enabled = preferences.getBoolean(PREF_AUTO_SYNC, true);
+        boolean enabled = viewModel.automaticSyncEnabled();
         suppressSwitchCallback = true;
         automaticSwitch.setChecked(enabled);
         suppressSwitchCallback = false;
-        applyPinnedSync(enabled);
+        viewModel.setAutomaticSyncEnabled(enabled);
         automaticSwitch.setOnCheckedChangeListener((button, checked) -> {
             if (suppressSwitchCallback) {
                 return;
             }
-            preferences.edit().putBoolean(PREF_AUTO_SYNC, checked).apply();
-            applyPinnedSync(checked);
+            viewModel.setAutomaticSyncEnabled(checked);
             Toast.makeText(this, checked
                     ? R.string.data_sync_auto_enabled
                     : R.string.data_sync_auto_disabled, Toast.LENGTH_LONG).show();
@@ -155,19 +134,13 @@ public class DataSyncActivity extends AppCompatActivity {
         });
     }
 
-    private void applyPinnedSync(boolean enabled) {
-        deviceRef.child("status").keepSynced(enabled);
-        deviceRef.child("health").keepSynced(enabled);
-        deviceRef.child("zones").keepSynced(enabled);
-        deviceRef.child("weather").keepSynced(enabled);
-    }
-
     private void configureActions() {
         syncButton.setOnClickListener(view -> startManualSync());
     }
 
     private void observeConnection() {
-        new FirebaseRepository().observeFirebaseConnection(error -> {
+        viewModel.getConnectionError().observe(this, message -> {
+            if (message == null) return;
             firebaseConnected = false;
             renderConnection();
             if (manualSyncPending) {
@@ -175,9 +148,10 @@ public class DataSyncActivity extends AppCompatActivity {
                 handler.removeCallbacks(connectionTimeout);
                 setSyncing(false);
                 showOperation(getString(R.string.data_sync_read_error,
-                        safeMessage(error.getMessage())), R.color.warning);
+                        safeMessage(message)), R.color.warning);
             }
-        }).observe(this, connected -> {
+        });
+        viewModel.getConnected().observe(this, connected -> {
             firebaseConnected = Boolean.TRUE.equals(connected);
             renderConnection();
             if (firebaseConnected && manualSyncPending) {
@@ -193,7 +167,7 @@ public class DataSyncActivity extends AppCompatActivity {
         manualSyncPending = true;
         setSyncing(true);
         showOperation(R.string.data_sync_syncing, R.color.textSecondary);
-        database.goOnline();
+        viewModel.goOnline();
         handler.removeCallbacks(connectionTimeout);
         handler.postDelayed(connectionTimeout, CONNECTION_TIMEOUT_MS);
         if (firebaseConnected) {
@@ -206,50 +180,34 @@ public class DataSyncActivity extends AppCompatActivity {
             return;
         }
         remoteReadInFlight = true;
-        List<Task<DataSnapshot>> reads = new ArrayList<>();
-        reads.add(deviceRef.child("status").get());
-        reads.add(deviceRef.child("health").get());
-        reads.add(deviceRef.child("zones").get());
-        reads.add(deviceRef.child("weather").child("forecast").get());
-
-        Tasks.whenAllSuccess(reads).addOnSuccessListener(results -> {
+        viewModel.readSummary().addOnSuccessListener(result -> {
             if (!manualSyncPending) {
                 return;
             }
             manualSyncPending = false;
             remoteReadInFlight = false;
             handler.removeCallbacks(connectionTimeout);
-            if (!firebaseConnected || results.size() < 4) {
+            if (!firebaseConnected) {
                 setSyncing(false);
                 showOperation(R.string.data_sync_offline_error, R.color.warning);
                 return;
             }
 
-            DataSnapshot status = (DataSnapshot) results.get(0);
-            DataSnapshot health = (DataSnapshot) results.get(1);
-            DataSnapshot zones = (DataSnapshot) results.get(2);
-            DataSnapshot weather = (DataSnapshot) results.get(3);
-            if (!status.exists() && !health.exists() && !zones.exists() && !weather.exists()) {
+            if (result.empty) {
                 setSyncing(false);
                 showOperation(R.string.data_sync_empty_error, R.color.warning);
                 return;
             }
 
-            int zoneCount = (int) zones.getChildrenCount();
-            long lastDeviceEpoch = resolveDeviceEpoch(status, health);
-            int scopeText = status.exists() && health.exists() && weather.exists()
+            int zoneCount = result.zoneCount;
+            int scopeText = result.hasStatus && result.hasHealth && result.hasWeather
                     ? R.string.data_sync_scope_status_health_weather
-                    : status.exists() && health.exists()
+                    : result.hasStatus && result.hasHealth
                     ? R.string.data_sync_scope_status_health
                     : R.string.data_sync_scope_partial;
-            long now = System.currentTimeMillis();
             String scope = getString(R.string.data_sync_scope_value,
                     zoneCount, getString(scopeText));
-            preferences.edit()
-                    .putLong(PREF_LAST_SUCCESS, now)
-                    .putLong(PREF_LAST_DEVICE_DATA, lastDeviceEpoch)
-                    .putString(PREF_LAST_SCOPE, scope)
-                    .apply();
+            viewModel.rememberSuccess(result.lastDeviceEpoch, scope);
             renderStoredState();
             setSyncing(false);
             showOperation(getString(R.string.data_sync_success, zoneCount), R.color.online);
@@ -267,9 +225,10 @@ public class DataSyncActivity extends AppCompatActivity {
     }
 
     private void renderStoredState() {
-        long lastSuccess = preferences.getLong(PREF_LAST_SUCCESS, 0L);
-        long lastDeviceData = preferences.getLong(PREF_LAST_DEVICE_DATA, 0L);
-        String scope = preferences.getString(PREF_LAST_SCOPE, "");
+        DataSyncViewModel.StoredState state = viewModel.storedState();
+        long lastSuccess = state.lastSuccess;
+        long lastDeviceData = state.lastDeviceData;
+        String scope = state.scope;
         lastSuccessValue.setText(lastSuccess > 0L
                 ? formatDateTime(lastSuccess)
                 : getString(R.string.data_sync_never));
@@ -292,43 +251,6 @@ public class DataSyncActivity extends AppCompatActivity {
                 : R.string.data_sync_disconnected);
         connectionValue.setTextColor(ContextCompat.getColor(this,
                 firebaseConnected ? R.color.online : R.color.warning));
-    }
-
-    private long resolveDeviceEpoch(DataSnapshot statusSnapshot, DataSnapshot healthSnapshot) {
-        Status status = statusSnapshot.getValue(Status.class);
-        if (status != null) {
-            long epoch = status.getLastSeenEpoch();
-            if (epoch > 0L) {
-                return normalizeEpoch(epoch);
-            }
-            long parsed = parseTimestamp(status.getLastSeen());
-            if (parsed > 0L) {
-                return parsed;
-            }
-        }
-        return parseTimestamp(healthSnapshot.child("updated_at").getValue(String.class));
-    }
-
-    private long normalizeEpoch(long epoch) {
-        return epoch < 100_000_000_000L ? epoch * 1000L : epoch;
-    }
-
-    private long parseTimestamp(@Nullable String raw) {
-        if (raw == null || raw.trim().isEmpty()) {
-            return 0L;
-        }
-        try {
-            return Instant.parse(raw.trim()).toEpochMilli();
-        } catch (Exception ignored) {
-            try {
-                return LocalDateTime.parse(raw.trim())
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli();
-            } catch (Exception ignoredAgain) {
-                return 0L;
-            }
-        }
     }
 
     private String formatDateTime(long epochMillis) {

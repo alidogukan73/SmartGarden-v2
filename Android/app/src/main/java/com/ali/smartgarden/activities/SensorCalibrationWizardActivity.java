@@ -18,10 +18,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.calibration.SensorCalibrationSampler;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.viewmodels.SensorCalibrationViewModel;
-import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -46,7 +44,6 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
     private static final String STATE_LAST_SAMPLE_EPOCH = "calibration_last_sample_epoch";
 
     private SensorCalibrationViewModel viewModel;
-    private final SensorCalibrationSampler sampler = new SensorCalibrationSampler();
     private final List<GardenZone> sensorZones = new ArrayList<>();
 
     private MaterialAutoCompleteTextView sensorDropdown;
@@ -154,14 +151,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
     private void renderZones(List<GardenZone> zones) {
         String targetSensorId = selectedSensorId;
         sensorZones.clear();
-        for (GardenZone zone : ZoneCapacityPolicy.activeZones(zones)) {
-            String sensorId = safe(zone.getSensor_id()).toLowerCase(Locale.US);
-            if (!sensorId.isEmpty() && ZoneCapacityPolicy.isValidSensorId(sensorId)) {
-                sensorZones.add(zone);
-            }
-        }
-        sensorZones.sort(Comparator.comparing(zone ->
-                safe(zone.getSensor_id()).toLowerCase(Locale.US)));
+        sensorZones.addAll(viewModel.activeSensorZones(zones));
 
         List<String> labels = new ArrayList<>();
         for (GardenZone zone : sensorZones) {
@@ -198,7 +188,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         capturedDryRaw = null;
         capturedWetRaw = null;
         capturePhase = CapturePhase.NONE;
-        sampler.reset();
+        viewModel.resetSamples();
         sampleStatus.setText(R.string.sensor_calibration_sample_idle);
         renderLiveReading();
         renderWizardState();
@@ -317,7 +307,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
 
     private void startCapture(CapturePhase phase) {
         capturePhase = phase;
-        sampler.reset();
+        viewModel.resetSamples();
         if (phase == CapturePhase.DRY) {
             capturedDryRaw = null;
             capturedWetRaw = null;
@@ -340,7 +330,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
             return;
         }
 
-        boolean added = sampler.addSample(
+        boolean added = viewModel.addSample(
                 selectedZone.getRaw(),
                 selectedZone.getUpdated_at_epoch()
         );
@@ -348,21 +338,21 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
             return;
         }
 
-        sampleProgress.setProgressCompat(sampler.getCount(), true);
+        sampleProgress.setProgressCompat(viewModel.sampleCount(), true);
         sampleStatus.setText(getString(
                 R.string.sensor_calibration_sample_progress,
-                sampler.getCount(),
-                SensorCalibrationSampler.REQUIRED_SAMPLES,
+                viewModel.sampleCount(),
+                viewModel.requiredSamples(),
                 selectedZone.getRaw()
         ));
 
-        if (!sampler.isComplete()) {
+        if (!viewModel.isSampleComplete()) {
             return;
         }
 
         CapturePhase completedPhase = capturePhase;
         capturePhase = CapturePhase.NONE;
-        if (!sampler.isStable()) {
+        if (!viewModel.isSampleStable()) {
             if (completedPhase == CapturePhase.DRY) {
                 capturedDryRaw = null;
             } else {
@@ -370,13 +360,13 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
             }
             sampleStatus.setText(getString(
                     R.string.sensor_calibration_unstable,
-                    sampler.spread()
+                    viewModel.sampleSpread()
             ));
             renderWizardState();
             return;
         }
 
-        int median = sampler.median();
+        int median = viewModel.sampleMedian();
         if (completedPhase == CapturePhase.DRY) {
             capturedDryRaw = median;
         } else {
@@ -385,7 +375,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         sampleStatus.setText(getString(
                 R.string.sensor_calibration_capture_complete,
                 median,
-                sampler.spread()
+                viewModel.sampleSpread()
         ));
         renderWizardState();
     }
@@ -403,9 +393,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         saveCalibration.setEnabled(sessionActive
                 && capturedDryRaw != null
                 && capturedWetRaw != null
-                && SensorCalibrationSampler.isValidCalibration(
-                        capturedDryRaw,
-                        capturedWetRaw)
+                && viewModel.isValidCalibration(capturedDryRaw, capturedWetRaw)
                 && !capturing
                 && !operationBusy);
         cancelCalibration.setVisibility(
@@ -425,8 +413,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         if (capturedDryRaw == null || capturedWetRaw == null) {
             validationStatus.setText(R.string.sensor_calibration_validation_waiting);
             validationStatus.setTextColor(getColor(R.color.textSecondary));
-        } else if (SensorCalibrationSampler.isValidCalibration(
-                capturedDryRaw, capturedWetRaw)) {
+        } else if (viewModel.isValidCalibration(capturedDryRaw, capturedWetRaw)) {
             validationStatus.setText(getString(
                     R.string.sensor_calibration_validation_ready,
                     capturedDryRaw - capturedWetRaw
@@ -440,8 +427,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
 
     private void saveCalibration() {
         if (capturedDryRaw == null || capturedWetRaw == null
-                || !SensorCalibrationSampler.isValidCalibration(
-                        capturedDryRaw, capturedWetRaw)) {
+                || !viewModel.isValidCalibration(capturedDryRaw, capturedWetRaw)) {
             Toast.makeText(this, R.string.sensor_calibration_validation_invalid,
                     Toast.LENGTH_LONG).show();
             return;
@@ -555,7 +541,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         } catch (IllegalArgumentException error) {
             capturePhase = CapturePhase.NONE;
         }
-        sampler.restore(
+        viewModel.restoreSamples(
                 state.getIntegerArrayList(STATE_SAMPLES),
                 state.getLong(STATE_LAST_SAMPLE_EPOCH, -1L)
         );
@@ -576,11 +562,11 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
         outState.putString(STATE_PHASE, capturePhase.name());
         outState.putIntegerArrayList(
                 STATE_SAMPLES,
-                new ArrayList<>(sampler.snapshot())
+                viewModel.sampleSnapshot()
         );
         outState.putLong(
                 STATE_LAST_SAMPLE_EPOCH,
-                sampler.getLastSampleEpoch()
+                viewModel.lastSampleEpoch()
         );
     }
 

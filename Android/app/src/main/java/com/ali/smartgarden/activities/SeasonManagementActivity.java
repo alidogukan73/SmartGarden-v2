@@ -20,15 +20,11 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.crop.CropCatalog;
 import com.ali.smartgarden.models.CropCatalogItem;
 import com.ali.smartgarden.models.GardenSeason;
 import com.ali.smartgarden.models.GardenZone;
-import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.models.SeasonOutcome;
 import com.ali.smartgarden.models.ZoneSeasonState;
-import com.ali.smartgarden.season.SeasonScope;
-import com.ali.smartgarden.season.SeasonStartConfiguration;
 import com.ali.smartgarden.viewmodels.SeasonManagementViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -81,7 +77,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         });
         viewModel.getCropCatalogItems().observe(this, values -> {
             cropCatalogItems.clear();
-            cropCatalogItems.addAll(CropCatalog.merge(values));
+            cropCatalogItems.addAll(viewModel.mergedCrops(values));
         });
         viewModel.getBootstrapNotices().observe(this, event -> {
             if (event == null) return;
@@ -116,12 +112,10 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         zoneContainer.removeAllViews();
         inactiveZoneContainer.removeAllViews();
 
-        List<GardenZone> activeZones = ZoneCapacityPolicy.activeZones(zones);
+        List<GardenZone> activeZones = viewModel.activeZones(zones);
         List<GardenZone> inactiveZones = new ArrayList<>();
         for (GardenZone zone : zones) {
-            if (zone != null
-                    && ZoneCapacityPolicy.isValidZoneId(zone.getZone_id())
-                    && ZoneCapacityPolicy.isInactive(zone)
+            if (viewModel.isInactiveArchiveZone(zone)
                     && hasCompletedSeasonArchive(zone.getZone_id())) {
                 inactiveZones.add(zone);
             }
@@ -225,7 +219,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         heading.addView(name, weighted());
         ZoneSeasonState state = zone.getSeason();
         boolean preparing = state == null || blank(state.getStatus());
-        boolean notStarted = SeasonScope.isSeasonNotStarted(state);
+        boolean notStarted = viewModel.isSeasonNotStarted(state);
         boolean active = !preparing && state.isActive();
         int badgeText = preparing
                 ? R.string.season_status_preparing
@@ -434,7 +428,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         if (state == null || blank(state.getStatus())) {
             return getString(R.string.season_management_preparing);
         }
-        if (SeasonScope.isSeasonNotStarted(state)) {
+        if (viewModel.isSeasonNotStarted(state)) {
             return getString(R.string.season_not_started_summary);
         }
         String label = blank(state.getLabel()) ? getString(R.string.season_label_fallback) : state.getLabel();
@@ -503,7 +497,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
 
         Spinner crop = spinnerWithLabel(form, R.string.season_start_crop_label);
         List<CropCatalogItem> cropChoices = new ArrayList<>(cropCatalogItems.isEmpty()
-                ? CropCatalog.builtIns()
+                ? viewModel.mergedCrops(null)
                 : cropCatalogItems);
         List<String> cropLabels = new ArrayList<>();
         for (CropCatalogItem item : cropChoices) cropLabels.add(item.toString());
@@ -580,11 +574,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
 
                     String[] codes = getResources().getStringArray(R.array.season_growth_stage_codes);
                     String code = codes[Math.min(stage.getSelectedItemPosition(), codes.length - 1)];
-                    SeasonStartConfiguration configuration = new SeasonStartConfiguration(
-                            cropName,
-                            plantType,
-                            emoji
-                    );
                     setBusy(action, true);
                     dialog.dismiss();
                     viewModel.startSeason(
@@ -592,7 +581,9 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                                     value(date),
                                     code,
                                     value(label),
-                                    configuration
+                                    cropName,
+                                    plantType,
+                                    emoji
                             )
                             .addOnSuccessListener(result -> {
                                 setBusy(action, false);

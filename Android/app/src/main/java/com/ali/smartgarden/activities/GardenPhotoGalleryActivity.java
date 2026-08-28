@@ -11,10 +11,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.OnBackPressedCallback;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.GardenPhoto;
-import com.ali.smartgarden.photos.LocalGardenPhotoStore;
+import com.ali.smartgarden.viewmodels.GardenPhotoGalleryViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -34,7 +35,7 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     public static final String EXTRA_SELECTED_PHOTO_PATH = "selected_photo_path";
     public static final String EXTRA_SELECTED_PHOTO_ID = "selected_photo_id";
 
-    private LocalGardenPhotoStore photoStore;
+    private GardenPhotoGalleryViewModel viewModel;
     private final List<GardenPhoto> photos = new ArrayList<>();
     private final Set<String> selectedIds = new HashSet<>();
     private GridLayout grid;
@@ -50,7 +51,7 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_garden_photo_gallery);
         pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
-        photoStore = new LocalGardenPhotoStore(this);
+        viewModel = new ViewModelProvider(this).get(GardenPhotoGalleryViewModel.class);
         bindViews();
         findViewById(R.id.btnGalleryBack).setOnClickListener(view -> closeGallery());
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -86,7 +87,7 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
 
     private void reload() {
         photos.clear();
-        photos.addAll(photoStore.load());
+        photos.addAll(viewModel.load());
         selectedIds.retainAll(idsOf(photos));
         render();
     }
@@ -178,19 +179,13 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     }
 
     private void deleteSelected() {
-        new Thread(() -> {
-            int deleted = 0;
-            for (GardenPhoto photo : new ArrayList<>(photos)) {
-                if (selectedIds.contains(photo.getId()) && photoStore.delete(photo)) deleted++;
-            }
-            int countDeleted = deleted;
-            runOnUiThread(() -> {
+        viewModel.deleteSelected(photos, selectedIds, countDeleted ->
+                runOnUiThread(() -> {
                 selectedIds.clear();
                 reload();
                 Toast.makeText(this, getResources().getQuantityString(
                         R.plurals.runtime_gallery_deleted, countDeleted, countDeleted), Toast.LENGTH_SHORT).show();
-            });
-        }).start();
+            }));
     }
 
     private int dp(int value) {

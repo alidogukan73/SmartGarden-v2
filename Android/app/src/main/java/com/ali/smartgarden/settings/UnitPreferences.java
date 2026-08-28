@@ -12,16 +12,16 @@ import java.text.DecimalFormat;
  * canonical metric values so changing a unit can never change an automation decision.
  */
 public final class UnitPreferences {
-    public static final String CELSIUS = "celsius";
-    public static final String FAHRENHEIT = "fahrenheit";
-    public static final String SQUARE_METER = "square_meter";
-    public static final String DECARE = "decare";
-    public static final String CENTIMETER = "centimeter";
-    public static final String METER = "meter";
-    public static final String LITER = "liter";
-    public static final String CUBIC_METER = "cubic_meter";
-    public static final String GRAM = "gram";
-    public static final String KILOGRAM = "kilogram";
+    public static final String CELSIUS = DisplayUnitSettings.CELSIUS;
+    public static final String FAHRENHEIT = DisplayUnitSettings.FAHRENHEIT;
+    public static final String SQUARE_METER = DisplayUnitSettings.SQUARE_METER;
+    public static final String DECARE = DisplayUnitSettings.DECARE;
+    public static final String CENTIMETER = DisplayUnitSettings.CENTIMETER;
+    public static final String METER = DisplayUnitSettings.METER;
+    public static final String LITER = DisplayUnitSettings.LITER;
+    public static final String CUBIC_METER = DisplayUnitSettings.CUBIC_METER;
+    public static final String GRAM = DisplayUnitSettings.GRAM;
+    public static final String KILOGRAM = DisplayUnitSettings.KILOGRAM;
 
     private static final String PREFS = "avora_display_units";
     private static final String KEY_TEMPERATURE = "temperature";

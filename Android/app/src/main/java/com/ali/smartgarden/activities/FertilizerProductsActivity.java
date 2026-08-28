@@ -21,9 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerProductAdapter;
 import com.ali.smartgarden.models.FertilizerProduct;
-import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
-import com.ali.smartgarden.fertilization.FertilizerAiProfile;
-import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
 import com.ali.smartgarden.viewmodels.FertilizerProductsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -35,14 +32,6 @@ import java.util.List;
 
 public class FertilizerProductsActivity extends AppCompatActivity {
 
-    private static final String[] PRODUCT_STAGE_CODES = {
-            FertilizerStagePolicy.SOIL_PREPARATION,
-            FertilizerStagePolicy.ROOTING,
-            FertilizerStagePolicy.VEGETATIVE,
-            FertilizerStagePolicy.FLOWERING,
-            FertilizerStagePolicy.FRUITING,
-            FertilizerStagePolicy.HARVEST
-    };
     private static final String[] FUNCTION_TAG_CODES = {
             "",
             "TRACE_ELEMENTS",
@@ -160,7 +149,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 content.findViewById(R.id.switchOrganicFarmingEligible);
         TextInputEditText inputRecommendedStages =
                 content.findViewById(R.id.inputRecommendedStages);
-        boolean[] selectedStages = new boolean[PRODUCT_STAGE_CODES.length];
+        boolean[] selectedStages = new boolean[viewModel.stageCodes().length];
         boolean[] selectedFunctionalTags =
                 new boolean[FUNCTION_TAG_CODES.length - 1];
         TextView txtAiProductProfile =
@@ -366,9 +355,10 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             @Nullable FertilizerProduct product,
             boolean[] selected
     ) {
-        List<String> configured = FertilizerStagePolicy.effectiveStages(product);
-        for (int index = 0; index < PRODUCT_STAGE_CODES.length; index++) {
-            selected[index] = configured.contains(PRODUCT_STAGE_CODES[index]);
+        List<String> configured = viewModel.effectiveStages(product);
+        String[] stageCodes = viewModel.stageCodes();
+        for (int index = 0; index < stageCodes.length; index++) {
+            selected[index] = configured.contains(stageCodes[index]);
         }
     }
 
@@ -409,7 +399,7 @@ public class FertilizerProductsActivity extends AppCompatActivity {
     private List<String> selectedStageCodes(boolean[] selected) {
         List<String> result = new java.util.ArrayList<>();
         for (int index = 0; index < selected.length; index++) {
-            if (selected[index]) result.add(PRODUCT_STAGE_CODES[index]);
+            if (selected[index]) result.add(viewModel.stageCodes()[index]);
         }
         return result;
     }
@@ -512,21 +502,19 @@ public class FertilizerProductsActivity extends AppCompatActivity {
             TextView target,
             @Nullable FertilizerProduct product
     ) {
-        FertilizerProduct source = product == null
-                ? new FertilizerProduct()
-                : product;
-        FertilizerAiProfile profile = FertilizerAiAdvisor.profileFor(source);
+        FertilizerProductsViewModel.ProductGuidance profile =
+                viewModel.guidanceFor(product);
         target.setText(
                 getString(
                         R.string.runtime_four_lines,
                         getString(R.string.runtime_product_suitability,
-                                profile.getSuitability()),
+                                profile.suitability),
                         getString(R.string.runtime_reason_label,
-                                profile.getReason()),
+                                profile.reason),
                         getString(R.string.runtime_fruit_stage,
-                                profile.getFruitStageAdvice()),
+                                profile.fruitStageAdvice),
                         getString(R.string.runtime_safety_label,
-                                profile.getSafetyNote()))
+                                profile.safetyNote))
         );
     }
 

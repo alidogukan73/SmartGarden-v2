@@ -76,6 +76,21 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
         return cropCatalogItems;
     }
 
+    public List<CropCatalogItem> mergedCrops(List<CropCatalogItem> values) {
+        return CropCatalog.merge(values);
+    }
+    public List<GardenZone> activeZones(List<GardenZone> values) {
+        return ZoneCapacityPolicy.activeZones(values);
+    }
+    public boolean isInactiveArchiveZone(GardenZone zone) {
+        return zone != null
+                && ZoneCapacityPolicy.isValidZoneId(zone.getZone_id())
+                && ZoneCapacityPolicy.isInactive(zone);
+    }
+    public boolean isSeasonNotStarted(ZoneSeasonState state) {
+        return SeasonScope.isSeasonNotStarted(state);
+    }
+
     public LiveData<OneShotEvent<BootstrapNotice>> getBootstrapNotices() {
         return bootstrapNotices;
     }
@@ -148,6 +163,14 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
     ) {
         return seasonRepository.startSeason(
                 zone, plantingDate, growthStage, label, configuration);
+    }
+
+    public Task<Void> startSeason(
+            GardenZone zone, String plantingDate, String growthStage, String label,
+            String cropName, String plantType, String emoji
+    ) {
+        return startSeason(zone, plantingDate, growthStage, label,
+                new SeasonStartConfiguration(cropName, plantType, emoji));
     }
 
     public Task<Boolean> canCancelNewSeason(String zoneId) {

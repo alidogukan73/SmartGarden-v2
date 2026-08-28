@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.ali.smartgarden.calibration.SensorCalibrationRepository;
+import com.ali.smartgarden.calibration.SensorCalibrationSampler;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
@@ -11,6 +12,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Locale;
 
 /** Owns calibration safety checks and irrigation pause/restore operations. */
 public final class SensorCalibrationViewModel extends ViewModel {
@@ -20,10 +24,46 @@ public final class SensorCalibrationViewModel extends ViewModel {
     private final SensorCalibrationRepository repository =
             new SensorCalibrationRepository();
     private final LiveData<List<GardenZone>> zones = repository.observeZones();
+    private final SensorCalibrationSampler sampler = new SensorCalibrationSampler();
 
     public LiveData<List<GardenZone>> getZones() {
         return zones;
     }
+
+    public List<GardenZone> activeSensorZones(List<GardenZone> values) {
+        List<GardenZone> result = new ArrayList<>();
+        for (GardenZone zone : ZoneCapacityPolicy.activeZones(values)) {
+            String sensorId = safe(zone.getSensor_id()).toLowerCase(Locale.US);
+            if (!sensorId.isEmpty() && ZoneCapacityPolicy.isValidSensorId(sensorId)) {
+                result.add(zone);
+            }
+        }
+        result.sort(Comparator.comparing(zone ->
+                safe(zone.getSensor_id()).toLowerCase(Locale.US)));
+        return result;
+    }
+
+    public void resetSamples() { sampler.reset(); }
+    public boolean addSample(int raw, long updatedAtEpoch) {
+        return sampler.addSample(raw, updatedAtEpoch);
+    }
+    public int sampleCount() { return sampler.getCount(); }
+    public int requiredSamples() { return SensorCalibrationSampler.REQUIRED_SAMPLES; }
+    public boolean isSampleComplete() { return sampler.isComplete(); }
+    public boolean isSampleStable() { return sampler.isStable(); }
+    public int sampleSpread() { return sampler.spread(); }
+    public int sampleMedian() { return sampler.median(); }
+    public boolean isValidCalibration(Integer dryRaw, Integer wetRaw) {
+        return dryRaw != null && wetRaw != null
+                && SensorCalibrationSampler.isValidCalibration(dryRaw, wetRaw);
+    }
+    public void restoreSamples(List<Integer> values, long lastEpoch) {
+        sampler.restore(values, lastEpoch);
+    }
+    public ArrayList<Integer> sampleSnapshot() {
+        return new ArrayList<>(sampler.snapshot());
+    }
+    public long lastSampleEpoch() { return sampler.getLastSampleEpoch(); }
 
     public Task<CalibrationSession> beginSession(GardenZone zone) {
         ZoneIrrigationStatus status = zone == null ? null : zone.getIrrigation_status();
@@ -80,5 +120,9 @@ public final class SensorCalibrationViewModel extends ViewModel {
             this.zoneId = zoneId;
             this.restoreIrrigationEnabled = restoreIrrigationEnabled;
         }
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 }

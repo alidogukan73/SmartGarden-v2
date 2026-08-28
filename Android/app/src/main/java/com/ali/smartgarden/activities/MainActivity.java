@@ -27,10 +27,6 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
-import com.ali.smartgarden.notifications.NotificationPolicy;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.adapters.HomeZonePagerAdapter;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.WateringHistory;
@@ -38,21 +34,16 @@ import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.models.WeatherForecast;
-import com.ali.smartgarden.health.GardenHealthCalculator;
 import com.ali.smartgarden.health.GardenHealthSummary;
-import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.ali.smartgarden.ui.MainMenuBottomSheet;
-import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.models.GardenNotification;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -116,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean homeZonePagerPositioned = false;
     private List<GardenZone> latestZones;
     private List<WateringHistory> latestWateringHistory = new ArrayList<>();
+    private boolean authenticatedAppInitialized;
     private WeatherForecast latestWeather;
 
     private static final long CONNECTION_SETTLE_MILLIS = 15_000L;
@@ -155,7 +147,15 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         setContentView(R.layout.activity_main);
-
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel.getAuthenticated().observe(this, authenticated -> {
+            if (Boolean.TRUE.equals(authenticated)) {
+                initializeAuthenticatedApp();
+            } else if (Boolean.FALSE.equals(authenticated)) {
+                Toast.makeText(this, R.string.runtime_firebase_connection_failed,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
         authenticateThenInitialize();
     }
 
@@ -166,33 +166,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void authenticateThenInitialize() {
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-
-        if (auth.getCurrentUser() != null) {
-            initializeAuthenticatedApp();
-            return;
-        }
-
-        auth.signInAnonymously().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                initializeAuthenticatedApp();
-                return;
-            }
-
-            Log.e(
-                    "MainActivity",
-                    "Firebase anonymous sign-in failed",
-                    task.getException()
-            );
-            Toast.makeText(
-                    this,
-                    getString(R.string.runtime_firebase_connection_failed),
-                    Toast.LENGTH_LONG
-            ).show();
-        });
+        viewModel.authenticate();
     }
 
     private void initializeAuthenticatedApp() {
+        if (authenticatedAppInitialized) return;
+        authenticatedAppInitialized = true;
 
         connectionStartedElapsedMillis = SystemClock.elapsedRealtime();
         applyWindowInsets();
@@ -201,10 +180,7 @@ public class MainActivity extends AppCompatActivity {
         initializeViewModel();
         observeViewModel();
         initializeButtons();
-        new GardenNotificationManager(this).restoreCloudBackup(imported -> { });
-        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
-                token -> new FirebaseRepository().savePushToken(this, token)
-        );
+        viewModel.initializeNotificationSync();
     }
 
     private void applyWindowInsets() {
@@ -239,12 +215,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateNotificationBadge() {
         if (txtMainNotificationBadge == null) return;
         int unread = 0;
-        for (GardenNotification item :
-                new GardenNotificationManager(this).localNotifications()) {
-            if (!item.isRead()) {
-                unread++;
-            }
-        }
+        unread = viewModel == null ? 0 : viewModel.unreadNotificationCount();
         if (unread <= 0) {
             txtMainNotificationBadge.setVisibility(View.GONE);
         } else {
@@ -309,9 +280,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeViewModel() {
-
-        viewModel = new ViewModelProvider(this)
-                .get(MainViewModel.class);
+        // ViewModel is created before authentication so Firebase listeners are
+        // observed only after a valid session exists.
     }
 
     private void observeViewModel() {
@@ -332,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getWeatherForecast().observe(this, this::renderHomeWeather);
         viewModel.getWateringHistory().observe(this, values -> {
             latestWateringHistory = values == null ? new ArrayList<>() : values;
-            NotificationSignalCoordinator.evaluateWatering(this, latestWateringHistory, latestZones);
+            viewModel.evaluateWateringSignals(latestWateringHistory, latestZones);
         });
 
         viewModel.getError().observe(
@@ -380,12 +350,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void renderHomeWeather(WeatherForecast forecast) {
         latestWeather = forecast;
-        if (forecast != null) {
-            NotificationSignalCoordinator.evaluateWeather(this, forecast.getTomorrowTemperatureMax(),
-                    forecast.getTomorrowRainProbability(), forecast.getTomorrowWindMax(),
-                    java.time.LocalDate.now().plusDays(1).toString(),
-                    forecast.getUpdatedAtEpoch());
-        }
+        viewModel.evaluateWeatherSignals(forecast);
         renderHomePlantAssistantRecommendation();
         if (forecast == null || forecast.getTomorrowTemperatureMax() == null) {
             if (cardHomeWeather != null) {
@@ -514,11 +479,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        long newestHeartbeat = latestStatus == null
-                ? 0L : latestStatus.getLastSeenEpoch();
-        if (!NotificationPolicy.shouldAcceptDeviceSnapshot(
-                status.getLastSeenEpoch(),
-                newestHeartbeat,
+        if (!viewModel.shouldAcceptStatus(status, latestStatus,
                 System.currentTimeMillis() / 1000L)) {
             return;
         }
@@ -529,10 +490,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void renderGardenZones(List<GardenZone> zones) {
-        List<GardenZone> activeZones = ZoneCapacityPolicy.activeZones(zones);
+        List<GardenZone> activeZones = viewModel.activeZones(zones);
         latestZones = activeZones;
-        NotificationSignalCoordinator.evaluateWatering(this, latestWateringHistory, activeZones);
-        NotificationSignalCoordinator.evaluateIrrigationAi(this, activeZones);
+        viewModel.evaluateWateringSignals(latestWateringHistory, activeZones);
+        viewModel.evaluateIrrigationSignals(activeZones);
 
         if (zones == null) {
             homeZonePagerAdapter.submitList(null);
@@ -568,11 +529,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderHomeHealthSummary(List<GardenZone> zones) {
-        GardenHealthSummary health = GardenHealthCalculator.calculate(
-                zones,
-                System.currentTimeMillis() / 1000L,
-                PlantAssistantRecommendationStore.healthSignal(this)
-        );
+        GardenHealthSummary health = viewModel.gardenHealth(
+                zones, System.currentTimeMillis() / 1000L);
         txtHomeHealthTitle.setText(health.getTitle());
         txtHomeHealthDetail.setText(health.getDetail());
         txtHomeHealthScore.setText(String.valueOf(health.getScore()));
@@ -899,11 +857,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
-        return !NotificationPolicy.isDeviceOffline(
-                latestStatus.isOnline(),
-                latestStatus.getLastSeenEpoch(),
-                System.currentTimeMillis() / 1000L,
-                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+        return viewModel.isDeviceEffectivelyOnline(
+                latestStatus, System.currentTimeMillis() / 1000L);
     }
 
     private void renderHomeAlerts() {
@@ -1090,7 +1045,7 @@ public class MainActivity extends AppCompatActivity {
                 this,
                 notificationChangedReceiver,
                 new android.content.IntentFilter(
-                        GardenNotificationManager.ACTION_NOTIFICATIONS_CHANGED
+                        MainViewModel.ACTION_NOTIFICATIONS_CHANGED
                 ),
                 androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
         );
@@ -1109,12 +1064,8 @@ public class MainActivity extends AppCompatActivity {
     private void renderHomePlantAssistantRecommendation() {
         if (txtHomePlantAssistantSummary == null) return;
         PlantAssistantHomeRecommendation.Recommendation recommendation =
-                PlantAssistantHomeRecommendation.evaluate(
-                        latestZones,
-                        latestWeather,
-                        PlantAssistantRecommendationStore.healthSignal(this),
-                        System.currentTimeMillis() / 1000L
-                );
+                viewModel.plantRecommendation(latestZones, latestWeather,
+                        System.currentTimeMillis() / 1000L);
         txtHomePlantAssistantSummary.setText(recommendation.getMessage());
 
         int strokeColor;

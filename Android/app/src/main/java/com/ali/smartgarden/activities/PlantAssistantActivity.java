@@ -17,21 +17,14 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
-import com.ali.smartgarden.photos.LocalGardenPhotoStore;
-import com.ali.smartgarden.plantassistant.PlantAssistantAdvisor;
-import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.plantassistant.PlantAssistantResult;
-import com.ali.smartgarden.plantassistant.PlantAssistantVisionClient;
-import com.ali.smartgarden.plantassistant.PlantFollowUpStore;
-import com.ali.smartgarden.journal.LocalGardenEventStore;
-import com.ali.smartgarden.models.GardenEvent;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.PlantAssistantViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
@@ -41,12 +34,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** AI Bitki Asistanı: fotoğraf, belirtiler, sensör ve hava bağlamıyla güvenli ön değerlendirme. */
 public class PlantAssistantActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private PlantAssistantViewModel viewModel;
     private final Map<String, GardenZone> zones = new HashMap<>();
 
     private MaterialAutoCompleteTextView zoneDropdown;
@@ -61,9 +53,6 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private Uri selectedPhotoUri;
     private Bitmap selectedPhotoBitmap;
     private WeatherForecast currentWeather;
-    private LocalGardenPhotoStore photoStore;
-    private PlantFollowUpStore followUpStore;
-    private LocalGardenEventStore gardenEventStore;
     private boolean selectedPhotoArchived;
     private String archivedPhotoId = "";
     private AnalysisSnapshot pendingAnalysis;
@@ -92,15 +81,13 @@ public class PlantAssistantActivity extends AppCompatActivity {
     public void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_plant_assistant);
+        viewModel = new ViewModelProvider(this).get(PlantAssistantViewModel.class);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
         requestedZoneId = getIntent().getStringExtra("zone_id");
-        photoStore = new LocalGardenPhotoStore(this);
-        followUpStore = new PlantFollowUpStore(this);
-        gardenEventStore = new LocalGardenEventStore(this);
         bindViews();
         bindActions();
-        repository.observeGardenZones().observe(this, this::renderZones);
-        repository.observeWeatherForecast().observe(this, weather -> {
+        viewModel.getZones().observe(this, this::renderZones);
+        viewModel.getWeather().observe(this, weather -> {
             currentWeather = weather;
             renderLiveData(selectedZone());
         });
@@ -200,7 +187,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
             return;
         }
         String note = text(generalNote);
-        PlantAssistantResult result = PlantAssistantAdvisor.assess(zone, symptoms, note, currentWeather, hasPhoto());
+        PlantAssistantResult result = viewModel.assess(
+                zone, symptoms, note, currentWeather, hasPhoto());
         renderHeuristicResult(result);
         if (hasPhoto()) requestVisionAnalysis(zone, symptoms, note);
         savePhotoToArchive(zone, symptoms, note);
@@ -214,8 +202,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 result.getContext()));
         advice.setText(result.getAdvice());
         GardenZone zone = selectedZone();
-        PlantAssistantRecommendationStore.save(
-                this,
+        viewModel.saveRecommendation(
                 zone == null ? "" : zone.getZone_id(),
                 result.getUrgency(),
                 result.getTitle(),
@@ -239,29 +226,10 @@ public class PlantAssistantActivity extends AppCompatActivity {
         if (bitmap == null) return;
         Bitmap image = bitmap;
         toast(getString(R.string.runtime_visual_ai_preparing));
-        new Thread(() -> {
-            try {
-                JSONObject payload = new JSONObject();
-                payload.put("plant", zone.getName());
-                payload.put("zone", zone.getZone_id());
-                payload.put("moisture", zone.getMoisture());
-                payload.put("moisture_limit", zone.getMoisture_limit());
-                JSONArray symptomValues = new JSONArray();
-                for (String symptom : symptoms) symptomValues.put(symptom);
-                payload.put("symptoms", symptomValues);
-                payload.put("note", note);
-                if (currentWeather != null) {
-                    payload.put("temperature", currentWeather.getCurrentTemperature());
-                    payload.put("humidity", currentWeather.getCurrentHumidity());
-                    payload.put("rain_probability", currentWeather.getTodayRainProbability());
-                }
-                JSONObject visual = PlantAssistantVisionClient.analyze(image, payload);
-                runOnUiThread(() -> renderVisionResult(visual));
-            } catch (Exception error) {
-                runOnUiThread(() -> toast(getString(
-                        R.string.runtime_visual_ai_unavailable, error.getMessage())));
-            }
-        }).start();
+        viewModel.analyzeVisionAsync(image, zone, symptoms, note, currentWeather,
+                visual -> runOnUiThread(() -> renderVisionResult(visual)),
+                error -> runOnUiThread(() -> toast(getString(
+                        R.string.runtime_visual_ai_unavailable, error.getMessage()))));
     }
 
     private void renderVisionResult(JSONObject visual) {
@@ -277,11 +245,10 @@ public class PlantAssistantActivity extends AppCompatActivity {
             return;
         }
         String findings = visual.optString("visual_findings", getString(R.string.runtime_no_visual_findings));
-        String causes = PlantAssistantVisionClient.list(visual.optJSONArray("possible_causes"));
-        String steps = PlantAssistantVisionClient.list(visual.optJSONArray("next_steps"));
-        String redFlags = PlantAssistantVisionClient.list(visual.optJSONArray("red_flags"));
-        PlantAssistantRecommendationStore.save(
-                this,
+        String causes = viewModel.list(visual.optJSONArray("possible_causes"));
+        String steps = viewModel.list(visual.optJSONArray("next_steps"));
+        String redFlags = viewModel.list(visual.optJSONArray("red_flags"));
+        viewModel.saveRecommendation(
                 selectedZone() == null ? "" : selectedZone().getZone_id(),
                 visual.optString("urgency", getString(R.string.runtime_urgency_low)),
                 visual.optString("title", getString(R.string.runtime_visual_preassessment)),
@@ -356,24 +323,17 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 + (note.isEmpty() ? "" : " · " + note);
         Uri uri = selectedPhotoUri;
         Bitmap bitmap = selectedPhotoBitmap;
-        new Thread(() -> {
-            try {
-                com.ali.smartgarden.models.GardenPhoto archived = null;
-                if (uri != null) archived = photoStore.save(uri, zone.getZone_id(), archiveNote, "plant_assistant");
-                else if (bitmap != null) archived = photoStore.save(bitmap, zone.getZone_id(), archiveNote, "plant_assistant");
-                com.ali.smartgarden.models.GardenPhoto saved = archived;
-                runOnUiThread(() -> {
+        viewModel.archivePhotoAsync(uri, bitmap, zone.getZone_id(), archiveNote,
+                saved -> runOnUiThread(() -> {
                     if (saved != null) {
                         archivedPhotoId = saved.getId();
                         applyPendingAnalysis();
                     }
                     toast(getString(R.string.runtime_photo_analysis_archived));
+                }), error -> {
+                    selectedPhotoArchived = false;
+                    runOnUiThread(() -> toast(getString(R.string.runtime_photo_archive_failed)));
                 });
-            } catch (Exception ignored) {
-                selectedPhotoArchived = false;
-                runOnUiThread(() -> toast(getString(R.string.runtime_photo_archive_failed)));
-            }
-        }).start();
     }
 
     private void archiveAnalysis(String analysisTitle, String analysisMeta,
@@ -389,37 +349,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
         if (pendingAnalysis == null || archivedPhotoId.isBlank()) return;
         AnalysisSnapshot snapshot = pendingAnalysis;
         pendingAnalysis = null;
-        new Thread(() -> {
-            PlantFollowUpStore.Result followUp = followUpStore.registerAnalysis(snapshot.zoneId, archivedPhotoId, snapshot.title);
-            String contextText = snapshot.context;
-            if ("SCHEDULED".equals(followUp.type) || "SCHEDULED_EXISTING".equals(followUp.type))
-                contextText += "\n\n" + getString(R.string.runtime_follow_up_task);
-            else if ("COMPLETED".equals(followUp.type))
-                contextText += "\n\n" + getString(R.string.runtime_follow_up_comparison, followUp.previousTitle);
-            com.ali.smartgarden.models.GardenPhoto updated = photoStore.updateAnalysis(archivedPhotoId,
-                    snapshot.title, snapshot.meta, contextText, snapshot.advice);
-            if (updated != null) {
-                repository.saveGardenPhotoMetadata(updated).addOnSuccessListener(unused ->
-                        photoStore.updateSeasonId(updated.getId(), updated.getSeason_id())
-                );
-                GardenNotificationManager notifications = new GardenNotificationManager(this);
-                notifications.publishOnce("PLANT_ASSISTANT", "HIGH", snapshot.zoneId, snapshot.title,
-                        getString(R.string.notification_plant_analysis_saved_description),
-                        "plant_analysis:" + archivedPhotoId);
-                GardenEvent event;
-                if ("SCHEDULED".equals(followUp.type)) {
-                    event = gardenEventStore.addAutomaticOncePerDay(snapshot.zoneId, "Takip fotoğrafı önerisi", "Bitki Asistanı analizinden 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.", "follow_up_" + archivedPhotoId);
-                    if (event != null) repository.saveGardenEvent(event);
-                } else if ("COMPLETED".equals(followUp.type)) {
-                    event = gardenEventStore.addAutomaticOncePerDay(snapshot.zoneId, "Takip değerlendirmesi", "Yeni analiz, önceki Bitki Asistanı analiziyle karşılaştırılmak üzere kaydedildi.", "follow_up_" + archivedPhotoId);
-                    if (event != null) repository.saveGardenEvent(event);
-                    notifications.publishOnce("PLANT_ASSISTANT", "NORMAL", snapshot.zoneId,
-                            getString(R.string.notification_plant_follow_up_ready_title),
-                            getString(R.string.notification_plant_follow_up_ready_description),
-                            "follow_up_complete:" + archivedPhotoId);
-                }
-            }
-        }).start();
+        viewModel.finalizeAnalysisAsync(archivedPhotoId, snapshot.zoneId, snapshot.title,
+                snapshot.meta, snapshot.context, snapshot.advice);
     }
 
     private static final class AnalysisSnapshot {

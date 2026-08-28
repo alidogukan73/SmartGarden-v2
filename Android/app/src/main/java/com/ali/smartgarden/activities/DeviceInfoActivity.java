@@ -15,30 +15,23 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.config.AppInfo;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.Health;
 import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.DeviceInfoViewModel;
+import com.ali.smartgarden.viewmodels.DeviceInfoViewModel.DeviceInfoState;
 import com.google.android.material.card.MaterialCardView;
-import com.google.firebase.database.DataSnapshot;
 
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.Set;
 
 /** Read-only device identity, connection and installed hardware overview. */
 public class DeviceInfoActivity extends AppCompatActivity {
-    private static final long CONNECTION_FRESHNESS_MS = 180_000L;
-
     private TextView connectionStatus;
     private TextView connectionSummary;
     private TextView deviceId;
@@ -143,25 +136,23 @@ public class DeviceInfoActivity extends AppCompatActivity {
     }
 
     private void observeDevice() {
-        new FirebaseRepository().observeDeviceSnapshot(error -> {
+        DeviceInfoViewModel viewModel =
+                new ViewModelProvider(this).get(DeviceInfoViewModel.class);
+        viewModel.getReadError().observe(this, failed -> {
+            if (!Boolean.TRUE.equals(failed)) return;
             connectionStatus.setText(R.string.device_info_status_offline);
             connectionStatus.setTextColor(ContextCompat.getColor(
                     DeviceInfoActivity.this, R.color.offline));
             connectionSummary.setText(R.string.device_info_read_error);
-        }).observe(this, this::render);
+        });
+        viewModel.getState().observe(this, this::render);
     }
 
-    private void render(DataSnapshot snapshot) {
-        Status status = snapshot.child("status").getValue(Status.class);
-        Health health = snapshot.child("health").getValue(Health.class);
-
-        long lastSeenMillis = resolveLastSeenMillis(status);
-        boolean connected = status != null
-                && status.isOnline()
-                && lastSeenMillis > 0L
-                && Math.abs(System.currentTimeMillis() - lastSeenMillis)
-                <= CONNECTION_FRESHNESS_MS;
-        renderConnection(connected);
+    private void render(DeviceInfoState value) {
+        if (value == null) return;
+        Status status = value.status;
+        Health health = value.health;
+        renderConnection(value.connected);
 
         backendVersion.setText(firstMeaningful(
                 health == null ? null : health.getFirmware(),
@@ -170,13 +161,20 @@ public class DeviceInfoActivity extends AppCompatActivity {
         ipAddress.setText(firstMeaningful(
                 health == null ? null : health.getIpAddress(),
                 getString(R.string.device_info_unavailable)));
-        lastConnection.setText(lastSeenMillis > 0L
-                ? formatDateTime(lastSeenMillis)
+        lastConnection.setText(value.lastSeenMillis > 0L
+                ? formatDateTime(value.lastSeenMillis)
                 : getString(R.string.device_info_waiting));
         uptime.setText(health != null && health.getUptimeSeconds() > 0L
                 ? formatDuration(health.getUptimeSeconds())
                 : getString(R.string.device_info_waiting));
-        renderZones(snapshot.child("zones"));
+        zoneCount.setText(getString(R.string.device_info_zone_count_value, value.enabledZones));
+        sensorCount.setText(getString(
+                R.string.device_info_sensor_count_value, value.enabledSensors));
+        physicalValveCount.setText(getString(
+                R.string.device_info_valve_count_value, value.physicalValves));
+        espFirmware.setText(value.firmwareVersions.isEmpty()
+                ? getString(R.string.device_info_sensor_firmware_waiting)
+                : String.join(" / ", value.firmwareVersions));
     }
 
     private void renderConnection(boolean connected) {
@@ -188,66 +186,6 @@ public class DeviceInfoActivity extends AppCompatActivity {
                 : R.string.device_info_summary_offline);
         connectionStatus.setTextColor(ContextCompat.getColor(this,
                 connected ? R.color.online : R.color.warning));
-    }
-
-    private void renderZones(DataSnapshot zonesSnapshot) {
-        int enabledZones = 0;
-        int enabledSensors = 0;
-        int physicalValves = 0;
-        Set<String> firmwareVersions = new LinkedHashSet<>();
-
-        for (DataSnapshot child : zonesSnapshot.getChildren()) {
-            GardenZone zone = child.getValue(GardenZone.class);
-            if (zone == null || !zone.isEnabled()) {
-                continue;
-            }
-            enabledZones++;
-            if (zone.isSensor_enabled() && isMeaningful(zone.getSensor_id())) {
-                enabledSensors++;
-            }
-            if ("PHYSICAL".equalsIgnoreCase(zone.getValve_mode())
-                    && isMeaningful(zone.getValve_id())) {
-                physicalValves++;
-            }
-            String firmware = child.child("firmware").getValue(String.class);
-            if (isMeaningful(firmware)) {
-                firmwareVersions.add(firmware.trim());
-            }
-        }
-
-        zoneCount.setText(getString(R.string.device_info_zone_count_value, enabledZones));
-        sensorCount.setText(getString(R.string.device_info_sensor_count_value, enabledSensors));
-        physicalValveCount.setText(getString(
-                R.string.device_info_valve_count_value, physicalValves));
-        espFirmware.setText(firmwareVersions.isEmpty()
-                ? getString(R.string.device_info_sensor_firmware_waiting)
-                : String.join(" / ", firmwareVersions));
-    }
-
-    private long resolveLastSeenMillis(@Nullable Status status) {
-        if (status == null) {
-            return 0L;
-        }
-        long epoch = status.getLastSeenEpoch();
-        if (epoch > 0L) {
-            return epoch < 100_000_000_000L ? epoch * 1000L : epoch;
-        }
-        String raw = status.getLastSeen();
-        if (!isMeaningful(raw)) {
-            return 0L;
-        }
-        try {
-            return Instant.parse(raw).toEpochMilli();
-        } catch (Exception ignored) {
-            try {
-                return LocalDateTime.parse(raw)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli();
-            } catch (Exception ignoredAgain) {
-                return 0L;
-            }
-        }
     }
 
     private String formatDateTime(long epochMillis) {

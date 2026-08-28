@@ -13,15 +13,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.RainSettings;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.models.WeatherLocation;
-import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.google.android.gms.tasks.Tasks;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
@@ -30,9 +29,7 @@ import java.util.Locale;
 
 /** Controls the safe influence of forecast rain on automatic irrigation. */
 public class RainSettingsActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
-
-    private NotificationSettingsStore notificationSettings;
+    private GardenSettingsViewModel viewModel;
     private MaterialSwitch rainDelayEnabled;
     private MaterialSwitch weatherNotifications;
     private Slider rainProbability;
@@ -59,7 +56,7 @@ public class RainSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_rain_settings);
         applyWindowInsets();
 
-        notificationSettings = new NotificationSettingsStore(this);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         bindViews();
         configureToolbar();
         configureActions();
@@ -114,14 +111,14 @@ public class RainSettingsActivity extends AppCompatActivity {
     }
 
     private void observeLiveData() {
-        repository.observeRainSettings().observe(this, value -> {
+        viewModel.getRainSettings().observe(this, value -> {
             if (value == null || (settingsLoaded && dirty)) return;
             applySettings(value);
         });
-        repository.observeWeatherLocation().observe(this, this::renderLocation);
-        repository.observeWeatherForecast().observe(this, this::renderForecast);
+        viewModel.getWeatherLocation().observe(this, this::renderLocation);
+        viewModel.getWeatherForecast().observe(this, this::renderForecast);
 
-        savedWeatherNotifications = notificationSettings.isCategoryEnabled("weather");
+        savedWeatherNotifications = viewModel.isCategoryEnabled("weather");
         applyingValues = true;
         weatherNotifications.setChecked(savedWeatherNotifications);
         applyingValues = false;
@@ -209,9 +206,7 @@ public class RainSettingsActivity extends AppCompatActivity {
         status.setText(R.string.settings_status_saving);
         RainSettings values = new RainSettings(rainDelayEnabled.isChecked(),
                 rainProbability.getValue(), rainMm.getValue(), System.currentTimeMillis() / 1000L);
-        notificationSettings.setCategoryEnabled("weather", weatherNotifications.isChecked());
-        Tasks.whenAll(repository.saveRainSettings(values),
-                        repository.saveNotificationSettings(notificationSettings.snapshot()))
+        viewModel.saveRainSettings(values, weatherNotifications.isChecked())
                 .addOnSuccessListener(unused -> {
                     rememberSavedValues();
                     status.setText(R.string.rain_settings_saved);

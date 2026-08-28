@@ -1,10 +1,7 @@
 package com.ali.smartgarden.activities;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
@@ -13,16 +10,17 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 /** Saves the garden point and the preferred weather source. */
 public class GardenLocationActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private GardenSettingsViewModel viewModel;
     private TextInputEditText city, district;
     private MaterialAutoCompleteTextView source;
     private TextView status;
@@ -39,6 +37,7 @@ public class GardenLocationActivity extends AppCompatActivity {
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_garden_location);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
 
         city = findViewById(R.id.inputLocationCity);
         district = findViewById(R.id.inputLocationDistrict);
@@ -57,7 +56,7 @@ public class GardenLocationActivity extends AppCompatActivity {
         source.setText(getString(R.string.runtime_weather_source_auto), false);
 
         findViewById(R.id.btnLocationBack).setOnClickListener(view -> finish());
-        repository.observeWeatherLocation().observe(this, location -> {
+        viewModel.getWeatherLocation().observe(this, location -> {
             if (location == null) return;
             city.setText(location.getCity());
             district.setText(location.getDistrict());
@@ -83,20 +82,13 @@ public class GardenLocationActivity extends AppCompatActivity {
     }
 
     private void saveGps() {
-        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Location location = null;
-        try {
-            location = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null) location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        } catch (SecurityException ignored) {
-            // Permission is checked before this method is invoked.
-        }
+        GardenSettingsViewModel.LocationPoint location = viewModel.lastKnownLocation();
         if (location == null) {
             status.setText(R.string.runtime_location_unavailable);
             return;
         }
-        repository.saveWeatherLocation(
-                text(city), text(district), location.getLatitude(), location.getLongitude(), sourceValue()
+        viewModel.saveWeatherLocation(
+                text(city), text(district), location.latitude, location.longitude, sourceValue()
         ).addOnSuccessListener(unused ->
                 status.setText(R.string.runtime_location_precise_saved)
         ).addOnFailureListener(error ->
@@ -111,7 +103,7 @@ public class GardenLocationActivity extends AppCompatActivity {
             status.setText(R.string.runtime_location_city_required);
             return;
         }
-        repository.saveWeatherLocation(
+        viewModel.saveWeatherLocation(
                 selectedCity, selectedDistrict, null, null, sourceValue()
         ).addOnSuccessListener(unused ->
                 status.setText(R.string.runtime_location_manual_saved)
@@ -125,7 +117,7 @@ public class GardenLocationActivity extends AppCompatActivity {
             status.setText(R.string.runtime_location_capture_first);
             return;
         }
-        repository.saveWeatherLocation(
+        viewModel.saveWeatherLocation(
                 selectedCity, selectedDistrict, savedLatitude, savedLongitude, sourceValue()
         ).addOnSuccessListener(unused ->
                 status.setText(R.string.runtime_weather_source_updated)

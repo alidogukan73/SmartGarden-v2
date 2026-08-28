@@ -14,16 +14,10 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.journal.LocalGardenEventStore;
-import com.ali.smartgarden.models.GardenEvent;
-import com.ali.smartgarden.models.GardenPhoto;
-import com.ali.smartgarden.photos.LocalGardenPhotoStore;
-import com.ali.smartgarden.season.SeasonRepository;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
+import com.ali.smartgarden.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -33,7 +27,6 @@ import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 /** Manual season record entry point for a single plant journal. */
 public final class NewJournalRecordActivity extends AppCompatActivity {
@@ -54,6 +47,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private final List<Bitmap> selectedPhotoBitmaps = new ArrayList<>();
     private TextView dateText, timeText, photoState;
     private TextInputEditText noteInput;
+    private PlantJournalViewModel viewModel;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> photoPicker =
             registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS_PER_RECORD), uris -> {
@@ -78,6 +72,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_new_journal_record);
+        viewModel = new ViewModelProvider(this).get(PlantJournalViewModel.class);
         zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID);
         if (zoneId == null) zoneId = "";
         seasonId = getIntent().getStringExtra(EXTRA_SEASON_ID);
@@ -183,7 +178,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
         }
         View saveButton = findViewById(R.id.btnNewRecordSave);
         saveButton.setEnabled(false);
-        new SeasonRepository().requireActiveSeasonId(zoneId)
+        viewModel.requireActiveSeasonId(zoneId)
                 .addOnSuccessListener(activeSeasonId -> {
                     if (!seasonId.isBlank() && !seasonId.equals(activeSeasonId)) {
                         saveButton.setEnabled(true);
@@ -195,7 +190,12 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                         return;
                     }
                     seasonId = activeSeasonId;
-                    persistRecord(hasPhoto)
+                    String note = noteInput.getText() == null
+                            ? "" : noteInput.getText().toString().trim();
+                    viewModel.persistRecord(zoneId, seasonId, selectedType, note,
+                                    selectedDateTime.getTimeInMillis() / 1000L,
+                                    relatedApplicationId, selectedPhotos,
+                                    selectedPhotoBitmaps)
                             .addOnSuccessListener(unused -> {
                                 Toast.makeText(this, R.string.runtime_journal_added, Toast.LENGTH_SHORT).show();
                                 finish();
@@ -213,44 +213,6 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG
                     ).show();
                 });
-    }
-
-    private Task<Void> persistRecord(boolean hasPhoto) {
-        String note = noteInput.getText() == null ? "" : noteInput.getText().toString().trim();
-        long epoch = selectedDateTime.getTimeInMillis() / 1000L;
-        List<Task<?>> writes = new ArrayList<>();
-        try {
-            if (hasPhoto) {
-                String photoGroupId = relatedApplicationId.isBlank()
-                        ? "journal_record_" + UUID.randomUUID()
-                        : relatedApplicationId;
-                LocalGardenPhotoStore store = new LocalGardenPhotoStore(this);
-                FirebaseRepository repository = new FirebaseRepository();
-                for (Uri photo : selectedPhotos) {
-                    GardenPhoto saved = store.save(photo, zoneId, note, photoGroupId);
-                    saved.setSeason_id(seasonId);
-                    store.updateSeasonId(saved.getId(), seasonId);
-                    writes.add(repository.saveGardenPhotoMetadata(saved));
-                }
-                for (Bitmap bitmap : selectedPhotoBitmaps) {
-                    GardenPhoto saved = store.save(bitmap, zoneId, note, photoGroupId);
-                    saved.setSeason_id(seasonId);
-                    store.updateSeasonId(saved.getId(), seasonId);
-                    writes.add(repository.saveGardenPhotoMetadata(saved));
-                }
-            }
-            // Fotoğraflı kayıt, zaman çizelgesinde tek bir gelişim kaydı olarak gösterilir.
-            if (!hasPhoto && !"Fotoğraf".equals(selectedType)) {
-                LocalGardenEventStore eventStore = new LocalGardenEventStore(this);
-                GardenEvent event = eventStore.add(zoneId, selectedType, note, epoch);
-                event.setSeason_id(seasonId);
-                eventStore.replaceSeasonId(event.getId(), seasonId);
-                writes.add(new FirebaseRepository().saveGardenEvent(event));
-            }
-            return Tasks.whenAll(writes);
-        } catch (Exception error) {
-            return Tasks.forException(error);
-        }
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

@@ -15,13 +15,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.health.GardenHealthCalculator;
 import com.ali.smartgarden.health.GardenHealthSummary;
 import com.ali.smartgarden.health.GardenHealthZoneResult;
-import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.GardenZone;
-import com.ali.smartgarden.models.ZoneIrrigationStatus;
-import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.viewmodels.MainViewModel;
 import com.google.android.material.card.MaterialCardView;
 
@@ -33,6 +29,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
     private TextView summaryTitle;
     private TextView summaryDetail;
     private LinearLayout zoneList;
+    private MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,17 +50,13 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         summaryDetail = findViewById(R.id.txtGardenHealthDetailSummary);
         zoneList = findViewById(R.id.layoutGardenHealthZones);
 
-        MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         viewModel.getGardenZones().observe(this, this::render);
     }
 
     private void render(List<GardenZone> zones) {
         long now = System.currentTimeMillis() / 1000L;
-        GardenHealthSummary summary = GardenHealthCalculator.calculate(
-                zones,
-                now,
-                PlantAssistantRecommendationStore.healthSignal(this)
-        );
+        GardenHealthSummary summary = viewModel.gardenHealth(zones, now);
         summaryScore.setText(getString(R.string.runtime_health_score_format, summary.getScore()));
         summaryTitle.setText(summary.getTitle());
         summaryDetail.setText(summary.getDetail());
@@ -82,11 +75,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
     }
 
     private void addZoneCard(GardenZone zone, long now) {
-        GardenHealthZoneResult result = GardenHealthCalculator.evaluateZone(
-                zone,
-                now,
-                PlantAssistantRecommendationStore.healthSignal(this)
-        );
+        GardenHealthZoneResult result = viewModel.gardenHealthForZone(zone, now);
         MaterialCardView card = new MaterialCardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -145,33 +134,6 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         zoneList.addView(card);
     }
 
-    private ZoneResult evaluate(GardenZone zone, long now) {
-        int score = 100;
-        String reason = getString(R.string.runtime_health_plan_good);
-        if (!zone.isSensor_enabled() || !zone.hasSensorData()) {
-            return new ZoneResult(55, getString(R.string.ai_zone_waiting));
-        }
-        if (zone.getMoisture() < zone.getMoisture_limit()) {
-            score -= Math.min(35, 10 + zone.getMoisture_limit() - zone.getMoisture());
-            reason = getString(R.string.runtime_health_moisture_low);
-        }
-        ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
-        if (irrigation != null && !irrigation.isSensor_stable()) {
-            score -= 20;
-            reason = getString(R.string.runtime_health_sensor_unstable);
-        }
-        FertilizationProfile profile = zone.getFertilization();
-        if (profile != null && profile.isEnabled()
-                && profile.getNext_application_at_epoch() > 0
-                && profile.getNext_application_at_epoch() <= now) {
-            score -= 10;
-            if (getString(R.string.runtime_health_plan_good).equals(reason)) {
-                reason = getString(R.string.runtime_health_fertilizer_waiting);
-            }
-        }
-        return new ZoneResult(Math.max(0, score), reason);
-    }
-
     private int colorFor(int score) {
         return score >= 85 ? R.color.primary
                 : score >= 65 ? R.color.warning : R.color.moistureLow;
@@ -181,12 +143,4 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
-    private static final class ZoneResult {
-        final int score;
-        final String reason;
-        ZoneResult(int score, String reason) {
-            this.score = score;
-            this.reason = reason;
-        }
-    }
 }

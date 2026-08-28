@@ -165,10 +165,6 @@ Add photo</string>
     <string name="runtime_garden_record">Garden record</string>
     <string name="runtime_growth_photo_added">Plant growth photo added.</string>
     <string name="runtime_duration_seconds">Duration: %1$d sec</string>
-    <string name="runtime_health_plan_good">Moisture, irrigation, and fertilization plans look appropriate</string>
-    <string name="runtime_health_moisture_low">Soil moisture is below the limit</string>
-    <string name="runtime_health_sensor_unstable">Sensor reading is unstable</string>
-    <string name="runtime_health_fertilizer_waiting">Waiting for a fertilization application record</string>
     <string name="runtime_restart_title">Restart the device?</string>
     <string name="runtime_restart_message">The Raspberry Pi will restart. Irrigation and sensor connections will be interrupted briefly.</string>
     <string name="runtime_restart_action">Restart</string>

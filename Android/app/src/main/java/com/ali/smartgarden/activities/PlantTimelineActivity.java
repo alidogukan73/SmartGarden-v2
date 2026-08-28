@@ -15,9 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.journal.LocalGardenEventStore;
 import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.GardenZone;
@@ -27,9 +26,7 @@ import com.ali.smartgarden.models.SeasonStatus;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.WeatherForecast;
 import com.ali.smartgarden.models.ZoneSeasonState;
-import com.ali.smartgarden.photos.LocalGardenPhotoStore;
-import com.ali.smartgarden.season.SeasonRepository;
-import com.ali.smartgarden.season.SeasonScope;
+import com.ali.smartgarden.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
@@ -52,8 +49,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
     public static final String EXTRA_INITIAL_TAB = "initial_tab";
     public static final String TAB_COMPARE = "compare";
 
-    private final FirebaseRepository repository = new FirebaseRepository();
-    private final SeasonRepository seasonRepository = new SeasonRepository();
+    private PlantJournalViewModel viewModel;
     private String zoneId = "";
     private GardenZone zone;
     private LinearLayout entries;
@@ -76,6 +72,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state); setContentView(R.layout.activity_plant_timeline);
+        viewModel = new ViewModelProvider(this).get(PlantJournalViewModel.class);
         zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID); if (zoneId == null) zoneId = "";
         if (TAB_COMPARE.equals(getIntent().getStringExtra(EXTRA_INITIAL_TAB))) {
             activeTab = TAB_COMPARE;
@@ -90,7 +87,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
         tabNotes.setOnClickListener(v -> { activeTab = "notes"; render(); });
         tabCompare.setOnClickListener(v -> { activeTab = "compare"; render(); });
         for (int i = 0; i < filterIds.length; i++) { final String value = filterValues[i]; findViewById(filterIds[i]).setOnClickListener(v -> { activeFilter = value; render(); }); }
-        repository.observeGardenZones().observe(this, zones -> {
+        viewModel.getZones().observe(this, zones -> {
             zone = null;
             if (zones != null) {
                 for (GardenZone value : zones) {
@@ -102,10 +99,10 @@ public class PlantTimelineActivity extends AppCompatActivity {
             selectInitialSeason();
             render();
         });
-        repository.observeFertilizerHistory().observe(this, values -> { fertilizerApplications = values == null ? new ArrayList<>() : values; loadItems(); render(); });
-        repository.observeWateringHistory().observe(this, values -> { wateringHistory = values == null ? new ArrayList<>() : values; loadItems(); render(); });
-        repository.observeWeatherForecast().observe(this, value -> { weatherForecast = value; addAutomaticSignals(); loadItems(); render(); });
-        seasonRepository.observeZoneSeasons(zoneId).observe(this, values -> {
+        viewModel.getFertilizerHistory().observe(this, values -> { fertilizerApplications = values == null ? new ArrayList<>() : values; loadItems(); render(); });
+        viewModel.getWateringHistory().observe(this, values -> { wateringHistory = values == null ? new ArrayList<>() : values; loadItems(); render(); });
+        viewModel.getWeather().observe(this, value -> { weatherForecast = value; addAutomaticSignals(); loadItems(); render(); });
+        viewModel.getSeasons(zoneId).observe(this, values -> {
             observedSeasons = values == null ? new ArrayList<>() : new ArrayList<>(values);
             refreshVisibleSeasons();
             if (zoneSnapshotLoaded) selectInitialSeason();
@@ -117,9 +114,9 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     private void loadItems() {
         items.clear();
-        for (GardenEvent event : new LocalGardenEventStore(this).load()) if (zoneId.equals(event.getZone_id())) items.add(TimelineItem.event(event));
+        for (GardenEvent event : viewModel.loadEvents()) if (zoneId.equals(event.getZone_id())) items.add(TimelineItem.event(event));
         Set<String> journalPhotoGroups = new HashSet<>();
-        for (GardenPhoto photo : new LocalGardenPhotoStore(this).load()) {
+        for (GardenPhoto photo : viewModel.loadPhotos()) {
             if (!zoneId.equals(photo.getZone_id())) continue;
             String groupId = photo.getRelated_application_id();
             if (groupId != null && groupId.startsWith("journal_record_") && !journalPhotoGroups.add(groupId)) continue;
@@ -298,25 +295,38 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private void addAutomaticSignals() {
         GardenSeason active = activeSeason();
         if (zone == null || active == null) return;
-        LocalGardenEventStore store = new LocalGardenEventStore(this); GardenEvent created = null;
+        String type = "", note = "", sourceKey = "";
         if (zone.hasSensorData() && zone.getMoisture() <= zone.getMoisture_limit() - 10) {
-            created = store.addAutomaticOncePerDay(zoneId, "Nem riski", "Toprak nemi %" + zone.getMoisture() + ". Bölge limiti %" + zone.getMoisture_limit() + " altında.", "moisture_risk");
+            type = "Nem riski";
+            note = "Toprak nemi %" + zone.getMoisture() + ". Bölge limiti %"
+                    + zone.getMoisture_limit() + " altında.";
+            sourceKey = "moisture_risk";
         }
-        if (created == null && weatherForecast != null) {
+        if (type.isBlank() && weatherForecast != null) {
             Double temperature = weatherForecast.getTodayTemperatureMax(), rain = weatherForecast.getTodayRainProbability(), wind = weatherForecast.getTodayWindMax();
-            if (temperature != null && temperature >= 34) created = store.addAutomaticOncePerDay(zoneId, "Sıcak hava uyarısı", "Bugün en yüksek sıcaklık " + Math.round(temperature) + "°C. Toprak nemini ve yapraklarda solmayı takip edin.", "hot_weather");
-            else if (rain != null && rain >= 70) created = store.addAutomaticOncePerDay(zoneId, "Yağış uyarısı", "Yağış olasılığı %" + Math.round(rain) + ". Sulama öncesi toprak nemini yeniden kontrol edin.", "rain_weather");
-            else if (wind != null && wind >= 35) created = store.addAutomaticOncePerDay(zoneId, "Kuvvetli rüzgar", "Rüzgar yaklaşık " + Math.round(wind) + " km/sa. Toprak nemi daha hızlı düşebilir.", "wind_weather");
+            if (temperature != null && temperature >= 34) {
+                type = "Sıcak hava uyarısı";
+                note = "Bugün en yüksek sıcaklık " + Math.round(temperature)
+                        + "°C. Toprak nemini ve yapraklarda solmayı takip edin.";
+                sourceKey = "hot_weather";
+            } else if (rain != null && rain >= 70) {
+                type = "Yağış uyarısı";
+                note = "Yağış olasılığı %" + Math.round(rain)
+                        + ". Sulama öncesi toprak nemini yeniden kontrol edin.";
+                sourceKey = "rain_weather";
+            } else if (wind != null && wind >= 35) {
+                type = "Kuvvetli rüzgar";
+                note = "Rüzgar yaklaşık " + Math.round(wind)
+                        + " km/sa. Toprak nemi daha hızlı düşebilir.";
+                sourceKey = "wind_weather";
+            }
         }
-        if (created != null) {
-        created.setSeason_id(active.getSeason_id());
-        store.replaceSeasonId(created.getId(), active.getSeason_id());
-        GardenEvent createdEvent = created;
-        repository.saveGardenEvent(createdEvent).addOnSuccessListener(unused -> {
-            loadItems(); render();
-        });
+        if (type.isBlank()) return;
+        viewModel.addAutomaticEvent(zoneId, active.getSeason_id(), type, note, sourceKey)
+                .addOnSuccessListener(created -> {
+                    if (created != null) { loadItems(); render(); }
+                });
     }
-}
     private View card(TimelineItem item) {
         LinearLayout timelineRow = new LinearLayout(this);
         timelineRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -451,13 +461,8 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
 
     private void refreshVisibleSeasons() {
-        seasons = new ArrayList<>();
         ZoneSeasonState current = zone == null ? null : zone.getSeason();
-        for (GardenSeason value : observedSeasons) {
-            if (SeasonScope.isVisibleSeason(value, current)) {
-                seasons.add(value);
-            }
-        }
+        seasons = viewModel.visibleSeasons(observedSeasons, current);
     }
 
     private void selectInitialSeason() {
@@ -516,13 +521,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private boolean recordBelongsToSelectedSeason(TimelineItem item) {
         GardenSeason selected = selectedSeason();
         if (selected == null) return yearOf(item.time()) == selectedYear;
-        ZoneSeasonState scope = new ZoneSeasonState();
-        scope.setActive_season_id(selected.getSeason_id());
-        scope.setStatus(selected.getStatus());
-        scope.setStarted_at_epoch(selected.getStarted_at_epoch());
-        scope.setEnded_at_epoch(selected.getEnded_at_epoch());
-        scope.setInclude_legacy_records(selected.isIncludes_legacy_records());
-        return SeasonScope.belongsTo(item.seasonId(), item.time(), scope);
+        return viewModel.belongsToSeason(item.seasonId(), item.time(), selected);
     }
     private void showNewRecordTypes() {
         GardenSeason active = activeSeason();
@@ -578,12 +577,9 @@ public class PlantTimelineActivity extends AppCompatActivity {
                 .setView(input)
                 .setNegativeButton(R.string.settings_quick_cancel, null)
                 .setPositiveButton(R.string.settings_quick_save, (dialog, which) -> {
-                    LocalGardenEventStore store = new LocalGardenEventStore(this);
-                    GardenEvent saved = store.addForSeason(
-                            zoneId, active.getSeason_id(), type, input.getText().toString());
-                    repository.saveGardenEvent(saved)
+                    viewModel.addEventForSeason(zoneId, active.getSeason_id(),
+                                    type, input.getText().toString())
                             .addOnSuccessListener(unused -> {
-                                store.replaceSeasonId(saved.getId(), saved.getSeason_id());
                                 loadItems();
                                 render();
                             })

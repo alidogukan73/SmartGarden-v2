@@ -20,16 +20,9 @@ import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
-import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
-import com.ali.smartgarden.fertilization.FertilizerAiProfile;
 import com.ali.smartgarden.fertilization.FertilizerAdvice;
-import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
-import com.ali.smartgarden.fertilization.OrganicFertilizerAiAdvisor;
 import com.ali.smartgarden.fertilization.FertilizerExperiencePresenter;
 import com.ali.smartgarden.fertilization.FertilizationScheduleView;
-import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
-import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
-import com.ali.smartgarden.fertilization.FertilizerSafetyPolicy;
 import com.ali.smartgarden.models.FertilizerRecommendation;
 import com.ali.smartgarden.models.FertilizerStageGuide;
 import com.ali.smartgarden.models.GardenZone;
@@ -547,10 +540,9 @@ public class FertilizationZoneDetailActivity
         if (cardZoneAiAdvice == null || currentZone == null) {
             return;
         }
-        FertilizerAdvice advice = FertilizerDecisionEngine.advise(
+        FertilizerAdvice advice = viewModel.advise(
                 currentZone, allProducts, currentWeather, currentHistory,
-                Instant.now().getEpochSecond(),
-                new FertilizationPreferenceStore(this).preferOrganicInputs()
+                Instant.now().getEpochSecond()
         );
         currentFertilizerAdvice = advice;
         updateApplicationSchedules();
@@ -565,7 +557,7 @@ public class FertilizationZoneDetailActivity
             txtZoneAiAdviceContext.setText(advice.getContext());
         }
         if (advice.getCandidates().isEmpty()) {
-            if (OrganicFertilizerAiAdvisor.isRequired(advice)) {
+            if (viewModel.requiresOrganicAi(advice)) {
                 txtZoneAiAdviceProducts.setVisibility(View.VISIBLE);
                 txtZoneAiAdviceProducts.setText(
                         R.string.fertilizer_organic_ai_loading);
@@ -604,16 +596,16 @@ public class FertilizationZoneDetailActivity
 
     private void requestOrganicAiAdvice() {
         GardenZone requestedZone = currentZone;
-        OrganicFertilizerAiAdvisor.request(requestedZone,
-                new OrganicFertilizerAiAdvisor.Callback() {
+        viewModel.requestOrganicAdvice(requestedZone,
+                new FertilizationZoneDetailViewModel.OrganicAdviceCallback() {
                     @Override
-                    public void onResult(OrganicFertilizerAiAdvisor.Result result) {
+                    public void onResult(String content) {
                         if (isFinishing() || isDestroyed()
                                 || currentZone != requestedZone) return;
                         txtZoneAiAdviceProducts.setText(getString(
                                 R.string.runtime_two_lines,
                                 getString(R.string.fertilizer_organic_ai_heading),
-                                result.fullText(FertilizationZoneDetailActivity.this)));
+                                content));
                     }
 
                     @Override
@@ -648,7 +640,7 @@ public class FertilizationZoneDetailActivity
         products.clear();
         if (!isSeasonEndStage()) {
             for (FertilizerProduct product : allProducts) {
-                if (FertilizerSafetyPolicy.isEligibleForStage(
+                if (viewModel.isEligibleForStage(
                         product,
                         selectedStage
                 )) {
@@ -671,11 +663,11 @@ public class FertilizationZoneDetailActivity
 
 
     private boolean isHarvestStage() {
-        return FertilizerStagePolicy.HARVEST.equals(selectedStage);
+        return viewModel.isHarvestStage(selectedStage);
     }
 
     private boolean isSeasonEndStage() {
-        return FertilizerStagePolicy.SEASON_END.equals(selectedStage);
+        return viewModel.isSeasonEndStage(selectedStage);
     }
 
     private void ensureSelectedProduct() {
@@ -754,20 +746,20 @@ public class FertilizationZoneDetailActivity
             ));
         }
         if (selected != null) {
-            FertilizerAiProfile aiProfile =
-                    FertilizerAiAdvisor.profileFor(selected);
+            FertilizationZoneDetailViewModel.ProductGuidance aiProfile =
+                    viewModel.productGuidance(selected);
             if (detail.length() > 0) {
                 detail.append("\n\n");
             }
-            detail.append(getString(R.string.runtime_product_suitability, aiProfile.getSuitability()))
-                    .append("\n").append(getString(R.string.runtime_reason_label, aiProfile.getReason()));
+            detail.append(getString(R.string.runtime_product_suitability, aiProfile.suitability))
+                    .append("\n").append(getString(R.string.runtime_reason_label, aiProfile.reason));
             if ("FRUITING".equals(selectedStage)) {
                 detail.append("\n").append(getString(
-                        R.string.runtime_fruit_stage, aiProfile.getFruitStageAdvice()));
+                        R.string.runtime_fruit_stage, aiProfile.fruitStageAdvice));
             } else if (isHarvestStage()) {
                 detail.append("\n").append(getString(R.string.runtime_active_harvest_note));
             }
-            detail.append("\n").append(getString(R.string.runtime_safety_label, aiProfile.getSafetyNote()));
+            detail.append("\n").append(getString(R.string.runtime_safety_label, aiProfile.safetyNote));
 
             if (isRepeatBlocked()) {
                 detail.append("\n\n").append(getString(
@@ -1483,7 +1475,7 @@ public class FertilizationZoneDetailActivity
         FertilizationProfile activeProfile = currentZone == null
                 ? null : currentZone.getFertilization();
         if (product == null || !originalEnabled
-                || !FertilizerSafetyPolicy.isEligible(product, activeProfile)) {
+                || !viewModel.isEligible(product, activeProfile)) {
             Toast.makeText(this, R.string.fertilizer_application_policy_blocked, Toast.LENGTH_LONG).show();
             return;
         }
@@ -1539,7 +1531,7 @@ public class FertilizationZoneDetailActivity
         List<FertilizerProduct> selectableProducts = new ArrayList<>();
         List<String> productNames = new ArrayList<>();
         for (FertilizerProduct candidate : allProducts) {
-            if (FertilizerSafetyPolicy.isEligible(
+            if (viewModel.isEligible(
                     candidate, activeProfile)) {
                 selectableProducts.add(candidate);
                 productNames.add(candidate.getName());
@@ -1645,7 +1637,7 @@ public class FertilizationZoneDetailActivity
                 ).setOnClickListener(view -> {
                     FertilizerProduct productToRecord =
                             selectedApplicationProduct[0];
-                    if (!FertilizerSafetyPolicy.isEligible(
+                    if (!viewModel.isEligible(
                             productToRecord, activeProfile)) {
                         Toast.makeText(this, R.string.fertilizer_application_policy_blocked,
                                 Toast.LENGTH_LONG).show();

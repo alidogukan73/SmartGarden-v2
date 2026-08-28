@@ -171,6 +171,7 @@
                             android:id="@+id/imgDoctorPhoto"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:contentDescription="@string/garden_photo_content_description"
                             android:scaleType="centerCrop"
                             android:visibility="gone" />
                         <LinearLayout

@@ -12,6 +12,7 @@ import com.ali.smartgarden.R;
 import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.models.WateringHistory;
+import com.ali.smartgarden.models.GardenZone;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,11 +24,13 @@ public class WateringHistoryViewModel extends AndroidViewModel {
             new MediatorLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(true);
     private final MutableLiveData<String> error = new MutableLiveData<>();
+    private final LiveData<List<GardenZone>> zones;
 
     public WateringHistoryViewModel(@NonNull Application application) {
         super(application);
         history.setValue(Collections.emptyList());
         FirebaseRepository repository = new FirebaseRepository();
+        zones = repository.observeGardenZones();
         LiveData<List<WateringHistory>> source =
                 repository.observeRecentWateringHistory(HISTORY_LIMIT, databaseError -> {
                     loading.setValue(false);
@@ -45,4 +48,5 @@ public class WateringHistoryViewModel extends AndroidViewModel {
     public LiveData<List<WateringHistory>> getHistory() { return history; }
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
+    public LiveData<List<GardenZone>> getZones() { return zones; }
 }

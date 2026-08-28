@@ -21,10 +21,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.adapters.FertilizerHistoryAdapter;
-import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.zones.ZoneChipRenderer;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
 import com.ali.smartgarden.viewmodels.FertilizerHistoryViewModel;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -35,14 +33,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 
 public class FertilizerHistoryActivity extends AppCompatActivity {
 
@@ -87,8 +81,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         );
 
         if (!notificationId.isBlank()) {
-            new GardenNotificationManager(this)
-                    .markRead(notificationId);
+            viewModel.markNotificationRead(notificationId);
         }
         findViewById(R.id.btnBack).setOnClickListener(
                 view -> finish()
@@ -563,66 +556,35 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     private void renderOutcomeSummary(
             List<FertilizerApplication> values
     ) {
-        int observed = 0;
-        int improved = 0;
-        int unchanged = 0;
-        int issue = 0;
-        double vigorTotal = 0.0;
-        int vigorCount = 0;
-        Map<String, Integer> pairCounts = new HashMap<>();
-        for (FertilizerApplication value : values) {
-            if (!FertilizerOutcomeFollowUpPolicy.isEvaluated(value)) continue;
-            observed++;
-            String pairKey = safe(value.getZone_id()) + "|"
-                    + safe(value.getProduct_id());
-            pairCounts.put(pairKey, pairCounts.getOrDefault(pairKey, 0) + 1);
-            String status = safe(value.getOutcome_status());
-            if ("IMPROVED".equals(status)) {
-                improved++;
-            } else if ("ISSUE".equals(status)) {
-                issue++;
-            } else {
-                unchanged++;
-            }
-            if (value.getOutcome_vigor_score() > 0) {
-                vigorTotal += value.getOutcome_vigor_score();
-                vigorCount++;
-            }
-        }
-        if (observed == 0) {
+        FertilizerHistoryViewModel.OutcomeSummary summary =
+                viewModel.summarizeOutcomes(values);
+        if (summary.observed == 0) {
             outcomeSummary.setText(R.string.fertilizer_outcome_learning_empty);
             return;
         }
 
-        int target = FertilizerOutcomeFollowUpPolicy.RELIABLE_OBSERVATION_COUNT;
-        int learnedPairs = 0;
-        int strongestPair = 0;
-        for (int pairCount : pairCounts.values()) {
-            strongestPair = Math.max(strongestPair, pairCount);
-            if (pairCount >= target) learnedPairs++;
-        }
-        String learning = learnedPairs == 0
+        String learning = summary.learnedPairs == 0
                 ? getString(R.string.fertilizer_outcome_learning_overview_progress,
-                Math.min(strongestPair, target), target)
+                Math.min(summary.strongestPair, summary.target), summary.target)
                 : getString(R.string.fertilizer_outcome_learning_overview_ready,
-                learnedPairs);
+                summary.learnedPairs);
         String statistics = getString(
                 R.string.fertilizer_outcome_stats,
-                observed,
-                improved,
-                unchanged,
-                issue
+                summary.observed,
+                summary.improved,
+                summary.unchanged,
+                summary.issue
         );
-        if (vigorCount > 0) {
+        if (summary.vigorCount > 0) {
             statistics += getString(
                     R.string.fertilizer_outcome_vigor,
-                    String.format(Locale.getDefault(), "%.1f", vigorTotal / vigorCount)
+                    String.format(Locale.getDefault(), "%.1f", summary.averageVigor)
             );
         }
-        if (learnedPairs > 0) {
-            statistics += getString(issue > improved
+        if (summary.learnedPairs > 0) {
+            statistics += getString(summary.issue > summary.improved
                     ? R.string.fertilizer_outcome_trend_issue
-                    : improved > issue
+                    : summary.improved > summary.issue
                     ? R.string.fertilizer_outcome_trend_positive
                     : R.string.fertilizer_outcome_trend_mixed);
         }
@@ -660,15 +622,10 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         if (uri == null) {
             return;
         }
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(
-                        getContentResolver().openOutputStream(uri),
-                        java.nio.charset.StandardCharsets.UTF_8
-                )
-        )) {
-            writer.write('\uFEFF');
-            writer.write(getString(R.string.runtime_csv_header)
-            );
+        StringBuilder csvContents = new StringBuilder();
+        csvContents.append('\uFEFF').append(getString(R.string.runtime_csv_header));
+        csvContents.append('\n');
+        try {
             for (FertilizerApplication value : visibleValues) {
                 String date = value.getApplied_at_epoch() <= 0L
                         ? ""
@@ -679,7 +636,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                                         "dd-MM-yyyy HH:mm",
                                         Locale.getDefault()
                                 ));
-                writer.write(String.join(",",
+                csvContents.append(String.join(",",
                         csv(date),
                         csv(value.getZone_name()),
                         csv(value.getProduct_name()),
@@ -693,21 +650,23 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         csv(value.getOutcome_vigor_score() > 0
                                 ? String.valueOf(value.getOutcome_vigor_score()) : ""),
                         csv(value.getOutcome_notes())
-                ));
-                writer.newLine();
+                )).append('\n');
             }
-            android.widget.Toast.makeText(
-                    this,
-                    R.string.fertilizer_history_export_success,
-                    android.widget.Toast.LENGTH_LONG
-            ).show();
         } catch (Exception error) {
             android.widget.Toast.makeText(
                     this,
                     R.string.fertilizer_history_export_failed,
                     android.widget.Toast.LENGTH_LONG
             ).show();
+            return;
         }
+        viewModel.writeCsv(uri, csvContents.toString(), successful ->
+                runOnUiThread(() -> android.widget.Toast.makeText(
+                        this,
+                        successful ? R.string.fertilizer_history_export_success
+                                : R.string.fertilizer_history_export_failed,
+                        android.widget.Toast.LENGTH_LONG
+                ).show()));
     }
 
     private String methodLabel(String method) {

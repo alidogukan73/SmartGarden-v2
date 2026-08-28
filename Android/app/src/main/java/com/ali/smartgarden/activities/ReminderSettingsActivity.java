@@ -12,13 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
-import com.ali.smartgarden.notifications.NotificationSettingsStore;
-import com.ali.smartgarden.notifications.NotificationSignalScheduler;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -26,8 +24,7 @@ import java.util.Locale;
 
 /** Controls scheduled watering, fertilization and plant follow-up reminders. */
 public class ReminderSettingsActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
-    private NotificationSettingsStore settings;
+    private GardenSettingsViewModel viewModel;
     private MaterialSwitch irrigationReminder;
     private MaterialSwitch fertilizationReminder;
     private MaterialSwitch plantReminder;
@@ -43,7 +40,7 @@ public class ReminderSettingsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_reminder_settings);
         applyWindowInsets();
-        settings = new NotificationSettingsStore(this);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         configureToolbar();
         bindViews();
         configureActions();
@@ -88,7 +85,7 @@ public class ReminderSettingsActivity extends AppCompatActivity {
         quietHoursSwitch.setOnCheckedChangeListener((button, checked) -> {
             quietHoursLayout.setVisibility(checked ? View.VISIBLE : View.GONE);
             if (applyingCloudBackup) return;
-            settings.setQuietHoursEnabled(checked);
+            viewModel.setQuietHoursEnabled(checked);
             syncAndSchedule();
         });
         quietStart.setOnClickListener(view -> pickTime(true));
@@ -97,49 +94,45 @@ public class ReminderSettingsActivity extends AppCompatActivity {
 
     private void renderLocalValues() {
         applyingCloudBackup = true;
-        irrigationReminder.setChecked(settings.isReminderEnabled("irrigation"));
-        fertilizationReminder.setChecked(settings.isReminderEnabled("fertilization"));
-        plantReminder.setChecked(settings.isReminderEnabled("plant"));
-        quietHoursSwitch.setChecked(settings.isQuietHoursEnabled());
-        quietHoursLayout.setVisibility(settings.isQuietHoursEnabled() ? View.VISIBLE : View.GONE);
+        irrigationReminder.setChecked(viewModel.isReminderEnabled("irrigation"));
+        fertilizationReminder.setChecked(viewModel.isReminderEnabled("fertilization"));
+        plantReminder.setChecked(viewModel.isReminderEnabled("plant"));
+        quietHoursSwitch.setChecked(viewModel.isQuietHoursEnabled());
+        quietHoursLayout.setVisibility(viewModel.isQuietHoursEnabled() ? View.VISIBLE : View.GONE);
         renderTimes();
         applyingCloudBackup = false;
     }
 
     private void restoreCloudBackup() {
-        repository.loadNotificationSettings(values -> runOnUiThread(() -> {
-            if (!settings.applyBackup(values)) return;
+        viewModel.loadNotificationSettings(values -> runOnUiThread(() -> {
+            if (!viewModel.applyNotificationBackup(values)) return;
             renderLocalValues();
         }));
     }
 
     private void saveReminder(String key, boolean checked) {
         if (applyingCloudBackup) return;
-        settings.setReminderEnabled(key, checked);
+        viewModel.setReminderEnabled(key, checked);
         syncAndSchedule();
     }
 
     private void pickTime(boolean start) {
-        int current = start ? settings.quietStartHour() : settings.quietEndHour();
+        int current = start ? viewModel.quietStartHour() : viewModel.quietEndHour();
         new TimePickerDialog(this, (dialog, hour, minute) -> {
-            settings.setQuietHours(start ? hour : settings.quietStartHour(),
-                    start ? settings.quietEndHour() : hour);
+            viewModel.setQuietHours(start ? hour : viewModel.quietStartHour(),
+                    start ? viewModel.quietEndHour() : hour);
             renderTimes();
             syncAndSchedule();
         }, current, 0, true).show();
     }
 
     private void renderTimes() {
-        quietStart.setText(String.format(Locale.getDefault(), "%02d:00", settings.quietStartHour()));
-        quietEnd.setText(String.format(Locale.getDefault(), "%02d:00", settings.quietEndHour()));
+        quietStart.setText(String.format(Locale.getDefault(), "%02d:00", viewModel.quietStartHour()));
+        quietEnd.setText(String.format(Locale.getDefault(), "%02d:00", viewModel.quietEndHour()));
     }
 
     private void syncAndSchedule() {
-        repository.saveNotificationSettings(settings.snapshot())
-                .addOnSuccessListener(unused -> {
-                    FertilizerReminderScheduler.schedule(this);
-                    NotificationSignalScheduler.schedule(this);
-                })
+        viewModel.saveReminderSettings()
                 .addOnFailureListener(error -> Toast.makeText(this,
                         R.string.reminder_settings_save_failed, Toast.LENGTH_SHORT).show());
     }

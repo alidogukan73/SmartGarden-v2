@@ -1,7 +1,6 @@
 package com.ali.smartgarden.activities;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,14 +16,14 @@ import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.ali.smartgarden.zones.ZoneCapacityPolicy;
+import com.ali.smartgarden.viewmodels.PlantListViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -38,14 +37,12 @@ import java.util.Locale;
 /** Plant-focused entry point for each zone's journal and season history. */
 public class PlantListActivity extends AppCompatActivity {
     private static final long CURRENT_SENSOR_SECONDS = 90L;
-    private static final String PREFS = "plant_list_preferences";
-    private static final String PREF_SORT_MODE = "sort_mode";
     private static final int SORT_SMART = 0;
     private static final int SORT_ATTENTION = 1;
     private static final int SORT_MOISTURE = 2;
     private static final int SORT_UPDATED = 3;
     private static final int SORT_NAME = 4;
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private PlantListViewModel viewModel;
     private final List<GardenZone> latestZones = new ArrayList<>();
     private final Handler freshnessHandler = new Handler(Looper.getMainLooper());
     private final Runnable freshnessRefresh = new Runnable() {
@@ -71,6 +68,7 @@ public class PlantListActivity extends AppCompatActivity {
         super.onCreate(state);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_plant_list);
+        viewModel = new ViewModelProvider(this).get(PlantListViewModel.class);
         applyWindowInsets();
         findViewById(R.id.btnPlantsBack).setOnClickListener(view -> finish());
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.PLANTS);
@@ -80,9 +78,9 @@ public class PlantListActivity extends AppCompatActivity {
         healthy = findViewById(R.id.txtPlantHealthy);
         attention = findViewById(R.id.txtPlantAttention);
         waiting = findViewById(R.id.txtPlantWaiting);
-        sortMode = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(PREF_SORT_MODE, SORT_SMART);
+        sortMode = viewModel.getSortMode(SORT_SMART);
         findViewById(R.id.btnPlantSort).setOnClickListener(view -> showSortMenu());
-        repository.observeGardenZones().observe(this, this::render);
+        viewModel.getZones().observe(this, this::render);
     }
 
     /** Keeps all journal content below the status bar / camera cutout on every phone. */
@@ -98,7 +96,7 @@ public class PlantListActivity extends AppCompatActivity {
         // The refresh task can pass the same cached list back here; copy before clearing it.
         List<GardenZone> incoming = zones == null ? new ArrayList<>() : new ArrayList<>(zones);
         latestZones.clear();
-        latestZones.addAll(ZoneCapacityPolicy.activeZones(incoming));
+        latestZones.addAll(viewModel.activeZones(incoming));
         List<GardenZone> visibleZones = new ArrayList<>(latestZones);
         sortZones(visibleZones);
         list.removeAllViews();
@@ -139,10 +137,7 @@ public class PlantListActivity extends AppCompatActivity {
                 .setTitle(R.string.runtime_plant_sort_title)
                 .setSingleChoiceItems(choices, sortMode, (dialog, which) -> {
                     sortMode = which;
-                    getSharedPreferences(PREFS, MODE_PRIVATE)
-                            .edit()
-                            .putInt(PREF_SORT_MODE, sortMode)
-                            .apply();
+                    viewModel.setSortMode(sortMode);
                     render(new ArrayList<>(latestZones));
                     dialog.dismiss();
                 })

@@ -365,10 +365,6 @@ public final class GardenNotificationManager {
 
     private void ensurePhoneChannels() {
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return;
-        }
-
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(
                         Context.NOTIFICATION_SERVICE

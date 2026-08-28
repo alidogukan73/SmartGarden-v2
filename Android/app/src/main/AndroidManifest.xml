@@ -21,6 +21,7 @@
         android:localeConfig="@xml/locales_config"
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
+        tools:targetApi="tiramisu"
         android:theme="@style/Theme.SmartGarden">
         <activity
             android:name=".activities.ThemeSettingsActivity"

@@ -165,10 +165,6 @@ Fotoğraf ekle</string>
     <string name="runtime_garden_record">Bahçe kaydı</string>
     <string name="runtime_growth_photo_added">Bitki gelişim fotoğrafı eklendi.</string>
     <string name="runtime_duration_seconds">Süre: %1$d sn</string>
-    <string name="runtime_health_plan_good">Nem, sulama ve gübreleme planı uygun görünüyor</string>
-    <string name="runtime_health_moisture_low">Toprak nemi sınırın altında</string>
-    <string name="runtime_health_sensor_unstable">Sensör ölçümü kararsız</string>
-    <string name="runtime_health_fertilizer_waiting">Gübreleme uygulama kaydı bekleniyor</string>
     <string name="runtime_restart_title">Cihaz yeniden başlatılsın mı?</string>
     <string name="runtime_restart_message">Raspberry Pi yeniden başlatılacak. Bu sırada sulama ve sensör bağlantısı kısa süreliğine kesilecektir.</string>
     <string name="runtime_restart_action">Yeniden Başlat</string>

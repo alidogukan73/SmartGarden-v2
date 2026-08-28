@@ -12,7 +12,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Statistics;
 import com.ali.smartgarden.models.WateringHistory;
@@ -691,7 +690,7 @@ public class StatisticsActivity extends AppCompatActivity {
                 view -> finish()
         );
 
-        new FirebaseRepository().observeGardenZones().observe(this, zones ->
+        viewModel.getZones().observe(this, zones ->
                 ZoneChipRenderer.render(
                         this,
                         chipGroupStatisticZones,

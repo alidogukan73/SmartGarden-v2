@@ -20,27 +20,24 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.notifications.NotificationSettingsStore;
-import com.ali.smartgarden.notifications.NotificationSignalScheduler;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 /** Chooses which AVORA event categories are recorded and shown as phone notifications. */
 public class NotificationSettingsActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
-    private NotificationSettingsStore settings;
+    private GardenSettingsViewModel viewModel;
     private MaterialButton phonePermissionButton;
     private TextView phonePermission;
     private boolean applyingCloudBackup;
 
     private final ActivityResultLauncher<String> notificationPermission =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                getSharedPreferences("avora_notification_settings", MODE_PRIVATE).edit()
-                        .putBoolean("phone_permission_requested", true).apply();
+                viewModel.markPhonePermissionRequested();
                 renderPhonePermission();
             });
 
@@ -50,7 +47,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_notification_settings);
         applyWindowInsets();
-        settings = new NotificationSettingsStore(this);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         configureToolbar();
         phonePermission = findViewById(R.id.txtPhoneNotificationPermission);
         phonePermissionButton = findViewById(R.id.btnPhoneNotificationPermission);
@@ -101,37 +98,36 @@ public class NotificationSettingsActivity extends AppCompatActivity {
     }
 
     private void bind(MaterialSwitch view, String category) {
-        view.setChecked(settings.isCategoryEnabled(category));
+        view.setChecked(viewModel.isCategoryEnabled(category));
         view.setOnCheckedChangeListener((button, checked) -> {
             if (applyingCloudBackup) return;
-            settings.setCategoryEnabled(category, checked);
+            viewModel.setCategoryEnabled(category, checked);
             syncSettings();
         });
     }
 
     private void restoreCloudBackup() {
-        repository.loadNotificationSettings(values -> runOnUiThread(() -> {
-            if (!settings.applyBackup(values)) return;
+        viewModel.loadNotificationSettings(values -> runOnUiThread(() -> {
+            if (!viewModel.applyNotificationBackup(values)) return;
             applyingCloudBackup = true;
             ((MaterialSwitch) findViewById(R.id.switchNotificationIrrigation))
-                    .setChecked(settings.isCategoryEnabled("irrigation"));
+                    .setChecked(viewModel.isCategoryEnabled("irrigation"));
             ((MaterialSwitch) findViewById(R.id.switchNotificationFertilization))
-                    .setChecked(settings.isCategoryEnabled("fertilization"));
+                    .setChecked(viewModel.isCategoryEnabled("fertilization"));
             ((MaterialSwitch) findViewById(R.id.switchNotificationPlant))
-                    .setChecked(settings.isCategoryEnabled("plant"));
+                    .setChecked(viewModel.isCategoryEnabled("plant"));
             ((MaterialSwitch) findViewById(R.id.switchNotificationWeather))
-                    .setChecked(settings.isCategoryEnabled("weather"));
+                    .setChecked(viewModel.isCategoryEnabled("weather"));
             ((MaterialSwitch) findViewById(R.id.switchNotificationDevice))
-                    .setChecked(settings.isCategoryEnabled("device"));
+                    .setChecked(viewModel.isCategoryEnabled("device"));
             ((MaterialSwitch) findViewById(R.id.switchNotificationStock))
-                    .setChecked(settings.isCategoryEnabled("stock"));
+                    .setChecked(viewModel.isCategoryEnabled("stock"));
             applyingCloudBackup = false;
         }));
     }
 
     private void syncSettings() {
-        repository.saveNotificationSettings(settings.snapshot())
-                .addOnSuccessListener(unused -> NotificationSignalScheduler.schedule(this))
+        viewModel.saveCategorySettings()
                 .addOnFailureListener(error -> Toast.makeText(this,
                         R.string.notification_settings_save_failed, Toast.LENGTH_SHORT).show());
     }
@@ -161,8 +157,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-            boolean requested = getSharedPreferences("avora_notification_settings", MODE_PRIVATE)
-                    .getBoolean("phone_permission_requested", false);
+            boolean requested = viewModel.wasPhonePermissionRequested();
             if (requested) openSystemNotificationSettings();
             else notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
         } else {

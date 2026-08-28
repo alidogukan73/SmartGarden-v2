@@ -1,11 +1,22 @@
 package com.ali.smartgarden.viewmodels;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-import androidx.lifecycle.ViewModel;
 
 import com.ali.smartgarden.fertilization.FertilizationRepository;
+import com.ali.smartgarden.fertilization.FertilizationPreferenceStore;
+import com.ali.smartgarden.fertilization.FertilizerAdvice;
+import com.ali.smartgarden.fertilization.FertilizerAiAdvisor;
+import com.ali.smartgarden.fertilization.FertilizerAiProfile;
+import com.ali.smartgarden.fertilization.FertilizerDecisionEngine;
+import com.ali.smartgarden.fertilization.FertilizerSafetyPolicy;
+import com.ali.smartgarden.fertilization.FertilizerStagePolicy;
+import com.ali.smartgarden.fertilization.OrganicFertilizerAiAdvisor;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.FertilizerRecommendation;
@@ -17,8 +28,9 @@ import com.google.android.gms.tasks.Task;
 import java.util.List;
 
 /** Data and mutation boundary for one zone's fertilization workflow. */
-public final class FertilizationZoneDetailViewModel extends ViewModel {
+public final class FertilizationZoneDetailViewModel extends AndroidViewModel {
     private final FertilizationRepository repository = new FertilizationRepository();
+    private final FertilizationPreferenceStore preferences;
     private final MutableLiveData<String> zoneId = new MutableLiveData<>();
     private final LiveData<GardenZone> zone =
             Transformations.switchMap(zoneId, repository::observeZone);
@@ -29,6 +41,11 @@ public final class FertilizationZoneDetailViewModel extends ViewModel {
             repository.observeStageGuides();
     private final LiveData<List<FertilizerApplication>> history = repository.observeHistory();
     private final LiveData<WeatherForecast> weather = repository.observeWeather();
+
+    public FertilizationZoneDetailViewModel(@NonNull Application application) {
+        super(application);
+        preferences = new FertilizationPreferenceStore(application);
+    }
 
     public void setZoneId(String value) {
         String normalized = value == null ? "" : value.trim();
@@ -43,6 +60,43 @@ public final class FertilizationZoneDetailViewModel extends ViewModel {
     public LiveData<List<FertilizerStageGuide>> getStageGuides() { return stageGuides; }
     public LiveData<List<FertilizerApplication>> getHistory() { return history; }
     public LiveData<WeatherForecast> getWeather() { return weather; }
+    public boolean preferOrganicInputs() { return preferences.preferOrganicInputs(); }
+
+    public FertilizerAdvice advise(GardenZone zone, List<FertilizerProduct> products,
+                                   WeatherForecast weather,
+                                   List<FertilizerApplication> history, long now) {
+        return FertilizerDecisionEngine.advise(zone, products, weather, history, now,
+                preferOrganicInputs());
+    }
+    public boolean requiresOrganicAi(FertilizerAdvice advice) {
+        return OrganicFertilizerAiAdvisor.isRequired(advice);
+    }
+    public void requestOrganicAdvice(GardenZone zone, OrganicAdviceCallback callback) {
+        OrganicFertilizerAiAdvisor.request(zone, new OrganicFertilizerAiAdvisor.Callback() {
+            @Override public void onResult(OrganicFertilizerAiAdvisor.Result result) {
+                callback.onResult(result.fullText(getApplication()));
+            }
+            @Override public void onUnavailable() { callback.onUnavailable(); }
+        });
+    }
+    public boolean isEligibleForStage(FertilizerProduct product, String stage) {
+        return FertilizerSafetyPolicy.isEligibleForStage(product, stage);
+    }
+    public boolean isEligible(FertilizerProduct product,
+                              com.ali.smartgarden.models.FertilizationProfile profile) {
+        return FertilizerSafetyPolicy.isEligible(product, profile);
+    }
+    public boolean isHarvestStage(String stage) {
+        return FertilizerStagePolicy.HARVEST.equals(stage);
+    }
+    public boolean isSeasonEndStage(String stage) {
+        return FertilizerStagePolicy.SEASON_END.equals(stage);
+    }
+    public ProductGuidance productGuidance(FertilizerProduct product) {
+        FertilizerAiProfile profile = FertilizerAiAdvisor.profileFor(product);
+        return new ProductGuidance(profile.getSuitability(), profile.getReason(),
+                profile.getFruitStageAdvice(), profile.getSafetyNote());
+    }
 
     public Task<Void> updateWaterAnalysis(String zoneId, double ph, double ecMs) {
         return repository.updateWaterAnalysis(zoneId, ph, ecMs);
@@ -85,5 +139,24 @@ public final class FertilizationZoneDetailViewModel extends ViewModel {
                 zoneId, zoneName, product, appliedDose, appliedUnit, areaM2,
                 tankLiters, recommendedDoseMin, recommendedDoseMax, deductStock,
                 applicationMethod, notes, appliedAt, applicationType);
+    }
+
+    public interface OrganicAdviceCallback {
+        void onResult(String content);
+        void onUnavailable();
+    }
+
+    public static final class ProductGuidance {
+        public final String suitability;
+        public final String reason;
+        public final String fruitStageAdvice;
+        public final String safetyNote;
+        ProductGuidance(String suitability, String reason, String fruitStageAdvice,
+                        String safetyNote) {
+            this.suitability = suitability;
+            this.reason = reason;
+            this.fruitStageAdvice = fruitStageAdvice;
+            this.safetyNote = safetyNote;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.ali.smartgarden.firebase;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.content.Context;
 import android.provider.Settings;
@@ -43,6 +44,7 @@ import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.models.IrrigationTimingSettings;
 import com.ali.smartgarden.models.GardenProfile;
 import com.ali.smartgarden.models.DisplayUnitSettings;
+import com.ali.smartgarden.models.DeviceInfoSnapshot;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
@@ -55,6 +57,9 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.messaging.FirebaseMessaging;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -187,15 +192,32 @@ public class FirebaseRepository {
       return liveData;
    }
 
-   public LiveData<DataSnapshot> observeDeviceSnapshot(
+   public LiveData<DeviceInfoSnapshot> observeDeviceInfoSnapshot(
          Consumer<DatabaseError> errorHandler
    ) {
-      final FirebaseLiveData<DataSnapshot> liveData =
+      final FirebaseLiveData<DeviceInfoSnapshot> liveData =
             new FirebaseLiveData<>(this.deviceRef);
       liveData.setEventListener(new ValueEventListener() {
          @Override
          public void onDataChange(@NonNull DataSnapshot snapshot) {
-            liveData.setValue(snapshot);
+            Status status = snapshot.child("status").getValue(Status.class);
+            Health health = snapshot.child("health").getValue(Health.class);
+            List<GardenZone> zones = new ArrayList<>();
+            java.util.Set<String> firmwareVersions = new java.util.LinkedHashSet<>();
+            for (DataSnapshot child : snapshot.child("zones").getChildren()) {
+               GardenZone zone = child.getValue(GardenZone.class);
+               if (zone == null) continue;
+               if (zone.getZone_id() == null || zone.getZone_id().isBlank()) {
+                  zone.setZone_id(child.getKey());
+               }
+               zones.add(zone);
+               String firmware = child.child("firmware").getValue(String.class);
+               if (zone.isEnabled() && firmware != null && !firmware.isBlank()) {
+                  firmwareVersions.add(firmware.trim());
+               }
+            }
+            liveData.setValue(new DeviceInfoSnapshot(
+                  status, health, zones, firmwareVersions));
          }
 
          @Override
@@ -205,6 +227,16 @@ public class FirebaseRepository {
          }
       });
       return liveData;
+   }
+
+   public Task<Boolean> authenticateAnonymously() {
+      FirebaseAuth auth = FirebaseAuth.getInstance();
+      if (auth.getCurrentUser() != null) return Tasks.forResult(true);
+      return auth.signInAnonymously().continueWith(Task::isSuccessful);
+   }
+
+   public Task<String> getPushToken() {
+      return FirebaseMessaging.getInstance().getToken();
    }
 
    public LiveData<Boolean> observeFirebaseConnection(
@@ -2032,6 +2064,26 @@ public class FirebaseRepository {
               .setValue(values);
    }
 
+   /** Persists structured feedback without exposing Firebase primitives to the UI layer. */
+   public Task<Void> submitFeedback(Map<String, Object> values) {
+      if (values == null) {
+         return Tasks.forException(new IllegalArgumentException("Feedback is required"));
+      }
+      Map<String, Object> payload = new HashMap<>(values);
+      String feedbackId = UUID.randomUUID().toString();
+      payload.put("id", feedbackId);
+      payload.put("status", "new");
+      payload.put("created_at", ServerValue.TIMESTAMP);
+      payload.put("device_id", DEVICE_ID);
+      payload.put("source", "android");
+      FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+      if (user != null) {
+         payload.put("user_id", user.getUid());
+      }
+      return deviceRef.child("user_feedback").child(feedbackId).setValue(payload);
+   }
+
+   @SuppressLint("HardwareIds")
    private static String stableDeviceKey(Context context) {
       try {
          String androidId = Settings.Secure.getString(

@@ -2,7 +2,7 @@
 <resources>
     <string name="notification_settings_title">Bildirim Tercihleri</string>
     <string name="notification_settings_intro_title">Hangi gelişmelerden haberdar olmak istersiniz?</string>
-    <string name="notification_settings_intro_message">Sulama, gübreleme, Bitki Asistanı, hava, cihaz ve stok bildirimlerini ayrı ayrı yönetin.</string>
+    <string name="notification_settings_intro_message">Sulama, gübreleme, Bitki Asistanı, hava, cihaz ve stok bildirimlerinin her birini yönetin.</string>
     <string name="notification_settings_save_failed">Bildirim tercihleri yedeklenemedi. Yerel ayarlar korunuyor.</string>
     <string name="notification_phone_section">Telefon bildirimleri</string>
     <string name="notification_phone_title">Telefon bildirimi izni</string>

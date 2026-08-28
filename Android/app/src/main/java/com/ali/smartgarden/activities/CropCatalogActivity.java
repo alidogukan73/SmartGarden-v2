@@ -13,12 +13,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.crop.CropCatalog;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.CropCatalogItem;
-import com.ali.smartgarden.season.SeasonStartConfiguration;
+import com.ali.smartgarden.viewmodels.CropCatalogViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -27,7 +26,7 @@ import java.util.List;
 
 /** Manages reusable products without mutating any already archived season snapshot. */
 public final class CropCatalogActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private CropCatalogViewModel viewModel;
     private LinearLayout systemContainer;
     private LinearLayout userContainer;
     private TextView userEmpty;
@@ -39,15 +38,16 @@ public final class CropCatalogActivity extends AppCompatActivity {
         systemContainer = findViewById(R.id.layoutSystemCrops);
         userContainer = findViewById(R.id.layoutUserCrops);
         userEmpty = findViewById(R.id.txtUserCropsEmpty);
+        viewModel = new ViewModelProvider(this).get(CropCatalogViewModel.class);
         findViewById(R.id.btnBack).setOnClickListener(view -> finish());
         findViewById(R.id.btnAddCrop).setOnClickListener(view -> showEditor(null));
-        repository.observeCropCatalogItems().observe(this, this::render);
+        viewModel.getUserItems().observe(this, this::render);
     }
 
     private void render(List<CropCatalogItem> userItems) {
         systemContainer.removeAllViews();
         userContainer.removeAllViews();
-        for (CropCatalogItem item : CropCatalog.builtIns()) addCard(systemContainer, item);
+        for (CropCatalogItem item : viewModel.getBuiltInItems()) addCard(systemContainer, item);
         int visibleUsers = 0;
         if (userItems != null) {
             for (CropCatalogItem item : userItems) {
@@ -151,19 +151,7 @@ public final class CropCatalogActivity extends AppCompatActivity {
                     Toast.makeText(this, R.string.crop_catalog_range_invalid, Toast.LENGTH_LONG).show();
                     return;
                 }
-                String cropEmoji = value(emoji);
-                if (cropEmoji.isBlank()) {
-                    cropEmoji = SeasonStartConfiguration.suggestedCropEmoji(cropName);
-                }
-                CropCatalogItem item = existing == null
-                        ? CropCatalog.newUserItem(cropName, cropEmoji, low, high)
-                        : existing;
-                item.setName(cropName);
-                item.setEmoji(cropEmoji);
-                item.setPlant_type(SeasonStartConfiguration.customPlantType(cropName));
-                item.setIdeal_moisture_min(low);
-                item.setIdeal_moisture_max(high);
-                repository.saveCropCatalogItem(item)
+                viewModel.save(existing, cropName, value(emoji), low, high)
                         .addOnSuccessListener(unused -> {
                             Toast.makeText(this, R.string.crop_catalog_saved, Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
@@ -186,7 +174,7 @@ public final class CropCatalogActivity extends AppCompatActivity {
                 .setMessage(getString(R.string.crop_catalog_deactivate_message, item.getName()))
                 .setNegativeButton(R.string.settings_cancel, null)
                 .setPositiveButton(R.string.crop_catalog_deactivate, (dialog, which) ->
-                        repository.deactivateCropCatalogItem(item.getCrop_id())
+                        viewModel.deactivate(item.getCrop_id())
                                 .addOnSuccessListener(unused -> editor.dismiss())
                                 .addOnFailureListener(error -> Toast.makeText(this,
                                         R.string.crop_catalog_deactivate_failed,

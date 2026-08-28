@@ -14,20 +14,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.DisplayUnitSettings;
-import com.ali.smartgarden.settings.UnitPreferences;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.GardenSettingsViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 /** Controls display units only; all automation calculations remain metric and unchanged. */
 public class UnitsSettingsActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
-
-    private UnitPreferences preferences;
+    private GardenSettingsViewModel viewModel;
     private MaterialAutoCompleteTextView temperature;
     private MaterialAutoCompleteTextView area;
     private MaterialAutoCompleteTextView length;
@@ -45,15 +43,15 @@ public class UnitsSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_units_settings);
         applyWindowInsets();
 
-        preferences = new UnitPreferences(this);
+        viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
         bindViews();
         configureToolbar();
         configureDropdowns();
         configureActions();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
 
-        boolean hasLocalChoice = preferences.hasSavedValues();
-        applySettings(preferences.load());
+        boolean hasLocalChoice = viewModel.hasLocalUnitChoice();
+        applySettings(viewModel.loadUnits());
         if (!hasLocalChoice) restoreFromCloud();
     }
 
@@ -101,9 +99,9 @@ public class UnitsSettingsActivity extends AppCompatActivity {
     }
 
     private void restoreFromCloud() {
-        repository.observeDisplayUnitSettings().observe(this, cloud -> {
-            if (cloud == null || !cloud.isComplete() || dirty || preferences.hasSavedValues()) return;
-            preferences.save(cloud);
+        viewModel.getCloudUnits().observe(this, cloud -> {
+            if (cloud == null || !cloud.isComplete() || dirty || viewModel.hasLocalUnitChoice()) return;
+            viewModel.acceptCloudUnits(cloud);
             applySettings(cloud);
             status.setText(R.string.units_cloud_loaded);
         });
@@ -123,11 +121,10 @@ public class UnitsSettingsActivity extends AppCompatActivity {
 
     private void save(boolean closeAfterSave) {
         DisplayUnitSettings settings = selectedSettings();
-        preferences.save(settings);
         dirty = false;
         updatePreview(settings);
         status.setText(R.string.settings_status_saving);
-        repository.saveDisplayUnitSettings(settings)
+        viewModel.saveUnits(settings)
                 .addOnSuccessListener(unused -> {
                     status.setText(R.string.units_saved);
                     Toast.makeText(this, R.string.units_saved, Toast.LENGTH_SHORT).show();
@@ -159,11 +156,11 @@ public class UnitsSettingsActivity extends AppCompatActivity {
 
     private void updatePreview(DisplayUnitSettings settings) {
         preview.setText(getString(R.string.units_preview_format,
-                UnitPreferences.FAHRENHEIT.equals(settings.getTemperature()) ? "68 °F" : "20 °C",
-                UnitPreferences.DECARE.equals(settings.getArea()) ? "1 da" : "1000 m²",
-                UnitPreferences.METER.equals(settings.getLength()) ? "1 m" : "100 cm",
-                UnitPreferences.CUBIC_METER.equals(settings.getVolume()) ? "1 m³" : "1000 L",
-                UnitPreferences.KILOGRAM.equals(settings.getWeight()) ? "1 kg" : "1000 g"));
+                DisplayUnitSettings.FAHRENHEIT.equals(settings.getTemperature()) ? "68 °F" : "20 °C",
+                DisplayUnitSettings.DECARE.equals(settings.getArea()) ? "1 da" : "1000 m²",
+                DisplayUnitSettings.METER.equals(settings.getLength()) ? "1 m" : "100 cm",
+                DisplayUnitSettings.CUBIC_METER.equals(settings.getVolume()) ? "1 m³" : "1000 L",
+                DisplayUnitSettings.KILOGRAM.equals(settings.getWeight()) ? "1 kg" : "1000 g"));
     }
 
     private void requestExit() {
@@ -181,8 +178,9 @@ public class UnitsSettingsActivity extends AppCompatActivity {
     }
 
     private DisplayUnitSettings defaultSettings() {
-        return new DisplayUnitSettings(UnitPreferences.CELSIUS, UnitPreferences.SQUARE_METER,
-                UnitPreferences.CENTIMETER, UnitPreferences.LITER, UnitPreferences.GRAM);
+        return new DisplayUnitSettings(DisplayUnitSettings.CELSIUS,
+                DisplayUnitSettings.SQUARE_METER, DisplayUnitSettings.CENTIMETER,
+                DisplayUnitSettings.LITER, DisplayUnitSettings.GRAM);
     }
 
     private void applyWindowInsets() {
@@ -199,52 +197,52 @@ public class UnitsSettingsActivity extends AppCompatActivity {
     }
 
     private String labelForTemperature(String value) {
-        return getString(UnitPreferences.FAHRENHEIT.equals(value)
+        return getString(DisplayUnitSettings.FAHRENHEIT.equals(value)
                 ? R.string.unit_temperature_fahrenheit : R.string.unit_temperature_celsius);
     }
 
     private String labelForArea(String value) {
-        return getString(UnitPreferences.DECARE.equals(value)
+        return getString(DisplayUnitSettings.DECARE.equals(value)
                 ? R.string.unit_area_decare : R.string.unit_area_square_meter);
     }
 
     private String labelForLength(String value) {
-        return getString(UnitPreferences.METER.equals(value)
+        return getString(DisplayUnitSettings.METER.equals(value)
                 ? R.string.unit_length_meter : R.string.unit_length_centimeter);
     }
 
     private String labelForVolume(String value) {
-        return getString(UnitPreferences.CUBIC_METER.equals(value)
+        return getString(DisplayUnitSettings.CUBIC_METER.equals(value)
                 ? R.string.unit_volume_cubic_meter : R.string.unit_volume_liter);
     }
 
     private String labelForWeight(String value) {
-        return getString(UnitPreferences.KILOGRAM.equals(value)
+        return getString(DisplayUnitSettings.KILOGRAM.equals(value)
                 ? R.string.unit_weight_kilogram : R.string.unit_weight_gram);
     }
 
     private String valueForTemperature(String label) {
         return label.equals(getString(R.string.unit_temperature_fahrenheit))
-                ? UnitPreferences.FAHRENHEIT : UnitPreferences.CELSIUS;
+                ? DisplayUnitSettings.FAHRENHEIT : DisplayUnitSettings.CELSIUS;
     }
 
     private String valueForArea(String label) {
         return label.equals(getString(R.string.unit_area_decare))
-                ? UnitPreferences.DECARE : UnitPreferences.SQUARE_METER;
+                ? DisplayUnitSettings.DECARE : DisplayUnitSettings.SQUARE_METER;
     }
 
     private String valueForLength(String label) {
         return label.equals(getString(R.string.unit_length_meter))
-                ? UnitPreferences.METER : UnitPreferences.CENTIMETER;
+                ? DisplayUnitSettings.METER : DisplayUnitSettings.CENTIMETER;
     }
 
     private String valueForVolume(String label) {
         return label.equals(getString(R.string.unit_volume_cubic_meter))
-                ? UnitPreferences.CUBIC_METER : UnitPreferences.LITER;
+                ? DisplayUnitSettings.CUBIC_METER : DisplayUnitSettings.LITER;
     }
 
     private String valueForWeight(String label) {
         return label.equals(getString(R.string.unit_weight_kilogram))
-                ? UnitPreferences.KILOGRAM : UnitPreferences.GRAM;
+                ? DisplayUnitSettings.KILOGRAM : DisplayUnitSettings.GRAM;
     }
 }

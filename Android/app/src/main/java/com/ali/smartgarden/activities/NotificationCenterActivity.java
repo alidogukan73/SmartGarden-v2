@@ -20,16 +20,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.notifications.NotificationSwipeCallback;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.notifications.NotificationCenterAdapter;
-import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.GardenNotification;
-import com.ali.smartgarden.notifications.GardenNotificationManager;
-import com.ali.smartgarden.notifications.NotificationSettingsStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
-import com.ali.smartgarden.firebase.FirebaseRepository;
+import com.ali.smartgarden.viewmodels.NotificationCenterViewModel;
 
 import com.google.android.material.button.MaterialButton;
 
@@ -47,14 +45,14 @@ public class NotificationCenterActivity extends AppCompatActivity {
     private RecyclerView list;
     private NotificationCenterAdapter adapter;
     private TextView summary, empty;
-    private GardenNotificationManager manager;
+    private NotificationCenterViewModel viewModel;
     private String statusFilter = ALL;
     private final Set<String> categoryFilters = new HashSet<>();
     private final BroadcastReceiver notificationChangedReceiver =
             new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    render(manager.localNotifications());
+                    if (viewModel != null) viewModel.refresh();
                 }
             };
     private MaterialButton all, saved, read, unread, category;
@@ -62,35 +60,8 @@ public class NotificationCenterActivity extends AppCompatActivity {
     @Override public void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_notification_center);
-        manager = new GardenNotificationManager(this);
-        new FirebaseRepository()
-                .observeGardenNotifications()
-                .observe(this, values -> {
-
-                    if (values == null) {
-                        return;
-                    }
-
-                    manager.applyCloudSnapshot(values);
-                    render(manager.localNotifications());
-                });
-        new FirebaseRepository()
-                .observeGardenNotificationDeletions()
-                .observe(this, deletions -> {
-
-                    if (deletions == null
-                            || deletions.isEmpty()) {
-                        return;
-                    }
-
-                    manager.applyCloudDeletions(
-                            deletions
-                    );
-
-                    render(
-                            manager.localNotifications()
-                    );
-                });
+        viewModel = new ViewModelProvider(this).get(NotificationCenterViewModel.class);
+        viewModel.getNotifications().observe(this, this::render);
         list = findViewById(R.id.listNotifications);
 
         adapter = new NotificationCenterAdapter(
@@ -110,15 +81,12 @@ public class NotificationCenterActivity extends AppCompatActivity {
                             GardenNotification value
                     ) {
 
-                        manager.setState(
+                        viewModel.setState(
                                 value,
                                 value.isRead(),
                                 !value.isSaved()
                         );
 
-                        render(
-                                manager.localNotifications()
-                        );
                     }
 
                     @Override
@@ -185,7 +153,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 this,
                 notificationChangedReceiver,
                 new IntentFilter(
-                        GardenNotificationManager.ACTION_NOTIFICATIONS_CHANGED
+                        NotificationCenterViewModel.ACTION_NOTIFICATIONS_CHANGED
                 ),
                 ContextCompat.RECEIVER_NOT_EXPORTED
         );
@@ -200,7 +168,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        render(manager.localNotifications());
+        viewModel.refresh();
     }
 
     private void render(List<GardenNotification> values) {
@@ -259,18 +227,19 @@ public class NotificationCenterActivity extends AppCompatActivity {
         if (SAVED.equals(statusFilter) && !value.isSaved()) return false;
         if (READ.equals(statusFilter) && !value.isRead()) return false;
         if (UNREAD.equals(statusFilter) && value.isRead()) return false;
-        return categoryFilters.isEmpty() || categoryFilters.contains(NotificationSettingsStore.categoryFor(value.getType()));
+        return categoryFilters.isEmpty()
+                || categoryFilters.contains(viewModel.categoryFor(value.getType()));
     }
 
     private void selectStatus(String value) {
         statusFilter = value;
-        render(manager.localNotifications());
+        render(currentNotifications());
     }
 
     private void showClearNotificationsDialog() {
 
         List<GardenNotification> notifications =
-                manager.localNotifications();
+                currentNotifications();
 
         int removableCount = 0;
 
@@ -298,7 +267,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.notification_center_action_cancel, null)
                 .setPositiveButton(R.string.notification_center_action_clear, (dialog, which) -> {
 
-                    manager.clearUnsavedNotifications(result ->
+                    viewModel.clearUnsaved(result ->
 
                             runOnUiThread(() -> {
 
@@ -313,7 +282,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                render(manager.localNotifications());
+                                viewModel.refresh();
 
                                 new AlertDialog.Builder(this)
                                         .setTitle(R.string.notification_center_clear_success_title)
@@ -430,7 +399,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 );
 
                 render(
-                        manager.localNotifications()
+                        currentNotifications()
                 );
             });
 
@@ -451,7 +420,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
             all.setChecked(true);
 
             render(
-                    manager.localNotifications()
+                    currentNotifications()
             );
         });
 
@@ -538,11 +507,9 @@ public class NotificationCenterActivity extends AppCompatActivity {
     }
 
     private void openDetail(GardenNotification value) {
-        String applicationId = FertilizerOutcomeFollowUpPolicy.applicationIdFromSource(
-                value.getSource_key()
-        );
+        String applicationId = viewModel.fertilizerApplicationId(value.getSource_key());
         if (!applicationId.isBlank()) {
-            manager.setState(value, true, value.isSaved());
+            viewModel.setState(value, true, value.isSaved());
             startActivity(new Intent(this, FertilizerHistoryActivity.class)
                     .putExtra("outcome_application_id", applicationId)
                     .putExtra("zone_id", value.getZone_id()));
@@ -589,7 +556,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                         getString(R.string.notification_center_action_delete),
                         (dialog, which) ->
 
-                                manager.deleteNotification(
+                                viewModel.delete(
                                         value,
                                         success ->
 
@@ -609,14 +576,18 @@ public class NotificationCenterActivity extends AppCompatActivity {
                                                         return;
                                                     }
 
-                                                    render(
-                                                            manager.localNotifications()
-                                                    );
+                                                    viewModel.refresh();
                                                 })
                                 )
                 )
                 .show();
     }
+
+    private List<GardenNotification> currentNotifications() {
+        List<GardenNotification> values = viewModel.getNotifications().getValue();
+        return values == null ? new ArrayList<>() : values;
+    }
+
     private int dp(int value) {
 
         return Math.round(

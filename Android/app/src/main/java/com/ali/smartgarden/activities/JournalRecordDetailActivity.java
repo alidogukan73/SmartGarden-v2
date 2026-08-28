@@ -17,16 +17,15 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.journal.LocalGardenEventStore;
 import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenPhoto;
 import com.ali.smartgarden.models.WateringHistory;
-import com.ali.smartgarden.photos.LocalGardenPhotoStore;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
+import com.ali.smartgarden.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -36,11 +35,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 /** Detail view for one live plant-journal timeline record. */
 public class JournalRecordDetailActivity extends AppCompatActivity {
-    private final FirebaseRepository repository = new FirebaseRepository();
+    private PlantJournalViewModel viewModel;
     private String manualEventId = "", manualEventType = "", zoneId = "", seasonId = "", currentDetail = "";
     private String selectedPhotoPath = "", selectedAdvice = "", photoGroupId = "";
     private boolean seasonReadOnly;
@@ -64,16 +62,17 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_journal_record_detail);
+        viewModel = new ViewModelProvider(this).get(PlantJournalViewModel.class);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.PLANTS);
         bindIntent();
         bindViews();
         renderStaticDetail();
         renderPhotosAndAnalysis();
-        repository.observeFertilizerHistory().observe(this, values -> {
+        viewModel.getFertilizerHistory().observe(this, values -> {
             fertilizers = values == null ? new ArrayList<>() : values;
             renderLinks();
         });
-        repository.observeWateringHistory().observe(this, values -> {
+        viewModel.getWateringHistory().observe(this, values -> {
             waterings = values == null ? new ArrayList<>() : values;
             renderLinks();
         });
@@ -117,7 +116,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
 
     private void renderPhotosAndAnalysis() {
         List<GardenPhoto> related = new ArrayList<>();
-        for (GardenPhoto photo : new LocalGardenPhotoStore(this).load()) {
+        for (GardenPhoto photo : viewModel.loadPhotos()) {
             if (!zoneId.equals(photo.getZone_id())) continue;
             if (!photoGroupId.isBlank() && photoGroupId.equals(photo.getRelated_application_id())) {
                 related.add(photo);
@@ -197,17 +196,14 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         int remaining = 5 - relatedPhotos.size();
         if (remaining <= 0) return;
         try {
-            LocalGardenPhotoStore store = new LocalGardenPhotoStore(this);
-            if (!photoGroupId.startsWith("journal_record_")) {
-                photoGroupId = "journal_record_" + UUID.randomUUID();
-                store.updateRelatedApplicationId(selectedPhotoRecord.getId(), photoGroupId);
-            }
-            if (bitmap != null) persistPhotoMetadata(store,
-                    store.save(bitmap, zoneId, currentDetail, photoGroupId));
+            photoGroupId = viewModel.ensureJournalPhotoGroup(
+                    selectedPhotoRecord, photoGroupId);
+            if (bitmap != null) viewModel.addPhoto(
+                    bitmap, zoneId, currentDetail, photoGroupId, seasonId);
             else if (uris != null) {
                 for (int i = 0; i < Math.min(remaining, uris.size()); i++) {
-                    persistPhotoMetadata(store,
-                            store.save(uris.get(i), zoneId, currentDetail, photoGroupId));
+                    viewModel.addPhoto(uris.get(i), zoneId, currentDetail,
+                            photoGroupId, seasonId);
                 }
             }
             renderPhotosAndAnalysis();
@@ -215,16 +211,6 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         } catch (Exception error) {
             Toast.makeText(this, R.string.runtime_photo_add_failed, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void persistPhotoMetadata(LocalGardenPhotoStore store, GardenPhoto photo) {
-        if (!seasonId.isBlank()) {
-            photo.setSeason_id(seasonId);
-            store.updateSeasonId(photo.getId(), seasonId);
-        }
-        repository.saveGardenPhotoMetadata(photo).addOnSuccessListener(unused ->
-                store.updateSeasonId(photo.getId(), photo.getSeason_id())
-        );
     }
 
     private void showPhoto(GardenPhoto photo) {
@@ -306,11 +292,8 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         EditText input = new EditText(this); input.setText(currentDetail); input.setMinLines(3);
         new MaterialAlertDialogBuilder(this).setTitle(R.string.fertilizer_history_edit).setView(input).setNegativeButton(R.string.settings_quick_cancel, null).setPositiveButton(R.string.settings_quick_save, (d, w) -> {
             String newNote = String.valueOf(input.getText());
-            if (new LocalGardenEventStore(this).update(manualEventId, manualEventType, newNote)) {
-                GardenEvent event = new GardenEvent(); event.setId(manualEventId); event.setZone_id(zoneId); event.setType(manualEventType); event.setNote(newNote); event.setOccurred_at_epoch(recordEpoch);
-                event.setSeason_id(seasonId);
-                repository.saveGardenEvent(event); finish();
-            }
+            if (viewModel.updateEvent(manualEventId, zoneId, seasonId,
+                    manualEventType, newNote, recordEpoch)) finish();
         }).show();
     }
 
@@ -329,14 +312,9 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this).setTitle(R.string.runtime_delete_record_title).setMessage(message)
                 .setNegativeButton(R.string.manual_relay_test_cancel, null).setPositiveButton(R.string.notification_center_action_delete, (d, w) -> {
                     if (!manualEventId.isBlank()) {
-                        if (new LocalGardenEventStore(this).delete(manualEventId)) {
-                            repository.deleteGardenEvent(manualEventId);
-                        }
+                        viewModel.deleteEvent(manualEventId);
                     } else if (selectedPhotoRecord != null) {
-                        LocalGardenPhotoStore store = new LocalGardenPhotoStore(this);
-                        if (!photoGroupId.isBlank() && photoGroupId.startsWith("journal_record_")) {
-                            for (GardenPhoto photo : store.load()) if (photoGroupId.equals(photo.getRelated_application_id())) store.delete(photo);
-                        } else store.delete(selectedPhotoRecord);
+                        viewModel.deletePhotoRecord(selectedPhotoRecord, photoGroupId);
                     }
                     finish();
                 }).show();

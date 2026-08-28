@@ -25,8 +25,16 @@ import com.ali.smartgarden.models.Status;
 import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.WateringHistory;
 import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.health.GardenHealthCalculator;
+import com.ali.smartgarden.health.GardenHealthSummary;
+import com.ali.smartgarden.health.GardenHealthZoneResult;
+import com.ali.smartgarden.notifications.GardenNotificationManager;
+import com.ali.smartgarden.notifications.NotificationPolicy;
+import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
+import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
+import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DatabaseError;
 
 import java.util.List;
 
@@ -35,6 +43,8 @@ import java.util.List;
  * it owns a listener only while at least one UI observer is active.
  */
 public class MainViewModel extends AndroidViewModel {
+    public static final String ACTION_NOTIFICATIONS_CHANGED =
+            GardenNotificationManager.ACTION_NOTIFICATIONS_CHANGED;
 
     private final FirebaseRepository repository;
     private final MutableLiveData<String> errorLiveData = new MutableLiveData<>();
@@ -53,17 +63,21 @@ public class MainViewModel extends AndroidViewModel {
     private final LiveData<GardenAISummary> gardenAISummary;
     private final LiveData<WeatherForecast> weatherForecast;
     private final LiveData<List<WateringHistory>> wateringHistory;
+    private final MutableLiveData<Boolean> authenticated = new MutableLiveData<>();
+    private final GardenNotificationManager notifications;
 
     public MainViewModel(@NonNull Application application) {
         super(application);
         repository = new FirebaseRepository();
-        sensorLiveData = repository.observeSensor(this::handleFirebaseError);
-        statusLiveData = repository.observeStatus(this::handleFirebaseError);
-        commandLiveData = repository.observeCommands(this::handleFirebaseError);
+        notifications = new GardenNotificationManager(application);
+        sensorLiveData = repository.observeSensor(error -> handleFirebaseError());
+        statusLiveData = repository.observeStatus(error -> handleFirebaseError());
+        commandLiveData = repository.observeCommands(error -> handleFirebaseError());
         adaptiveRecommendation = repository.observeAdaptiveRecommendationData(
-                this::handleFirebaseError);
-        aiDecisionLiveData = repository.observeAIDecision(this::handleFirebaseError);
-        aiExplanationLiveData = repository.observeAIExplanation(this::handleFirebaseError);
+                error -> handleFirebaseError());
+        aiDecisionLiveData = repository.observeAIDecision(error -> handleFirebaseError());
+        aiExplanationLiveData = repository.observeAIExplanation(
+                error -> handleFirebaseError());
         predictionValidationStatus = repository.observePredictionValidationStatus();
         moisturePrediction = repository.observeMoisturePrediction();
         predictionAccuracy = repository.observePredictionAccuracy();
@@ -101,6 +115,76 @@ public class MainViewModel extends AndroidViewModel {
     public LiveData<GardenAISummary> getGardenAISummary() { return gardenAISummary; }
     public LiveData<WeatherForecast> getWeatherForecast() { return weatherForecast; }
     public LiveData<List<WateringHistory>> getWateringHistory() { return wateringHistory; }
+    public LiveData<Boolean> getAuthenticated() { return authenticated; }
+
+    public void authenticate() {
+        repository.authenticateAnonymously().addOnCompleteListener(task ->
+                authenticated.setValue(task.isSuccessful()
+                        && Boolean.TRUE.equals(task.getResult())));
+    }
+
+    public void initializeNotificationSync() {
+        notifications.restoreCloudBackup(imported -> { });
+        repository.getPushToken().addOnSuccessListener(token ->
+                repository.savePushToken(getApplication(), token));
+    }
+
+    public List<GardenZone> activeZones(List<GardenZone> zones) {
+        return ZoneCapacityPolicy.activeZones(zones);
+    }
+
+    public void evaluateWateringSignals(List<WateringHistory> history, List<GardenZone> zones) {
+        NotificationSignalCoordinator.evaluateWatering(getApplication(), history, zones);
+    }
+
+    public void evaluateIrrigationSignals(List<GardenZone> zones) {
+        NotificationSignalCoordinator.evaluateIrrigationAi(getApplication(), zones);
+    }
+
+    public void evaluateWeatherSignals(WeatherForecast forecast) {
+        if (forecast == null) return;
+        NotificationSignalCoordinator.evaluateWeather(getApplication(),
+                forecast.getTomorrowTemperatureMax(), forecast.getTomorrowRainProbability(),
+                forecast.getTomorrowWindMax(), java.time.LocalDate.now().plusDays(1).toString(),
+                forecast.getUpdatedAtEpoch());
+    }
+
+    public boolean shouldAcceptStatus(Status incoming, Status current, long nowEpoch) {
+        return incoming != null && NotificationPolicy.shouldAcceptDeviceSnapshot(
+                incoming.getLastSeenEpoch(), current == null ? 0L : current.getLastSeenEpoch(),
+                nowEpoch);
+    }
+
+    public boolean isDeviceEffectivelyOnline(Status status, long nowEpoch) {
+        return status != null && !NotificationPolicy.isDeviceOffline(status.isOnline(),
+                status.getLastSeenEpoch(), nowEpoch,
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+    }
+
+    public GardenHealthSummary gardenHealth(List<GardenZone> zones, long nowEpoch) {
+        return GardenHealthCalculator.calculate(zones, nowEpoch,
+                PlantAssistantRecommendationStore.healthSignal(getApplication()));
+    }
+
+    public GardenHealthZoneResult gardenHealthForZone(GardenZone zone, long nowEpoch) {
+        return GardenHealthCalculator.evaluateZone(zone, nowEpoch,
+                PlantAssistantRecommendationStore.healthSignal(getApplication()));
+    }
+
+    public PlantAssistantHomeRecommendation.Recommendation plantRecommendation(
+            List<GardenZone> zones, WeatherForecast weather, long nowEpoch) {
+        return PlantAssistantHomeRecommendation.evaluate(zones, weather,
+                PlantAssistantRecommendationStore.healthSignal(getApplication()), nowEpoch);
+    }
+
+    public int unreadNotificationCount() {
+        int unread = 0;
+        for (com.ali.smartgarden.models.GardenNotification item :
+                notifications.localNotifications()) {
+            if (item != null && !item.isRead()) unread++;
+        }
+        return unread;
+    }
 
     public void setRelay(boolean enabled) { repository.setRelay(enabled); }
     public void setAutoMode(boolean enabled) { repository.setAutoMode(enabled); }
@@ -117,7 +201,7 @@ public class MainViewModel extends AndroidViewModel {
         repository.updateGardenZoneValveMode(zone.getZone_id(), physical);
     }
 
-    private void handleFirebaseError(DatabaseError error) {
+    private void handleFirebaseError() {
         errorLiveData.setValue(AvoraLanguageManager.localizedContext(
                 getApplication()).getString(
                 R.string.firebase_connection_error));

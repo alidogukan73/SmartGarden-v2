@@ -10,10 +10,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
-import com.ali.smartgarden.firebase.FirebaseRepository;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.viewmodels.ZoneDetailViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -25,8 +26,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_ZONE_ID = "zone_id";
 
-    private final FirebaseRepository repository =
-            new FirebaseRepository();
+    private ZoneDetailViewModel viewModel;
 
     private GardenZone currentZone;
     private TextView title;
@@ -81,15 +81,15 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
         bindViews();
         bindActions(zoneId);
+        viewModel = new ViewModelProvider(this).get(ZoneDetailViewModel.class);
+        viewModel.initialize(zoneId);
 
-        repository.observeGardenZone(zoneId).observe(
+        viewModel.getZone().observe(
                 this,
                 this::render
         );
 
-        repository.observeZoneTestActive(error -> {
-            // The zone listener keeps the screen usable if this auxiliary read fails.
-        }).observe(this, active -> {
+        viewModel.getTestActive().observe(this, active -> {
             zoneTestActive = Boolean.TRUE.equals(active);
             updateZoneTestUi();
         });
@@ -309,7 +309,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
     private void startZoneTest(int duration) {
         testButton.setEnabled(false);
-        repository.requestZoneValveTest(
+        viewModel.startTest(
                 currentZone,
                 duration
         ).addOnCompleteListener(
@@ -328,7 +328,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
     private void cancelZoneTest() {
         testButton.setEnabled(false);
-        repository.cancelZoneValveTest()
+        viewModel.cancelTest()
                 .addOnCompleteListener(
                         task -> {
                             testButton.setEnabled(true);
@@ -396,7 +396,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 R.string.settings_status_saving
         );
 
-        repository.updateGardenZoneSettings(
+        viewModel.saveSettings(
                         zoneId,
                         irrigationEnabled.isChecked(),
                         Math.round(moistureSlider.getValue()),
