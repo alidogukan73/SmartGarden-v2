@@ -17,22 +17,19 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.crop.CropCatalog;
-import com.ali.smartgarden.firebase.FirebaseRepository;
-import com.ali.smartgarden.journal.LocalGardenEventStore;
-import com.ali.smartgarden.journal.LocalSeasonOutcomeStore;
 import com.ali.smartgarden.models.CropCatalogItem;
-import com.ali.smartgarden.models.GardenEvent;
 import com.ali.smartgarden.models.GardenSeason;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.ali.smartgarden.models.SeasonOutcome;
 import com.ali.smartgarden.models.ZoneSeasonState;
-import com.ali.smartgarden.season.SeasonRepository;
 import com.ali.smartgarden.season.SeasonScope;
 import com.ali.smartgarden.season.SeasonStartConfiguration;
+import com.ali.smartgarden.viewmodels.SeasonManagementViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -42,31 +39,22 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /** Explicit, non-destructive lifecycle management for every garden zone season. */
 public final class SeasonManagementActivity extends AppCompatActivity {
-    private final FirebaseRepository firebaseRepository = new FirebaseRepository();
+    private SeasonManagementViewModel viewModel;
     private LinearLayout inactiveZoneContainer;
     private TextView inactiveZonesTitle;
     private TextView inactiveZonesDescription;
-    private final SeasonRepository seasonRepository = new SeasonRepository();
-    private final Set<String> bootstrapRequested = new HashSet<>();
-    private final Set<String> autoSeasonRepairRequested = new HashSet<>();
     private final List<GardenZone> zones = new ArrayList<>();
     private final List<GardenSeason> seasons = new ArrayList<>();
     private final List<CropCatalogItem> cropCatalogItems = new ArrayList<>();
 
     private LinearLayout zoneContainer;
     private TextView emptyView;
-    private LocalSeasonOutcomeStore outcomeStore;
-    private LocalGardenEventStore eventStore;
     private String lastRenderSignature = "";
-    private boolean bootstrapInProgress;
-    private int bootstrapRetryCount;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -78,23 +66,33 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         inactiveZoneContainer = findViewById(R.id.layoutInactiveSeasonZones);
         inactiveZonesTitle = findViewById(R.id.txtInactiveSeasonZonesTitle);
         inactiveZonesDescription = findViewById(R.id.txtInactiveSeasonZonesDescription);
-        outcomeStore = new LocalSeasonOutcomeStore(this);
-        eventStore = new LocalGardenEventStore(this);
+        viewModel = new ViewModelProvider(this).get(SeasonManagementViewModel.class);
 
-        firebaseRepository.observeGardenZones().observe(this, values -> {
+        viewModel.getZones().observe(this, values -> {
             zones.clear();
             if (values != null) zones.addAll(values);
-            bootstrapMissingSeasons();
+            viewModel.synchronizeLegacySeasons(values);
             renderIfChanged();
         });
-        seasonRepository.observeAllSeasons().observe(this, values -> {
+        viewModel.getSeasons().observe(this, values -> {
             seasons.clear();
             if (values != null) seasons.addAll(values);
             renderIfChanged();
         });
-        firebaseRepository.observeCropCatalogItems().observe(this, values -> {
+        viewModel.getCropCatalogItems().observe(this, values -> {
             cropCatalogItems.clear();
             cropCatalogItems.addAll(CropCatalog.merge(values));
+        });
+        viewModel.getBootstrapNotices().observe(this, event -> {
+            if (event == null) return;
+            SeasonManagementViewModel.BootstrapNotice notice = event.consume();
+            if (notice == null) return;
+            lastRenderSignature = "";
+            if (notice.error == null) {
+                Toast.makeText(this, notice.messageRes, Toast.LENGTH_LONG).show();
+            } else {
+                showError(notice.error, notice.messageRes);
+            }
         });
     }
 
@@ -105,66 +103,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
             lastRenderSignature = "";
             renderIfChanged();
         }
-    }
-
-    private void bootstrapMissingSeasons() {
-        if (bootstrapInProgress) return;
-        for (GardenZone zone : zones) {
-            if (zone == null || blank(zone.getZone_id())
-                    || ZoneCapacityPolicy.isInactive(zone)) continue;
-            ZoneSeasonState state = zone.getSeason();
-            if (SeasonScope.isModernAutoBootstrapCandidate(
-                    state,
-                    zone.getCreated_at_epoch()
-            ) && autoSeasonRepairRequested.add(zone.getZone_id())) {
-                bootstrapInProgress = true;
-                seasonRepository.repairEmptyAutoStartedSeason(zone.getZone_id())
-                        .addOnSuccessListener(repaired -> {
-                            bootstrapInProgress = false;
-                            if (Boolean.TRUE.equals(repaired)) {
-                                lastRenderSignature = "";
-                                Toast.makeText(this,
-                                        R.string.season_auto_start_repaired,
-                                        Toast.LENGTH_LONG).show();
-                            }
-                            bootstrapMissingSeasons();
-                        })
-                        .addOnFailureListener(error -> {
-                            bootstrapInProgress = false;
-                            autoSeasonRepairRequested.remove(zone.getZone_id());
-                            showError(error, R.string.season_auto_start_repair_failed);
-                        });
-                return;
-            }
-            if (state != null && !blank(state.getStatus())) continue;
-            if (!bootstrapRequested.add(zone.getZone_id())) continue;
-            bootstrapInProgress = true;
-            seasonRepository.bootstrapLegacySeason(zone)
-                    .addOnSuccessListener(unused -> {
-                        bootstrapInProgress = false;
-                        bootstrapRetryCount = 0;
-                        bootstrapMissingSeasons();
-                    })
-                    .addOnFailureListener(error -> {
-                        bootstrapInProgress = false;
-                        bootstrapRequested.remove(zone.getZone_id());
-                        if (transactionWasOverridden(error) && bootstrapRetryCount < 3) {
-                            bootstrapRetryCount++;
-                            zoneContainer.postDelayed(this::bootstrapMissingSeasons,
-                                    500L * bootstrapRetryCount);
-                            return;
-                        }
-                        bootstrapRetryCount = 0;
-                        showError(transactionWasOverridden(error) ? null : error,
-                                R.string.season_bootstrap_failed);
-                    });
-            return;
-        }
-    }
-
-    private boolean transactionWasOverridden(Exception error) {
-        String message = error == null ? "" : safe(error.getMessage()).toLowerCase(Locale.ROOT);
-        return message.contains("overridden") || message.contains("subsequent set");
     }
 
     private void renderIfChanged() {
@@ -365,7 +303,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
             content.addView(cancelNewSeason);
 
             String expectedSeasonId = safe(state.getActive_season_id());
-            seasonRepository.canCancelNewSeason(zone.getZone_id())
+            viewModel.canCancelNewSeason(zone.getZone_id())
                     .addOnSuccessListener(canCancel -> {
                         ZoneSeasonState latest = zone.getSeason();
                         boolean sameSeason = latest != null
@@ -519,11 +457,11 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     }
 
     private String historySummary(List<GardenSeason> history, boolean requireRecordedActivity) {
-        int closed = 0;
+        List<GardenSeason> completed =
+                viewModel.completedArchives(history, requireRecordedActivity);
+        int closed = completed.size();
         GardenSeason latestClosed = null;
-        for (GardenSeason season : history) {
-            if (!isCompletedArchiveForDisplay(season, requireRecordedActivity)) continue;
-            closed++;
+        for (GardenSeason season : completed) {
             if (latestClosed == null || season.getEnded_at_epoch() > latestClosed.getEnded_at_epoch()) {
                 latestClosed = season;
             }
@@ -543,8 +481,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
             List<GardenSeason> history,
             boolean requireRecordedActivity) {
         GardenSeason latest = null;
-        for (GardenSeason season : history) {
-            if (!isCompletedArchiveForDisplay(season, requireRecordedActivity)) continue;
+        for (GardenSeason season :
+                viewModel.completedArchives(history, requireRecordedActivity)) {
             if (latest == null || season.getEnded_at_epoch() > latest.getEnded_at_epoch()) {
                 latest = season;
             }
@@ -552,33 +490,12 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         return latest;
     }
 
-    private boolean isCompletedArchiveForDisplay(
-            GardenSeason season,
-            boolean requireRecordedActivity) {
-        return SeasonScope.isRealCompletedArchive(season)
-                && (!requireRecordedActivity || SeasonScope.hasRecordedActivity(season));
-    }
-
     private List<GardenSeason> seasonsFor(GardenZone zone) {
-        List<GardenSeason> result = new ArrayList<>();
-        String zoneId = safe(zone.getZone_id());
-        ZoneSeasonState current = zone.getSeason();
-        for (GardenSeason season : seasons) {
-            if (season == null || !zoneId.equals(season.getZone_id())) continue;
-            if (SeasonScope.isVisibleSeason(season, current)) result.add(season);
-        }
-        return result;
+        return viewModel.visibleSeasonsFor(zone, seasons);
     }
 
     private boolean hasCompletedSeasonArchive(String zoneId) {
-        for (GardenSeason season : seasons) {
-            if (season == null || !zoneId.equals(season.getZone_id())) continue;
-            if (SeasonScope.isRealCompletedArchive(season)
-                    && SeasonScope.hasRecordedActivity(season)) {
-                return true;
-            }
-        }
-        return false;
+        return viewModel.hasRecordedArchive(zoneId, seasons);
     }
 
     private void showStartDialog(GardenZone zone, MaterialButton action) {
@@ -670,7 +587,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     );
                     setBusy(action, true);
                     dialog.dismiss();
-                    seasonRepository.startSeason(
+                    viewModel.startSeason(
                                     zone,
                                     value(date),
                                     code,
@@ -730,7 +647,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.season_cancel, null)
                 .setPositiveButton(R.string.season_cancel_new_confirm, (dialog, which) -> {
                     setBusy(action, true);
-                    seasonRepository.cancelNewSeason(zone.getZone_id())
+                    viewModel.cancelNewSeason(zone.getZone_id())
                             .addOnSuccessListener(ignored -> {
                                 setBusy(action, false);
                                 lastRenderSignature = "";
@@ -788,17 +705,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     outcome.setNext_season_note(value(next));
                     outcome.setRecorded_at_epoch(System.currentTimeMillis() / 1000L);
                     setBusy(action, true);
-                    seasonRepository.closeSeason(zone.getZone_id(), outcome)
+                    viewModel.closeSeason(zone, state, outcome)
                             .addOnSuccessListener(ignored -> {
-                                outcomeStore.addForSeason(outcome);
-                                GardenEvent event = eventStore.addSystemForSeason(
-                                        zone.getZone_id(),
-                                        state.getActive_season_id(),
-                                        getString(R.string.season_closed_event_title),
-                                        closeEventNote(outcome),
-                                        "season_closed:" + state.getActive_season_id()
-                                );
-                                firebaseRepository.saveGardenEvent(event);
                                 setBusy(action, false);
                                 Toast.makeText(this, R.string.season_closed_success, Toast.LENGTH_LONG).show();
                             })
@@ -808,14 +716,6 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                             });
                 })
                 .show();
-    }
-
-    private String closeEventNote(SeasonOutcome outcome) {
-        String note = outcome.getResult();
-        if (!blank(outcome.getHarvest_amount())) {
-            note += " · " + getString(R.string.season_harvest_short, outcome.getHarvest_amount());
-        }
-        return note;
     }
 
     private void setBusy(MaterialButton action, boolean busy) {
