@@ -76,6 +76,12 @@ public class MainViewModel extends ViewModel {
     private final LiveData<GardenAISummary> gardenAISummary;
     private final LiveData<WeatherForecast> weatherForecast;
     private final LiveData<List<WateringHistory>> wateringHistory;
+    private ValueEventListener sensorListener;
+    private ValueEventListener statusListener;
+    private ValueEventListener commandListener;
+    private ValueEventListener adaptiveRecommendationListener;
+    private ValueEventListener aiDecisionListener;
+    private ValueEventListener aiExplanationListener;
 
     public MainViewModel() {
 
@@ -220,8 +226,7 @@ public class MainViewModel extends ViewModel {
 
     private void observeSensor() {
 
-        repository.observeSensor(
-                new ValueEventListener() {
+        sensorListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -260,8 +265,8 @@ public class MainViewModel extends ViewModel {
                                 error
                         );
                     }
-                }
-        );
+                };
+        repository.observeSensor(sensorListener);
 
     }
 
@@ -291,8 +296,7 @@ public class MainViewModel extends ViewModel {
 
     private void observeStatus() {
 
-        repository.observeStatus(
-                new ValueEventListener() {
+        statusListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -331,15 +335,14 @@ public class MainViewModel extends ViewModel {
                                 error
                         );
                     }
-                }
-        );
+                };
+        repository.observeStatus(statusListener);
 
     }
 
     private void observeCommands() {
 
-        repository.observeCommands(
-                new ValueEventListener() {
+        commandListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -378,14 +381,13 @@ public class MainViewModel extends ViewModel {
                                 error
                         );
                     }
-                }
-        );
+                };
+        repository.observeCommands(commandListener);
     }
 
     private void observeAdaptiveRecommendation() {
 
-        repository.observeAdaptiveRecommendation(
-
+        adaptiveRecommendationListener = repository.observeAdaptiveRecommendation(
                 recommendation -> {
 
                     if (recommendation == null) {
@@ -411,9 +413,7 @@ public class MainViewModel extends ViewModel {
     }
     private void observeAIDecision() {
 
-        repository.observeAIDecision(
-
-                new ValueEventListener() {
+        aiDecisionListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -458,15 +458,13 @@ public class MainViewModel extends ViewModel {
                                 error
                         );
                     }
-                }
-        );
+                };
+        repository.observeAIDecision(aiDecisionListener);
     }
 
     private void observeAIExplanation() {
 
-        repository.observeAIExplanation(
-
-                new ValueEventListener() {
+        aiExplanationListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -511,8 +509,8 @@ public class MainViewModel extends ViewModel {
                                 error
                         );
                     }
-                }
-        );
+                };
+        repository.observeAIExplanation(aiExplanationListener);
     }
 
     private void handleFirebaseError(
@@ -533,5 +531,22 @@ public class MainViewModel extends ViewModel {
         errorLiveData.setValue(
                 message
         );
+    }
+
+    @Override
+    protected void onCleared() {
+        if (sensorListener != null) repository.removeSensorObserver(sensorListener);
+        if (statusListener != null) repository.removeStatusObserver(statusListener);
+        if (commandListener != null) repository.removeCommandsObserver(commandListener);
+        if (adaptiveRecommendationListener != null) {
+            repository.removeAdaptiveRecommendationObserver(adaptiveRecommendationListener);
+        }
+        if (aiDecisionListener != null) {
+            repository.removeAIDecisionObserver(aiDecisionListener);
+        }
+        if (aiExplanationListener != null) {
+            repository.removeAIExplanationObserver(aiExplanationListener);
+        }
+        super.onCleared();
     }
 }

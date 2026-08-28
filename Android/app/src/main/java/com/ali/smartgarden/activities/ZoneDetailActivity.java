@@ -67,6 +67,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
     private int originalSensorDryRaw = 12650;
     private int originalSensorWetRaw = 505;
     private boolean zoneTestActive;
+    private ValueEventListener commandsListener;
 
     @Override
     protected void onCreate(
@@ -91,8 +92,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 this::render
         );
 
-        repository.observeCommands(
-                new ValueEventListener() {
+        commandsListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(
                             @NonNull DataSnapshot snapshot
@@ -111,8 +111,8 @@ public class ZoneDetailActivity extends AppCompatActivity {
                     ) {
                         // The zone listener keeps the screen usable.
                     }
-                }
-        );
+                };
+        repository.observeCommands(commandsListener);
     }
 
     private void bindViews() {
@@ -763,5 +763,14 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         }
                 )
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (commandsListener != null) {
+            repository.removeCommandsObserver(commandsListener);
+            commandsListener = null;
+        }
+        super.onDestroy();
     }
 }

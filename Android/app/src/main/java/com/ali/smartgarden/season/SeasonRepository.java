@@ -2,8 +2,8 @@ package com.ali.smartgarden.season;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
+import com.ali.smartgarden.firebase.FirebaseLiveData;
 import com.ali.smartgarden.models.GardenSeason;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.SeasonOutcome;
@@ -40,8 +40,8 @@ public final class SeasonRepository {
             .child("seasons");
 
     public LiveData<List<GardenSeason>> observeAllSeasons() {
-        MutableLiveData<List<GardenSeason>> liveData = new MutableLiveData<>();
-        seasonsRef.addValueEventListener(new ValueEventListener() {
+        FirebaseLiveData<List<GardenSeason>> liveData = new FirebaseLiveData<>(seasonsRef);
+        liveData.setEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<GardenSeason> values = new ArrayList<>();
@@ -66,9 +66,11 @@ public final class SeasonRepository {
     }
 
     public LiveData<List<GardenSeason>> observeZoneSeasons(String zoneId) {
-        MutableLiveData<List<GardenSeason>> liveData = new MutableLiveData<>();
-        seasonsRef.orderByChild("zone_id").equalTo(safe(zoneId))
-                .addValueEventListener(new ValueEventListener() {
+        com.google.firebase.database.Query query = seasonsRef
+                .orderByChild("zone_id")
+                .equalTo(safe(zoneId));
+        FirebaseLiveData<List<GardenSeason>> liveData = new FirebaseLiveData<>(query);
+        liveData.setEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<GardenSeason> values = new ArrayList<>();

@@ -20,6 +20,7 @@ public class StatisticsViewModel extends ViewModel {
 
     private final MutableLiveData<String> error =
             new MutableLiveData<>();
+    private ValueEventListener statisticsListener;
 
     public StatisticsViewModel() {
 
@@ -33,9 +34,7 @@ public class StatisticsViewModel extends ViewModel {
      */
     private void observeStatistics() {
 
-        repository.observeStatistics(
-
-                new ValueEventListener() {
+        statisticsListener = new ValueEventListener() {
 
                     @Override
                     public void onDataChange(
@@ -62,9 +61,8 @@ public class StatisticsViewModel extends ViewModel {
                         );
                     }
 
-                }
-
-        );
+                };
+        repository.observeStatistics(statisticsListener);
 
     }
 
@@ -84,4 +82,11 @@ public class StatisticsViewModel extends ViewModel {
         return error;
     }
 
+    @Override
+    protected void onCleared() {
+        if (statisticsListener != null) {
+            repository.removeStatisticsObserver(statisticsListener);
+        }
+        super.onCleared();
+    }
 }

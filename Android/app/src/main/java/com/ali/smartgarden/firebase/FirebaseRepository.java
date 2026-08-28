@@ -5,7 +5,6 @@ import android.content.Context;
 import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import com.ali.smartgarden.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.ali.smartgarden.models.AdaptiveRecommendation;
 import com.ali.smartgarden.models.CropCatalogItem;
@@ -156,9 +155,13 @@ public class FirebaseRepository {
       this.primaryZoneRef.addValueEventListener(listener);
    }
 
+   public void removeSensorObserver(ValueEventListener listener) {
+      this.primaryZoneRef.removeEventListener(listener);
+   }
+
    public LiveData<List<GardenZone>> observeGardenZones() {
-      final MutableLiveData<List<GardenZone>> liveData = new MutableLiveData();
-      this.zonesRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<List<GardenZone>> liveData = new FirebaseLiveData<>(zonesRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<GardenZone> zones = new ArrayList();
 
@@ -185,8 +188,8 @@ public class FirebaseRepository {
    }
 
    public LiveData<GardenAISummary> observeGardenAISummary() {
-      final MutableLiveData<GardenAISummary> liveData = new MutableLiveData<>();
-      this.gardenAISummaryRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<GardenAISummary> liveData = new FirebaseLiveData<>(gardenAISummaryRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             liveData.setValue(snapshot.getValue(GardenAISummary.class));
          }
@@ -199,8 +202,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<GardenZone> observeGardenZone(final String zoneId) {
-      final MutableLiveData<GardenZone> liveData = new MutableLiveData();
-      this.zonesRef.child(zoneId).addValueEventListener(new ValueEventListener() {
+      DatabaseReference zoneRef = zonesRef.child(zoneId);
+      final FirebaseLiveData<GardenZone> liveData = new FirebaseLiveData<>(zoneRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             GardenZone zone = (GardenZone)snapshot.getValue(GardenZone.class);
             if (zone != null) {
@@ -288,8 +292,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<WeatherLocation> observeWeatherLocation() {
-      final MutableLiveData<WeatherLocation> liveData = new MutableLiveData();
-      this.deviceRef.child("weather").child("location").addValueEventListener(new ValueEventListener() {
+      DatabaseReference locationRef = deviceRef.child("weather").child("location");
+      final FirebaseLiveData<WeatherLocation> liveData = new FirebaseLiveData<>(locationRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             liveData.setValue(new WeatherLocation((String)snapshot.child("city").getValue(String.class), (String)snapshot.child("district").getValue(String.class), (Double)snapshot.child("latitude").getValue(Double.class), (Double)snapshot.child("longitude").getValue(Double.class), (String)snapshot.child("forecast_source").getValue(String.class)));
          }
@@ -302,8 +307,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<WeatherForecast> observeWeatherForecast() {
-      final MutableLiveData<WeatherForecast> liveData = new MutableLiveData();
-      this.deviceRef.child("weather").child("forecast").addValueEventListener(new ValueEventListener() {
+      DatabaseReference forecastRef = deviceRef.child("weather").child("forecast");
+      final FirebaseLiveData<WeatherForecast> liveData = new FirebaseLiveData<>(forecastRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             if (!snapshot.exists()) {
                liveData.setValue(null);
@@ -339,9 +345,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<RainSettings> observeRainSettings() {
-      MutableLiveData<RainSettings> liveData = new MutableLiveData<>();
-      this.deviceRef.child("weather").child("irrigation_settings")
-            .addValueEventListener(new ValueEventListener() {
+      DatabaseReference settingsRef = deviceRef.child("weather").child("irrigation_settings");
+      FirebaseLiveData<RainSettings> liveData = new FirebaseLiveData<>(settingsRef);
+      liveData.setEventListener(new ValueEventListener() {
                @Override
                public void onDataChange(@NonNull DataSnapshot snapshot) {
                   if (!snapshot.exists()) {
@@ -380,9 +386,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<IrrigationTimingSettings> observeIrrigationTimingSettings() {
-      MutableLiveData<IrrigationTimingSettings> liveData = new MutableLiveData<>();
-      deviceRef.child("weather").child("irrigation_settings")
-            .addValueEventListener(new ValueEventListener() {
+      DatabaseReference settingsRef = deviceRef.child("weather").child("irrigation_settings");
+      FirebaseLiveData<IrrigationTimingSettings> liveData = new FirebaseLiveData<>(settingsRef);
+      liveData.setEventListener(new ValueEventListener() {
                @Override
                public void onDataChange(@NonNull DataSnapshot snapshot) {
                   IrrigationTimingSettings value = IrrigationTimingSettings.defaults();
@@ -681,8 +687,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<List<FertilizerProduct>> observeFertilizerProducts() {
-      final MutableLiveData<List<FertilizerProduct>> liveData = new MutableLiveData();
-      this.fertilizerProductsRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<List<FertilizerProduct>> liveData =
+            new FirebaseLiveData<>(fertilizerProductsRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<FertilizerProduct> products = new ArrayList();
 
@@ -709,8 +716,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<List<CropCatalogItem>> observeCropCatalogItems() {
-      final MutableLiveData<List<CropCatalogItem>> liveData = new MutableLiveData<>();
-      this.cropCatalogRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<List<CropCatalogItem>> liveData =
+            new FirebaseLiveData<>(cropCatalogRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<CropCatalogItem> items = new ArrayList<>();
             for (DataSnapshot child : snapshot.getChildren()) {
@@ -753,8 +761,11 @@ public class FirebaseRepository {
       return this.cropCatalogRef.child(cropId).updateChildren(updates);
    }
    public LiveData<List<FertilizerRecommendation>> observeFertilizerRecommendations() {
-      final MutableLiveData<List<FertilizerRecommendation>> liveData = new MutableLiveData();
-      this.deviceRef.child("fertilization").child("recommendations").addValueEventListener(new ValueEventListener() {
+      DatabaseReference recommendationsRef =
+            deviceRef.child("fertilization").child("recommendations");
+      final FirebaseLiveData<List<FertilizerRecommendation>> liveData =
+            new FirebaseLiveData<>(recommendationsRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<FertilizerRecommendation> values = new ArrayList();
 
@@ -783,8 +794,11 @@ public class FirebaseRepository {
    }
 
    public LiveData<List<FertilizerStageGuide>> observeFertilizerStageGuides() {
-      final MutableLiveData<List<FertilizerStageGuide>> liveData = new MutableLiveData();
-      this.deviceRef.child("fertilization").child("stage_guides").addValueEventListener(new ValueEventListener() {
+      DatabaseReference stageGuidesRef =
+            deviceRef.child("fertilization").child("stage_guides");
+      final FirebaseLiveData<List<FertilizerStageGuide>> liveData =
+            new FirebaseLiveData<>(stageGuidesRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<FertilizerStageGuide> values = new ArrayList();
 
@@ -854,8 +868,10 @@ public class FirebaseRepository {
 
 
    public LiveData<List<FertilizerApplication>> observeFertilizerHistory() {
-      final MutableLiveData<List<FertilizerApplication>> liveData = new MutableLiveData();
-      this.deviceRef.child("fertilizer_history").addValueEventListener(new ValueEventListener() {
+      DatabaseReference fertilizerHistoryRef = deviceRef.child("fertilizer_history");
+      final FirebaseLiveData<List<FertilizerApplication>> liveData =
+            new FirebaseLiveData<>(fertilizerHistoryRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<FertilizerApplication> values = new ArrayList();
 
@@ -878,8 +894,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<List<WateringHistory>> observeWateringHistory() {
-      final MutableLiveData<List<WateringHistory>> liveData = new MutableLiveData();
-      this.historyRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<List<WateringHistory>> liveData =
+            new FirebaseLiveData<>(historyRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<WateringHistory> values = new ArrayList();
 
@@ -1495,16 +1512,29 @@ public class FirebaseRepository {
       this.commandsRef.addValueEventListener(listener);
    }
 
+   public void removeCommandsObserver(ValueEventListener listener) {
+      this.commandsRef.removeEventListener(listener);
+   }
+
    public void observeHealth(ValueEventListener listener) {
       this.healthRef.addValueEventListener(listener);
+   }
+
+   public void removeHealthObserver(ValueEventListener listener) {
+      this.healthRef.removeEventListener(listener);
    }
 
    public void observeStatistics(ValueEventListener listener) {
       this.statisticsRef.addValueEventListener(listener);
    }
 
-   public void observeAdaptiveRecommendation(final Consumer<AdaptiveRecommendation> consumer) {
-      this.adaptiveRecommendationRef.addValueEventListener(new ValueEventListener() {
+   public void removeStatisticsObserver(ValueEventListener listener) {
+      this.statisticsRef.removeEventListener(listener);
+   }
+
+   public ValueEventListener observeAdaptiveRecommendation(
+         final Consumer<AdaptiveRecommendation> consumer) {
+      ValueEventListener listener = new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             AdaptiveRecommendation recommendation = (AdaptiveRecommendation)snapshot.getValue(AdaptiveRecommendation.class);
             if (recommendation != null) {
@@ -1515,15 +1545,29 @@ public class FirebaseRepository {
 
          public void onCancelled(@NonNull DatabaseError error) {
          }
-      });
+      };
+      this.adaptiveRecommendationRef.addValueEventListener(listener);
+      return listener;
+   }
+
+   public void removeAdaptiveRecommendationObserver(ValueEventListener listener) {
+      this.adaptiveRecommendationRef.removeEventListener(listener);
    }
 
    public void observeAIDecision(ValueEventListener listener) {
       this.aiDecisionRef.addValueEventListener(listener);
    }
 
+   public void removeAIDecisionObserver(ValueEventListener listener) {
+      this.aiDecisionRef.removeEventListener(listener);
+   }
+
    public void observeAIExplanation(ValueEventListener listener) {
       this.aiExplanationRef.addValueEventListener(listener);
+   }
+
+   public void removeAIExplanationObserver(ValueEventListener listener) {
+      this.aiExplanationRef.removeEventListener(listener);
    }
 
    public void setRelay(boolean value) {
@@ -1554,8 +1598,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<PredictionValidationStatus> observePredictionValidationStatus() {
-      final MutableLiveData<PredictionValidationStatus> liveData = new MutableLiveData();
-      this.predictionValidationRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<PredictionValidationStatus> liveData =
+            new FirebaseLiveData<>(predictionValidationRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             PredictionValidationStatus status = (PredictionValidationStatus)snapshot.getValue(PredictionValidationStatus.class);
             liveData.setValue(status);
@@ -1569,8 +1614,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<MoisturePrediction> observeMoisturePrediction() {
-      final MutableLiveData<MoisturePrediction> liveData = new MutableLiveData();
-      this.moisturePredictionRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<MoisturePrediction> liveData =
+            new FirebaseLiveData<>(moisturePredictionRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             MoisturePrediction value = (MoisturePrediction)snapshot.getValue(MoisturePrediction.class);
             liveData.setValue(value);
@@ -1584,8 +1630,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<PredictionAccuracy> observePredictionAccuracy() {
-      final MutableLiveData<PredictionAccuracy> liveData = new MutableLiveData();
-      this.predictionAccuracyRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<PredictionAccuracy> liveData =
+            new FirebaseLiveData<>(predictionAccuracyRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             PredictionAccuracy value = (PredictionAccuracy)snapshot.getValue(PredictionAccuracy.class);
             liveData.setValue(value);
@@ -1599,8 +1646,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<SoilLearningProfile> observeSoilLearningProfile() {
-      final MutableLiveData<SoilLearningProfile> liveData = new MutableLiveData();
-      this.soilLearningProfileRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<SoilLearningProfile> liveData =
+            new FirebaseLiveData<>(soilLearningProfileRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             SoilLearningProfile profile = (SoilLearningProfile)snapshot.getValue(SoilLearningProfile.class);
             liveData.setValue(profile);
@@ -1614,8 +1662,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<UnifiedConfidence> observeUnifiedConfidence() {
-      final MutableLiveData<UnifiedConfidence> liveData = new MutableLiveData();
-      this.unifiedConfidenceRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<UnifiedConfidence> liveData =
+            new FirebaseLiveData<>(unifiedConfidenceRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             UnifiedConfidence value = (UnifiedConfidence)snapshot.getValue(UnifiedConfidence.class);
             liveData.setValue(value);
@@ -1769,10 +1818,10 @@ public class FirebaseRepository {
    public LiveData<Map<String, String>>
    observeGardenNotificationDeletions() {
 
-      MutableLiveData<Map<String, String>> live =
-              new MutableLiveData<>();
+      FirebaseLiveData<Map<String, String>> live =
+              new FirebaseLiveData<>(notificationDeletionsRef);
 
-      notificationDeletionsRef.addValueEventListener(
+      live.setEventListener(
               new ValueEventListener() {
 
                  @Override
@@ -1835,8 +1884,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<List<GardenNotification>> observeGardenNotifications() {
-      final MutableLiveData<List<GardenNotification>> live = new MutableLiveData();
-      this.notificationsRef.addValueEventListener(new ValueEventListener() {
+      final FirebaseLiveData<List<GardenNotification>> live =
+            new FirebaseLiveData<>(notificationsRef);
+      live.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             List<GardenNotification> values = new ArrayList();
 
@@ -1980,8 +2030,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<GardenProfile> observeGardenProfile() {
-      MutableLiveData<GardenProfile> liveData = new MutableLiveData<>();
-      this.deviceRef.child("profile").addValueEventListener(new ValueEventListener() {
+      DatabaseReference profileRef = deviceRef.child("profile");
+      FirebaseLiveData<GardenProfile> liveData = new FirebaseLiveData<>(profileRef);
+      liveData.setEventListener(new ValueEventListener() {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             liveData.setValue(snapshot.getValue(GardenProfile.class));
          }
@@ -2005,9 +2056,9 @@ public class FirebaseRepository {
    }
 
    public LiveData<DisplayUnitSettings> observeDisplayUnitSettings() {
-      MutableLiveData<DisplayUnitSettings> liveData = new MutableLiveData<>();
-      this.deviceRef.child("profile").child("display_units")
-            .addValueEventListener(new ValueEventListener() {
+      DatabaseReference displayUnitsRef = deviceRef.child("profile").child("display_units");
+      FirebaseLiveData<DisplayUnitSettings> liveData = new FirebaseLiveData<>(displayUnitsRef);
+      liveData.setEventListener(new ValueEventListener() {
                public void onDataChange(@NonNull DataSnapshot snapshot) {
                   liveData.setValue(snapshot.getValue(DisplayUnitSettings.class));
                }
