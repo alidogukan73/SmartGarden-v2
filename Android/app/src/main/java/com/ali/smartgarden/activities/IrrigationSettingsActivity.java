@@ -287,9 +287,8 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
         originalMoistureLimit = positiveOrDefault(
                 command.getMoistureLimit(), DEFAULT_MOISTURE_LIMIT, 10, 80);
         originalPumpDuration = clamp(command.getPumpDuration(), 0, 10800);
-        originalCooldownSeconds = roundToStep(
-                positiveOrDefault(command.getCooldownSeconds(), DEFAULT_COOLDOWN_SECONDS, 300, 3600),
-                60);
+        originalCooldownSeconds = roundToMinute(
+                positiveOrDefault(command.getCooldownSeconds(), DEFAULT_COOLDOWN_SECONDS, 300, 3600));
         originalRestartDelta = positiveOrDefault(
                 command.getRestartDelta(), DEFAULT_RESTART_DELTA, 1, 30);
         originalSystemEnabled = command.isEnabled();
@@ -750,7 +749,7 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
         return Math.max(min, Math.min(max, value));
     }
 
-    private long roundToStep(long value, long step) {
-        return Math.round((double) value / step) * step;
+    private long roundToMinute(long value) {
+        return Math.round((double) value / 60L) * 60L;
     }
 }

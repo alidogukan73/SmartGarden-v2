@@ -368,7 +368,6 @@ public class NotificationCenterAdapter
 
         TextView title =
                 text(
-                        "",
                         14,
                         R.color.textPrimary
                 );
@@ -380,7 +379,6 @@ public class NotificationCenterAdapter
 
         TextView description =
                 text(
-                        "",
                         12,
                         R.color.textSecondary
                 );
@@ -401,7 +399,6 @@ public class NotificationCenterAdapter
 
         TextView time =
                 text(
-                        "",
                         11,
                         R.color.textSecondary
                 );
@@ -563,7 +560,6 @@ public class NotificationCenterAdapter
     }
 
     private TextView text(
-            String value,
             int size,
             int color
     ) {
@@ -571,7 +567,6 @@ public class NotificationCenterAdapter
         TextView view =
                 new TextView(context);
 
-        view.setText(value);
         view.setTextSize(size);
 
         view.setTextColor(

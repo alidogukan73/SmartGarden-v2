@@ -509,8 +509,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         int initialCropPosition = cropPosition(
                 cropChoices,
                 zone.getPlant_type(),
-                zone.getName(),
-                0
+                zone.getName()
         );
         crop.setSelection(initialCropPosition);
         EditText date = field(R.string.season_start_planting_date_hint, InputType.TYPE_CLASS_DATETIME);
@@ -615,8 +614,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     private static int cropPosition(
             List<CropCatalogItem> choices,
             String currentCode,
-            String currentName,
-            int fallback
+            String currentName
     ) {
         String expected = safe(currentCode).trim();
         String expectedName = safe(currentName).trim();
@@ -628,7 +626,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                 return i;
             }
         }
-        return fallback;
+        return 0;
     }
 
     private void showCancelNewSeasonDialog(GardenZone zone, MaterialButton action) {

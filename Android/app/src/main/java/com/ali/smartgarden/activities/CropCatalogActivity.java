@@ -145,8 +145,8 @@ public final class CropCatalogActivity extends AppCompatActivity {
                     name.setError(getString(R.string.crop_catalog_name_required));
                     return;
                 }
-                int low = number(min, -1);
-                int high = number(max, -1);
+                int low = numberOrInvalid(min);
+                int high = numberOrInvalid(max);
                 if (low < 0 || high > 100 || low >= high) {
                     Toast.makeText(this, R.string.crop_catalog_range_invalid, Toast.LENGTH_LONG).show();
                     return;
@@ -211,9 +211,9 @@ public final class CropCatalogActivity extends AppCompatActivity {
         return field.getText() == null ? "" : field.getText().toString().trim();
     }
 
-    private static int number(EditText field, int fallback) {
+    private static int numberOrInvalid(EditText field) {
         try { return Integer.parseInt(value(field)); }
-        catch (NumberFormatException ignored) { return fallback; }
+        catch (NumberFormatException ignored) { return -1; }
     }
 
     private int dp(int value) {

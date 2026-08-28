@@ -95,7 +95,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
             View divider = new View(this);
             divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
             container.addView(divider, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
+                    LinearLayout.LayoutParams.MATCH_PARENT, dividerHeightPx()));
         }
         View row = LayoutInflater.from(this)
                 .inflate(R.layout.item_device_info_value, container, false);
@@ -220,8 +220,8 @@ public class DeviceInfoActivity extends AppCompatActivity {
         return value != null && !value.trim().isEmpty();
     }
 
-    private int dp(int value) {
-        return Math.round(value * getResources().getDisplayMetrics().density);
+    private int dividerHeightPx() {
+        return Math.round(getResources().getDisplayMetrics().density);
     }
 
     private void applyWindowInsets() {

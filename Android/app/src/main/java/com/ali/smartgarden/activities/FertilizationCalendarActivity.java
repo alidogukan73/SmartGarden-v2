@@ -982,7 +982,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 if (viewModel.requiresOrganicAi(advice)) {
                     products.setVisibility(View.VISIBLE);
                     products.setText(R.string.fertilizer_organic_ai_loading);
-                    requestOrganicAiAdvice(products, zone, true);
+                    requestOrganicAiAdvice(products, zone);
                 } else {
                     products.setVisibility(View.GONE);
                 }
@@ -1018,9 +1018,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
 
 
     private void requestOrganicAiAdvice(TextView target,
-                                        GardenZone zone,
-                                        boolean compact) {
-        viewModel.requestOrganicAdvice(zone, compact,
+                                        GardenZone zone) {
+        viewModel.requestOrganicAdvice(zone, true,
                 new FertilizationCalendarViewModel.OrganicAdviceCallback() {
                     @Override
                     public void onResult(String content) {

@@ -58,7 +58,7 @@ public final class FertilizerPerformanceAdvisor {
             return Result.insufficient(observations);
         }
 
-        double average = clamp(weightedTotal / totalWeight, -1.0, 1.0);
+        double average = clampScore(weightedTotal / totalWeight);
         double confidence = Math.min(1.0,
                 totalWeight / FULL_CONFIDENCE_OBSERVATIONS);
         int adjustment = (int) Math.round(
@@ -170,8 +170,8 @@ public final class FertilizerPerformanceAdvisor {
         return 0.5;
     }
 
-    private static double clamp(double value, double minimum, double maximum) {
-        return Math.max(minimum, Math.min(maximum, value));
+    private static double clampScore(double value) {
+        return Math.max(-1.0, Math.min(1.0, value));
     }
 
     private static String safe(String value) {

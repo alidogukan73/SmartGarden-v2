@@ -15,7 +15,7 @@ public final class FertilizerAiAdvisor {
         String npk = safe(product.getNpk());
         String searchable = (name + " " + npk).toLowerCase(Locale.ROOT);
 
-        if (hasFunctionalTag(product, "TRACE_ELEMENTS")) {
+        if (hasTraceElements(product)) {
             String organicNote = product.isOrganic_farming_eligible()
                     ? " \u00dcr\u00fcn etiketi organik tar\u0131mda girdi olarak kullan\u0131labilece\u011fini belirtiyor."
                     : "";
@@ -54,13 +54,10 @@ public final class FertilizerAiAdvisor {
         return profile("Besleme desteği", "Etikete göre değerlendir", "Ürünün NPK / içerik ve etiketi yeterli profil için doğrulanmalı.", "Toprak ve yaprak analizine göre karar verin.");
     }
 
-    private static boolean hasFunctionalTag(
-            FertilizerProduct product,
-            String expected
-    ) {
+    private static boolean hasTraceElements(FertilizerProduct product) {
         if (product.getFunctional_tags() == null) return false;
         for (String tag : product.getFunctional_tags()) {
-            if (expected.equalsIgnoreCase(safe(tag))) return true;
+            if ("TRACE_ELEMENTS".equalsIgnoreCase(safe(tag))) return true;
         }
         return false;
     }

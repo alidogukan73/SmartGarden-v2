@@ -86,7 +86,7 @@ public class BackupActivity extends AppCompatActivity {
             View divider = new View(this);
             divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
             container.addView(divider, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
+                    LinearLayout.LayoutParams.MATCH_PARENT, dividerHeightPx()));
         }
         View row = LayoutInflater.from(this)
                 .inflate(R.layout.item_device_info_value, container, false);
@@ -252,8 +252,8 @@ public class BackupActivity extends AppCompatActivity {
                 ? getString(R.string.backup_unknown_error) : message.trim();
     }
 
-    private int dp(int value) {
-        return Math.round(value * getResources().getDisplayMetrics().density);
+    private int dividerHeightPx() {
+        return Math.round(getResources().getDisplayMetrics().density);
     }
 
     private void applyWindowInsets() {

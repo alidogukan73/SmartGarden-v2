@@ -153,7 +153,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
             LinearLayout actions = new LinearLayout(this);
             actions.setOrientation(LinearLayout.HORIZONTAL);
             MaterialButton edit = button(R.string.zone_management_edit);
-            MaterialButton deactivate = outlinedButton(R.string.zone_management_deactivate);
+            MaterialButton deactivate = outlinedDeactivateButton();
             edit.setOnClickListener(view -> showEditor(zone, slot));
             deactivate.setOnClickListener(view -> confirmDeactivate(zone));
             LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(
@@ -411,10 +411,10 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         return button;
     }
 
-    private MaterialButton outlinedButton(int textRes) {
+    private MaterialButton outlinedDeactivateButton() {
         MaterialButton button = new MaterialButton(this, null,
                 com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        button.setText(textRes);
+        button.setText(R.string.zone_management_deactivate);
         button.setAllCaps(false);
         return button;
     }
