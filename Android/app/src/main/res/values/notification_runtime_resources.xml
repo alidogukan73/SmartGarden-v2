@@ -18,10 +18,13 @@
     <string name="notification_device_recovered_description">Bahçe cihazı yeniden çevrimiçi ve bağlantı kararlı.</string>
     <string name="notification_sensor_unavailable_title">Sensör verisi alınamıyor</string>
     <string name="notification_device_warning_title">Bahçe cihazı uyarısı</string>
+    <string name="notification_device_warning_description">Bahçe cihazında bir çalışma hatası algılandı. Cihaz Sağlığı ekranından ayrıntıları kontrol edin.</string>
     <string name="notification_sensor_unavailable_description">Kablosuz sensörlerden güncel ölçüm alınamıyor. Enerji ve bağlantıyı kontrol edin.</string>
     <string name="notification_device_health_title">Raspberry Pi kaynak uyarısı</string>
     <string name="notification_device_health_description">Cihazda güç, sıcaklık veya kaynak sınırı algılandı. Cihaz Sağlığı ekranından ayrıntıları inceleyin.</string>
 
+    <string name="notification_watering_started_title">Sulama başladı</string>
+    <string name="notification_watering_started_description">Pompa %1$d saniye için açıldı.</string>
     <string name="notification_watering_completed_title">Sulama tamamlandı</string>
     <string name="notification_watering_completed_description">Sulama süresi: %1$d sn.</string>
     <string name="notification_watering_interrupted_title">Sulama beklenmeden durdu</string>

@@ -537,21 +537,13 @@ class FirebaseService:
             )
         )
         self._send_push_notification(
-            notification_type="DEVICE",
-            priority="HIGH",
+            event_code=(
+                "DEVICE_SENSOR_UNAVAILABLE"
+                if sensor_failure
+                else "DEVICE_WARNING"
+            ),
+            event_id=f"device-error:incident:{self._active_error_incident_id}",
             zone_id="",
-            title=(
-                "Sensör verisi alınamıyor"
-                if sensor_failure
-                else "AVORA cihaz uyarısı"
-            ),
-            description=(
-                "Kablosuz sensörlerden güncel ölçüm alınamıyor. "
-                "Enerji ve bağlantıyı kontrol edin."
-                if sensor_failure
-                else message
-            ),
-            source_key=f"device-error:incident:{self._active_error_incident_id}",
             minimum_interval_seconds=reminder_seconds,
         )
 
@@ -1312,37 +1304,25 @@ class FirebaseService:
         )
 
         if record.completed:
-            zone_name = self._zone_display_name(record.zone_id)
             self._send_push_notification(
-                notification_type="IRRIGATION",
-                priority="NORMAL",
+                event_code="IRRIGATION_COMPLETED",
+                event_id=f"watering:{record.zone_id}:{record.firebase_key}",
                 zone_id=record.zone_id,
-                title=f"{zone_name} sulaması tamamlandı",
-                description=(
-                    f"{record.duration} sn sulama yapıldı. "
-                    f"Nem: %{record.moisture_before} → %{record.moisture_after}."
-                ),
-                source_key=f"watering:{record.zone_id}:{record.firebase_key}",
+                duration_seconds=record.duration,
             )
         elif (
             record.duration > 0
             and str(record.stop_reason or "").strip().upper()
             not in {"VALVE_SIMULATION", "SHARED_PUMP_BUSY", "ZERO_DURATION"}
         ):
-            zone_name = self._zone_display_name(record.zone_id)
             self._send_push_notification(
-                notification_type="IRRIGATION",
-                priority="HIGH",
-                zone_id=record.zone_id,
-                title=f"{zone_name} sulaması beklenmeden durdu",
-                description=(
-                    f"Sulama {record.duration} sn sonra kesildi. "
-                    "Pompa, vana ve cihaz durumunu kontrol edin."
-                ),
-                source_key=(
+                event_code="IRRIGATION_INTERRUPTED",
+                event_id=(
                     f"watering-interrupted:{record.zone_id}:"
                     f"{record.firebase_key}"
                 ),
+                zone_id=record.zone_id,
+                duration_seconds=record.duration,
             )
 
     def notify_watering_started(
@@ -1354,47 +1334,30 @@ class FirebaseService:
         started_at: str,
     ) -> None:
         """Notify only after the physical relay has actually switched on."""
-        zone_name = self._zone_display_name(zone_id)
         self._send_push_notification(
-            notification_type="IRRIGATION",
-            priority="NORMAL",
+            event_code="IRRIGATION_STARTED",
+            event_id=f"watering-started:{zone_id}:{started_at}",
             zone_id=zone_id,
-            title=f"{zone_name} sulaması başladı",
-            description=(
-                f"Pompa {duration} sn için açıldı. "
-                f"Başlangıç nemi: %{moisture_before}."
-            ),
-            source_key=f"watering-started:{zone_id}:{started_at}",
+            duration_seconds=duration,
         )
-
-    def _zone_display_name(self, zone_id: str) -> str:
-        """Return a human-friendly zone name without making pushes critical."""
-        if not zone_id:
-            return "Bahçe"
-        try:
-            zone = self._device_ref().child(f"zones/{zone_id}").get() or {}
-            return str(zone.get("name") or zone_id)
-        except Exception:
-            return zone_id
 
     def _send_push_notification(
         self,
         *,
-        notification_type: str,
-        priority: str,
+        event_code: str,
+        event_id: str,
         zone_id: str,
-        title: str,
-        description: str,
-        source_key: str,
+        duration_seconds: int = 0,
         minimum_interval_seconds: int = 0,
     ) -> None:
-        """Send a data-only FCM message to registered AVORA installations.
+        """Send a language-neutral data-only event to AVORA installations.
 
-        Firebase database history remains the source of truth. A delivery failure
-        must never affect irrigation or the normal backend loop.
+        Android owns category, priority and user-facing text. Firebase database
+        state remains the source of truth, and push delivery never affects the
+        irrigation loop.
         """
         now = time.time()
-        previous = self._last_push_sent_at.get(source_key, 0.0)
+        previous = self._last_push_sent_at.get(event_id, 0.0)
         if minimum_interval_seconds and now - previous < minimum_interval_seconds:
             return
 
@@ -1403,14 +1366,12 @@ class FirebaseService:
             if not isinstance(tokens, dict):
                 return
 
-            payload = {
-                "type": notification_type,
-                "priority": priority,
-                "zone_id": zone_id or "",
-                "title": title,
-                "description": description,
-                "source_key": source_key,
-            }
+            payload = self._notification_event_payload(
+                event_code=event_code,
+                event_id=event_id,
+                zone_id=zone_id,
+                duration_seconds=duration_seconds,
+            )
             delivered = False
             for token_key, value in tokens.items():
                 token = str(value.get("token", "")) if isinstance(value, dict) else ""
@@ -1430,9 +1391,25 @@ class FirebaseService:
                 except Exception as exc:
                     self._logger.warning("FCM push delivery skipped: %s", exc)
             if delivered:
-                self._last_push_sent_at[source_key] = now
+                self._last_push_sent_at[event_id] = now
         except Exception as exc:
             self._logger.warning("FCM push preparation skipped: %s", exc)
+
+    @staticmethod
+    def _notification_event_payload(
+        *,
+        event_code: str,
+        event_id: str,
+        zone_id: str,
+        duration_seconds: int = 0,
+    ) -> dict[str, str]:
+        """Build the stable, language-neutral Pi-to-Android event contract."""
+        return {
+            "event_code": str(event_code or "").strip().upper(),
+            "event_id": str(event_id or "").strip(),
+            "zone_id": str(zone_id or "").strip(),
+            "duration_seconds": str(max(0, int(duration_seconds))),
+        }
 
     def get_statistics(
         self,

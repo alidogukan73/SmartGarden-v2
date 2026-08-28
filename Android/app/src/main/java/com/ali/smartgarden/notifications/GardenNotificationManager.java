@@ -33,7 +33,6 @@ public final class GardenNotificationManager {
     private static final String PHONE_CHANNEL_URGENT = "avora_garden_alerts_urgent";
     private static final String INCIDENT_PREFS = "avora_notification_incidents";
     public static final String ACTION_NOTIFICATIONS_CHANGED = "com.ali.smartgarden.NOTIFICATIONS_CHANGED";
-    public static final long DEVICE_INCIDENT_REMINDER_MILLIS = 6L * 60L * 60L * 1000L;
     private static final Object INCIDENT_LOCK = new Object();
     private final Context context;
     private final LocalGardenNotificationStore store;
@@ -87,34 +86,26 @@ public final class GardenNotificationManager {
     }
 
     /**
-     * Publishes the first alert of an incident immediately, then at most one reminder
-     * per interval. State is persisted so the foreground listener, WorkManager and
-     * FCM cannot produce duplicate alerts for the same continuing outage.
+     * Publishes exactly one alert for a continuing incident. State is persisted so
+     * the foreground listener, WorkManager and FCM cannot produce a second alert.
+     * A confirmed recovery must reset the incident before it can be reported again.
      */
     public GardenNotification publishIncident(String incidentKey, String type, String priority,
                                                String zoneId, String title, String description,
-                                               String sourceKey, long reminderIntervalMillis) {
+                                               String sourceKey) {
         if (incidentKey == null || incidentKey.isBlank()
                 || !new NotificationSettingsStore(context).isCategoryEnabled(type)) return null;
         synchronized (INCIDENT_LOCK) {
             SharedPreferences preferences = context.getSharedPreferences(INCIDENT_PREFS, Context.MODE_PRIVATE);
             long now = System.currentTimeMillis();
-            long lastSentAt = preferences.getLong("last:" + incidentKey, 0L);
             boolean active = preferences.getBoolean("active:" + incidentKey, false);
-            String previousSource = preferences.getString("source:" + incidentKey, "");
-
-            // A continuing incident is rate-limited by its logical incident key.
-            // Backend-generated source ids may change on every loop and must not
-            // bypass the reminder interval.
-            if (active && lastSentAt > 0L
-                    && now - lastSentAt < reminderIntervalMillis) return null;
+            if (active) return null;
 
             String sourceBase = sourceKey == null || sourceKey.isBlank()
                     ? "incident:" + incidentKey : sourceKey;
-            String effectiveSource = active && !previousSource.isBlank()
-                    ? previousSource : sourceBase + ":started:" + now;
+            String effectiveSource = sourceBase + ":started:" + now;
 
-            GardenNotification value = publish(
+            GardenNotification value = publishOnce(
                     type, priority, zoneId, title, description, effectiveSource);
             if (value != null) {
                 preferences.edit()
@@ -152,13 +143,29 @@ public final class GardenNotificationManager {
     }
 
 
-    /** Called by FCM so remote events share the same durable AVORA notification flow. */
-    public GardenNotification receiveRemote(String type, String priority, String zoneId, String title, String description, String sourceKey) {
-        if (sourceKey != null && sourceKey.startsWith("device-error:")) {
-            return publishIncident("device_error", type, priority, zoneId, title, description,
-                    sourceKey, DEVICE_INCIDENT_REMINDER_MILLIS);
+    /** Called by FCM so every remote event is localized and deduplicated in one place. */
+    public GardenNotification receiveRemote(RemoteNotificationEvent event) {
+        if (event == null) return null;
+        String incidentKey = event.incidentKey();
+        if (!incidentKey.isBlank()) {
+            return publishIncident(
+                    incidentKey,
+                    event.type(),
+                    event.priority(),
+                    event.zoneId(),
+                    event.title(context),
+                    event.description(context),
+                    event.sourceKey()
+            );
         }
-        return publishOnce(type, priority, zoneId, title, description, sourceKey);
+        return publishOnce(
+                event.type(),
+                event.priority(),
+                event.zoneId(),
+                event.title(context),
+                event.description(context),
+                event.sourceKey()
+        );
     }
     public void setState(GardenNotification value, boolean read, boolean saved) {
         if (value == null) return;

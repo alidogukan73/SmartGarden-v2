@@ -18,10 +18,13 @@
     <string name="notification_device_recovered_description">The garden device is online again and the connection is stable.</string>
     <string name="notification_sensor_unavailable_title">Sensor data unavailable</string>
     <string name="notification_device_warning_title">Garden device warning</string>
+    <string name="notification_device_warning_description">A garden device error was detected. Review the Device Health screen for details.</string>
     <string name="notification_sensor_unavailable_description">No recent reading was received from the wireless sensors. Check their power and connection.</string>
     <string name="notification_device_health_title">Raspberry Pi resource warning</string>
     <string name="notification_device_health_description">A power, temperature, or resource limit was detected. Review the Device Health screen for details.</string>
 
+    <string name="notification_watering_started_title">Watering started</string>
+    <string name="notification_watering_started_description">The pump was turned on for %1$d seconds.</string>
     <string name="notification_watering_completed_title">Watering completed</string>
     <string name="notification_watering_completed_description">Watering duration: %1$d sec.</string>
     <string name="notification_watering_interrupted_title">Watering stopped unexpectedly</string>

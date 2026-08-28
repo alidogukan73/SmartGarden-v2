@@ -133,8 +133,7 @@ public final class NotificationSignalCoordinator {
                     "",
                     context.getString(R.string.notification_device_offline_title),
                     description,
-                    "device-offline:heartbeat",
-                    GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS
+                    "device-offline:heartbeat"
             );
 
             return;
@@ -378,8 +377,7 @@ public final class NotificationSignalCoordinator {
                             ? context.getString(
                                     R.string.notification_sensor_unavailable_description)
                             : error,
-                    stableSource,
-                    GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS
+                    stableSource
             );
 
         } else {
@@ -409,8 +407,7 @@ public final class NotificationSignalCoordinator {
                         "",
                         context.getString(R.string.notification_device_health_title),
                         context.getString(R.string.notification_device_health_description),
-                        "device:health",
-                        GardenNotificationManager.DEVICE_INCIDENT_REMINDER_MILLIS
+                        "device:health"
                 );
 
             } else {
