@@ -36,7 +36,7 @@
     <string name="runtime_ideal_range">Ideal range</string>
     <string name="runtime_irrigation_running">Irrigation running</string>
     <string name="runtime_moisture_will_remeasure">Moisture will be measured again</string>
-    <string name="runtime_irrigation_preparing">Preparing irrigation</string>
+    <string name="runtime_irrigation_preparing">Evaluating irrigation</string>
     <string name="runtime_automatic_monitoring">Automatic mode is monitoring</string>
     <string name="runtime_automatic_on">Automatic mode on</string>
     <string name="runtime_automatic_off">Automatic mode off</string>
@@ -203,6 +203,11 @@ Add photo</string>
     <string name="runtime_status_preparation_required">PREPARATION REQUIRED</string>
     <string name="runtime_status_too_early">TOO EARLY</string>
     <string name="runtime_status_season_completed">SEASON COMPLETED</string>
+    <string name="runtime_status_plan_not_ready">PLAN NOT READY</string>
+    <string name="runtime_status_plan_inactive">PLAN INACTIVE</string>
+    <string name="runtime_status_refresh_data">REFRESH DATA</string>
+    <string name="runtime_status_watering_first">WATERING FIRST</string>
+    <string name="runtime_status_today_advice">TODAY\'S ADVICE</string>
     <string name="runtime_form_liquid">Liquid</string>
     <string name="runtime_form_powder">Powder</string>
     <string name="runtime_form_granular">Granular</string>

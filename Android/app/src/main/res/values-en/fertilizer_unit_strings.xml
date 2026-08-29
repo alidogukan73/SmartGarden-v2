@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="unit_kg_dekar">kg/dekar</string>
+    <string name="unit_kg_dekar_ton">kg/dekar · with 1 ton water</string>
+    <string name="unit_kg_dekar_soil">kg/dekar · from soil</string>
+    <string name="unit_l_dekar">L/dekar</string>
+    <string name="unit_l_dekar_ton">L/dekar · with 1 ton water</string>
+    <string name="unit_l_dekar_soil">L/dekar · from soil</string>
+    <string name="unit_ml_100l">ml / 100 L water</string>
+    <string name="unit_g_100l">g / 100 L water</string>
+    <string name="unit_ml_liter">ml / liter water</string>
+    <string name="unit_g_liter">g / liter water</string>
+    <string name="unit_ml_plant">ml / plant</string>
+    <string name="unit_g_plant">g / plant</string>
+</resources>

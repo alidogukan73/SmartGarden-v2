@@ -284,7 +284,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 .getDisplayMetrics().density);
         content.setPadding(padding, 0, padding, 0);
         EditText inputDate = new EditText(this);
-        inputDate.setHint("Uygulama tarihi");
+        inputDate.setHint(R.string.fertilization_application_date);
         inputDate.setFocusable(false);
         LocalDate date = Instant.ofEpochSecond(
                 value.getApplied_at_epoch()
@@ -303,14 +303,14 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 date.getDayOfMonth()
         ).show());
         EditText inputDose = new EditText(this);
-        inputDose.setHint("Uygulanan miktar");
+        inputDose.setHint(R.string.fertilization_applied_dose);
         inputDose.setInputType(
                 android.text.InputType.TYPE_CLASS_NUMBER
                         | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
         );
         inputDose.setText(String.valueOf(value.getApplied_dose()));
         EditText inputNotes = new EditText(this);
-        inputNotes.setHint("Uygulama notu");
+        inputNotes.setHint(R.string.fertilization_application_notes);
         inputNotes.setText(value.getNotes());
         content.addView(inputDate);
         content.addView(inputDose);
@@ -449,7 +449,7 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                         productIds.size()
                 )
         );
-        if (latest <= 0L) {
+        if (latest == 0L) {
             last.setText(R.string.fertilizer_history_last_empty);
         } else {
             String date = Instant.ofEpochSecond(latest)
@@ -503,15 +503,20 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
                 }
             }
             String method = safe(value.getApplication_method());
-            if ("FOLIAR".equals(method)) {
-                foliar++;
-            } else if ("SOIL".equals(method)) {
-                soil++;
-            } else if ("DRIP".equals(method)) {
-                drip++;
+            switch (method) {
+                case "FOLIAR":
+                    foliar++;
+                    break;
+                case "SOIL":
+                    soil++;
+                    break;
+                case "DRIP":
+                    drip++;
+                    break;
             }
+
         }
-        if (totalGram <= 0.0 && totalMilliliter <= 0.0
+        if (totalGram == 0.0 && totalMilliliter == 0.0
                 && drip == 0 && soil == 0 && foliar == 0) {
             usageSummary.setText(
                     R.string.fertilizer_history_usage_empty
@@ -670,22 +675,31 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     }
 
     private String methodLabel(String method) {
-        if ("FOLIAR".equals(method)) {
-            return getString(R.string.fertilization_method_foliar);
+        if (method == null) return "";
+        switch (method) {
+            case "FOLIAR":
+                return getString(R.string.fertilization_method_foliar);
+            case "SOIL":
+                return getString(R.string.fertilization_method_soil);
+            case "DRIP":
+                return getString(R.string.fertilization_method_drip);
+            default:
+                return "";
         }
-        if ("SOIL".equals(method)) {
-            return getString(R.string.fertilization_method_soil);
-        }
-        return "DRIP".equals(method)
-                ? getString(R.string.fertilization_method_drip)
-                : "";
     }
 
     private String outcomeLabel(String status) {
-        if ("IMPROVED".equals(status)) return getString(R.string.runtime_outcome_improved);
-        if ("UNCHANGED".equals(status)) return getString(R.string.runtime_outcome_unchanged);
-        if ("ISSUE".equals(status)) return getString(R.string.runtime_outcome_issue);
-        return "";
+        if (status == null) return "";
+        switch (status) {
+            case "IMPROVED":
+                return getString(R.string.runtime_outcome_improved);
+            case "UNCHANGED":
+                return getString(R.string.runtime_outcome_unchanged);
+            case "ISSUE":
+                return getString(R.string.runtime_outcome_issue);
+            default:
+                return "";
+        }
     }
 
     private String csv(String value) {

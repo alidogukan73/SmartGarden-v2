@@ -29,7 +29,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
     }
 
@@ -46,7 +46,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
     }
 
@@ -60,7 +60,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
     }
     @Test
@@ -80,7 +80,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(replacement), null, now()
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getReason().contains("bekleme aralığı"));
         assertTrue(advice.getRecommendation().isAvailable());
         assertTrue(advice.getRecommendation().getWaitDays() > 0L);
@@ -97,7 +97,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("HAZIRLIK GEREKİYOR", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_PREPARATION_REQUIRED, advice.getStatus());
         assertTrue(advice.getReason().contains("yetmiyor"));
         assertFalse(advice.getCandidates().isEmpty());
     }
@@ -112,7 +112,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("HAZIRLIK GEREKİYOR", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_PREPARATION_REQUIRED, advice.getStatus());
         assertTrue(advice.getReason().contains("stok miktarı"));
     }
 
@@ -124,7 +124,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(readyProduct()), null, now()
         );
 
-        assertEquals("ÖNCE SULAMA", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_WATERING_FIRST, advice.getStatus());
         assertFalse(advice.getCandidates().isEmpty());
     }
 
@@ -136,7 +136,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(readyProduct()), null, now()
         );
 
-        assertEquals("BUGÜNKÜ ÖNERİ", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertEquals(1, advice.getCandidates().size());
         assertTrue(advice.getCandidates().get(0).contains("100 g"));
         assertTrue(advice.getRecommendation().isAvailable());
@@ -158,7 +158,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("BUGÜNKÜ ÖNERİ", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertTrue(advice.getCandidates().get(0).contains("250 g"));
     }
 
@@ -171,7 +171,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(product), null, now()
         );
 
-        assertEquals("BUGÜNKÜ ÖNERİ", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertEquals(1, advice.getCandidates().size());
         assertTrue(advice.getReason().contains("Aktif hasatta"));
     }
@@ -184,7 +184,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(readyProduct()), null, now()
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
     }
 
@@ -197,7 +197,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 zone, Collections.singletonList(harvestProduct()), null, now()
         );
 
-        assertEquals("SEZON TAMAMLANDI", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_SEASON_COMPLETED, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
         assertTrue(advice.getRisks().isEmpty());
     }
@@ -224,7 +224,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 true
         );
 
-        assertEquals("BUG\u00dcNK\u00dc \u00d6NER\u0130", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertTrue(advice.getCandidates().get(0)
                 .contains("Organic-compatible 10-5-40"));
         assertTrue(advice.getCandidates().get(0)
@@ -241,7 +241,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 Collections.emptyList(), now(), true
         );
 
-        assertEquals("BUG\u00dcNK\u00dc \u00d6NER\u0130", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertFalse(advice.getCandidates().isEmpty());
     }
 
@@ -256,7 +256,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 Collections.emptyList(), now(), true
         );
 
-        assertEquals("ORGAN\u0130K \u00dcR\u00dcN GEREK\u0130YOR", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_ORGANIC_REQUIRED, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
         assertTrue(advice.getReason().contains("kimyasal i\u00e7erikli"));
     }
@@ -272,7 +272,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 Collections.emptyList(), now(), true
         );
 
-        assertEquals("BUG\u00dcNK\u00dc \u00d6NER\u0130", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TODAY_ADVICE, advice.getStatus());
         assertFalse(advice.getCandidates().isEmpty());
         assertTrue(advice.getReason().contains("Meyve olu\u015Fumu"));
     }
@@ -286,7 +286,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 Collections.emptyList(), now(), true
         );
 
-        assertEquals("ORGANİK ÜRÜN GEREKİYOR", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_ORGANIC_REQUIRED, advice.getStatus());
         assertTrue(advice.getCandidates().isEmpty());
     }
 
@@ -308,7 +308,7 @@ public class FertilizerDecisionEngineSafetyTest {
                 Collections.emptyList(), now(), true
         );
 
-        assertEquals("HENÜZ ERKEN", advice.getStatus());
+        assertEquals(FertilizerAdvice.STATUS_TOO_EARLY, advice.getStatus());
         assertTrue(advice.getReason().contains("bekleme aralığı"));
     }
     private static GardenZone zone(String stage, int moisture) {

@@ -15,13 +15,9 @@ import android.view.View;
 import android.view.ViewStub;
 import android.os.SystemClock;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
@@ -144,9 +140,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
-        EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_main);
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         viewModel.getAuthenticated().observe(this, authenticated -> {
@@ -205,36 +198,12 @@ public class MainActivity extends AppCompatActivity {
         authenticatedAppInitialized = true;
 
         connectionStartedElapsedMillis = SystemClock.elapsedRealtime();
-        applyWindowInsets();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.HOME);
         initializeViews();
         initializeViewModel();
         observeViewModel();
         initializeButtons();
         viewModel.initializeNotificationSync();
-    }
-
-    private void applyWindowInsets() {
-
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.mainRoot),
-                (view, insets) -> {
-
-                    Insets systemBars =
-                            insets.getInsets(
-                                    WindowInsetsCompat.Type.systemBars()
-                            );
-
-                    view.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
-
-                    return insets;
-                }
-        );
     }
 
     @Override
@@ -245,12 +214,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateNotificationBadge() {
         if (txtMainNotificationBadge == null) return;
-        int unread = 0;
-        unread = viewModel == null ? 0 : viewModel.unreadNotificationCount();
+        int unread = viewModel == null ? 0 : viewModel.unreadNotificationCount();
         if (unread <= 0) {
             txtMainNotificationBadge.setVisibility(View.GONE);
         } else {
-            txtMainNotificationBadge.setText(unread > 99 ? "99+" : String.valueOf(unread));
+            txtMainNotificationBadge.setText(unread > 99
+                    ? getString(R.string.runtime_badge_overflow)
+                    : String.valueOf(unread));
             txtMainNotificationBadge.setVisibility(View.VISIBLE);
         }
     }
@@ -455,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setWeatherImpact(String impact) {
-        String prefix = "AVORA yorumu: ";
+        String prefix = getString(R.string.runtime_avora_comment_prefix);
         SpannableString text = new SpannableString(prefix + impact);
         text.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         txtHomeWeatherImpact.setText(text);

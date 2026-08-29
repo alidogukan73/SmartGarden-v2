@@ -1235,6 +1235,10 @@
     <string name="nav_ai_assistant">AI Asistan</string>
     <string name="nav_settings">Ayarlar</string>
     <string name="symbol_middle_dot">·</string>
+    <string name="ai_confidence_value">%1$s · %%%2$d</string>
+    <string name="valve_setup_status_format">%1$s: %2$s</string>
+    <string name="date_format_dmy" translatable="false">dd-MM-yyyy</string>
+    <string name="date_format_year" translatable="false">yyyy</string>
     <!-- Merkezi Ayarlar menüsü -->
     <string name="settings_hub_quick_title">Hızlı Ayarlar</string>
     <string name="settings_hub_edit">Düzenle</string>
@@ -1341,4 +1345,11 @@
     <string name="home_status_connected">&#9679; BA&#286;LI</string>
     <string name="home_alert_zone_sensor_missing">%1$s sens&#246;r&#252;nden veri al&#305;nam&#305;yor</string>
     <string name="zone_fallback_name">B&#246;lge</string>
+
+    <!-- RUNTIME ADDITIONS -->
+    <string name="runtime_badge_overflow">99+</string>
+    <string name="runtime_avora_comment_prefix">AVORA yorumu: </string>
+
+    <string name="duration_hours_minutes_format">%1$d sa %2$d dk</string>
+    <string name="duration_hours_format">%1$d sa</string>
 </resources>

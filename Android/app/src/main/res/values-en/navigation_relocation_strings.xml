@@ -2,7 +2,4 @@
 <resources>
     <string name="sensor_points_health_waiting">Waiting for sensor information · view details</string>
     <string name="sensor_points_health_summary_format">%1$d / %2$d sensors connected · view details</string>
-    <string name="ai_watering_settings_shortcut_title">Edit irrigation settings</string>
-    <string name="ai_watering_settings_shortcut_description">Moisture limit, duration and cooldown settings</string>
-    <string name="symbol_settings_shortcut">⚙</string>
 </resources>

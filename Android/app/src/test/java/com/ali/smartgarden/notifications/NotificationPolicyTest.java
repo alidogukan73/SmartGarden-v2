@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.time.ZoneId;
+import com.ali.smartgarden.fertilization.FertilizerAdvice;
+
 import org.junit.Test;
 
 public class NotificationPolicyTest {
@@ -137,12 +139,12 @@ public class NotificationPolicyTest {
 
     @Test
     public void onlyActionableFertilizerStatesCreateAiAlerts() {
-        assertTrue(NotificationPolicy.isActionableFertilizerAdvice("BUGÜNKÜ ÖNERİ"));
-        assertTrue(NotificationPolicy.isActionableFertilizerAdvice("ORGANİK ÜRÜN GEREKİYOR"));
-        assertTrue(NotificationPolicy.isActionableFertilizerAdvice("ÖNCE SULAMA"));
-        assertTrue(NotificationPolicy.isActionableFertilizerAdvice("HAZIRLIK GEREKİYOR"));
-        assertFalse(NotificationPolicy.isActionableFertilizerAdvice("HENÜZ ERKEN"));
-        assertFalse(NotificationPolicy.isActionableFertilizerAdvice("SEZON TAMAMLANDI"));
+        assertTrue(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_TODAY_ADVICE));
+        assertTrue(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_ORGANIC_REQUIRED));
+        assertTrue(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_WATERING_FIRST));
+        assertTrue(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_PREPARATION_REQUIRED));
+        assertFalse(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_TOO_EARLY));
+        assertFalse(NotificationPolicy.isActionableFertilizerAdvice(FertilizerAdvice.STATUS_SEASON_COMPLETED));
     }
 
     @Test

@@ -46,7 +46,7 @@ public final class ZoneCapacityPolicy {
         int count = 0;
         if (zones == null) return count;
         for (GardenZone zone : zones) {
-            if (zone != null && isValidZoneId(zone.getZone_id()) && !isInactive(zone)) count++;
+            if (zone != null && !isInactive(zone)) count++;
         }
         return count;
     }
@@ -55,7 +55,7 @@ public final class ZoneCapacityPolicy {
         List<GardenZone> result = new java.util.ArrayList<>();
         if (zones == null) return result;
         for (GardenZone zone : zones) {
-            if (zone != null && isValidZoneId(zone.getZone_id()) && !isInactive(zone)) {
+            if (zone != null && !isInactive(zone)) {
                 result.add(zone);
             }
         }

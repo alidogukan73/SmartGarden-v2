@@ -381,6 +381,14 @@
                         app:thumbColor="@color/primary"
                         app:trackColorActive="@color/primary"
                         app:trackColorInactive="@color/divider" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="14dp"
+                        android:background="@color/divider" />
+
+                    <include layout="@layout/view_irrigation_restart_process" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

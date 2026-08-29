@@ -6,10 +6,15 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
@@ -19,7 +24,12 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 /** Saves the garden point and the preferred weather source. */
+@SuppressWarnings("SpellCheckingInspection")
 public class GardenLocationActivity extends AppCompatActivity {
+    private static final String SOURCE_AUTO = "auto";
+    private static final String SOURCE_OPEN_WEATHER = "openweather";
+    private static final String SOURCE_OPEN_METEO = "open_meteo";
+
     private GardenSettingsViewModel viewModel;
     private TextInputEditText city, district;
     private MaterialAutoCompleteTextView source;
@@ -33,10 +43,17 @@ public class GardenLocationActivity extends AppCompatActivity {
             });
 
     @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_garden_location);
         viewModel = new ViewModelProvider(this).get(GardenSettingsViewModel.class);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         city = findViewById(R.id.inputLocationCity);
         district = findViewById(R.id.inputLocationDistrict);
@@ -125,15 +142,21 @@ public class GardenLocationActivity extends AppCompatActivity {
 
     private String sourceValue() {
         String value = source.getText() == null ? "" : source.getText().toString();
-        if (value.contains("OpenWeather")) return "openweather";
-        if (value.contains("Open-Meteo")) return "open_meteo";
-        return "auto";
+        if (value.equals(getString(R.string.runtime_weather_source_open_weather))) return SOURCE_OPEN_WEATHER;
+        if (value.equals(getString(R.string.runtime_weather_source_open_meteo))) return SOURCE_OPEN_METEO;
+        return SOURCE_AUTO;
     }
 
     private String sourceText(String value) {
-        if ("openweather".equals(value)) return getString(R.string.runtime_weather_source_open_weather);
-        if ("open_meteo".equals(value)) return getString(R.string.runtime_weather_source_open_meteo);
-        return getString(R.string.runtime_weather_source_auto);
+        if (value == null) return getString(R.string.runtime_weather_source_auto);
+        switch (value) {
+            case SOURCE_OPEN_WEATHER:
+                return getString(R.string.runtime_weather_source_open_weather);
+            case SOURCE_OPEN_METEO:
+                return getString(R.string.runtime_weather_source_open_meteo);
+            default:
+                return getString(R.string.runtime_weather_source_auto);
+        }
     }
 
     private String text(TextInputEditText input) {

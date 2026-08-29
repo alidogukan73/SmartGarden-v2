@@ -4,12 +4,8 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
@@ -77,8 +73,6 @@ public class StatisticsActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_statistics);
 
         getOnBackPressedDispatcher().addCallback(
@@ -92,39 +86,12 @@ public class StatisticsActivity extends AppCompatActivity {
                 }
         );
 
-        applyWindowInsets();
         initializeViews();
         initializeViewModel();
         observeViewModel();
         initializeActions();
     }
 
-
-    /**
-     * Edge-to-edge sistem çubuğu boşluklarını uygular.
-     */
-    private void applyWindowInsets() {
-
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.statisticsRoot),
-                (view, insets) -> {
-
-                    Insets systemBars =
-                            insets.getInsets(
-                                    WindowInsetsCompat.Type.systemBars()
-                            );
-
-                    view.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
-
-                    return insets;
-                }
-        );
-    }
 
 
     /**
@@ -655,10 +622,8 @@ public class StatisticsActivity extends AppCompatActivity {
                 safeSeconds % 60;
 
         if (hours > 0) {
-
-            return String.format(
-                    java.util.Locale.getDefault(),
-                    "%d sa %d dk",
+            return getString(
+                    R.string.duration_hours_minutes_format,
                     hours,
                     minutes
             );

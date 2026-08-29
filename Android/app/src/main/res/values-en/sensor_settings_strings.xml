@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_sensor_settings_title">Sensor Settings</string>
+    <string name="settings_sensor_settings_subtitle">Sensor points and calibration tools</string>
+    <string name="sensor_settings_description">Monitor assigned sensors or safely determine the dry and wet values of a new sensor.</string>
+    <string name="sensor_settings_options_title">Sensor management</string>
+</resources>

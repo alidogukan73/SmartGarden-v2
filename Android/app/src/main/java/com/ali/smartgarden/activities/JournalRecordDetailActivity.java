@@ -46,7 +46,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     private LinearLayout photosLayout, linksLayout;
     private TextView photosTitle, assistantHeading, assistantText;
     private List<FertilizerApplication> fertilizers = new ArrayList<>();
-    private List<WateringHistory> waterings = new ArrayList<>();
+    private List<WateringHistory> wateringRecords = new ArrayList<>();
     private List<GardenPhoto> relatedPhotos = new ArrayList<>();
 
     private final ActivityResultLauncher<PickVisualMediaRequest> extraPhotoPicker =
@@ -72,7 +72,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
             renderLinks();
         });
         viewModel.getWateringHistory().observe(this, values -> {
-            waterings = values == null ? new ArrayList<>() : values;
+            wateringRecords = values == null ? new ArrayList<>() : values;
             renderLinks();
         });
     }
@@ -227,7 +227,7 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
             addLinkedCard("🌿", getString(R.string.notification_category_fertilization), safe(item.getProduct_name()) + " · " + trimNumber(item.getApplied_dose()) + " " + safe(item.getDose_unit()), item.getApplied_at_epoch());
             if (++count == 2) return;
         }
-        for (WateringHistory item : waterings) {
+        for (WateringHistory item : wateringRecords) {
             long when = parseWateringTime(item.getFinishedAt());
             if (!zoneId.equals(item.getZoneId()) || !item.isCompleted() || isSameRecord(when)) continue;
             addLinkedCard(getString(R.string.symbol_water_drop), getString(R.string.notification_category_irrigation), getString(R.string.runtime_duration_seconds, item.getDuration()), when);
@@ -282,7 +282,15 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     private long parseWateringTime(String value) {
         if (value == null || value.isBlank()) return 0L;
         String[] patterns = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss", "dd-MM-yyyy HH:mm", "dd.MM.yyyy HH:mm"};
-        for (String pattern : patterns) try { return new SimpleDateFormat(pattern, Locale.US).parse(value).getTime() / 1000L; } catch (Exception ignored) { }
+        for (String pattern : patterns) {
+            try {
+                java.util.Date parsed = new SimpleDateFormat(pattern, Locale.US).parse(value);
+                if (parsed != null) {
+                    return parsed.getTime() / 1000L;
+                }
+            } catch (Exception ignored) {
+            }
+        }
         return 0L;
     }
 

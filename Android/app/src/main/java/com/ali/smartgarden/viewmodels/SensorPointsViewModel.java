@@ -83,33 +83,16 @@ public class SensorPointsViewModel extends ViewModel {
         }
 
         List<GardenZone> points =
-                new ArrayList<>(ZoneCapacityPolicy.MAX_ZONES);
+                new ArrayList<>(assignedZones.size());
         for (int slot = 1; slot <= ZoneCapacityPolicy.MAX_ZONES; slot++) {
             String sensorId = ZoneCapacityPolicy.sensorId(slot);
             GardenZone assigned = assignedZones.get(sensorId);
-            points.add(
-                    assigned == null
-                            ? unassignedPoint(sensorId, slot)
-                            : assigned
-            );
+            if (assigned != null) {
+                points.add(assigned);
+            }
         }
 
         return points;
-    }
-
-    private static GardenZone unassignedPoint(
-            String sensorId,
-            int slot
-    ) {
-        GardenZone point = new GardenZone();
-        point.setZone_id("");
-        point.setName("");
-        point.setEmoji("");
-        point.setSensor_id(sensorId);
-        point.setSensor_enabled(false);
-        point.setEnabled(false);
-        point.setOrder(slot);
-        return point;
     }
 
     private static String safe(String value) {

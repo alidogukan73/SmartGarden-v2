@@ -5,12 +5,8 @@ import android.widget.TextView;
 import android.view.View;
 
 import androidx.appcompat.widget.PopupMenu;
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
@@ -27,6 +23,18 @@ import java.util.Locale;
 /** Displays one durable AVORA notification and its read/saved state. */
 public class NotificationDetailActivity extends AppCompatActivity {
 
+    private static final String TYPE_IRRIGATION = "IRRIGATION";
+    private static final String TYPE_FERTILIZATION = "FERTILIZATION";
+    private static final String TYPE_STOCK = "STOCK";
+    private static final String TYPE_PHOTO = "PHOTO_FOLLOW_UP";
+    private static final String TYPE_PLANT = "PLANT";
+    private static final String TYPE_PLANT_ASSISTANT = "PLANT_ASSISTANT";
+    private static final String TYPE_WEATHER = "WEATHER";
+    private static final String TYPE_DEVICE = "DEVICE";
+
+    private static final String PRIORITY_HIGH = "HIGH";
+    private static final String PRIORITY_LOW = "LOW";
+
     private GardenNotification value;
     private NotificationCenterViewModel viewModel;
     private TextView zoneView;
@@ -34,9 +42,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
     @Override
     public void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_notification_detail);
-        applyWindowInsets();
 
         viewModel = new ViewModelProvider(this).get(NotificationCenterViewModel.class);
 
@@ -57,17 +63,6 @@ public class NotificationDetailActivity extends AppCompatActivity {
         viewModel.setState(value, true, value.isSaved());
         value.setRead(true);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.NOTIFICATIONS);
-    }
-
-    private void applyWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.notificationDetailRoot),
-                (view, insets) -> {
-                    Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-                    return insets;
-                }
-        );
     }
 
     private GardenNotification notificationFromIntent() {
@@ -227,36 +222,36 @@ public class NotificationDetailActivity extends AppCompatActivity {
     }
 
     private String categoryLabel(String type) {
-        if ("IRRIGATION".equalsIgnoreCase(type)) return getString(R.string.notification_category_irrigation);
-        if ("FERTILIZATION".equalsIgnoreCase(type)) return getString(R.string.notification_category_fertilization);
-        if ("STOCK".equalsIgnoreCase(type)) return getString(R.string.notification_category_stock);
-        if ("PHOTO_FOLLOW_UP".equalsIgnoreCase(type)) return getString(R.string.notification_category_photo);
-        if ("PLANT".equalsIgnoreCase(type) || "PLANT_ASSISTANT".equalsIgnoreCase(type)) return getString(R.string.notification_category_plant_assistant);
-        if ("WEATHER".equalsIgnoreCase(type)) return getString(R.string.notification_category_weather);
-        if ("DEVICE".equalsIgnoreCase(type)) return getString(R.string.notification_category_device);
+        if (TYPE_IRRIGATION.equalsIgnoreCase(type)) return getString(R.string.notification_category_irrigation);
+        if (TYPE_FERTILIZATION.equalsIgnoreCase(type)) return getString(R.string.notification_category_fertilization);
+        if (TYPE_STOCK.equalsIgnoreCase(type)) return getString(R.string.notification_category_stock);
+        if (TYPE_PHOTO.equalsIgnoreCase(type)) return getString(R.string.notification_category_photo);
+        if (TYPE_PLANT.equalsIgnoreCase(type) || TYPE_PLANT_ASSISTANT.equalsIgnoreCase(type)) return getString(R.string.notification_category_plant_assistant);
+        if (TYPE_WEATHER.equalsIgnoreCase(type)) return getString(R.string.notification_category_weather);
+        if (TYPE_DEVICE.equalsIgnoreCase(type)) return getString(R.string.notification_category_device);
         return getString(R.string.notification_category_system);
     }
 
     private String priorityLabel(String priority) {
-        if ("HIGH".equalsIgnoreCase(priority)) return getString(R.string.notification_priority_high);
-        if ("LOW".equalsIgnoreCase(priority)) return getString(R.string.notification_priority_low);
+        if (PRIORITY_HIGH.equalsIgnoreCase(priority)) return getString(R.string.notification_priority_high);
+        if (PRIORITY_LOW.equalsIgnoreCase(priority)) return getString(R.string.notification_priority_low);
         return getString(R.string.notification_priority_normal);
     }
 
     private int priorityColor(String priority) {
-        if ("HIGH".equalsIgnoreCase(priority)) return R.color.error;
-        if ("LOW".equalsIgnoreCase(priority)) return R.color.primary;
+        if (PRIORITY_HIGH.equalsIgnoreCase(priority)) return R.color.error;
+        if (PRIORITY_LOW.equalsIgnoreCase(priority)) return R.color.primary;
         return R.color.warning;
     }
 
     private String icon(String type) {
-        if ("IRRIGATION".equalsIgnoreCase(type)) return getString(R.string.symbol_water_drop);
-        if ("FERTILIZATION".equalsIgnoreCase(type)) return getString(R.string.symbol_plant);
-        if ("STOCK".equalsIgnoreCase(type)) return getString(R.string.symbol_warning);
-        if ("PHOTO_FOLLOW_UP".equalsIgnoreCase(type)) return getString(R.string.symbol_camera);
-        if ("PLANT".equalsIgnoreCase(type) || "PLANT_ASSISTANT".equalsIgnoreCase(type)) return getString(R.string.symbol_sparkle);
-        if ("WEATHER".equalsIgnoreCase(type)) return getString(R.string.symbol_sun);
-        if ("DEVICE".equalsIgnoreCase(type)) return getString(R.string.symbol_notification);
+        if (TYPE_IRRIGATION.equalsIgnoreCase(type)) return getString(R.string.symbol_water_drop);
+        if (TYPE_FERTILIZATION.equalsIgnoreCase(type)) return getString(R.string.symbol_plant);
+        if (TYPE_STOCK.equalsIgnoreCase(type)) return getString(R.string.symbol_warning);
+        if (TYPE_PHOTO.equalsIgnoreCase(type)) return getString(R.string.symbol_camera);
+        if (TYPE_PLANT.equalsIgnoreCase(type) || TYPE_PLANT_ASSISTANT.equalsIgnoreCase(type)) return getString(R.string.symbol_sparkle);
+        if (TYPE_WEATHER.equalsIgnoreCase(type)) return getString(R.string.symbol_sun);
+        if (TYPE_DEVICE.equalsIgnoreCase(type)) return getString(R.string.symbol_notification);
         return getString(R.string.symbol_bullet);
     }
 }

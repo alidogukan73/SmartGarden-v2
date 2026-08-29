@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_sensor_settings_title">Sensör Ayarları</string>
+    <string name="settings_sensor_settings_subtitle">Sensör noktaları ve kalibrasyon işlemleri</string>
+    <string name="sensor_settings_description">Bağlı sensörleri izleyin veya yeni sensörün kuru ve ıslak değerlerini güvenle belirleyin.</string>
+    <string name="sensor_settings_options_title">Sensör yönetimi</string>
+</resources>

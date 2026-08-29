@@ -43,7 +43,7 @@ public final class OrganicFertilizerAiAdvisor {
 
     public static boolean isRequired(FertilizerAdvice advice) {
         return advice != null
-                && "ORGANİK ÜRÜN GEREKİYOR".equals(advice.getStatus());
+                && FertilizerAdvice.STATUS_ORGANIC_REQUIRED.equals(advice.getStatus());
     }
 
     public static void request(GardenZone zone, Callback callback) {

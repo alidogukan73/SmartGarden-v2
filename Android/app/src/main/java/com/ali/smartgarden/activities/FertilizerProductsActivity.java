@@ -88,6 +88,10 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                         ? View.VISIBLE
                         : View.GONE
         );
+        if (products == null) {
+            txtProductStockSummary.setText(R.string.fertilizer_stock_summary_empty);
+            return;
+        }
         StringBuilder summary = new StringBuilder();
         for (FertilizerProduct product : products) {
             if (!product.isEnabled()
@@ -161,18 +165,18 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 getString(R.string.runtime_form_granular)
         };
         String[] units = {
-                "kg/dekar",
-                "kg/dekar · 1 ton su ile",
-                "kg/dekar · topraktan",
-                "L/dekar",
-                "L/dekar · 1 ton su ile",
-                "L/dekar · topraktan",
-                "ml / 100 L su",
-                "g / 100 L su",
-                "ml / litre su",
-                "g / litre su",
-                "ml / bitki",
-                "g / bitki"
+                getString(R.string.unit_kg_dekar),
+                getString(R.string.unit_kg_dekar_ton),
+                getString(R.string.unit_kg_dekar_soil),
+                getString(R.string.unit_l_dekar),
+                getString(R.string.unit_l_dekar_ton),
+                getString(R.string.unit_l_dekar_soil),
+                getString(R.string.unit_ml_100l),
+                getString(R.string.unit_g_100l),
+                getString(R.string.unit_ml_liter),
+                getString(R.string.unit_g_liter),
+                getString(R.string.unit_ml_plant),
+                getString(R.string.unit_g_plant)
         };
         dropdownForm.setSimpleItems(forms);
         dropdownUnit.setSimpleItems(units);
@@ -183,7 +187,6 @@ public class FertilizerProductsActivity extends AppCompatActivity {
                 getString(R.string.fertilizer_type_conditioner),
                 getString(R.string.fertilizer_type_biostimulant)
         };
-        String[] functionalTagLabels = functionalTagLabels();
         dropdownStockUnit.setSimpleItems(stockUnits);
         dropdownApplicationType.setSimpleItems(applicationTypes);
         applyExistingStageSelection(existing, selectedStages);

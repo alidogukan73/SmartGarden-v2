@@ -58,7 +58,7 @@ public final class FertilizationScheduleView {
                 R.string.fertilization_unified_need,
                 recommendation.isAvailable()
                         ? recommendation.getNeed()
-                        : advice.getStatus()));
+                        : localizedAdviceStatus(advice.getStatus())));
         organic.setVisibility(View.VISIBLE);
         organic.setText(context.getString(
                 R.string.fertilization_unified_product,
@@ -123,7 +123,7 @@ public final class FertilizationScheduleView {
         } else {
             summary.setText(context.getString(
                     R.string.fertilization_unified_summary_status,
-                    advice.getStatus()));
+                    localizedAdviceStatus(advice.getStatus())));
             summary.setTextColor(context.getColor(R.color.textSecondary));
         }
     }
@@ -154,9 +154,35 @@ public final class FertilizationScheduleView {
             FertilizerAdvice advice,
             FertilizerAdvice.Recommendation recommendation
     ) {
-        return "BUGÜNKÜ ÖNERİ".equals(advice.getStatus())
+        return FertilizerAdvice.STATUS_TODAY_ADVICE.equals(advice.getStatus())
                 && recommendation.isAvailable()
                 && recommendation.isApplicationReady();
+    }
+
+    private String localizedAdviceStatus(String status) {
+        if (status == null) return "";
+        switch (status) {
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
+                return context.getString(R.string.runtime_status_organic_required);
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
+                return context.getString(R.string.runtime_status_preparation_required);
+            case FertilizerAdvice.STATUS_TOO_EARLY:
+                return context.getString(R.string.runtime_status_too_early);
+            case FertilizerAdvice.STATUS_SEASON_COMPLETED:
+                return context.getString(R.string.runtime_status_season_completed);
+            case FertilizerAdvice.STATUS_PLAN_NOT_READY:
+                return context.getString(R.string.runtime_status_plan_not_ready);
+            case FertilizerAdvice.STATUS_PLAN_INACTIVE:
+                return context.getString(R.string.runtime_status_plan_inactive);
+            case FertilizerAdvice.STATUS_REFRESH_DATA:
+                return context.getString(R.string.runtime_status_refresh_data);
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
+                return context.getString(R.string.runtime_status_watering_first);
+            case FertilizerAdvice.STATUS_TODAY_ADVICE:
+                return context.getString(R.string.runtime_status_today_advice);
+            default:
+                return status;
+        }
     }
 
     private void toggleDetails() {

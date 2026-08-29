@@ -10,12 +10,8 @@ import android.view.View;
 import android.view.Gravity;
 import androidx.appcompat.widget.AppCompatImageView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
@@ -32,6 +28,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class WateringControlActivity extends AppCompatActivity {
+    private static final String VALVE_MODE_PHYSICAL = "PHYSICAL";
+    private static final String VALVE_MODE_SIMULATION = "SIMULATION";
 
     private MainViewModel viewModel;
     private TextView pumpState;
@@ -57,24 +55,7 @@ public class WateringControlActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_watering_control);
-
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.wateringControlRoot),
-                (view, insets) -> {
-                    Insets bars = insets.getInsets(
-                            WindowInsetsCompat.Type.systemBars()
-                    );
-                    view.setPadding(
-                            bars.left,
-                            bars.top,
-                            bars.right,
-                            bars.bottom
-                    );
-                    return insets;
-                }
-        );
 
         pumpState = findViewById(R.id.txtControlPumpState);
         pumpDescription = findViewById(
@@ -148,18 +129,6 @@ public class WateringControlActivity extends AppCompatActivity {
 
                     // Stopping automatic watering must always be possible.
                     // A valve is required only when starting automatic mode.
-                    if (checked && !hasConfiguredPhysicalValve()) {
-                        updatingSwitch = true;
-                        autoSwitch.setChecked(false);
-                        updatingSwitch = false;
-                        Toast.makeText(
-                                this,
-                                getString(R.string.runtime_open_valve_first),
-                                Toast.LENGTH_LONG
-                        ).show();
-                        return;
-                    }
-
                     if (checked && !hasConfiguredPhysicalValve()) {
                         updatingSwitch = true;
                         autoSwitch.setChecked(false);
@@ -399,7 +368,7 @@ public class WateringControlActivity extends AppCompatActivity {
             String emoji = zone.getEmoji() == null
                     ? getString(R.string.symbol_plant)
                     : zone.getEmoji();
-            boolean zonePhysical = "PHYSICAL".equalsIgnoreCase(
+            boolean zonePhysical = VALVE_MODE_PHYSICAL.equalsIgnoreCase(
                     zone.getValve_mode()
             );
             name.setText(getString(
@@ -477,7 +446,7 @@ public class WateringControlActivity extends AppCompatActivity {
 
     private boolean hasConfiguredPhysicalValve() {
         for (GardenZone zone : zones) {
-            if ("PHYSICAL".equalsIgnoreCase(
+            if (VALVE_MODE_PHYSICAL.equalsIgnoreCase(
                     zone.getValve_mode()
             )) {
                 return true;
@@ -520,7 +489,7 @@ public class WateringControlActivity extends AppCompatActivity {
             String valveId = zone.getValve_id() == null
                     ? ""
                     : zone.getValve_id();
-            boolean physical = "PHYSICAL".equalsIgnoreCase(
+            boolean physical = VALVE_MODE_PHYSICAL.equalsIgnoreCase(
                     zone.getValve_mode()
             );
             String wiring = zone.getValve_gpio_bcm() > 0
@@ -597,11 +566,13 @@ public class WateringControlActivity extends AppCompatActivity {
         viewModel.setZoneValvePhysicalMode(zone, physical);
         Toast.makeText(
                 this,
-                zone.getName() + ": " + getString(
-                        physical
-                                ? R.string.valve_setup_physical
-                                : R.string.valve_setup_simulation
-                ),
+                getString(R.string.valve_setup_status_format,
+                        zone.getName(),
+                        getString(
+                                physical
+                                        ? R.string.valve_setup_physical
+                                        : R.string.valve_setup_simulation
+                        )),
                 Toast.LENGTH_SHORT
         ).show();
     }

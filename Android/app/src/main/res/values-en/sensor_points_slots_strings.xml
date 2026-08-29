@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="sensor_unassigned_point_title">Unassigned sensor point</string>
-    <string name="sensor_unassigned_point_description">Tap to assign it to a zone.</string>
-    <string name="sensor_status_unassigned">Unassigned</string>
-</resources>

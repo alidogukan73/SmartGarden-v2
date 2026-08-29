@@ -490,8 +490,8 @@ public class FertilizationZoneDetailActivity
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.settings_save, (dialog, which) -> {
                     try {
-                        double ph = parseOptionalDecimal(phInput.getText().toString());
-                        double ec = parseOptionalDecimal(ecInput.getText().toString());
+                        double ph = parseOptionalDecimal(textOf(phInput));
+                        double ec = parseOptionalDecimal(textOf(ecInput));
                         if (ph < 0 || ph > 14 || ec < 0 || ec > 20) throw new IllegalArgumentException();
                         viewModel.updateWaterAnalysis(zoneId, ph, ec)
                                 .addOnFailureListener(error -> Toast.makeText(this,
@@ -547,7 +547,7 @@ public class FertilizationZoneDetailActivity
         currentFertilizerAdvice = advice;
         updateApplicationSchedules();
         cardZoneAiAdvice.setVisibility(View.VISIBLE);
-        txtZoneAiAdviceStatus.setText(advice.getStatus());
+        txtZoneAiAdviceStatus.setText(localizedAdviceStatus(advice.getStatus()));
         txtZoneAiAdviceReason.setText(advice.getReason());
 
         if (advice.getContext() == null || advice.getContext().isBlank()) {
@@ -617,6 +617,33 @@ public class FertilizationZoneDetailActivity
                     }
                 });
     }
+
+    private String localizedAdviceStatus(String status) {
+        if (status == null) return "";
+        switch (status) {
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
+                return getString(R.string.runtime_status_organic_required);
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
+                return getString(R.string.runtime_status_preparation_required);
+            case FertilizerAdvice.STATUS_TOO_EARLY:
+                return getString(R.string.runtime_status_too_early);
+            case FertilizerAdvice.STATUS_SEASON_COMPLETED:
+                return getString(R.string.runtime_status_season_completed);
+            case FertilizerAdvice.STATUS_PLAN_NOT_READY:
+                return getString(R.string.runtime_status_plan_not_ready);
+            case FertilizerAdvice.STATUS_PLAN_INACTIVE:
+                return getString(R.string.runtime_status_plan_inactive);
+            case FertilizerAdvice.STATUS_REFRESH_DATA:
+                return getString(R.string.runtime_status_refresh_data);
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
+                return getString(R.string.runtime_status_watering_first);
+            case FertilizerAdvice.STATUS_TODAY_ADVICE:
+                return getString(R.string.runtime_status_today_advice);
+            default:
+                return status;
+        }
+    }
+
     private void renderRecommendations(
             List<FertilizerRecommendation> value
     ) {
@@ -944,7 +971,7 @@ public class FertilizationZoneDetailActivity
         }
         try {
             double value = Double.parseDouble(
-                    input.getText().toString()
+                    textOf(input)
                             .trim()
                             .replace(',', '.')
             );
@@ -1215,9 +1242,7 @@ public class FertilizationZoneDetailActivity
         LocalDate initial;
         try {
             initial = parseDisplayedDate(safe(
-                    inputPlantingDate.getText() == null
-                            ? ""
-                            : inputPlantingDate.getText().toString()
+                    textOf(inputPlantingDate)
             ));
         } catch (Exception ignored) {
             initial = LocalDate.now();
@@ -1549,22 +1574,12 @@ public class FertilizationZoneDetailActivity
                         originalTankLiters
                 );
         String appliedUnit;
-        double suggestedMin;
-        double suggestedMax;
         if (suggestion == null) {
             appliedUnit = product.getDosage_unit();
-            suggestedMin = product.getLabel_dosage_min() > 0.0
-                    ? product.getLabel_dosage_min()
-                    : product.getLabel_dosage();
-            suggestedMax = product.getLabel_dosage_max() > 0.0
-                    ? product.getLabel_dosage_max()
-                    : product.getLabel_dosage();
             doseInformation.setText(appliedUnit);
             input.setText(formatDose(product.getLabel_dosage()));
         } else {
             appliedUnit = suggestion.unit;
-            suggestedMin = suggestion.min;
-            suggestedMax = suggestion.max;
             doseInformation.setText(
                     Math.abs(suggestion.min - suggestion.max) < 0.0001
                             ? getString(
@@ -1646,9 +1661,7 @@ public class FertilizationZoneDetailActivity
                     double dose;
                     try {
                         dose = Double.parseDouble(
-                                safe(input.getText() == null
-                                        ? ""
-                                        : input.getText().toString())
+                                safe(textOf(input))
                                         .replace(',', '.')
                         );
                     } catch (Exception ignored) {
@@ -1665,10 +1678,7 @@ public class FertilizationZoneDetailActivity
                     LocalDate applicationDate;
                     try {
                         applicationDate = parseDisplayedDate(safe(
-                                inputApplicationDate.getText() == null
-                                        ? ""
-                                        : inputApplicationDate.getText()
-                                                .toString()
+                                textOf(inputApplicationDate)
                         ));
                     } catch (Exception ignored) {
                         inputApplicationDate.setError(getString(
@@ -1744,13 +1754,10 @@ public class FertilizationZoneDetailActivity
                     }
                     String applicationMethod =
                             applicationMethodCode(
-                                    dropdownMethod.getText()
-                                            .toString()
+                                    textOf(dropdownMethod)
                             );
                     String applicationNotes = safe(
-                            inputNotes.getText() == null
-                                    ? ""
-                                    : inputNotes.getText().toString()
+                            textOf(inputNotes)
                     ).trim();
                     if (checkDeductStock.isChecked()
                             && dose > productToRecord.getStock_amount()) {
@@ -1862,9 +1869,7 @@ public class FertilizationZoneDetailActivity
         LocalDate selectedDate;
         try {
             selectedDate = parseDisplayedDate(safe(
-                    inputApplicationDate.getText() == null
-                            ? ""
-                            : inputApplicationDate.getText().toString()
+                    textOf(inputApplicationDate)
             ));
         } catch (Exception ignored) {
             selectedDate = LocalDate.now();
@@ -2106,10 +2111,7 @@ public class FertilizationZoneDetailActivity
 
     private String currentPlantingDate() {
         String displayedDate = safe(
-                inputPlantingDate == null
-                        || inputPlantingDate.getText() == null
-                        ? ""
-                        : inputPlantingDate.getText().toString()
+                textOf(inputPlantingDate)
         );
         if (displayedDate.isBlank()) {
             return "";
@@ -2207,8 +2209,14 @@ public class FertilizationZoneDetailActivity
     private String stageLabel(String code) {
         for (int index = 0; index < STAGE_CODES.length; index++) {
             if (STAGE_CODES[index].equals(code)) {
-                return dropdownGrowthStage.getAdapter().getItem(index)
-                        .toString();
+                android.widget.ListAdapter adapter =
+                        dropdownGrowthStage.getAdapter();
+                Object item = adapter == null
+                        ? null
+                        : adapter.getItem(index);
+                return item == null
+                        ? getString(R.string.fertilization_not_set)
+                        : item.toString();
             }
         }
         return getString(R.string.fertilization_not_set);
@@ -2226,6 +2234,11 @@ public class FertilizationZoneDetailActivity
 
     private String safe(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private static String textOf(TextView view) {
+        CharSequence text = view == null ? null : view.getText();
+        return text == null ? "" : text.toString();
     }
 
     private LocalDate parseDisplayedDate(String value) {

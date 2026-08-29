@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ai_restart_process_title">Restart watering process</string>
-    <string name="ai_restart_process_description">Safely refreshes a stuck decision session for the selected zone or all zones</string>
+    <string name="ai_restart_process_description">Safely refreshes a stuck decision session for one zone or all zones</string>
     <string name="ai_restart_scope_title">Which process should be restarted?</string>
-    <string name="ai_restart_scope_selected">Selected zone · %1$s</string>
+    <string name="ai_restart_scope_zone">%1$s · %2$s</string>
     <string name="ai_restart_scope_all">All zones</string>
     <string name="ai_restart_dialog_title">Restart the %1$s process?</string>
     <string name="ai_restart_dialog_message">Watering history, learned results, and the safety cooldown are preserved. Only the temporary measurement window, cycle lock, and pending prediction validation are cleared. The pump and valves are not activated.</string>
     <string name="ai_restart_cancel">Cancel</string>
     <string name="ai_restart_confirm">Restart</string>
-    <string name="ai_restart_no_zone">Select a zone first.</string>
+    <string name="ai_restart_no_active_zone">There is no active zone that can be restarted.</string>
     <string name="ai_restart_watering_active">The assistant process cannot be restarted while watering is active.</string>
     <string name="ai_restart_request_sent">Restart request sent. Fresh, safe measurements will be collected for this zone.</string>
     <string name="ai_restart_all_dialog_title">Restart all zone processes?</string>

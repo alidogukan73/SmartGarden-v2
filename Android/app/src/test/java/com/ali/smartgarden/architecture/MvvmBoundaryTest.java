@@ -47,9 +47,7 @@ public final class MvvmBoundaryTest {
     );
 
     private static final Set<String> VIEWMODEL_FREE_UI_ONLY = new HashSet<>(Arrays.asList(
-            "HelpCenterActivity.java",
-            // Compatibility alias; IrrigationSettingsActivity owns the actual screen/ViewModel.
-            "SettingsActivity.java"
+            "HelpCenterActivity.java"
     ));
 
     @Test

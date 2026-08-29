@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="unit_kg_dekar">kg/dekar</string>
+    <string name="unit_kg_dekar_ton">kg/dekar · 1 ton su ile</string>
+    <string name="unit_kg_dekar_soil">kg/dekar · topraktan</string>
+    <string name="unit_l_dekar">L/dekar</string>
+    <string name="unit_l_dekar_ton">L/dekar · 1 ton su ile</string>
+    <string name="unit_l_dekar_soil">L/dekar · topraktan</string>
+    <string name="unit_ml_100l">ml / 100 L su</string>
+    <string name="unit_g_100l">g / 100 L su</string>
+    <string name="unit_ml_liter">ml / litre su</string>
+    <string name="unit_g_liter">g / litre su</string>
+    <string name="unit_ml_plant">ml / bitki</string>
+    <string name="unit_g_plant">g / bitki</string>
+</resources>

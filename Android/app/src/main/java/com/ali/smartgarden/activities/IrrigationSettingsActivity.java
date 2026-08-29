@@ -18,13 +18,21 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.Command;
+import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.IrrigationTimingSettings;
+import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 import com.ali.smartgarden.viewmodels.SettingsViewModel;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class IrrigationSettingsActivity extends AppCompatActivity {
 
@@ -35,6 +43,7 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
     private static final boolean DEFAULT_SYSTEM_ENABLED = true;
     private static final boolean DEFAULT_AUTO_MODE = true;
     private static final long AUTO_SAVE_DELAY_MS = 650L;
+    private static final String ALL_ZONES_RESET_SCOPE = "ALL";
     private static final String[] ENVIRONMENT_CODES = {"OPEN_FIELD", "GREENHOUSE", "INDOOR"};
     private static final String[] TIMING_STRATEGY_CODES = {"SMART", "MORNING_ONLY", "CUSTOM", "IMMEDIATE"};
 
@@ -44,6 +53,7 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
 
     private MaterialButton btnBack;
     private MaterialButton btnResetSettings;
+    private MaterialCardView cardRestartIrrigationProcess;
 
     private Slider sliderMoistureLimit;
     private Slider sliderPumpDuration;
@@ -77,6 +87,8 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
     private boolean pendingExitAfterSave;
     private boolean commandLoaded;
     private boolean timingSettingsLoaded;
+    private boolean restartRequestInFlight;
+    private final List<GardenZone> restartZones = new ArrayList<>();
 
     private long originalMoistureLimit = DEFAULT_MOISTURE_LIMIT;
     private long originalPumpDuration = DEFAULT_PUMP_DURATION;
@@ -115,6 +127,8 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
     private void initializeViews() {
         btnBack = findViewById(R.id.btnBack);
         btnResetSettings = findViewById(R.id.btnResetSettings);
+        cardRestartIrrigationProcess =
+                findViewById(R.id.cardRestartIrrigationProcess);
 
         sliderMoistureLimit = findViewById(R.id.sliderMoistureLimit);
         sliderPumpDuration = findViewById(R.id.sliderPumpDuration);
@@ -221,6 +235,13 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
     private void observeViewModel() {
         viewModel.getCommand().observe(this, this::renderCommand);
         viewModel.getIrrigationTimingSettings().observe(this, this::renderTimingSettings);
+        viewModel.getActiveGardenZones().observe(this, zones -> {
+            restartZones.clear();
+            if (zones != null) {
+                restartZones.addAll(zones);
+                restartZones.sort(Comparator.comparingInt(GardenZone::getOrder));
+            }
+        });
         viewModel.getLoading().observe(this, loading -> {
             boolean active = Boolean.TRUE.equals(loading);
             setControlsEnabled(!active);
@@ -263,6 +284,8 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
         btnBack.setOnClickListener(view -> handleBackAction());
         findViewById(R.id.cardWateringControlShortcut).setOnClickListener(view ->
                 startActivity(new android.content.Intent(this, WateringControlActivity.class)));
+        cardRestartIrrigationProcess.setOnClickListener(
+                view -> showRestartScopeDialog());
         btnResetSettings.setOnClickListener(view -> showResetConfirmation());
         getOnBackPressedDispatcher().addCallback(
                 this,
@@ -273,6 +296,171 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void showRestartScopeDialog() {
+        List<GardenZone> zones = new ArrayList<>(restartZones);
+        if (zones.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_no_active_zone,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        CharSequence[] scopes = new CharSequence[zones.size() + 1];
+        for (int index = 0; index < zones.size(); index++) {
+            GardenZone zone = zones.get(index);
+            scopes[index] = getString(
+                    R.string.ai_restart_scope_zone,
+                    zoneName(zone),
+                    zone.getZone_id()
+            );
+        }
+        scopes[zones.size()] = getString(R.string.ai_restart_scope_all);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ai_restart_scope_title)
+                .setItems(scopes, (dialog, which) -> {
+                    if (which < zones.size()) {
+                        confirmRestartZone(zones.get(which));
+                    } else {
+                        confirmRestartAllZones();
+                    }
+                })
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .show();
+    }
+
+    private void confirmRestartZone(GardenZone zone) {
+        GardenZone currentZone = findRestartZone(
+                zone == null ? null : zone.getZone_id());
+        if (currentZone == null) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_no_active_zone,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+        if (isWateringActive(currentZone)) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_watering_active,
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(
+                        R.string.ai_restart_dialog_title,
+                        zoneName(currentZone)))
+                .setMessage(R.string.ai_restart_dialog_message)
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .setPositiveButton(
+                        R.string.ai_restart_confirm,
+                        (dialog, which) -> restartIrrigationProcess(
+                                currentZone.getZone_id(),
+                                R.string.ai_restart_request_sent
+                        )
+                )
+                .show();
+    }
+
+    private void confirmRestartAllZones() {
+        if (restartZones.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    R.string.ai_restart_no_active_zone,
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+        for (GardenZone zone : restartZones) {
+            if (isWateringActive(zone)) {
+                Toast.makeText(
+                        this,
+                        R.string.ai_restart_all_watering_active,
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ai_restart_all_dialog_title)
+                .setMessage(R.string.ai_restart_all_dialog_message)
+                .setNegativeButton(R.string.ai_restart_cancel, null)
+                .setPositiveButton(
+                        R.string.ai_restart_all_confirm,
+                        (dialog, which) -> restartIrrigationProcess(
+                                ALL_ZONES_RESET_SCOPE,
+                                R.string.ai_restart_all_request_sent
+                        )
+                )
+                .show();
+    }
+
+    private boolean isWateringActive(GardenZone zone) {
+        ZoneIrrigationStatus status = zone == null
+                ? null
+                : zone.getIrrigation_status();
+        return status != null && status.isWatering_active();
+    }
+
+    private GardenZone findRestartZone(String zoneId) {
+        if (zoneId == null || zoneId.isBlank()) {
+            return null;
+        }
+        for (GardenZone zone : restartZones) {
+            if (zone != null && zoneId.equals(zone.getZone_id())) {
+                return zone;
+            }
+        }
+        return null;
+    }
+
+    private String zoneName(GardenZone zone) {
+        if (zone == null) {
+            return "";
+        }
+        String name = zone.getName();
+        if (name == null || name.isBlank()) {
+            return zone.getZone_id();
+        }
+        return name.trim();
+    }
+
+    private void restartIrrigationProcess(String scope, int successMessage) {
+        if (restartRequestInFlight) {
+            return;
+        }
+        setRestartRequestInFlight(true);
+        viewModel.restartIrrigationAssistant(scope)
+                .addOnSuccessListener(unused -> {
+                    setRestartRequestInFlight(false);
+                    Toast.makeText(
+                            this,
+                            successMessage,
+                            Toast.LENGTH_LONG
+                    ).show();
+                })
+                .addOnFailureListener(error -> {
+                    setRestartRequestInFlight(false);
+                    Toast.makeText(
+                            this,
+                            R.string.ai_restart_request_failed,
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+    private void setRestartRequestInFlight(boolean inFlight) {
+        restartRequestInFlight = inFlight;
+        cardRestartIrrigationProcess.setEnabled(!inFlight);
+        cardRestartIrrigationProcess.setAlpha(inFlight ? 0.6f : 1f);
     }
 
     private void renderCommand(Command command) {

@@ -31,10 +31,11 @@ import com.ali.smartgarden.viewmodels.FertilizationCalendarViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Calendar;
 import java.util.UUID;
 
 public class FertilizationCalendarActivity extends AppCompatActivity {
@@ -251,7 +252,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             List<GardenZone> zones,
             boolean[] checked
     ) {
-        if (!hasSelectedZone(checked)) {
+        if (isZoneSelectionEmpty(checked)) {
             Toast.makeText(
                     this,
                     R.string.fertilizer_bulk_choose_zone,
@@ -259,29 +260,21 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return;
         }
-        Calendar calendar = Calendar.getInstance();
+        LocalDate today = LocalDate.now();
         DatePickerDialog picker = new DatePickerDialog(
                 this,
-                (view, year, month, day) -> {
-                    Calendar selected = Calendar.getInstance();
-                    selected.set(year, month, day, 12, 0, 0);
-                    if (year == calendar.get(Calendar.YEAR)
-                            && month == calendar.get(Calendar.MONTH)
-                            && day == calendar.get(Calendar.DAY_OF_MONTH)) {
-                        selected.setTimeInMillis(System.currentTimeMillis());
-                    }
+                (view, year, month, day) ->
                     saveMixApplication(
                             first,
                             second,
                             result,
                             zones,
                             checked,
-                            selected.getTimeInMillis() / 1000L
-                    );
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
+                            selectedDateEpoch(year, month, day)
+                    ),
+                today.getYear(),
+                today.getMonthValue() - 1,
+                today.getDayOfMonth()
         );
         picker.getDatePicker().setMaxDate(System.currentTimeMillis());
         picker.show();
@@ -385,7 +378,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     zone,
                     profile,
                     firstDose,
-                    first,
                     second,
                     firstType,
                     appliedAt,
@@ -396,7 +388,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     zone,
                     profile,
                     secondDose,
-                    second,
                     first,
                     secondType,
                     appliedAt,
@@ -434,8 +425,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             ).show();
             return;
         }
-        if (!validateMixStock(first, firstUnit, firstTotal)
-                || !validateMixStock(second, secondUnit, secondTotal)) {
+        if (isMixStockInvalid(first, firstUnit, firstTotal)
+                || isMixStockInvalid(second, secondUnit, secondTotal)) {
             return;
         }
         showMixConfirmation(
@@ -456,7 +447,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             GardenZone zone,
             FertilizationProfile profile,
             FertilizationCalendarViewModel.Dose dose,
-            FertilizerProduct product,
             FertilizerProduct partner,
             String applicationType,
             long appliedAt,
@@ -485,7 +475,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         );
     }
 
-    private boolean validateMixStock(
+    private boolean isMixStockInvalid(
             FertilizerProduct product,
             String appliedUnit,
             double total
@@ -499,7 +489,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     ),
                     Toast.LENGTH_LONG
             ).show();
-            return false;
+            return true;
         }
         if (!viewModel.isStockUnitCompatible(
                 product,
@@ -515,7 +505,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     ),
                     Toast.LENGTH_LONG
             ).show();
-            return false;
+            return true;
         }
         if (!viewModel.hasEnoughStock(product, total)) {
             Toast.makeText(
@@ -529,9 +519,9 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     ),
                     Toast.LENGTH_LONG
             ).show();
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private void showMixConfirmation(
@@ -710,41 +700,33 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             List<GardenZone> zones,
             boolean[] checked
     ) {
-        if (!hasSelectedZone(checked)) {
+        if (isZoneSelectionEmpty(checked)) {
             Toast.makeText(this, R.string.fertilizer_bulk_choose_zone, Toast.LENGTH_SHORT).show();
             return;
         }
-        Calendar calendar = Calendar.getInstance();
-        DatePickerDialog picker = new DatePickerDialog(this, (view, year, month, day) -> {
-            Calendar selected = Calendar.getInstance();
-            selected.set(year, month, day, 12, 0, 0);
-            if (year == calendar.get(Calendar.YEAR)
-                    && month == calendar.get(Calendar.MONTH)
-                    && day == calendar.get(Calendar.DAY_OF_MONTH)) {
-                selected.setTimeInMillis(System.currentTimeMillis());
-            }
+        LocalDate today = LocalDate.now();
+        DatePickerDialog picker = new DatePickerDialog(this, (view, year, month, day) ->
             saveBulkApplication(
                     product,
                     zones,
                     checked,
-                    selected.getTimeInMillis() / 1000L
-            );
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH));
+                    selectedDateEpoch(year, month, day)
+            ), today.getYear(), today.getMonthValue() - 1,
+                today.getDayOfMonth());
         picker.getDatePicker().setMaxDate(System.currentTimeMillis());
         picker.show();
     }
 
-    private boolean hasSelectedZone(boolean[] checked) {
+    private static boolean isZoneSelectionEmpty(boolean[] checked) {
         if (checked == null) {
-            return false;
+            return true;
         }
         for (boolean selected : checked) {
             if (selected) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private void saveBulkApplication(
@@ -1002,7 +984,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             if (waiting && hasMinimumIntervalRisk(advice)) {
                 visibleRiskCount = Math.max(0, visibleRiskCount - 1);
             }
-            boolean seasonCompleted = "SEZON TAMAMLANDI".equals(advice.getStatus());
+            boolean seasonCompleted = FertilizerAdvice.STATUS_SEASON_COMPLETED.equals(advice.getStatus());
             if (visibleRiskCount == 0 || seasonCompleted) {
                 risks.setVisibility(View.GONE);
             } else {
@@ -1074,35 +1056,51 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         if (waitDays > 0L) {
             return getString(R.string.fertilizer_today_status_wait, waitDays);
         }
-        if ("BUGÜNKÜ ÖNERİ".equals(advice.getStatus())) {
+        String status = advice.getStatus();
+        if (FertilizerAdvice.STATUS_TODAY_ADVICE.equals(status)) {
             return getString(R.string.fertilizer_today_status_ready);
         }
-        if ("VERİYİ YENİLEYİN".equals(advice.getStatus())
-                || "ÖNCE SULAMA".equals(advice.getStatus())) {
+        if (FertilizerAdvice.STATUS_REFRESH_DATA.equals(status)
+                || FertilizerAdvice.STATUS_WATERING_FIRST.equals(status)) {
             return getString(R.string.fertilizer_today_status_check);
         }
-        return localizedAdviceStatus(advice.getStatus());
+        return localizedAdviceStatus(status);
     }
 
     private String localizedAdviceStatus(String status) {
-        if ("ORGANİK ÜRÜN GEREKİYOR".equals(status)) {
-            return getString(R.string.runtime_status_organic_required);
+        if (status == null) return "";
+        switch (status) {
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
+                return getString(R.string.runtime_status_organic_required);
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
+                return getString(R.string.runtime_status_preparation_required);
+            case FertilizerAdvice.STATUS_TOO_EARLY:
+                return getString(R.string.runtime_status_too_early);
+            case FertilizerAdvice.STATUS_SEASON_COMPLETED:
+                return getString(R.string.runtime_status_season_completed);
+            case FertilizerAdvice.STATUS_PLAN_NOT_READY:
+                return getString(R.string.runtime_status_plan_not_ready);
+            case FertilizerAdvice.STATUS_PLAN_INACTIVE:
+                return getString(R.string.runtime_status_plan_inactive);
+            case FertilizerAdvice.STATUS_REFRESH_DATA:
+                return getString(R.string.runtime_status_refresh_data);
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
+                return getString(R.string.runtime_status_watering_first);
+            case FertilizerAdvice.STATUS_TODAY_ADVICE:
+                return getString(R.string.runtime_status_today_advice);
+            default:
+                return status;
         }
-        if ("HAZIRLIK GEREKİYOR".equals(status)) {
-            return getString(R.string.runtime_status_preparation_required);
-        }
-        if ("HENÜZ ERKEN".equals(status)) return getString(R.string.runtime_status_too_early);
-        if ("SEZON TAMAMLANDI".equals(status)) return getString(R.string.runtime_status_season_completed);
-        return status;
     }
 
     private int summaryStatusColor(FertilizerAdvice advice, boolean waiting) {
+        String status = advice.getStatus();
         if (waiting
-                || "ORGANİK ÜRÜN GEREKİYOR".equals(advice.getStatus())
-                || "HAZIRLIK GEREKİYOR".equals(advice.getStatus())
-                || "HENÜZ ERKEN".equals(advice.getStatus())
-                || "VERİYİ YENİLEYİN".equals(advice.getStatus())
-                || "ÖNCE SULAMA".equals(advice.getStatus())) {
+                || FertilizerAdvice.STATUS_ORGANIC_REQUIRED.equals(status)
+                || FertilizerAdvice.STATUS_PREPARATION_REQUIRED.equals(status)
+                || FertilizerAdvice.STATUS_TOO_EARLY.equals(status)
+                || FertilizerAdvice.STATUS_REFRESH_DATA.equals(status)
+                || FertilizerAdvice.STATUS_WATERING_FIRST.equals(status)) {
             return R.color.warning;
         }
         return R.color.primary;
@@ -1113,19 +1111,19 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             return getString(R.string.fertilizer_today_action_wait);
         }
         switch (advice.getStatus()) {
-            case "BUGÜNKÜ ÖNERİ":
+            case FertilizerAdvice.STATUS_TODAY_ADVICE:
                 return getString(R.string.fertilizer_today_action_ready);
-            case "ORGANİK ÜRÜN GEREKİYOR":
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
                 return getString(
                         R.string.fertilizer_today_action_organic_missing
                 );
-            case "HAZIRLIK GEREKİYOR":
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
                 return getString(R.string.fertilizer_today_action_prepare);
-            case "ÖNCE SULAMA":
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
                 return getString(
                         R.string.fertilizer_today_action_water_first
                 );
-            case "VERİYİ YENİLEYİN":
+            case FertilizerAdvice.STATUS_REFRESH_DATA:
                 return getString(
                         R.string.fertilizer_today_action_refresh_data
                 );
@@ -1140,7 +1138,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         if (waiting) {
             return getString(R.string.fertilizer_today_support_wait);
         }
-        if ("BUGÜNKÜ ÖNERİ".equals(advice.getStatus())) {
+        if (FertilizerAdvice.STATUS_TODAY_ADVICE.equals(advice.getStatus())) {
             boolean organicStage = zone.getFertilization() != null
                     && viewModel.requiresOrganicProduct(
                     zone.getFertilization()
@@ -1149,12 +1147,12 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                     ? R.string.fertilizer_today_support_ready_organic
                     : R.string.fertilizer_today_support_ready);
         }
-        if ("ORGANİK ÜRÜN GEREKİYOR".equals(advice.getStatus())) {
+        if (FertilizerAdvice.STATUS_ORGANIC_REQUIRED.equals(advice.getStatus())) {
             return getString(
                     R.string.fertilizer_today_support_organic_missing
             );
         }
-        if ("HAZIRLIK GEREKİYOR".equals(advice.getStatus())) {
+        if (FertilizerAdvice.STATUS_PREPARATION_REQUIRED.equals(advice.getStatus())) {
             return advice.getReason();
         }
         return "";
@@ -1166,7 +1164,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             waitDays = Math.max(waitDays, extractWaitDays(risk));
         }
         if (waitDays <= 0L) return 0L;
-        if ("HENÜZ ERKEN".equals(advice.getStatus())) return waitDays;
+        if (FertilizerAdvice.STATUS_TOO_EARLY.equals(advice.getStatus())) return waitDays;
 
         FertilizationProfile profile = zone.getFertilization();
         FertilizerAdvice.Experience experience = advice.getExperience();
@@ -1181,14 +1179,34 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     private long extractWaitDays(String value) {
         if (value == null || value.isBlank()) return 0L;
         java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
-                "(?i)(?:son uygulamadan sonra|tekrar uygulama)\\s+(\\d+)\\s+g(?:u|ü)n"
+                "(?i)(?:son uygulamadan sonra|tekrar uygulama)\\s+(\\d+)\\s+g[uü]n"
         ).matcher(value);
         if (!matcher.find()) return 0L;
+        String matchedDays = matcher.group(1);
+        if (matchedDays == null) return 0L;
         try {
-            return Long.parseLong(matcher.group(1));
+            return Long.parseLong(matchedDays);
         } catch (NumberFormatException ignored) {
             return 0L;
         }
+    }
+
+    private static long selectedDateEpoch(
+            int year,
+            int zeroBasedMonth,
+            int day
+    ) {
+        LocalDate selectedDate = LocalDate.of(
+                year,
+                zeroBasedMonth + 1,
+                day
+        );
+        if (selectedDate.equals(LocalDate.now())) {
+            return System.currentTimeMillis() / 1000L;
+        }
+        return selectedDate.atTime(12, 0)
+                .atZone(ZoneId.systemDefault())
+                .toEpochSecond();
     }
 
     private boolean hasMinimumIntervalRisk(FertilizerAdvice advice) {

@@ -34,8 +34,8 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     public static final String EXTRA_SEASON_ID = "season_id";
     public static final String EXTRA_INITIAL_TYPE = "initial_record_type";
     public static final String EXTRA_RELATED_APPLICATION_ID = "related_application_id";
-    public static final String RECORD_TYPE_PHOTO = "Fotoğraf";
-    private static final String[] TYPES = {"Gözlem", "Sulama", "Gübreleme", "Fotoğraf", "Olay"};
+    public static final String RECORD_TYPE_PHOTO = "photo";
+    private static final String[] TYPES = {"observation", "watering", "fertilization", "photo", "event"};
     private static final int[] TYPE_CARDS = {R.id.cardRecordObservation, R.id.cardRecordWatering, R.id.cardRecordFertilizer, R.id.cardRecordPhoto, R.id.cardRecordEvent};
     private final Calendar selectedDateTime = Calendar.getInstance();
     private String zoneId = "";
@@ -72,6 +72,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_new_journal_record);
+
         viewModel = new ViewModelProvider(this).get(PlantJournalViewModel.class);
         zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID);
         if (zoneId == null) zoneId = "";

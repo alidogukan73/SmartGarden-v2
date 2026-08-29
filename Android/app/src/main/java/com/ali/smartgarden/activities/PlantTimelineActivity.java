@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -70,6 +71,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
 
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state); setContentView(R.layout.activity_plant_timeline);
+
         viewModel = new ViewModelProvider(this).get(PlantJournalViewModel.class);
         zoneId = getIntent().getStringExtra(EXTRA_ZONE_ID); if (zoneId == null) zoneId = "";
         if (TAB_COMPARE.equals(getIntent().getStringExtra(EXTRA_INITIAL_TAB))) {
@@ -295,27 +297,23 @@ public class PlantTimelineActivity extends AppCompatActivity {
         if (zone == null || active == null) return;
         String type = "", note = "", sourceKey = "";
         if (zone.hasSensorData() && zone.getMoisture() <= zone.getMoisture_limit() - 10) {
-            type = "Nem riski";
-            note = "Toprak nemi %" + zone.getMoisture() + ". Bölge limiti %"
-                    + zone.getMoisture_limit() + " altında.";
+            type = "moisture_risk";
+            note = getString(R.string.runtime_signal_moisture_note);
             sourceKey = "moisture_risk";
         }
         if (type.isBlank() && weatherForecast != null) {
             Double temperature = weatherForecast.getTodayTemperatureMax(), rain = weatherForecast.getTodayRainProbability(), wind = weatherForecast.getTodayWindMax();
             if (temperature != null && temperature >= 34) {
-                type = "Sıcak hava uyarısı";
-                note = "Bugün en yüksek sıcaklık " + Math.round(temperature)
-                        + "°C. Toprak nemini ve yapraklarda solmayı takip edin.";
+                type = "hot_weather";
+                note = getString(R.string.runtime_signal_hot_note);
                 sourceKey = "hot_weather";
             } else if (rain != null && rain >= 70) {
-                type = "Yağış uyarısı";
-                note = "Yağış olasılığı %" + Math.round(rain)
-                        + ". Sulama öncesi toprak nemini yeniden kontrol edin.";
+                type = "rain_weather";
+                note = getString(R.string.runtime_signal_rain_note);
                 sourceKey = "rain_weather";
             } else if (wind != null && wind >= 35) {
-                type = "Kuvvetli rüzgar";
-                note = "Rüzgar yaklaşık " + Math.round(wind)
-                        + " km/sa. Toprak nemi daha hızlı düşebilir.";
+                type = "wind_weather";
+                note = getString(R.string.runtime_signal_wind_note);
                 sourceKey = "wind_weather";
             }
         }
@@ -528,13 +526,13 @@ public class PlantTimelineActivity extends AppCompatActivity {
             return;
         }
         PopupMenu menu = new PopupMenu(this, findViewById(R.id.btnTimelineAdd));
-        String[] types = {"Dikim yapıldı", "Gözlem / not", "Çiçeklenme dönemi başladı", "İlk ürün", "Hasat", "Özel olay", "Gelişim fotoğrafı ekle"};
+        String[] types = {"planting", "observation", "flowering", "first_product", "harvest", "special", "photo_growth"};
         for (int index = 0; index < types.length; index++) {
             menu.getMenu().add(0, index, index, eventTypeLabel(types[index]));
         }
         menu.setOnMenuItemClickListener(choice -> {
             String type = types[choice.getItemId()];
-            if ("Gelişim fotoğrafı ekle".equals(type)) {
+            if ("photo_growth".equals(type)) {
                 Intent i = new Intent(this, NewJournalRecordActivity.class);
                 i.putExtra(NewJournalRecordActivity.EXTRA_ZONE_ID, zoneId);
                 i.putExtra(NewJournalRecordActivity.EXTRA_SEASON_ID, active.getSeason_id());
@@ -547,13 +545,13 @@ public class PlantTimelineActivity extends AppCompatActivity {
     }
 
     private String eventTypeLabel(String type) {
-        if ("Dikim yapıldı".equals(type)) return getString(R.string.runtime_event_planting);
-        if ("Gözlem / not".equals(type)) return getString(R.string.runtime_event_note);
-        if ("Çiçeklenme dönemi başladı".equals(type)) return getString(R.string.runtime_event_flowering);
-        if ("İlk ürün".equals(type)) return getString(R.string.runtime_event_first_product);
-        if ("Hasat".equals(type)) return getString(R.string.runtime_event_harvest);
-        if ("Özel olay".equals(type)) return getString(R.string.runtime_event_special);
-        if ("Gelişim fotoğrafı ekle".equals(type)) return getString(R.string.runtime_event_growth_photo);
+        if ("planting".equals(type)) return getString(R.string.runtime_event_planting);
+        if ("observation".equals(type)) return getString(R.string.runtime_event_note);
+        if ("flowering".equals(type)) return getString(R.string.runtime_event_flowering);
+        if ("first_product".equals(type)) return getString(R.string.runtime_event_first_product);
+        if ("harvest".equals(type)) return getString(R.string.runtime_event_harvest);
+        if ("special".equals(type)) return getString(R.string.runtime_event_special);
+        if ("photo_growth".equals(type)) return getString(R.string.runtime_event_growth_photo);
         return type;
     }
 
@@ -564,7 +562,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
             return;
         }
         EditText input = new EditText(this);
-        input.setHint(type.equals("Dikim yapıldı")
+        input.setHint(type.equals("planting")
                 ? R.string.runtime_planting_hint : R.string.runtime_short_note_hint);
         input.setMinLines(3);
         int pad = dp(20);
@@ -598,18 +596,18 @@ public class PlantTimelineActivity extends AppCompatActivity {
                     ? context.getString(R.string.runtime_growth_photo) : photo.getAnalysis_title();
             String raw = event.getType();
             if (raw == null || raw.isBlank()) return context.getString(R.string.runtime_garden_record);
-            if ("Dikim yapıldı".equals(raw)) return context.getString(R.string.runtime_event_planting);
-            if ("Gözlem / not".equals(raw)) return context.getString(R.string.runtime_event_note);
-            if ("Çiçeklenme dönemi başladı".equals(raw)) return context.getString(R.string.runtime_event_flowering);
-            if ("İlk ürün".equals(raw)) return context.getString(R.string.runtime_event_first_product);
-            if ("Hasat".equals(raw)) return context.getString(R.string.runtime_event_harvest);
-            if ("Özel olay".equals(raw)) return context.getString(R.string.runtime_event_special);
+            if ("planting".equals(raw) || "Dikim yapıldı".equals(raw)) return context.getString(R.string.runtime_event_planting);
+            if ("observation".equals(raw) || "Gözlem / not".equals(raw)) return context.getString(R.string.runtime_event_note);
+            if ("flowering".equals(raw) || "Çiçeklenme dönemi başladı".equals(raw)) return context.getString(R.string.runtime_event_flowering);
+            if ("first_product".equals(raw) || "İlk ürün".equals(raw)) return context.getString(R.string.runtime_event_first_product);
+            if ("harvest".equals(raw) || "Hasat".equals(raw)) return context.getString(R.string.runtime_event_harvest);
+            if ("special".equals(raw) || "Özel olay".equals(raw)) return context.getString(R.string.runtime_event_special);
             if ("Takip fotoğrafı önerisi".equals(raw)) return context.getString(R.string.runtime_follow_up_photo_title);
             if ("Takip değerlendirmesi".equals(raw)) return context.getString(R.string.runtime_follow_up_assessment_title);
-            if ("Nem riski".equals(raw)) return context.getString(R.string.runtime_signal_moisture_title);
-            if ("Sıcak hava uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_hot_title);
-            if ("Yağış uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_rain_title);
-            if ("Kuvvetli rüzgar".equals(raw)) return context.getString(R.string.runtime_signal_wind_title);
+            if ("moisture_risk".equals(raw) || "Nem riski".equals(raw)) return context.getString(R.string.runtime_signal_moisture_title);
+            if ("hot_weather".equals(raw) || "Sıcak hava uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_hot_title);
+            if ("rain_weather".equals(raw) || "Yağış uyarısı".equals(raw)) return context.getString(R.string.runtime_signal_rain_title);
+            if ("wind_weather".equals(raw) || "Kuvvetli rüzgar".equals(raw)) return context.getString(R.string.runtime_signal_wind_title);
             return raw;
         }
         String detail(android.content.Context context) {
@@ -622,10 +620,10 @@ public class PlantTimelineActivity extends AppCompatActivity {
             String type = event.getType() == null ? "" : event.getType();
             if ("Takip fotoğrafı önerisi".equals(type)) return context.getString(R.string.runtime_follow_up_photo_note);
             if ("Takip değerlendirmesi".equals(type)) return context.getString(R.string.runtime_follow_up_assessment_note);
-            if ("Nem riski".equals(type)) return context.getString(R.string.runtime_signal_moisture_note);
-            if ("Sıcak hava uyarısı".equals(type)) return context.getString(R.string.runtime_signal_hot_note);
-            if ("Yağış uyarısı".equals(type)) return context.getString(R.string.runtime_signal_rain_note);
-            if ("Kuvvetli rüzgar".equals(type)) return context.getString(R.string.runtime_signal_wind_note);
+            if ("moisture_risk".equals(type) || "Nem riski".equals(type)) return context.getString(R.string.runtime_signal_moisture_note);
+            if ("hot_weather".equals(type) || "Sıcak hava uyarısı".equals(type)) return context.getString(R.string.runtime_signal_hot_note);
+            if ("rain_weather".equals(type) || "Yağış uyarısı".equals(type)) return context.getString(R.string.runtime_signal_rain_note);
+            if ("wind_weather".equals(type) || "Kuvvetli rüzgar".equals(type)) return context.getString(R.string.runtime_signal_wind_note);
             return event.getNote() == null || event.getNote().isBlank()
                     ? context.getString(R.string.runtime_journal_added) : event.getNote();
         }

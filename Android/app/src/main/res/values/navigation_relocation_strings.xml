@@ -2,7 +2,4 @@
 <resources>
     <string name="sensor_points_health_waiting">Sensör bilgileri bekleniyor · ayrıntıları görüntüle</string>
     <string name="sensor_points_health_summary_format">%1$d / %2$d sensör bağlı · ayrıntıları görüntüle</string>
-    <string name="ai_watering_settings_shortcut_title">Sulama ayarlarını düzenle</string>
-    <string name="ai_watering_settings_shortcut_description">Nem sınırı, süre ve bekleme ayarları</string>
-    <string name="symbol_settings_shortcut">⚙</string>
 </resources>

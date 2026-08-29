@@ -1,7 +1,6 @@
 package com.ali.smartgarden.activities;
 
 import android.content.res.ColorStateList;
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -29,7 +28,6 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.List;
@@ -59,8 +57,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtEsp32SensorStatus;
     private TextView txtEsp32SensorDetail;
     private TextView txtEsp32SensorLastSeen;
-    private TextView txtSensorPointsShortcutSummary;
-
     private TextView txtCpuTemperature;
     private TextView txtCpuUsage;
     private ProgressBar progressCpu;
@@ -89,7 +85,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
     private TextView txtThrottlingRaw;
     private TextView txtDiagnosticsSummary;
     private LinearLayout layoutDiagnostics;
-    private LinearLayout layoutSensorPointsShortcut;
     private Status latestStatus;
     private List<GardenZone> latestZones =
             Collections.emptyList();
@@ -151,9 +146,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
         layoutDiagnostics =
                 findViewById(R.id.layoutDiagnostics);
 
-        layoutSensorPointsShortcut =
-                findViewById(R.id.layoutSensorPointsShortcut);
-
         btnBack = findViewById(R.id.btnBack);
 
         btnRestartDevice =
@@ -202,9 +194,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 findViewById(R.id.txtEsp32SensorDetail);
         txtEsp32SensorLastSeen =
                 findViewById(R.id.txtEsp32SensorLastSeen);
-        txtSensorPointsShortcutSummary =
-                findViewById(R.id.txtSensorPointsShortcutSummary);
-
         txtCpuTemperature =
                 findViewById(R.id.txtCpuTemperature);
 
@@ -309,7 +298,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
                             ? Collections.emptyList()
                             : zones;
                     renderDiagnostics();
-                    renderSensorPointsShortcut();
                 }
         );
     }
@@ -324,54 +312,6 @@ public class DeviceHealthActivity extends AppCompatActivity {
                 view -> showRestartConfirmationDialog()
         );
 
-        layoutSensorPointsShortcut.setOnClickListener(
-                view -> startActivity(
-                        new Intent(
-                                this,
-                                SensorPointsActivity.class
-                        )
-                )
-        );
-    }
-    private void renderSensorPointsShortcut() {
-        int totalSensors = 0;
-        int connectedSensors = 0;
-        long now = Instant.now().getEpochSecond();
-
-        for (GardenZone zone : latestZones) {
-            if (zone == null
-                    || !zone.isEnabled()
-                    || !zone.isSensor_enabled()
-                    || zone.getSensor_id() == null
-                    || zone.getSensor_id().isBlank()) {
-                continue;
-            }
-
-            totalSensors++;
-            long updatedAt = zone.getUpdated_at_epoch();
-            long age = updatedAt > 0L
-                    ? Math.max(0L, now - updatedAt)
-                    : Long.MAX_VALUE;
-
-            if (age <= 90L) {
-                connectedSensors++;
-            }
-        }
-
-        if (totalSensors == 0) {
-            txtSensorPointsShortcutSummary.setText(
-                    R.string.sensor_points_health_waiting
-            );
-            return;
-        }
-
-        txtSensorPointsShortcutSummary.setText(
-                getString(
-                        R.string.sensor_points_health_summary_format,
-                        connectedSensors,
-                        totalSensors
-                )
-        );
     }
     private void showRestartConfirmationDialog() {
 
@@ -527,7 +467,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
     }
 
     /**
-     * ESP32 is independent from the Raspberry Pi. A missing wireless
+     * ESP32 is independent of the Raspberry Pi. A missing wireless
      * measurement therefore belongs to this card only; it must never turn
      * the Pi diagnostic into a false connection error.
      */
@@ -570,11 +510,11 @@ public class DeviceHealthActivity extends AppCompatActivity {
             return;
         }
 
-        String lastSeen = newestEpoch <= 0L
+        String lastSeen = newestEpoch == 0L
                 ? getString(R.string.runtime_no_esp32_data)
                 : getString(R.string.runtime_last_esp32_data,
                         formatSensorAge(Math.max(0L, nowEpoch - newestEpoch)),
-                        newest != null && newest.getRssi() != 0
+                        newest.getRssi() != 0
                                 ? getString(R.string.runtime_wifi_suffix, newest.getRssi()) : "");
 
         if (connected == 0) {
@@ -845,9 +785,7 @@ public class DeviceHealthActivity extends AppCompatActivity {
             );
         }
 
-        builder.append(
-                getString(R.string.symbol_warning) + " "
-        );
+        builder.append(getString(R.string.symbol_warning)).append(" ");
 
         builder.append(
                 eventText

@@ -105,6 +105,9 @@
             android:name=".activities.SensorCalibrationWizardActivity"
             android:exported="false" />
         <activity
+            android:name=".activities.SensorSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.FertilizationCalendarActivity"
             android:exported="false" />
         <activity
@@ -126,8 +129,6 @@
             android:name=".activities.AboutActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.SettingsActivity"
-            android:exported="false" />        <activity
             android:name=".activities.IrrigationSettingsActivity"
             android:exported="false" />
         <activity

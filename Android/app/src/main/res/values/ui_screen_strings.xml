@@ -44,6 +44,8 @@ daha sağlıklı sonuçlar elde edebilirsin.</string>
     <string name="plant_growth_description">Bitki gelişimi</string>
     <string name="record_type_title">Kayıt Türü</string>
     <string name="record_type_observation">Gözlem</string>
+    <string name="record_type_watering">Sulama</string>
+    <string name="record_type_fertilization">Gübreleme</string>
     <string name="record_type_photo">Fotoğraf</string>
     <string name="record_type_event">Olay</string>
     <string name="date_time_title">Tarih &amp; Saat</string>

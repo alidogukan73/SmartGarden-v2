@@ -56,6 +56,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
     @Override public void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_notification_center);
+
         viewModel = new ViewModelProvider(this).get(NotificationCenterViewModel.class);
         viewModel.getNotifications().observe(this, this::render);
         RecyclerView list = findViewById(R.id.listNotifications);
@@ -233,16 +234,10 @@ public class NotificationCenterActivity extends AppCompatActivity {
     }
 
     private void showClearNotificationsDialog() {
-
-        List<GardenNotification> notifications =
-                currentNotifications();
-
+        List<GardenNotification> notifications = currentNotifications();
         int removableCount = 0;
-
         for (GardenNotification value : notifications) {
-            if (value != null && !value.isSaved()) {
-                removableCount++;
-            }
+            if (value != null && !value.isSaved()) removableCount++;
         }
 
         if (removableCount == 0) {
@@ -251,43 +246,31 @@ public class NotificationCenterActivity extends AppCompatActivity {
                     .setMessage(R.string.notification_center_clear_none)
                     .setPositiveButton(R.string.notification_center_action_ok, null)
                     .show();
-
             return;
         }
 
         int finalRemovableCount = removableCount;
-
         new AlertDialog.Builder(this)
                 .setTitle(R.string.notification_center_clear_title)
                 .setMessage(getString(R.string.notification_center_clear_confirmation, finalRemovableCount))
                 .setNegativeButton(R.string.notification_center_action_cancel, null)
-                .setPositiveButton(R.string.notification_center_action_clear, (dialog, which) -> {
-
-                    viewModel.clearUnsaved(result ->
-
-                            runOnUiThread(() -> {
-
-                                if (result < 0) {
-
-                                    new AlertDialog.Builder(this)
-                                            .setTitle(R.string.notification_center_clear_failed_title)
-                                            .setMessage(R.string.notification_center_clear_failed_message)
-                                            .setPositiveButton(R.string.notification_center_action_ok, null)
-                                            .show();
-
-                                    return;
-                                }
-
-                                viewModel.refresh();
-
+                .setPositiveButton(R.string.notification_center_action_clear, (dialog, which) ->
+                        viewModel.clearUnsaved(result -> runOnUiThread(() -> {
+                            if (result < 0) {
                                 new AlertDialog.Builder(this)
-                                        .setTitle(R.string.notification_center_clear_success_title)
-                                        .setMessage(getString(R.string.notification_center_clear_success_message, result))
+                                        .setTitle(R.string.notification_center_clear_failed_title)
+                                        .setMessage(R.string.notification_center_clear_failed_message)
                                         .setPositiveButton(R.string.notification_center_action_ok, null)
                                         .show();
-                            })
-                    );
-                })
+                                return;
+                            }
+                            viewModel.refresh();
+                            new AlertDialog.Builder(this)
+                                    .setTitle(R.string.notification_center_clear_success_title)
+                                    .setMessage(getString(R.string.notification_center_clear_success_message, result))
+                                    .setPositiveButton(R.string.notification_center_action_ok, null)
+                                    .show();
+                        })))
                 .show();
     }
     private void showCategoryFilter() {

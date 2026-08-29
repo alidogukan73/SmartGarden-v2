@@ -4,7 +4,6 @@
     <string name="ai_technical_details_hide">Hide technical details</string>
     <string name="ai_analysis_scope_waiting">Preparing analysis sensor</string>
     <string name="ai_weather_effect_label">WEATHER EFFECT</string>
-    <string name="ai_sensor_points_shortcut_description">View wireless sensors in the garden</string>
     <string name="ai_selected_zone_title">%1$s %2$s · %3$d / %4$d</string>
     <string name="ai_selected_zone_sensor">Sensor: %1$s</string>
     <string name="ai_selected_zone_moisture_title">Current moisture and target</string>

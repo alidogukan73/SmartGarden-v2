@@ -36,7 +36,7 @@
     <string name="runtime_ideal_range">İdeal aralık</string>
     <string name="runtime_irrigation_running">Sulama yapılıyor</string>
     <string name="runtime_moisture_will_remeasure">Nem yeniden ölçülecek</string>
-    <string name="runtime_irrigation_preparing">Sulamaya hazırlanıyor</string>
+    <string name="runtime_irrigation_preparing">Sulama değerlendiriliyor</string>
     <string name="runtime_automatic_monitoring">Otomatik mod izliyor</string>
     <string name="runtime_automatic_on">Otomatik mod açık</string>
     <string name="runtime_automatic_off">Otomatik mod kapalı</string>
@@ -203,6 +203,11 @@ Fotoğraf ekle</string>
     <string name="runtime_status_preparation_required">HAZIRLIK GEREKİYOR</string>
     <string name="runtime_status_too_early">HENÜZ ERKEN</string>
     <string name="runtime_status_season_completed">SEZON TAMAMLANDI</string>
+    <string name="runtime_status_plan_not_ready">PLAN HAZIR DEĞİL</string>
+    <string name="runtime_status_plan_inactive">PLAN PASİF</string>
+    <string name="runtime_status_refresh_data">VERİYİ YENİLEYİN</string>
+    <string name="runtime_status_watering_first">ÖNCE SULAMA</string>
+    <string name="runtime_status_today_advice">BUGÜNKÜ ÖNERİ</string>
     <string name="runtime_form_liquid">Sıvı</string>
     <string name="runtime_form_powder">Toz</string>
     <string name="runtime_form_granular">Granül</string>

@@ -2,15 +2,15 @@
 <resources>
     <string name="symbol_restart_process" translatable="false">↻</string>
     <string name="ai_restart_process_title">Sulama sürecini baştan başlat</string>
-    <string name="ai_restart_process_description">Seçili veya tüm bölgelerin takılan karar oturumunu güvenle yeniler</string>
+    <string name="ai_restart_process_description">Bir bölgenin veya tüm bölgelerin takılan karar oturumunu güvenle yeniler</string>
     <string name="ai_restart_scope_title">Hangi süreç baştan başlatılsın?</string>
-    <string name="ai_restart_scope_selected">Seçili bölge · %1$s</string>
+    <string name="ai_restart_scope_zone">%1$s · %2$s</string>
     <string name="ai_restart_scope_all">Tüm bölgeler</string>
     <string name="ai_restart_dialog_title">%1$s süreci baştan başlatılsın mı?</string>
     <string name="ai_restart_dialog_message">Sulama geçmişi, öğrenilmiş sonuçlar ve güvenlik bekleme süresi korunur. Yalnız geçici ölçüm penceresi, çevrim kilidi ve bekleyen tahmin doğrulaması temizlenir. Pompa ve vanalar çalıştırılmaz.</string>
     <string name="ai_restart_cancel">Vazgeç</string>
     <string name="ai_restart_confirm">Baştan başlat</string>
-    <string name="ai_restart_no_zone">Önce bir bölge seçin.</string>
+    <string name="ai_restart_no_active_zone">Baştan başlatılabilecek aktif bölge yok.</string>
     <string name="ai_restart_watering_active">Sulama devam ederken asistan süreci başlatılamaz.</string>
     <string name="ai_restart_request_sent">Yeniden başlatma isteği gönderildi. Bölge için yeni ve güvenli ölçümler toplanacak.</string>
     <string name="ai_restart_all_dialog_title">Tüm bölge süreçleri baştan başlatılsın mı?</string>

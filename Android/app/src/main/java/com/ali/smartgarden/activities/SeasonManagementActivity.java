@@ -56,6 +56,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_season_management);
+
         findViewById(R.id.btnBack).setOnClickListener(view -> finish());
         zoneContainer = findViewById(R.id.layoutSeasonZones);
         emptyView = findViewById(R.id.txtSeasonEmpty);
@@ -513,7 +514,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         );
         crop.setSelection(initialCropPosition);
         EditText date = field(R.string.season_start_planting_date_hint, InputType.TYPE_CLASS_DATETIME);
-        date.setText(new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date()));
+        date.setText(new SimpleDateFormat(getString(R.string.date_format_dmy), Locale.getDefault()).format(new Date()));
         date.setFocusable(false);
         date.setClickable(true);
         date.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_my_calendar, 0);
@@ -522,7 +523,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         EditText label = field(R.string.season_start_label_hint, InputType.TYPE_CLASS_TEXT);
         label.setText(getString(
                 R.string.season_default_label,
-                new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date())
+                new SimpleDateFormat(getString(R.string.date_format_year), Locale.getDefault()).format(new Date())
         ));
         form.addView(date);
         form.addView(label);
@@ -795,7 +796,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
 
     private String formatEpoch(long epoch) {
         if (epoch <= 0L) return getString(R.string.season_date_unknown);
-        return new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date(epoch * 1000L));
+        return new SimpleDateFormat(getString(R.string.date_format_dmy), Locale.getDefault()).format(new Date(epoch * 1000L));
     }
 
     private void showDatePicker(EditText target) {

@@ -228,12 +228,10 @@ public class WateringHistoryActivity extends AppCompatActivity {
             List<WateringHistory> historyItems
     ) {
 
-        List<WateringHistory> safeItems =
-                historyItems != null
-                        ? historyItems
-                        : java.util.Collections.emptyList();
+        allHistory = historyItems != null
+                ? historyItems
+                : java.util.Collections.emptyList();
 
-        allHistory = safeItems;
         applyZoneFilter();
     }
 

@@ -44,6 +44,7 @@ public class SensorPointsActivity extends AppCompatActivity {
     private TextView txtSensorSummary;
     private TextView txtQueuePumpState;
     private LinearLayout layoutIrrigationQueue;
+    private String renderedQueueSignature = "";
 
     private final Runnable statusUpdater =
             new Runnable() {
@@ -93,14 +94,6 @@ public class SensorPointsActivity extends AppCompatActivity {
 
         adapter.setOnZoneClickListener(
                 zone -> {
-                    if (zone.getZone_id() == null
-                            || zone.getZone_id().isBlank()) {
-                        startActivity(new Intent(
-                                this,
-                                ZoneManagementActivity.class
-                        ));
-                        return;
-                    }
                     Intent intent = new Intent(
                             this,
                             ZoneDetailActivity.class
@@ -183,8 +176,6 @@ public class SensorPointsActivity extends AppCompatActivity {
     }
 
     private void renderIrrigationQueue() {
-        layoutIrrigationQueue.removeAllViews();
-
         GardenZone activeZone = null;
         List<GardenZone> queuedZones =
                 new ArrayList<>();
@@ -208,6 +199,16 @@ public class SensorPointsActivity extends AppCompatActivity {
                                 .getQueue_position()
                 )
         );
+
+        String queueSignature = queueSignature(
+                activeZone,
+                queuedZones
+        );
+        if (queueSignature.equals(renderedQueueSignature)) {
+            return;
+        }
+        renderedQueueSignature = queueSignature;
+        layoutIrrigationQueue.removeAllViews();
 
         txtQueuePumpState.setText(
                 activeZone == null
@@ -234,6 +235,29 @@ public class SensorPointsActivity extends AppCompatActivity {
         for (GardenZone zone : queuedZones) {
             addQueueZoneRow(zone);
         }
+    }
+
+    private String queueSignature(
+            GardenZone activeZone,
+            List<GardenZone> queuedZones
+    ) {
+        StringBuilder signature = new StringBuilder();
+        signature.append("active:")
+                .append(activeZone == null
+                        ? ""
+                        : activeZone.getZone_id());
+        for (GardenZone zone : queuedZones) {
+            ZoneIrrigationStatus status = zone.getIrrigation_status();
+            signature.append("|queued:")
+                    .append(zone.getZone_id())
+                    .append(':')
+                    .append(status == null ? 0 : status.getQueue_position())
+                    .append(':')
+                    .append(zone.getMoisture())
+                    .append(':')
+                    .append(status == null ? 0 : status.getMoisture_deficit());
+        }
+        return signature.toString();
     }
 
     private void addQueueEmptyRow() {

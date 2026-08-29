@@ -34,7 +34,6 @@ import com.ali.smartgarden.notifications.NotificationSignalCoordinator;
 import com.ali.smartgarden.plantassistant.PlantAssistantHomeRecommendation;
 import com.ali.smartgarden.plantassistant.PlantAssistantRecommendationStore;
 import com.ali.smartgarden.zones.ZoneCapacityPolicy;
-import com.google.android.gms.tasks.Task;
 
 import java.util.List;
 
@@ -193,9 +192,6 @@ public class MainViewModel extends AndroidViewModel {
     public void setRelay(boolean enabled) { repository.setRelay(enabled); }
     public void setAutoMode(boolean enabled) { repository.setAutoMode(enabled); }
     public void restartDevice() { repository.restartDevice(); }
-    public Task<Void> restartIrrigationAssistant(String zoneId) {
-        return repository.requestIrrigationAssistantRestart(zoneId);
-    }
     public void openManualValve(GardenZone zone) {
         repository.requestZoneValveTest(zone, 10800);
     }

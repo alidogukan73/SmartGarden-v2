@@ -1,5 +1,7 @@
 package com.ali.smartgarden.notifications;
 
+import com.ali.smartgarden.fertilization.FertilizerAdvice;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -148,11 +150,11 @@ public final class NotificationPolicy {
 
     public static boolean isActionableFertilizerAdvice(String status) {
         if (status == null) return false;
-        switch (status.trim().toUpperCase(Locale.ROOT)) {
-            case "BUGÜNKÜ ÖNERİ":
-            case "ORGANİK ÜRÜN GEREKİYOR":
-            case "ÖNCE SULAMA":
-            case "HAZIRLIK GEREKİYOR":
+        switch (status) {
+            case FertilizerAdvice.STATUS_TODAY_ADVICE:
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
                 return true;
             default:
                 return false;

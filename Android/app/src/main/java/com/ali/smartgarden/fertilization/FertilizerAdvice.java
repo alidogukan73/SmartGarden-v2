@@ -3,6 +3,16 @@ package com.ali.smartgarden.fertilization;
 import java.util.List;
 
 public class FertilizerAdvice {
+    public static final String STATUS_PLAN_NOT_READY = "PLAN_NOT_READY";
+    public static final String STATUS_SEASON_COMPLETED = "SEASON_COMPLETED";
+    public static final String STATUS_PLAN_INACTIVE = "PLAN_INACTIVE";
+    public static final String STATUS_ORGANIC_REQUIRED = "ORGANIC_REQUIRED";
+    public static final String STATUS_TOO_EARLY = "TOO_EARLY";
+    public static final String STATUS_PREPARATION_REQUIRED = "PREPARATION_REQUIRED";
+    public static final String STATUS_REFRESH_DATA = "REFRESH_DATA";
+    public static final String STATUS_WATERING_FIRST = "WATERING_FIRST";
+    public static final String STATUS_TODAY_ADVICE = "TODAY_ADVICE";
+
     private final String zoneTitle, status, reason, context;
     private final List<String> candidates;
     private final List<String> risks;

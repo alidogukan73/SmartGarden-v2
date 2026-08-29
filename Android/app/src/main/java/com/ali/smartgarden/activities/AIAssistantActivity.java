@@ -1,13 +1,11 @@
 package com.ali.smartgarden.activities;
 
 import android.animation.ValueAnimator;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -35,12 +33,10 @@ import com.ali.smartgarden.models.UnifiedConfidence;
 import com.ali.smartgarden.models.SoilLearningProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.ZoneAIState;
-import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import com.ali.smartgarden.models.WeatherForecast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
@@ -50,10 +46,10 @@ import java.util.Locale;
 
 import static com.ali.smartgarden.ui.irrigationassistant.IrrigationAssistantCodes.*;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class AIAssistantActivity extends AppCompatActivity {
 
     private static final String TAG = "AIAssistantActivity";
-    private static final String ALL_ZONES_RESET_SCOPE = "ALL";
 
     private DecisionStepAdapter decisionStepAdapter;
 
@@ -69,9 +65,6 @@ public class AIAssistantActivity extends AppCompatActivity {
     private MaterialCardView cardAISeverityBadge;
     private MaterialButton btnBack;
     private MaterialButton btnAIAdvancedDetails;
-    private MaterialCardView cardAIWateringSettings;
-    private MaterialCardView cardAISensorPoints;
-    private MaterialCardView cardAIRestartProcess;
     private MaterialCardView cardMoisturePrediction;
     private MaterialCardView cardMoisturePredictionStatusBadge;
     private MaterialCardView cardPredictionAccuracy;
@@ -189,8 +182,8 @@ public class AIAssistantActivity extends AppCompatActivity {
             @Nullable Bundle savedInstanceState
     ) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_ai_assistant);
+
         assistantFormatter = new IrrigationAssistantFormatter(this);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
         requestedZoneId = getIntent() == null ? null : getIntent().getStringExtra("zone_id");
@@ -265,12 +258,6 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         btnAIAdvancedDetails =
                 findViewById(R.id.btnAIAdvancedDetails);
-        cardAIWateringSettings =
-                findViewById(R.id.cardAIWateringSettings);
-        cardAISensorPoints =
-                findViewById(R.id.cardAISensorPoints);
-        cardAIRestartProcess =
-                findViewById(R.id.cardAIRestartProcess);
 
         txtAIDecisionTitle =
                 findViewById(R.id.txtAIDecisionTitle);
@@ -632,20 +619,6 @@ public class AIAssistantActivity extends AppCompatActivity {
                 )
         );
 
-        cardAIWateringSettings.setOnClickListener(view ->
-                startActivity(new Intent(this,
-                        IrrigationSettingsActivity.class))
-        );
-
-        cardAISensorPoints.setOnClickListener(view ->
-                startActivity(new Intent(this,
-                        SensorPointsActivity.class))
-        );
-
-        cardAIRestartProcess.setOnClickListener(
-                view -> showRestartScopeDialog()
-        );
-
         attachZoneSwipeListener(cardAIZoneSummary);
         attachZoneSwipeListener(cardMoisturePrediction);
     }
@@ -710,13 +683,6 @@ public class AIAssistantActivity extends AppCompatActivity {
         advancedDetailsVisible = visible;
 
         boolean hasZoneAI = hasSelectedZoneAIData();
-        cardAIWateringSettings.setVisibility(visible ? View.VISIBLE : View.GONE);
-        cardAISensorPoints.setVisibility(visible ? View.VISIBLE : View.GONE);
-        cardAIRestartProcess.setVisibility(
-                visible && getSelectedPredictionZone() != null
-                        ? View.VISIBLE
-                        : View.GONE
-        );
         cardAIProgress.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
         cardAIReasons.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
         cardAIDecisionFlow.setVisibility(visible && hasZoneAI ? View.VISIBLE : View.GONE);
@@ -745,143 +711,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         return zone != null && zone.getAi() != null;
     }
 
-    private void showRestartScopeDialog() {
-        GardenZone zone = getSelectedPredictionZone();
-        if (zone == null) {
-            Toast.makeText(
-                    this,
-                    R.string.ai_restart_no_zone,
-                    Toast.LENGTH_SHORT
-            ).show();
-            return;
-        }
 
-        String zoneName = assistantFormatter.safeText(
-                zone.getName(),
-                zone.getZone_id()
-        );
-        CharSequence[] scopes = {
-                getString(R.string.ai_restart_scope_selected, zoneName),
-                getString(R.string.ai_restart_scope_all)
-        };
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.ai_restart_scope_title)
-                .setItems(scopes, (dialog, which) -> {
-                    if (which == 0) {
-                        confirmRestartSelectedAssistantProcess();
-                    } else {
-                        confirmRestartAllAssistantProcesses();
-                    }
-                })
-                .setNegativeButton(R.string.ai_restart_cancel, null)
-                .show();
-    }
-    @Nullable
-    private GardenZone getSelectedPredictionZone() {
-        if (predictionZones.isEmpty()
-                || selectedPredictionZoneIndex < 0
-                || selectedPredictionZoneIndex >= predictionZones.size()) {
-            return null;
-        }
-        return predictionZones.get(selectedPredictionZoneIndex);
-    }
-
-    private void confirmRestartSelectedAssistantProcess() {
-        GardenZone zone = getSelectedPredictionZone();
-        if (zone == null) {
-            Toast.makeText(
-                    this,
-                    R.string.ai_restart_no_zone,
-                    Toast.LENGTH_SHORT
-            ).show();
-            return;
-        }
-
-        ZoneIrrigationStatus irrigationStatus = zone.getIrrigation_status();
-        if (irrigationStatus != null && irrigationStatus.isWatering_active()) {
-            Toast.makeText(
-                    this,
-                    R.string.ai_restart_watering_active,
-                    Toast.LENGTH_LONG
-            ).show();
-            return;
-        }
-
-        String zoneName = assistantFormatter.safeText(
-                zone.getName(),
-                zone.getZone_id()
-        );
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.ai_restart_dialog_title, zoneName))
-                .setMessage(R.string.ai_restart_dialog_message)
-                .setNegativeButton(R.string.ai_restart_cancel, null)
-                .setPositiveButton(
-                        R.string.ai_restart_confirm,
-                        (dialog, which) -> restartSelectedAssistantProcess(zone)
-                )
-                .show();
-    }
-
-    private void confirmRestartAllAssistantProcesses() {
-        for (GardenZone zone : predictionZones) {
-            ZoneIrrigationStatus status = zone == null
-                    ? null
-                    : zone.getIrrigation_status();
-            if (status != null && status.isWatering_active()) {
-                Toast.makeText(
-                        this,
-                        R.string.ai_restart_all_watering_active,
-                        Toast.LENGTH_LONG
-                ).show();
-                return;
-            }
-        }
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.ai_restart_all_dialog_title)
-                .setMessage(R.string.ai_restart_all_dialog_message)
-                .setNegativeButton(R.string.ai_restart_cancel, null)
-                .setPositiveButton(
-                        R.string.ai_restart_all_confirm,
-                        (dialog, which) -> restartAssistantProcess(
-                                ALL_ZONES_RESET_SCOPE,
-                                R.string.ai_restart_all_request_sent
-                        )
-                )
-                .show();
-    }
-
-    private void restartSelectedAssistantProcess(GardenZone zone) {
-        restartAssistantProcess(
-                zone.getZone_id(),
-                R.string.ai_restart_request_sent
-        );
-    }
-
-    private void restartAssistantProcess(
-            String scope,
-            int successMessage
-    ) {
-        cardAIRestartProcess.setEnabled(false);
-        viewModel.restartIrrigationAssistant(scope)
-                .addOnSuccessListener(unused -> {
-                    cardAIRestartProcess.setEnabled(true);
-                    Toast.makeText(
-                            this,
-                            successMessage,
-                            Toast.LENGTH_LONG
-                    ).show();
-                })
-                .addOnFailureListener(error -> {
-                    cardAIRestartProcess.setEnabled(true);
-                    Toast.makeText(
-                            this,
-                            R.string.ai_restart_request_failed,
-                            Toast.LENGTH_LONG
-                    ).show();
-                });
-    }
 
     private boolean hasReadyPredictionForSelectedZone() {
         if (!hasSelectedZoneAIData()) {
@@ -2282,9 +2112,11 @@ public class AIAssistantActivity extends AppCompatActivity {
                         )
                 );
 
-        return level
-                + " · %"
-                + percent;
+        return getString(
+                R.string.ai_confidence_value,
+                level,
+                (int) percent
+        );
     }
 
     /**
@@ -2555,7 +2387,7 @@ public class AIAssistantActivity extends AppCompatActivity {
         predictionZones.clear();
 
         if (zones != null) {
-            predictionZones.addAll(zones);
+            predictionZones.addAll(viewModel.activeZones(zones));
             predictionZones.sort(Comparator.comparingInt(GardenZone::getOrder));
         }
 

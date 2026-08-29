@@ -252,7 +252,7 @@ public class FertilizerReminderWorker extends Worker {
         if (!next.isAvailable()) {
             return;
         }
-        boolean applicationDecisionReady = "BUGÜNKÜ ÖNERİ".equals(
+        boolean applicationDecisionReady = FertilizerAdvice.STATUS_TODAY_ADVICE.equals(
                 advice.getStatus()
         ) && next.isApplicationReady();
         if (next.getWaitDays() <= 0L && !applicationDecisionReady) {
@@ -557,15 +557,15 @@ public class FertilizerReminderWorker extends Worker {
         String title;
         String priority = "NORMAL";
         switch (advice.getStatus()) {
-            case "ORGANİK ÜRÜN GEREKİYOR":
+            case FertilizerAdvice.STATUS_ORGANIC_REQUIRED:
                 title = context.getString(R.string.notification_fertilizer_ai_organic_title);
                 priority = "HIGH";
                 break;
-            case "ÖNCE SULAMA":
+            case FertilizerAdvice.STATUS_WATERING_FIRST:
                 title = context.getString(R.string.notification_fertilizer_ai_water_first_title);
                 priority = "HIGH";
                 break;
-            case "HAZIRLIK GEREKİYOR":
+            case FertilizerAdvice.STATUS_PREPARATION_REQUIRED:
                 title = context.getString(R.string.notification_fertilizer_ai_preparation_title);
                 break;
             default:

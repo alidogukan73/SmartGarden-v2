@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ali.smartgarden.R;
@@ -17,12 +18,15 @@ import com.ali.smartgarden.models.ZoneIrrigationStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class GardenZoneAdapter
         extends RecyclerView.Adapter<GardenZoneAdapter.ZoneViewHolder> {
 
     private static final long CONNECTED_SECONDS = 30L;
     private static final long WEAK_SECONDS = 90L;
+    private static final Object PAYLOAD_CONTENT_CHANGE = new Object();
+    private static final Object PAYLOAD_STATUS_REFRESH = new Object();
 
     private final List<GardenZone> zones =
             new ArrayList<>();
@@ -39,17 +43,59 @@ public class GardenZoneAdapter
     }
 
     public void submitZones(List<GardenZone> values) {
-        int previousCount = zones.size();
+        List<GardenZone> previous = new ArrayList<>(zones);
+        List<GardenZone> updated = values == null
+                ? new ArrayList<>()
+                : new ArrayList<>(values);
+
+        DiffUtil.DiffResult difference = DiffUtil.calculateDiff(
+                new DiffUtil.Callback() {
+                    @Override
+                    public int getOldListSize() {
+                        return previous.size();
+                    }
+
+                    @Override
+                    public int getNewListSize() {
+                        return updated.size();
+                    }
+
+                    @Override
+                    public boolean areItemsTheSame(
+                            int oldItemPosition,
+                            int newItemPosition
+                    ) {
+                        return itemIdentity(
+                                previous.get(oldItemPosition)
+                        ).equals(itemIdentity(
+                                updated.get(newItemPosition)
+                        ));
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(
+                            int oldItemPosition,
+                            int newItemPosition
+                    ) {
+                        return sameDisplayedContent(
+                                previous.get(oldItemPosition),
+                                updated.get(newItemPosition)
+                        );
+                    }
+
+                    @Override
+                    public Object getChangePayload(
+                            int oldItemPosition,
+                            int newItemPosition
+                    ) {
+                        return PAYLOAD_CONTENT_CHANGE;
+                    }
+                }
+        );
+
         zones.clear();
-        if (previousCount > 0) {
-            notifyItemRangeRemoved(0, previousCount);
-        }
-        if (values != null) {
-            zones.addAll(values);
-        }
-        if (!zones.isEmpty()) {
-            notifyItemRangeInserted(0, zones.size());
-        }
+        zones.addAll(updated);
+        difference.dispatchUpdatesTo(this);
     }
 
     public int getConnectedCount() {
@@ -77,10 +123,13 @@ public class GardenZoneAdapter
     }
 
     public void refreshStatuses() {
-        notifyItemRangeChanged(
-                0,
-                zones.size()
-        );
+        if (!zones.isEmpty()) {
+            notifyItemRangeChanged(
+                    0,
+                    zones.size(),
+                    PAYLOAD_STATUS_REFRESH
+            );
+        }
     }
 
     @NonNull
@@ -101,6 +150,22 @@ public class GardenZoneAdapter
 
     @Override
     public void onBindViewHolder(
+            @NonNull ZoneViewHolder holder,
+            int position
+    ) {
+        bindHolder(holder, position);
+    }
+
+    @Override
+    public void onBindViewHolder(
+            @NonNull ZoneViewHolder holder,
+            int position,
+            @NonNull List<Object> payloads
+    ) {
+        bindHolder(holder, position);
+    }
+
+    private void bindHolder(
             @NonNull ZoneViewHolder holder,
             int position
     ) {
@@ -125,6 +190,67 @@ public class GardenZoneAdapter
     @Override
     public int getItemCount() {
         return zones.size();
+    }
+
+    private static String itemIdentity(GardenZone zone) {
+        String zoneId = safe(zone == null ? null : zone.getZone_id());
+        if (!zoneId.isEmpty()) {
+            return "zone:" + zoneId;
+        }
+        return "sensor:" + safe(
+                zone == null ? null : zone.getSensor_id()
+        );
+    }
+
+    private static boolean sameDisplayedContent(
+            GardenZone previous,
+            GardenZone updated
+    ) {
+        if (previous == updated) {
+            return true;
+        }
+        if (previous == null || updated == null) {
+            return false;
+        }
+        return Objects.equals(previous.getName(), updated.getName())
+                && Objects.equals(previous.getEmoji(), updated.getEmoji())
+                && Objects.equals(previous.getSensor_id(), updated.getSensor_id())
+                && previous.isSensor_enabled() == updated.isSensor_enabled()
+                && previous.isIrrigation_enabled() == updated.isIrrigation_enabled()
+                && previous.getMoisture_limit() == updated.getMoisture_limit()
+                && previous.getMoisture() == updated.getMoisture()
+                && previous.getRssi() == updated.getRssi()
+                && previous.getRaw() == updated.getRaw()
+                && Double.compare(previous.getVoltage(), updated.getVoltage()) == 0
+                && previous.getUpdated_at_epoch() == updated.getUpdated_at_epoch()
+                && sameIrrigationStatus(
+                        previous.getIrrigation_status(),
+                        updated.getIrrigation_status()
+                );
+    }
+
+    private static boolean sameIrrigationStatus(
+            ZoneIrrigationStatus previous,
+            ZoneIrrigationStatus updated
+    ) {
+        if (previous == updated) {
+            return true;
+        }
+        if (previous == null || updated == null) {
+            return false;
+        }
+        return previous.isWatering_active() == updated.isWatering_active()
+                && previous.isCooldown_active() == updated.isCooldown_active()
+                && previous.getCooldown_remaining() == updated.getCooldown_remaining()
+                && previous.getQueue_position() == updated.getQueue_position()
+                && Objects.equals(
+                        previous.getDecision_reason(),
+                        updated.getDecision_reason()
+                );
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private static long getAgeSeconds(
@@ -193,21 +319,6 @@ public class GardenZoneAdapter
         }
 
         void bind(GardenZone zone) {
-            if (isUnassignedSensorPoint(zone)) {
-                name.setText(R.string.sensor_unassigned_point_title);
-                sensorId.setText(zone.getSensor_id());
-                measurement.setVisibility(View.GONE);
-                sensorMetrics.setVisibility(View.GONE);
-                waiting.setVisibility(View.VISIBLE);
-                lastUpdate.setVisibility(View.GONE);
-                irrigationStatus.setVisibility(View.GONE);
-                waiting.setText(R.string.sensor_unassigned_point_description);
-                setStatus(
-                        R.string.sensor_status_unassigned,
-                        R.color.textSecondary
-                );
-                return;
-            }
             String emoji =
                     zone.getEmoji() == null
                             ? "🌱"
@@ -319,14 +430,6 @@ public class GardenZoneAdapter
                     age
             );
             bindIrrigationStatus(zone);
-        }
-
-        private boolean isUnassignedSensorPoint(GardenZone zone) {
-            return zone != null
-                    && (zone.getZone_id() == null
-                    || zone.getZone_id().isBlank())
-                    && zone.getSensor_id() != null
-                    && !zone.getSensor_id().isBlank();
         }
 
         private int moistureColorResource(

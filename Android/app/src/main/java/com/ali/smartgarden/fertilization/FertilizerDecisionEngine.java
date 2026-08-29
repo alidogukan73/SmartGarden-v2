@@ -40,20 +40,20 @@ public final class FertilizerDecisionEngine {
                 ? "NOT_SET"
                 : FertilizerStagePolicy.normalize(profile.getGrowth_stage());
         if (profile == null || "NOT_SET".equals(normalizedStage)) {
-            return new FertilizerAdvice(title, "PLAN HAZIR DEĞİL",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_PLAN_NOT_READY,
                     "Dikim tarihi ve gelişim dönemi girildiğinde kişisel öneri hazırlanır.",
                     "", new ArrayList<>(),
                     combinedRisks(zone, products, weather, history, now));
         }
         String context = buildContext(zone, profile, weather, now);
         if (FertilizerStagePolicy.SEASON_END.equals(normalizedStage)) {
-            return new FertilizerAdvice(title, "SEZON TAMAMLANDI",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_SEASON_COMPLETED,
                     "Besleme gübresi önerilmez. Gelecek sezon için toprak analizi, organik madde ve taban gübresi planını hazırlayın.",
                     context, new ArrayList<>(),
                     new ArrayList<>());
         }
         if (!profile.isEnabled()) {
-            return new FertilizerAdvice(title, "PLAN PASİF",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_PLAN_INACTIVE,
                     "Bu bölgenin gübreleme planı kapalı. Önerileri yeniden görmek için planı etkinleştirin.",
                     context, new ArrayList<>(),
                     combinedRisks(zone, products, weather, history, now));
@@ -102,7 +102,7 @@ public final class FertilizerDecisionEngine {
                 || hasStageCompatibleConventionalProduct(products, profile))) {
             String period = FertilizerStagePolicy.HARVEST.equals(normalizedStage)
                     ? "Aktif hasat" : "Meyve oluşumu";
-            return new FertilizerAdvice(title, "ORGANİK ÜRÜN GEREKİYOR",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_ORGANIC_REQUIRED,
                     period + " döneminde kimyasal içerikli ürünler öneri dışında bırakıldı. "
                             + "Bu döneme uygun ve etiketi organik tarımda kullanıma izin veren bir ürün ekleyin.",
                     context, new ArrayList<>(),
@@ -115,20 +115,20 @@ public final class FertilizerDecisionEngine {
                     : "Bu uygulama türü için güvenli bekleme aralığı sürüyor. "
                     + "En yakın tekrar uygulama " + nearest
                     + " gün sonra değerlendirilebilir.";
-            return new FertilizerAdvice(title, "HENÜZ ERKEN", reason, context,
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_TOO_EARLY, reason, context,
                     new ArrayList<>(),
                     combinedRisks(zone, products, weather, history, now),
                     primaryExperience(candidates), recommendation);
         }
         if (ready.isEmpty()) {
-            return new FertilizerAdvice(title, "HAZIRLIK GEREKİYOR",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_PREPARATION_REQUIRED,
                     preparationReason(stageSuitable.get(0)), context, result,
                     combinedRisks(zone, products, weather, history, now),
                     experience, recommendation);
         }
         if (FertilizerDataFreshnessPolicy.requiresLiveSensor(zone)
                 && !FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)) {
-            return new FertilizerAdvice(title, "VERİYİ YENİLEYİN",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_REFRESH_DATA,
                     "Güncel toprak nemi alınamadığı için bugün uygulama kararı verilmedi. "
                             + "Sensör verisi yenilendiğinde öneriyi tekrar değerlendirin.",
                     context, result,
@@ -137,7 +137,7 @@ public final class FertilizerDecisionEngine {
         }
         if (FertilizerDataFreshnessPolicy.isSensorFresh(zone, now)
                 && zone.getMoisture() < zone.getMoisture_limit()) {
-            return new FertilizerAdvice(title, "ÖNCE SULAMA",
+            return new FertilizerAdvice(title, FertilizerAdvice.STATUS_WATERING_FIRST,
                     "Toprak nemi uygulama sınırının altında. Önce güvenli bir sulama yapın; "
                             + "kök bölgesi dengelendikten sonra gübreleme planını yeniden değerlendirin.",
                     context, result,
@@ -160,7 +160,7 @@ public final class FertilizerDecisionEngine {
                 && weather.getTomorrowTemperatureMax() >= 35.0) {
             reason += " Sıcaklık yüksek; serin saatleri tercih edin.";
         }
-        return new FertilizerAdvice(title, "BUGÜNKÜ ÖNERİ", reason, context, result,
+        return new FertilizerAdvice(title, FertilizerAdvice.STATUS_TODAY_ADVICE, reason, context, result,
                 combinedRisks(zone, products, weather, history, now),
                 experience, recommendation);
     }
