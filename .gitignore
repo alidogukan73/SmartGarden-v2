@@ -1,4 +1,8 @@
 credentials/
+functions/node_modules/
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
 
 smartgarden.log
 
@@ -6,6 +10,8 @@ firebase_key.json
 RaspberryPi/weather_api_key.txt
 RaspberryPi/vision_api_key.txt
 RaspberryPi/vision_client_token.txt
+RaspberryPi/feedback_email.env
+RaspberryPi/*feedback-email*.env
 Arduino/ESP32/**/secrets*.h
 
 # Local Android / Codex build caches and temporary UI captures

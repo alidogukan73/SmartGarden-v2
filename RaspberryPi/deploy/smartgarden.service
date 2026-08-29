@@ -15,11 +15,12 @@ ExecStart=/home/ali/SmartGarden-v2/RaspberryPi/.venv/bin/python /home/ali/SmartG
 
 Restart=on-failure
 RestartSec=5
-TimeoutStopSec=15
+TimeoutStopSec=30
 KillSignal=SIGTERM
 
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=-/etc/smartgarden/feedback-email.env
 
 StandardOutput=journal
 StandardError=journal

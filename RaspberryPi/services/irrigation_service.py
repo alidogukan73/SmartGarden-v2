@@ -20,6 +20,7 @@ from core.config import (
 from core.firebase_service import FirebaseService
 from core.logger import AppLogger
 from core.system_monitor import SystemMonitor
+from services.feedback_email_service import FeedbackEmailService
 from services.weather_service import WeatherService
 
 from controllers.smart_irrigation_engine import SmartIrrigationEngine
@@ -85,6 +86,9 @@ class IrrigationService:
         self._relay = RelayController()
         self._valves = ValveController()
         self._firebase = FirebaseService()
+        self._feedback_email = FeedbackEmailService(
+            self._firebase,
+        )
         self._weather = WeatherService()
         self._last_weather_update = 0.0
         self._weather_update_interval_seconds = 60 * 60
@@ -184,6 +188,7 @@ class IrrigationService:
         self._valves.initialize()
 
         self._firebase.initialize()
+        self._feedback_email.start()
         # A service restart closes every relay/valve. Clear any stale
         # Firebase status as well, otherwise Android can keep a manual valve
         # switch visually locked after the hardware is already safe.
@@ -2856,6 +2861,14 @@ class IrrigationService:
         except Exception as exc:
             self._logger.exception(
                 "Sensor provider cleanup failed: %s",
+                exc,
+            )
+
+        try:
+            self._feedback_email.stop()
+        except Exception as exc:
+            self._logger.exception(
+                "Feedback email service cleanup failed: %s",
                 exc,
             )
 

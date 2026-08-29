@@ -2008,6 +2008,172 @@ class FirebaseService:
             },
         )
 
+    def get_user_feedback(self) -> dict[str, dict]:
+        """Return structured Android feedback records."""
+
+        values = self._device_ref().child("user_feedback").get()
+        if not isinstance(values, dict):
+            return {}
+
+        return {
+            str(feedback_id): dict(feedback)
+            for feedback_id, feedback in values.items()
+            if isinstance(feedback, dict)
+        }
+
+    def get_or_create_feedback_email_activation_epoch(
+        self,
+        now_epoch: int,
+    ) -> int:
+        """Persist the first activation time so old test feedback is skipped."""
+
+        activation_ref = self._device_ref().child(
+            "user_feedback_email_state/activation_epoch",
+        )
+
+        def preserve_or_create(current):
+            try:
+                activation_epoch = int(current)
+            except (TypeError, ValueError):
+                activation_epoch = 0
+
+            return activation_epoch if activation_epoch > 0 else now_epoch
+
+        result = activation_ref.transaction(preserve_or_create)
+        try:
+            return int(result)
+        except (TypeError, ValueError):
+            return now_epoch
+
+    def claim_user_feedback_email(
+        self,
+        feedback_id: str,
+        *,
+        lease_token: str,
+        now_epoch: int,
+        lease_seconds: int,
+    ) -> dict | None:
+        """Atomically claim one feedback email for this Pi process."""
+
+        delivery_ref = (
+            self._device_ref()
+            .child("user_feedback")
+            .child(feedback_id)
+            .child("email_delivery")
+        )
+
+        def claim(current):
+            state = dict(current) if isinstance(current, dict) else {}
+            status = str(state.get("status", "")).strip().lower()
+            if status == "sent":
+                return state
+
+            try:
+                next_attempt = int(state.get("next_attempt_at_epoch", 0))
+            except (TypeError, ValueError):
+                next_attempt = 0
+            if next_attempt > now_epoch:
+                return state
+
+            if status == "sending":
+                try:
+                    claimed_at = int(state.get("claimed_at_epoch", 0))
+                except (TypeError, ValueError):
+                    claimed_at = 0
+                if now_epoch - claimed_at < lease_seconds:
+                    return state
+
+            try:
+                attempt_count = int(state.get("attempt_count", 0))
+            except (TypeError, ValueError):
+                attempt_count = 0
+
+            return {
+                "status": "sending",
+                "lease_token": lease_token,
+                "claimed_at_epoch": now_epoch,
+                "attempt_count": max(0, attempt_count) + 1,
+            }
+
+        result = delivery_ref.transaction(claim)
+        if not isinstance(result, dict):
+            return None
+        if result.get("status") != "sending":
+            return None
+        if result.get("lease_token") != lease_token:
+            return None
+        return dict(result)
+
+    def mark_user_feedback_email_sent(
+        self,
+        feedback_id: str,
+        *,
+        lease_token: str,
+        message_id: str,
+        now_epoch: int,
+    ) -> None:
+        """Complete a claimed feedback email without overwriting another worker."""
+
+        delivery_ref = (
+            self._device_ref()
+            .child("user_feedback")
+            .child(feedback_id)
+            .child("email_delivery")
+        )
+
+        def complete(current):
+            state = dict(current) if isinstance(current, dict) else {}
+            if state.get("lease_token") != lease_token:
+                return state
+            if state.get("status") != "sending":
+                return state
+
+            return {
+                "status": "sent",
+                "attempt_count": state.get("attempt_count", 1),
+                "sent_at_epoch": now_epoch,
+                "message_id": message_id,
+                "sender": "raspberry_pi",
+            }
+
+        delivery_ref.transaction(complete)
+
+    def mark_user_feedback_email_failed(
+        self,
+        feedback_id: str,
+        *,
+        lease_token: str,
+        error_message: str,
+        now_epoch: int,
+        next_attempt_at_epoch: int,
+    ) -> None:
+        """Release a failed claim and schedule a bounded retry."""
+
+        delivery_ref = (
+            self._device_ref()
+            .child("user_feedback")
+            .child(feedback_id)
+            .child("email_delivery")
+        )
+
+        def fail(current):
+            state = dict(current) if isinstance(current, dict) else {}
+            if state.get("lease_token") != lease_token:
+                return state
+            if state.get("status") != "sending":
+                return state
+
+            return {
+                "status": "failed",
+                "attempt_count": state.get("attempt_count", 1),
+                "failed_at_epoch": now_epoch,
+                "next_attempt_at_epoch": next_attempt_at_epoch,
+                "last_error": error_message[:500],
+                "sender": "raspberry_pi",
+            }
+
+        delivery_ref.transaction(fail)
+
     @property
     def command_state(self) -> CommandState:
         """
