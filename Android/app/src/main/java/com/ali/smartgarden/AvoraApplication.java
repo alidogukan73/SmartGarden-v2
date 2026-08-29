@@ -2,11 +2,13 @@ package com.ali.smartgarden;
 
 import android.app.Application;
 
+import com.ali.smartgarden.appcheck.AppCheckProviderInstaller;
 import com.ali.smartgarden.fertilization.FertilizerReminderScheduler;
 import com.ali.smartgarden.language.AvoraLanguageManager;
 import com.ali.smartgarden.notifications.DeviceConnectionNotificationMonitor;
 import com.ali.smartgarden.notifications.NotificationSignalScheduler;
 import com.ali.smartgarden.theme.AvoraThemeManager;
+import com.google.firebase.FirebaseApp;
 
 public class AvoraApplication extends Application {
 
@@ -16,6 +18,9 @@ public class AvoraApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        FirebaseApp.initializeApp(this);
+        AppCheckProviderInstaller.install();
 
         AvoraLanguageManager.applySavedLanguage(this);
         AvoraThemeManager.applySavedTheme(this);
