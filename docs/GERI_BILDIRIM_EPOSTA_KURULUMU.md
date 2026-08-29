@@ -3,7 +3,10 @@
 Android uygulaması geri bildirimleri Realtime Database altında
 `devices/smartgarden-001/user_feedback` yoluna kaydeder. Raspberry Pi
 servisi yeni kayıtları güvenli Gmail SMTP bağlantısıyla
-`alidogukan@gmail.com` adresine gönderir.
+`alidogukan+avora@gmail.com` adresine gönderir. Bu artı etiketli adres
+aynı `alidogukan@gmail.com` posta kutusuna ulaşır; gönderen ve alıcı
+adreslerinin birebir aynı olmasından kaynaklanan Gönderilmiş/Tüm Postalar
+birleştirmesini önler.
 
 Bu yöntem Firebase Blaze planı veya Cloud Functions gerektirmez.
 

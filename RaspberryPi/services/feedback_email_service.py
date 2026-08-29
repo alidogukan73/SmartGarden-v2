@@ -149,7 +149,7 @@ class FeedbackEmailSettings:
             ).strip(),
             recipient=os.getenv(
                 "SMARTGARDEN_FEEDBACK_EMAIL_TO",
-                "alidogukan@gmail.com",
+                "alidogukan+avora@gmail.com",
             ).strip(),
             app_password="".join(
                 os.getenv(

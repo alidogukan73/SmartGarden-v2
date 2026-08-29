@@ -11,7 +11,8 @@ from email.utils import parseaddr
 from pathlib import Path
 
 
-DEFAULT_EMAIL = "alidogukan@gmail.com"
+DEFAULT_SENDER_EMAIL = "alidogukan@gmail.com"
+DEFAULT_RECIPIENT_EMAIL = "alidogukan+avora@gmail.com"
 DEFAULT_TARGET = Path("/etc/smartgarden/feedback-email.env")
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
@@ -35,12 +36,16 @@ def normalize_app_password(value: str) -> str:
     return password
 
 
-def render_environment(email: str, app_password: str) -> str:
+def render_environment(
+    sender_email: str,
+    recipient_email: str,
+    app_password: str,
+) -> str:
     return "\n".join(
         (
             "SMARTGARDEN_FEEDBACK_EMAIL_ENABLED=true",
-            f"SMARTGARDEN_FEEDBACK_EMAIL_FROM={email}",
-            f"SMARTGARDEN_FEEDBACK_EMAIL_TO={email}",
+            f"SMARTGARDEN_FEEDBACK_EMAIL_FROM={sender_email}",
+            f"SMARTGARDEN_FEEDBACK_EMAIL_TO={recipient_email}",
             f"SMARTGARDEN_GMAIL_APP_PASSWORD={app_password}",
             "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false",
             "",
@@ -77,9 +82,14 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--email",
-        default=DEFAULT_EMAIL,
-        help="Gönderen ve alıcı Gmail adresi.",
+        "--sender-email",
+        default=DEFAULT_SENDER_EMAIL,
+        help="Gmail SMTP gönderen adresi.",
+    )
+    parser.add_argument(
+        "--recipient-email",
+        default=DEFAULT_RECIPIENT_EMAIL,
+        help="Geri bildirimlerin ulaşacağı Gmail adresi veya artı etiketi.",
     )
     parser.add_argument(
         "--target",
@@ -93,7 +103,8 @@ def main() -> None:
         parser.error("Bu araç sudo ile çalıştırılmalıdır.")
 
     try:
-        email = normalize_email(arguments.email)
+        sender_email = normalize_email(arguments.sender_email)
+        recipient_email = normalize_email(arguments.recipient_email)
         app_password = normalize_app_password(
             getpass.getpass("AVORA Gmail uygulama şifresi: "),
         )
@@ -102,7 +113,11 @@ def main() -> None:
 
     write_private_environment(
         arguments.target,
-        render_environment(email, app_password),
+        render_environment(
+            sender_email,
+            recipient_email,
+            app_password,
+        ),
     )
     print(f"Gizli yapılandırma kaydedildi: {arguments.target}")
     print("Şifre Git deposuna veya uygulama günlüklerine yazılmadı.")

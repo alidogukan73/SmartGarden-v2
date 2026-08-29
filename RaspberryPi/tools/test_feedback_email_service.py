@@ -200,9 +200,14 @@ def main() -> None:
     assert normalize_app_password("abcd efgh ijkl mnop") == "abcdefghijklmnop"
     environment = render_environment(
         "alidogukan@gmail.com",
+        "alidogukan+avora@gmail.com",
         "abcdefghijklmnop",
     )
     assert "SMARTGARDEN_FEEDBACK_EMAIL_ENABLED=true" in environment
+    assert (
+        "SMARTGARDEN_FEEDBACK_EMAIL_TO=alidogukan+avora@gmail.com"
+        in environment
+    )
     assert "SMARTGARDEN_GMAIL_APP_PASSWORD=abcdefghijklmnop" in environment
     assert "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false" in environment
 
