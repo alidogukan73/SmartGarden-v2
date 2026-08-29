@@ -4,11 +4,11 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.ali.smartgarden.BuildConfig;
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.FertilizationProfile;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.plantassistant.PlantAssistantVisionClient;
+import com.ali.smartgarden.security.AppCheckRequestAuthenticator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -84,7 +84,7 @@ public final class OrganicFertilizerAiAdvisor {
         connection.setReadTimeout(60000);
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("X-SmartGarden-Token", BuildConfig.PLANT_VISION_TOKEN);
+        AppCheckRequestAuthenticator.authorize(connection);
         connection.getOutputStream().write(payload);
         int status = connection.getResponseCode();
         InputStream stream = status >= 200 && status < 300

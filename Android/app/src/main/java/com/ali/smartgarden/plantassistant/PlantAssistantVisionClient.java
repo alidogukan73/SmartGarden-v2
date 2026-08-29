@@ -3,7 +3,7 @@ package com.ali.smartgarden.plantassistant;
 import android.graphics.Bitmap;
 import android.util.Base64;
 
-import com.ali.smartgarden.BuildConfig;
+import com.ali.smartgarden.security.AppCheckRequestAuthenticator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +36,7 @@ public final class PlantAssistantVisionClient {
         connection.setReadTimeout(60000);
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("X-SmartGarden-Token", BuildConfig.PLANT_VISION_TOKEN);
+        AppCheckRequestAuthenticator.authorize(connection);
         connection.getOutputStream().write(payload);
         int status = connection.getResponseCode();
         InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
