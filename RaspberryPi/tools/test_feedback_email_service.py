@@ -14,7 +14,10 @@ if str(ROOT) not in sys.path:
 from services.feedback_email_service import (  # noqa: E402
     FeedbackEmailService,
     FeedbackEmailSettings,
+    GmailInboxTransport,
+    GmailSmtpTransport,
     build_feedback_email,
+    create_feedback_email_transport,
 )
 from tools.configure_feedback_email import (  # noqa: E402
     normalize_app_password,
@@ -110,6 +113,33 @@ class FailingTransport:
         raise RuntimeError(self.error_message)
 
 
+class FakeImapClient:
+    def __init__(self) -> None:
+        self.login_values = None
+        self.append_values = None
+        self.logged_out = False
+
+    def login(self, username: str, password: str) -> None:
+        self.login_values = (username, password)
+
+    def append(self, mailbox, flags, date_time, message):
+        self.append_values = (mailbox, flags, date_time, message)
+        return "OK", [b"APPENDUID 1 42"]
+
+    def logout(self) -> None:
+        self.logged_out = True
+
+
+class FakeImapFactory:
+    def __init__(self) -> None:
+        self.client = FakeImapClient()
+        self.connection_values = None
+
+    def __call__(self, host, port, **kwargs):
+        self.connection_values = (host, port, kwargs)
+        return self.client
+
+
 def main() -> None:
     now_epoch = int(time.time())
     settings = FeedbackEmailSettings(
@@ -174,6 +204,40 @@ def main() -> None:
     assert "\n" not in str(unsafe["Subject"])
     assert unsafe["Reply-To"] is None
 
+    assert settings.resolved_delivery_mode() == "gmail_inbox"
+    assert isinstance(
+        create_feedback_email_transport(settings),
+        GmailInboxTransport,
+    )
+    external_sender_settings = FeedbackEmailSettings(
+        enabled=True,
+        sender="avora.sender@gmail.com",
+        recipient="alidogukan@gmail.com",
+        app_password="abcdefghijklmnop",
+    )
+    assert external_sender_settings.resolved_delivery_mode() == "smtp"
+    assert isinstance(
+        create_feedback_email_transport(external_sender_settings),
+        GmailSmtpTransport,
+    )
+
+    imap_factory = FakeImapFactory()
+    inbox_transport = GmailInboxTransport(
+        settings,
+        client_factory=imap_factory,
+    )
+    inbox_transport.send(message)
+    assert imap_factory.connection_values[0:2] == ("imap.gmail.com", 993)
+    assert imap_factory.client.login_values == (
+        "alidogukan@gmail.com",
+        "abcdefghijklmnop",
+    )
+    assert imap_factory.client.append_values[0] == "INBOX"
+    assert b"X-AVORA-Feedback-ID" in (
+        imap_factory.client.append_values[3]
+    )
+    assert imap_factory.client.logged_out
+
     failed_feedback = {
         "smtp-failure": {
             "created_at": (now_epoch + 2) * 1000,
@@ -208,6 +272,7 @@ def main() -> None:
         "SMARTGARDEN_FEEDBACK_EMAIL_TO=alidogukan+avora@gmail.com"
         in environment
     )
+    assert "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE=auto" in environment
     assert "SMARTGARDEN_GMAIL_APP_PASSWORD=abcdefghijklmnop" in environment
     assert "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false" in environment
 

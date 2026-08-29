@@ -47,6 +47,7 @@ def render_environment(
             f"SMARTGARDEN_FEEDBACK_EMAIL_FROM={sender_email}",
             f"SMARTGARDEN_FEEDBACK_EMAIL_TO={recipient_email}",
             f"SMARTGARDEN_GMAIL_APP_PASSWORD={app_password}",
+            "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE=auto",
             "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false",
             "",
         ),

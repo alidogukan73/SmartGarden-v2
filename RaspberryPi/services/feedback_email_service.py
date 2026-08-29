@@ -1,7 +1,8 @@
-"""Reliable Raspberry Pi delivery of Android feedback by Gmail SMTP."""
+"""Reliable Raspberry Pi delivery of Android feedback to Gmail."""
 
 from __future__ import annotations
 
+import imaplib
 import json
 import os
 import re
@@ -10,10 +11,12 @@ import ssl
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import timezone
 from email.message import EmailMessage
+from email.policy import SMTP
 from email.utils import formatdate
 from email.utils import parseaddr
 from typing import Protocol
@@ -64,6 +67,18 @@ def _valid_email(value) -> str:
     if address != text or not _EMAIL_PATTERN.fullmatch(address):
         return ""
     return address
+
+
+def _mailbox_identity(value) -> str:
+    address = _valid_email(value).lower()
+    if not address:
+        return ""
+
+    local_part, domain = address.rsplit("@", 1)
+    if domain in {"gmail.com", "googlemail.com"}:
+        local_part = local_part.split("+", 1)[0].replace(".", "")
+        domain = "gmail.com"
+    return f"{local_part}@{domain}"
 
 
 def _created_epoch(feedback: dict) -> int:
@@ -123,7 +138,7 @@ def _diagnostic_lines(value) -> list[str]:
 
 @dataclass(frozen=True)
 class FeedbackEmailSettings:
-    """Environment-backed SMTP settings; the password never enters Git."""
+    """Environment-backed Gmail settings; the password never enters Git."""
 
     enabled: bool
     sender: str
@@ -131,6 +146,9 @@ class FeedbackEmailSettings:
     app_password: str
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 465
+    imap_host: str = "imap.gmail.com"
+    imap_port: int = 993
+    delivery_mode: str = "auto"
     poll_interval_seconds: int = 15
     retry_initial_seconds: int = 60
     retry_max_seconds: int = 3600
@@ -166,6 +184,19 @@ class FeedbackEmailSettings:
                 465,
                 1,
             ),
+            imap_host=os.getenv(
+                "SMARTGARDEN_FEEDBACK_IMAP_HOST",
+                "imap.gmail.com",
+            ).strip(),
+            imap_port=_environment_int(
+                "SMARTGARDEN_FEEDBACK_IMAP_PORT",
+                993,
+                1,
+            ),
+            delivery_mode=os.getenv(
+                "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE",
+                "auto",
+            ).strip().lower(),
             poll_interval_seconds=_environment_int(
                 "SMARTGARDEN_FEEDBACK_EMAIL_POLL_SECONDS",
                 15,
@@ -198,10 +229,22 @@ class FeedbackEmailSettings:
             raise ValueError("Gmail sender address is invalid.")
         if not _valid_email(self.recipient):
             raise ValueError("Feedback recipient address is invalid.")
-        if not self.smtp_host:
+        delivery_mode = self.resolved_delivery_mode()
+        if delivery_mode == "smtp" and not self.smtp_host:
             raise ValueError("SMTP host is required.")
+        if delivery_mode == "gmail_inbox" and not self.imap_host:
+            raise ValueError("IMAP host is required.")
+        if self.delivery_mode not in {"auto", "gmail_inbox", "smtp"}:
+            raise ValueError("Feedback email delivery mode is invalid.")
         if len(self.app_password) != 16:
             raise ValueError("Gmail app password must contain 16 characters.")
+
+    def resolved_delivery_mode(self) -> str:
+        if self.delivery_mode != "auto":
+            return self.delivery_mode
+        if _mailbox_identity(self.sender) == _mailbox_identity(self.recipient):
+            return "gmail_inbox"
+        return "smtp"
 
 
 class FeedbackEmailRepository(Protocol):
@@ -328,6 +371,57 @@ class GmailSmtpTransport:
                 raise RuntimeError("SMTP refused one or more recipients.")
 
 
+class GmailInboxTransport:
+    """Append self-addressed AVORA messages directly to Gmail INBOX."""
+
+    def __init__(
+        self,
+        settings: FeedbackEmailSettings,
+        client_factory: Callable[..., imaplib.IMAP4_SSL] = imaplib.IMAP4_SSL,
+    ) -> None:
+        self._settings = settings
+        self._client_factory = client_factory
+
+    def send(self, message: EmailMessage) -> None:
+        context = ssl.create_default_context()
+        client = self._client_factory(
+            self._settings.imap_host,
+            self._settings.imap_port,
+            ssl_context=context,
+            timeout=10,
+        )
+        try:
+            client.login(
+                self._settings.sender,
+                self._settings.app_password,
+            )
+            status, response = client.append(
+                "INBOX",
+                None,
+                None,
+                message.as_bytes(policy=SMTP),
+            )
+            if status != "OK":
+                detail = _single_line(response, 300)
+                raise RuntimeError(
+                    f"Gmail IMAP inbox append failed: {detail}",
+                )
+        finally:
+            try:
+                client.logout()
+            except Exception:
+                pass
+
+
+def create_feedback_email_transport(
+    settings: FeedbackEmailSettings,
+) -> FeedbackEmailTransport:
+    mode = settings.resolved_delivery_mode()
+    if mode == "gmail_inbox":
+        return GmailInboxTransport(settings)
+    return GmailSmtpTransport(settings)
+
+
 class FeedbackEmailService:
     """Poll Firebase safely and deliver each new feedback record once."""
 
@@ -339,7 +433,14 @@ class FeedbackEmailService:
     ) -> None:
         self._repository = repository
         self._settings = settings or FeedbackEmailSettings.from_environment()
-        self._transport = transport or GmailSmtpTransport(self._settings)
+        self._delivery_mode = (
+            "custom"
+            if transport is not None
+            else self._settings.resolved_delivery_mode()
+        )
+        self._transport = transport or create_feedback_email_transport(
+            self._settings,
+        )
         self._logger = AppLogger().logger
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
@@ -493,7 +594,10 @@ class FeedbackEmailService:
         return delivered
 
     def _run(self) -> None:
-        self._logger.info("Feedback email delivery started.")
+        self._logger.info(
+            "Feedback email delivery started. mode=%s",
+            self._delivery_mode,
+        )
         while not self._stop_event.is_set():
             try:
                 self.process_once()

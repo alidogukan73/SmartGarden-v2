@@ -1,12 +1,10 @@
 # Raspberry Pi geri bildirim e-posta kurulumu
 
 Android uygulaması geri bildirimleri Realtime Database altında
-`devices/smartgarden-001/user_feedback` yoluna kaydeder. Raspberry Pi
-servisi yeni kayıtları güvenli Gmail SMTP bağlantısıyla
-`alidogukan+avora@gmail.com` adresine gönderir. Bu artı etiketli adres
-aynı `alidogukan@gmail.com` posta kutusuna ulaşır; gönderen ve alıcı
-adreslerinin birebir aynı olmasından kaynaklanan Gönderilmiş/Tüm Postalar
-birleştirmesini önler.
+`devices/smartgarden-001/user_feedback` yoluna kaydeder. Gönderen ve alıcı
+aynı Gmail hesabıysa Raspberry Pi, iletiyi TLS korumalı Gmail IMAP
+bağlantısıyla doğrudan `INBOX` posta kutusuna ekler. Farklı bir alıcı
+kullanılırsa güvenli Gmail SMTP teslimine otomatik geçer.
 
 Bu yöntem Firebase Blaze planı veya Cloud Functions gerektirmez.
 
@@ -14,6 +12,8 @@ Bu yöntem Firebase Blaze planı veya Cloud Functions gerektirmez.
 
 - Gmail ana hesap parolası kullanılmaz; yalnız AVORA için oluşturulan
   16 karakterli Google uygulama şifresi kullanılır.
+- Aynı Gmail hesabına teslimde `gmail_inbox`, farklı hesaba teslimde
+  `smtp` modu otomatik seçilir.
 - Uygulama şifresi `/etc/smartgarden/feedback-email.env` dosyasında
   yalnız root tarafından okunabilecek `0600` izniyle tutulur.
 - Şifre Git deposuna, Firebase'e ve uygulama günlüklerine yazılmaz.
