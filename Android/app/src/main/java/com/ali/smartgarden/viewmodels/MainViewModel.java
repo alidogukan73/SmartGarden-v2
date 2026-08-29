@@ -117,6 +117,10 @@ public class MainViewModel extends AndroidViewModel {
     public LiveData<List<WateringHistory>> getWateringHistory() { return wateringHistory; }
     public LiveData<Boolean> getAuthenticated() { return authenticated; }
 
+    public String getDeviceAuthorizationId() {
+        return repository.getCurrentUserId();
+    }
+
     public void authenticate() {
         repository.authenticateAnonymously().addOnCompleteListener(task ->
                 authenticated.setValue(task.isSuccessful()

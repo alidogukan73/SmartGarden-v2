@@ -99,6 +99,11 @@ Up to 5 photos · tap to change</item></plurals>
     <string name="runtime_symptom_flower_drop">Flower drop</string>
     <string name="runtime_other_observation">Other observation</string>
     <string name="runtime_firebase_connection_failed">A secure Firebase connection could not be established. Check your internet connection.</string>
+    <string name="runtime_device_authorization_title">Device authorization required</string>
+    <string name="runtime_device_authorization_message">A secure Firebase connection could not be established, or this phone is not yet authorized for the AVORA device.\n\nDevice authorization ID:\n%1$s</string>
+    <string name="runtime_device_authorization_id_label">Device authorization ID</string>
+    <string name="runtime_copy_authorization_id">Copy ID</string>
+    <string name="runtime_device_authorization_id_copied">Device authorization ID copied.</string>
     <string name="runtime_wind_format">💨
 Wind
 %1$s</string>

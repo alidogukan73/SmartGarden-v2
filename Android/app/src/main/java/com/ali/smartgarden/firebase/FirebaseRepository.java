@@ -254,6 +254,11 @@ public class FirebaseRepository {
       });
    }
 
+   public String getCurrentUserId() {
+      FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+      return currentUser == null ? "" : currentUser.getUid();
+   }
+
    private Task<Boolean> refreshAuthenticationClaims(FirebaseUser user) {
       return user.getIdToken(true).continueWith(task -> {
          if (!task.isSuccessful() || task.getResult() == null) return false;

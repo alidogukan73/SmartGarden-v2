@@ -1,5 +1,7 @@
 package com.ali.smartgarden.activities;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -41,6 +43,7 @@ import com.ali.smartgarden.ui.PrimaryBottomNavigation;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import android.os.Handler;
@@ -55,6 +58,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
+    private boolean authorizationErrorShown;
     private long connectionStartedElapsedMillis;
     private MaterialCardView cardOnlineStatus;
     private TextView txtOnline;
@@ -149,8 +153,7 @@ public class MainActivity extends AppCompatActivity {
             if (Boolean.TRUE.equals(authenticated)) {
                 initializeAuthenticatedApp();
             } else if (Boolean.FALSE.equals(authenticated)) {
-                Toast.makeText(this, R.string.runtime_firebase_connection_failed,
-                        Toast.LENGTH_LONG).show();
+                showFirebaseAuthorizationError();
             }
         });
         authenticateThenInitialize();
@@ -164,6 +167,37 @@ public class MainActivity extends AppCompatActivity {
     private void authenticateThenInitialize() {
 
         viewModel.authenticate();
+    }
+
+    private void showFirebaseAuthorizationError() {
+        if (authorizationErrorShown) return;
+        String authorizationId = viewModel.getDeviceAuthorizationId();
+        if (authorizationId == null || authorizationId.isBlank()) {
+            Toast.makeText(this, R.string.runtime_firebase_connection_failed,
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        authorizationErrorShown = true;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.runtime_device_authorization_title)
+                .setMessage(getString(
+                        R.string.runtime_device_authorization_message,
+                        authorizationId))
+                .setNegativeButton(R.string.runtime_close, null)
+                .setPositiveButton(R.string.runtime_copy_authorization_id,
+                        (dialog, which) -> copyDeviceAuthorizationId(authorizationId))
+                .show();
+    }
+
+    private void copyDeviceAuthorizationId(String authorizationId) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        if (clipboard == null) return;
+        clipboard.setPrimaryClip(ClipData.newPlainText(
+                getString(R.string.runtime_device_authorization_id_label),
+                authorizationId));
+        Toast.makeText(this, R.string.runtime_device_authorization_id_copied,
+                Toast.LENGTH_SHORT).show();
     }
 
     private void initializeAuthenticatedApp() {
@@ -313,11 +347,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    Toast.makeText(
-                            this,
-                            message,
-                            Toast.LENGTH_LONG
-                    ).show();
+                    showFirebaseAuthorizationError();
                 }
         );
     }

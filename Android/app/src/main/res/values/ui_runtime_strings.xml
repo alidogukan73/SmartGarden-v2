@@ -99,6 +99,11 @@ En fazla 5 fotoğraf · değiştirmek için dokunun</item></plurals>
     <string name="runtime_symptom_flower_drop">Çiçek dökümü</string>
     <string name="runtime_other_observation">Diğer gözlem</string>
     <string name="runtime_firebase_connection_failed">Güvenli Firebase bağlantısı kurulamadı. İnternet bağlantısını kontrol edin.</string>
+    <string name="runtime_device_authorization_title">Cihaz yetkilendirmesi gerekli</string>
+    <string name="runtime_device_authorization_message">Güvenli Firebase bağlantısı kurulamadı veya bu telefon henüz AVORA cihazına yetkili değil.\n\nCihaz yetkilendirme kimliği:\n%1$s</string>
+    <string name="runtime_device_authorization_id_label">Cihaz yetkilendirme kimliği</string>
+    <string name="runtime_copy_authorization_id">Kimliği kopyala</string>
+    <string name="runtime_device_authorization_id_copied">Cihaz yetkilendirme kimliği kopyalandı.</string>
     <string name="runtime_wind_format">💨
 Rüzgâr
 %1$s</string>
