@@ -41,9 +41,6 @@
     <string name="ai_weather_neutral_title">No additional weather action</string>
     <string name="ai_weather_neutral_summary">%1$s. No rain, strong-wind or extreme-heat adjustment is required.</string>
     <string name="ai_weather_neutral_safety">Watering occurs only when moisture need and cycle, cooldown, pump and valve protections allow it.</string>
-    <string name="ai_zone_duration_learned">Learned cycle duration: %1$s → %2$s · %3$d records, %4$d%% confidence</string>
-    <string name="ai_zone_duration_learned_weather">Learning and weather: %1$s → %2$s · %3$d records, %4$d%% confidence</string>
-    <string name="ai_zone_duration_weather">Cycle duration with weather adjustment: %1$s → %2$s</string>
     <string name="ai_adaptive_card_label">Learned duration</string>
     <string name="ai_adaptive_runtime_increase">Watering duration can be increased safely</string>
     <string name="ai_adaptive_runtime_decrease">Watering duration can be reduced safely</string>

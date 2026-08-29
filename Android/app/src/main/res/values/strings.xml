@@ -314,10 +314,6 @@
     <string
         name="fertilizer_stock_summary_empty">Henüz stok bilgisi girilmedi.</string>
     <string
-        name="fertilizer_stock_summary">Stok takibi: %1$d ürün · %2$d düşük · %3$d tükenmiş</string>
-    <string
-        name="fertilizer_stock_item">%1$s · %2$s %3$s · %4$s</string>
-    <string
         name="fertilizer_stock_ok">Yeterli</string>
     <string
         name="fertilizer_stock_status_low">Azalıyor</string>
@@ -1351,5 +1347,4 @@
     <string name="runtime_avora_comment_prefix">AVORA yorumu: </string>
 
     <string name="duration_hours_minutes_format">%1$d sa %2$d dk</string>
-    <string name="duration_hours_format">%1$d sa</string>
 </resources>

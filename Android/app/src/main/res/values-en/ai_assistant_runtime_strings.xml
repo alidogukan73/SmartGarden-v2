@@ -83,8 +83,6 @@
     <string name="ai_runtime_prediction_limit_unavailable">Estimated limit time: —</string>
     <string name="ai_runtime_last_updated_unavailable">Last updated: —</string>
     <string name="ai_runtime_target_minutes">%1$d min</string>
-    <string name="ai_runtime_decimal_rate_per_minute">%1$.3f/min</string>
-    <string name="ai_runtime_decimal_value">%1$.2f</string>
     <string name="ai_runtime_error_percent">%%%1$.2f</string>
     <string name="ai_runtime_multiplier">×%1$.2f</string>
     <string name="ai_runtime_moisture_percent">%%%1$.1f</string>

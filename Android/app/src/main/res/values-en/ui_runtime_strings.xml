@@ -121,7 +121,6 @@ Wind
     <string name="runtime_weather_balanced">Weather conditions look balanced for the garden.</string>
 
     <string name="runtime_offline_auto_mode">Automatic mode cannot be changed while the device is offline.</string>
-    <string name="runtime_open_valve_first">Pump could not start: open a valve first.</string>
     <string name="runtime_pump_simulation_protection">Pump protection is active: valves are in simulation mode.</string>
     <string name="runtime_offline_pump_start">Pump could not start: device is offline.</string>
     <string name="runtime_physical_suffix"> · Physical</string>
@@ -190,13 +189,6 @@ Add photo</string>
     <string name="runtime_just_now">Just now</string>
     <string name="runtime_seconds_ago">%1$d sec ago</string>
     <string name="runtime_minutes_ago">%1$d min ago</string>
-    <string name="runtime_connection_connected">● Connected</string>
-    <string name="runtime_connection_waiting">● Waiting</string>
-    <string name="runtime_connection_none">● No Connection</string>
-    <string name="runtime_rssi_excellent">Excellent (%1$d dBm)</string>
-    <string name="runtime_rssi_good">Good (%1$d dBm)</string>
-    <string name="runtime_rssi_weak">Weak (%1$d dBm)</string>
-    <string name="runtime_rssi_very_weak">Very weak (%1$d dBm)</string>
     <string name="runtime_product_unnamed">Unnamed product</string>
     <string name="runtime_zone_data_preparing">Preparing zone data.</string>
     <string name="runtime_status_organic_required">ORGANIC PRODUCT REQUIRED</string>

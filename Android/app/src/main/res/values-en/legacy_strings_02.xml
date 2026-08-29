@@ -33,8 +33,6 @@
     <string name="fertilization_stock_insufficient">Insufficient stock: %1$s %2$s available, recommended minimum %3$s %2$s</string>
     <string name="fertilization_stock_unit_mismatch">Stock unit (%1$s) does not match the calculated amount (%2$s).</string>
     <string name="fertilizer_stock_summary_empty">No stock information entered yet.</string>
-    <string name="fertilizer_stock_summary">Stock tracking: %1$d products · %2$d low · %3$d empty</string>
-    <string name="fertilizer_stock_item">%1$s · %2$s %3$s · %4$s</string>
     <string name="fertilizer_stock_ok">Sufficient</string>
     <string name="fertilizer_stock_status_low">Running low</string>
     <string name="fertilizer_stock_empty_status">Out of stock</string>

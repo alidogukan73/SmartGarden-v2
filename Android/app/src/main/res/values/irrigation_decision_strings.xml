@@ -41,9 +41,6 @@
     <string name="ai_weather_neutral_title">Hava kaynaklı ek işlem yok</string>
     <string name="ai_weather_neutral_summary">%1$s. Belirgin yağış, kuvvetli rüzgâr veya aşırı sıcaklık ayarlaması gerekmiyor.</string>
     <string name="ai_weather_neutral_safety">Sulama yalnızca nem ihtiyacı ve mevcut çevrim, bekleme, pompa ve vana korumaları uygunsa yapılır.</string>
-    <string name="ai_zone_duration_learned">Öğrenilmiş çevrim süresi: %1$s → %2$s · %3$d kayıt, güven %4$d%%</string>
-    <string name="ai_zone_duration_learned_weather">Öğrenme ve hava etkisi: %1$s → %2$s · %3$d kayıt, güven %4$d%%</string>
-    <string name="ai_zone_duration_weather">Hava etkisiyle çevrim süresi: %1$s → %2$s</string>
     <string name="ai_adaptive_card_label">Öğrenilmiş süre</string>
     <string name="ai_adaptive_runtime_increase">Sulama süresi güvenle artırılabilir</string>
     <string name="ai_adaptive_runtime_decrease">Sulama süresi güvenle azaltılabilir</string>

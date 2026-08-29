@@ -44,8 +44,6 @@ and make healthier decisions.</string>
     <string name="plant_growth_description">Plant growth</string>
     <string name="record_type_title">Record Type</string>
     <string name="record_type_observation">Observation</string>
-    <string name="record_type_watering">Watering</string>
-    <string name="record_type_fertilization">Fertilization</string>
     <string name="record_type_photo">Photo</string>
     <string name="record_type_event">Event</string>
     <string name="date_time_title">Date &amp; Time</string>

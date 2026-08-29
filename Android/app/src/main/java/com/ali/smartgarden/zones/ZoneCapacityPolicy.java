@@ -42,11 +42,17 @@ public final class ZoneCapacityPolicy {
                 || !zone.isEnabled();
     }
 
+    public static boolean isActive(GardenZone zone) {
+        return zone != null
+                && isValidZoneId(zone.getZone_id())
+                && !isInactive(zone);
+    }
+
     public static int activeCount(List<GardenZone> zones) {
         int count = 0;
         if (zones == null) return count;
         for (GardenZone zone : zones) {
-            if (zone != null && !isInactive(zone)) count++;
+            if (isActive(zone)) count++;
         }
         return count;
     }
@@ -55,7 +61,7 @@ public final class ZoneCapacityPolicy {
         List<GardenZone> result = new java.util.ArrayList<>();
         if (zones == null) return result;
         for (GardenZone zone : zones) {
-            if (zone != null && !isInactive(zone)) {
+            if (isActive(zone)) {
                 result.add(zone);
             }
         }
@@ -67,7 +73,7 @@ public final class ZoneCapacityPolicy {
         boolean[] active = new boolean[MAX_ZONES + 1];
         if (zones != null) {
             for (GardenZone zone : zones) {
-                if (zone == null || isInactive(zone)) continue;
+                if (!isActive(zone)) continue;
                 int value = slot(zone.getZone_id(), "zone");
                 if (value > 0) active[value] = true;
             }
@@ -154,7 +160,7 @@ public final class ZoneCapacityPolicy {
         }
         if (zones == null) return;
         for (GardenZone zone : zones) {
-            if (zone == null || isInactive(zone)
+            if (!isActive(zone)
                     || safe(zone.getZone_id()).equals(candidate.getZone_id())) continue;
             if (!sensorId.isEmpty() && sensorId.equalsIgnoreCase(safe(zone.getSensor_id()))) {
                 throw new IllegalArgumentException(ERROR_SENSOR_IN_USE);

@@ -121,7 +121,6 @@ Rüzgâr
     <string name="runtime_weather_balanced">Bahçe için hava koşulları dengeli görünüyor.</string>
 
     <string name="runtime_offline_auto_mode">Cihaz çevrimdışıyken otomatik mod değiştirilemez.</string>
-    <string name="runtime_open_valve_first">Pompa açılamadı: önce bir vana açın.</string>
     <string name="runtime_pump_simulation_protection">Pompa koruma altında: vanalar simülasyon modunda.</string>
     <string name="runtime_offline_pump_start">Pompa başlatılamadı: cihaz çevrimdışı.</string>
     <string name="runtime_physical_suffix"> · Fiziksel</string>
@@ -190,13 +189,6 @@ Fotoğraf ekle</string>
     <string name="runtime_just_now">Az önce</string>
     <string name="runtime_seconds_ago">%1$d sn önce</string>
     <string name="runtime_minutes_ago">%1$d dk önce</string>
-    <string name="runtime_connection_connected">● Bağlı</string>
-    <string name="runtime_connection_waiting">● Beklemede</string>
-    <string name="runtime_connection_none">● Bağlantı Yok</string>
-    <string name="runtime_rssi_excellent">Mükemmel (%1$d dBm)</string>
-    <string name="runtime_rssi_good">İyi (%1$d dBm)</string>
-    <string name="runtime_rssi_weak">Zayıf (%1$d dBm)</string>
-    <string name="runtime_rssi_very_weak">Çok zayıf (%1$d dBm)</string>
     <string name="runtime_product_unnamed">Adsız ürün</string>
     <string name="runtime_zone_data_preparing">Bölge verileri hazırlanıyor.</string>
     <string name="runtime_status_organic_required">ORGANİK ÜRÜN GEREKİYOR</string>
