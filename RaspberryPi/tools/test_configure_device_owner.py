@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from tools.configure_device_owner import (  # noqa: E402
     CLAIM_NAME,
+    filter_device_owner_uids,
     merge_device_claim,
     normalize_device_id,
     normalize_uid,
@@ -62,6 +64,26 @@ def main() -> None:
     assert_rejected(
         lambda: remove_device_claim(claims, "smartgarden-002"),
     )
+
+    users = [
+        SimpleNamespace(
+            uid="phone-owner",
+            custom_claims={CLAIM_NAME: "smartgarden-001"},
+        ),
+        SimpleNamespace(
+            uid="other-garden",
+            custom_claims={CLAIM_NAME: "smartgarden-002"},
+        ),
+        SimpleNamespace(uid="no-claims", custom_claims=None),
+        SimpleNamespace(
+            uid="emulator-owner",
+            custom_claims={CLAIM_NAME: "smartgarden-001"},
+        ),
+    ]
+    assert filter_device_owner_uids(users, "smartgarden-001") == [
+        "emulator-owner",
+        "phone-owner",
+    ]
 
     print("[PASS] Firebase device owner claim tests.")
 

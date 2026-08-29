@@ -28,6 +28,13 @@ cd RaspberryPi
 Araç, mevcut farklı özel yetkileri korur. Kullanıcı zaten başka bir AVORA
 cihazına bağlıysa yanlışlıkla üzerine yazmaz.
 
+Mevcut yetkili kullanıcıları değiştirmeden listelemek için:
+
+```bash
+cd ~/SmartGarden-v2/RaspberryPi
+.venv/bin/python tools/configure_device_owner.py --list
+```
+
 ## Kuralları önce emülatörde sınama
 
 Proje kökünde:

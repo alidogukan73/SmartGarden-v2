@@ -125,6 +125,22 @@ def revoke_device_owner(uid: str, device_id: str) -> None:
         raise RuntimeError("Firebase cihaz sahipliği kaldırılamadı.")
 
 
+def filter_device_owner_uids(users, device_id: str) -> list[str]:
+    owners = []
+    for user in users:
+        claims = user.custom_claims or {}
+        if str(claims.get(CLAIM_NAME, "")).strip() == device_id:
+            owners.append(user.uid)
+    return sorted(owners)
+
+
+def list_device_owners(device_id: str) -> list[str]:
+    return filter_device_owner_uids(
+        auth.list_users().iterate_all(),
+        device_id,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -134,7 +150,6 @@ def main() -> None:
     )
     parser.add_argument(
         "--uid",
-        required=True,
         help="Geri bildirim e-postasında görünen Firebase kullanıcı kimliği.",
     )
     parser.add_argument(
@@ -152,12 +167,29 @@ def main() -> None:
         action="store_true",
         help="Belirtilen kullanıcının AVORA cihaz erişimini kaldırır.",
     )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="Belirtilen AVORA cihazına yetkili kullanıcıları salt-okunur listeler.",
+    )
     arguments = parser.parse_args()
 
     try:
-        uid = normalize_uid(arguments.uid)
         device_id = normalize_device_id(arguments.device_id)
         initialize_firebase_admin()
+        if arguments.list:
+            if arguments.uid or arguments.remove or arguments.replace_existing:
+                parser.error("--list başka bir kullanıcı değiştirme seçeneğiyle kullanılamaz.")
+            owners = list_device_owners(device_id)
+            print(f"AVORA cihazı: {device_id}")
+            print(f"Yetkili kullanıcı sayısı: {len(owners)}")
+            for owner_uid in owners:
+                print(f"- {owner_uid}")
+            return
+
+        if not arguments.uid:
+            parser.error("Yetki vermek veya kaldırmak için --uid gereklidir.")
+        uid = normalize_uid(arguments.uid)
         if arguments.remove:
             revoke_device_owner(uid, device_id)
         else:
