@@ -8,6 +8,9 @@ kullanılırsa güvenli Gmail SMTP teslimine otomatik geçer.
 
 Bu yöntem Firebase Blaze planı veya Cloud Functions gerektirmez.
 
+Android istemcisinin cihaz sahipliği kurulumu ve güvenlik kurallarının güvenli
+yayım sırası için `FIREBASE_CIHAZ_SAHIPLIGI_GECISI.md` belgesini izleyin.
+
 ## Güvenlik ve teslim davranışı
 
 - Gmail ana hesap parolası kullanılmaz; yalnız AVORA için oluşturulan

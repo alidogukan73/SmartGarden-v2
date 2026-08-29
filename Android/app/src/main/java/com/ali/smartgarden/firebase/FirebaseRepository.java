@@ -233,8 +233,35 @@ public class FirebaseRepository {
 
    public Task<Boolean> authenticateAnonymously() {
       FirebaseAuth auth = FirebaseAuth.getInstance();
-      if (auth.getCurrentUser() != null) return Tasks.forResult(true);
-      return auth.signInAnonymously().continueWith(Task::isSuccessful);
+      FirebaseUser currentUser = auth.getCurrentUser();
+      if (currentUser != null) {
+         return refreshAuthenticationClaims(currentUser);
+      }
+      return auth.signInAnonymously().continueWithTask(task -> {
+         if (!task.isSuccessful()) {
+            Exception error = task.getException();
+            return Tasks.forException(error != null
+                  ? error
+                  : new IllegalStateException("Firebase authentication failed"));
+         }
+         FirebaseUser signedInUser = task.getResult().getUser();
+         if (signedInUser == null) {
+            return Tasks.forException(
+                  new IllegalStateException("Firebase user is unavailable")
+            );
+         }
+         return refreshAuthenticationClaims(signedInUser);
+      });
+   }
+
+   private Task<Boolean> refreshAuthenticationClaims(FirebaseUser user) {
+      return user.getIdToken(true).continueWith(task -> {
+         if (!task.isSuccessful() || task.getResult() == null) return false;
+         return DeviceOwnershipPolicy.ownsDevice(
+               task.getResult().getClaims(),
+               DEVICE_ID
+         );
+      });
    }
 
    public Task<String> getPushToken() {
@@ -2079,9 +2106,12 @@ public class FirebaseRepository {
       payload.put("device_id", DEVICE_ID);
       payload.put("source", "android");
       FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-      if (user != null) {
-         payload.put("user_id", user.getUid());
+      if (user == null) {
+         return Tasks.forException(
+               new IllegalStateException("Authenticated Firebase user is required")
+         );
       }
+      payload.put("user_id", user.getUid());
       return deviceRef.child("user_feedback").child(feedbackId).setValue(payload);
    }
 

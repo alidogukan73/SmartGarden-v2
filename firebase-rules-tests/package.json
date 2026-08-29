@@ -1,0 +1,11 @@
+{
+  "name": "smartgarden-firebase-rules-tests",
+  "private": true,
+  "scripts": {
+    "test": "npx --yes firebase-tools@15.28.2 --config ../firebase.json emulators:exec --only database --project demo-smartgarden-v2 \"node --test database.rules.test.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.18.0"
+  }
+}

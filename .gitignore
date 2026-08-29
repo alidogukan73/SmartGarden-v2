@@ -1,5 +1,6 @@
 credentials/
 functions/node_modules/
+firebase-rules-tests/node_modules/
 firebase-debug.log
 firebase-debug.*.log
 ui-debug.log
