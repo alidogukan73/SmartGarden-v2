@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+import time
 from typing import Literal
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -85,6 +86,7 @@ class SoilMoistureSensorProvider:
         ) = None
 
         self._initialized = False
+        self._initialized_at_monotonic = 0.0
 
         if self._mode == "wired":
             self._wired_sensor = (
@@ -120,6 +122,24 @@ class SoilMoistureSensorProvider:
 
         return self._initialized
 
+    def is_waiting_for_first_reading(self) -> bool:
+        """Return whether MQTT is still inside its safe startup window."""
+
+        if (
+            not self._initialized
+            or self._mode != "mqtt"
+            or self._mqtt_sensor is None
+        ):
+            return False
+
+        if self._mqtt_sensor.get_latest_reading() is not None:
+            return False
+
+        return (
+            time.monotonic() - self._initialized_at_monotonic
+            < self._mqtt_startup_timeout_seconds
+        )
+
     def initialize(self) -> None:
         """
         Initialize the selected sensor source.
@@ -138,6 +158,7 @@ class SoilMoistureSensorProvider:
             self._initialize_mqtt_sensor()
 
         self._initialized = True
+        self._initialized_at_monotonic = time.monotonic()
 
         self._logger.info(
             "Soil moisture sensor provider initialized. "
@@ -157,6 +178,7 @@ class SoilMoistureSensorProvider:
             self._mqtt_sensor.stop()
 
         self._initialized = False
+        self._initialized_at_monotonic = 0.0
 
         self._logger.info(
             "Soil moisture sensor provider stopped. "
@@ -231,8 +253,8 @@ class SoilMoistureSensorProvider:
         Start the MQTT sensor listener.
 
         The Raspberry Pi backend must remain online even if the ESP32 is
-        temporarily unpowered.  The first measurement is therefore handled
-        by the normal update loop instead of blocking startup.
+        temporarily unpowered. The normal update loop keeps actuators safe
+        and suppresses outage reporting during the configured startup window.
         """
 
         if self._mqtt_sensor is None:

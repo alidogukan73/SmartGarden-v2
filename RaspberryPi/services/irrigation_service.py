@@ -1184,6 +1184,12 @@ class IrrigationService:
             self._update_status_if_needed()
             self._update_health_if_needed()
 
+            if self._sensor.is_waiting_for_first_reading():
+                # A fresh service starts with every actuator closed. Do not
+                # process queued commands or publish a false sensor outage
+                # while the MQTT listener awaits its first packet.
+                return
+
             self._process_zone_test_command(
                 commands,
             )
