@@ -4,6 +4,7 @@ Service-level selection test for multi-zone automatic irrigation.
 
 from __future__ import annotations
 
+import io
 import logging
 import sys
 import types
@@ -156,8 +157,12 @@ def main() -> None:
     service._ai_decision_interval_seconds = 30
     service._prediction_history_limit = 100
     service._last_multi_zone_status_signature = None
-    service._last_zone_config_signature = None
+    service._last_zone_config_signatures = {}
     service._logger = logging.getLogger("zone-selection-test")
+    service._logger.setLevel(logging.INFO)
+    log_output = io.StringIO()
+    log_handler = logging.StreamHandler(log_output)
+    service._logger.addHandler(log_handler)
 
     commands = CommandState(
         enabled=True,
@@ -220,6 +225,13 @@ def main() -> None:
     )
     assert repeated is not None
     assert repeated.candidate.zone_id == "zone-002"
+
+    settings_logs = log_output.getvalue().count(
+        "Zone irrigation settings applied."
+    )
+    assert settings_logs == 2
+    service._logger.removeHandler(log_handler)
+    log_handler.close()
 
     print(
         "[PASS] Service selected the driest eligible zone.",

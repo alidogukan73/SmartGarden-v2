@@ -172,7 +172,7 @@ class IrrigationService:
         self._active_zone_test_mode = ""
         self._active_zone_test_deadline = 0.0
         self._last_irrigation_assistant_reset_request_id = ""
-        self._last_zone_config_signature = None
+        self._last_zone_config_signatures = {}
         self._pending_watering_measurements: list[
             PendingWateringMeasurement
         ] = []
@@ -1862,8 +1862,11 @@ class IrrigationService:
             valve_id,
         )
 
-        if signature != self._last_zone_config_signature:
-            self._last_zone_config_signature = signature
+        if (
+            signature
+            != self._last_zone_config_signatures.get(zone_id)
+        ):
+            self._last_zone_config_signatures[zone_id] = signature
             self._logger.info(
                 "Zone irrigation settings applied. "
                 "zone_id=%s enabled=%s limit=%d duration=%d "
