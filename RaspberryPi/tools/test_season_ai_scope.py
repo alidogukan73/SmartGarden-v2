@@ -55,6 +55,7 @@ def main() -> None:
     service._multi_zone_engine = _Engine()
     service._last_zone_ai_update = 42.0
     service._last_multi_zone_status_signature = ("old",)
+    service._last_multi_zone_log_signature = ("old",)
     service._logger = _Logger()
     service._persist_zone_irrigation_safety_state = lambda **_kwargs: None
 
@@ -78,6 +79,7 @@ def main() -> None:
     assert service._multi_zone_engine.reset_sensor_ids == ["soil-001"]
     assert service._last_zone_ai_update == 0.0
     assert service._last_multi_zone_status_signature is None
+    assert service._last_multi_zone_log_signature is None
 
     print("[PASS] Season boundary resets only transient zone AI state.")
 

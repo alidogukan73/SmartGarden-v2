@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ali.smartgarden.R;
 import com.ali.smartgarden.models.GardenZone;
+import com.ali.smartgarden.settings.ZoneCooldownOptions;
 import com.ali.smartgarden.viewmodels.ZoneDetailViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -180,16 +181,24 @@ public class ZoneDetailActivity extends AppCompatActivity {
 
         cooldownSlider.addOnChangeListener(
                 (slider, value, fromUser) -> {
+                    int cooldownMinutes =
+                            ZoneCooldownOptions.minutesForSliderValue(value);
                     cooldownValue.setText(
                             getString(
                                     R.string.zone_minutes_format,
-                                    Math.round(value)
+                                    cooldownMinutes
                             )
                     );
                     if (fromUser) {
                         updateUnsavedState();
                     }
                 }
+        );
+        cooldownSlider.setLabelFormatter(
+                value -> getString(
+                        R.string.zone_minutes_format,
+                        ZoneCooldownOptions.minutesForSliderValue(value)
+                )
         );
 
         restartDeltaSlider.addOnChangeListener(
@@ -408,7 +417,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         irrigationEnabled.isChecked(),
                         Math.round(moistureSlider.getValue()),
                         Math.round(durationSlider.getValue()),
-                        Math.round(cooldownSlider.getValue()) * 60,
+                        getCooldownMinutes() * 60,
                         Math.round(restartDeltaSlider.getValue()),
                         sensorEnabled.isChecked(),
                         sensorDryRaw,
@@ -525,7 +534,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
                     originalPumpDuration
             );
             cooldownSlider.setValue(
-                    originalCooldownMinutes
+                    ZoneCooldownOptions.sliderValueForMinutes(
+                            originalCooldownMinutes
+                    )
             );
             restartDeltaSlider.setValue(
                     originalRestartDelta
@@ -607,7 +618,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 != originalMoistureLimit
                 || Math.round(durationSlider.getValue())
                 != originalPumpDuration
-                || Math.round(cooldownSlider.getValue())
+                || getCooldownMinutes()
                 != originalCooldownMinutes
                 || Math.round(restartDeltaSlider.getValue())
                 != originalRestartDelta
@@ -631,7 +642,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
         originalPumpDuration =
                 Math.round(durationSlider.getValue());
         originalCooldownMinutes =
-                Math.round(cooldownSlider.getValue());
+                getCooldownMinutes();
         originalRestartDelta =
                 Math.round(restartDeltaSlider.getValue());
         originalIrrigationEnabled =
@@ -715,7 +726,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
         renderingRemoteValues = true;
         moistureSlider.setValue(40);
         durationSlider.setValue(10);
-        cooldownSlider.setValue(10);
+        cooldownSlider.setValue(
+                ZoneCooldownOptions.sliderValueForMinutes(10)
+        );
         restartDeltaSlider.setValue(10);
         irrigationEnabled.setChecked(false);
         renderingRemoteValues = false;
@@ -724,6 +737,12 @@ public class ZoneDetailActivity extends AppCompatActivity {
         updateUnsavedState();
         settingsStatus.setText(
                 R.string.settings_defaults_applied
+        );
+    }
+
+    private int getCooldownMinutes() {
+        return ZoneCooldownOptions.minutesForSliderValue(
+                cooldownSlider.getValue()
         );
     }
 

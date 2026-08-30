@@ -51,6 +51,7 @@ class FakeFirebase:
         self.ai_states = {}
         self.garden_summary = {}
         self.history_requests = []
+        self.decision_update_count = 0
         self.configs = {
             "soil-001": self._zone(
                 "zone-001",
@@ -99,6 +100,7 @@ class FakeFirebase:
         states: dict,
     ) -> None:
         self.states = states
+        self.decision_update_count += 1
 
     def update_zone_ai_states(
         self,
@@ -110,11 +112,14 @@ class FakeFirebase:
 
 
 class FakeExecutor:
+    def __init__(self) -> None:
+        self.cooldown_remaining = 0
+
     def is_cooldown_active(self, _zone_id: str) -> bool:
         return False
 
     def cooldown_remaining_for(self, _zone_id: str) -> int:
-        return 0
+        return self.cooldown_remaining
 
     def cooldown_until_epoch_for(self, _zone_id: str) -> int:
         return 0
@@ -157,6 +162,7 @@ def main() -> None:
     service._ai_decision_interval_seconds = 30
     service._prediction_history_limit = 100
     service._last_multi_zone_status_signature = None
+    service._last_multi_zone_log_signature = None
     service._last_zone_config_signatures = {}
     service._logger = logging.getLogger("zone-selection-test")
     service._logger.setLevel(logging.INFO)
@@ -226,10 +232,31 @@ def main() -> None:
     assert repeated is not None
     assert repeated.candidate.zone_id == "zone-002"
 
+    updates_before_countdown = (
+        service._firebase.decision_update_count
+    )
+    decision_logs_before_countdown = log_output.getvalue().count(
+        "Multi-zone decisions updated."
+    )
+    service._zone_executor.cooldown_remaining = 119
+    countdown_update = service._update_multi_zone_decisions(
+        readings=readings,
+        global_commands=commands,
+    )
+    assert countdown_update is not None
+    assert service._firebase.decision_update_count == (
+        updates_before_countdown + 1
+    )
+
     settings_logs = log_output.getvalue().count(
         "Zone irrigation settings applied."
     )
     assert settings_logs == 2
+    decision_logs = log_output.getvalue().count(
+        "Multi-zone decisions updated."
+    )
+    assert decision_logs_before_countdown > 0
+    assert decision_logs == decision_logs_before_countdown
     service._logger.removeHandler(log_handler)
     log_handler.close()
 

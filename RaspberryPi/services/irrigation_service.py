@@ -118,6 +118,7 @@ class IrrigationService:
         self._multi_zone_engine = MultiZoneDecisionEngine()
         self._zone_scheduler = ZoneIrrigationScheduler()
         self._last_multi_zone_status_signature = None
+        self._last_multi_zone_log_signature = None
 
         self._ai_pipeline = AIPipeline()
         self._prediction_validation_queue = PredictionValidationQueue()
@@ -594,6 +595,7 @@ class IrrigationService:
         )
         self._last_zone_ai_update = 0.0
         self._last_multi_zone_status_signature = None
+        self._last_multi_zone_log_signature = None
         self._logger.info(
             "Zone season changed; transient irrigation AI reset. "
             "zone_id=%s sensor_id=%s previous_season_id=%s active_season_id=%s",
@@ -2307,17 +2309,25 @@ class IrrigationService:
         self._firebase.update_zone_irrigation_decisions(
             states,
         )
-        self._logger.info(
-            "Multi-zone decisions updated. "
-            "connected=%d queued=%d selected=%s",
+        selected_zone_id = (
+            selected.zone_id
+            if selected is not None
+            else "none"
+        )
+        log_signature = (
             len(results),
             len(ordered_candidates),
-            (
-                selected.zone_id
-                if selected is not None
-                else "none"
-            ),
+            selected_zone_id,
         )
+        if log_signature != self._last_multi_zone_log_signature:
+            self._last_multi_zone_log_signature = log_signature
+            self._logger.info(
+                "Multi-zone decisions updated. "
+                "connected=%d queued=%d selected=%s",
+                len(results),
+                len(ordered_candidates),
+                selected_zone_id,
+            )
 
         return selected_result
 
@@ -2726,6 +2736,7 @@ class IrrigationService:
                 self._last_ai_decision_update = 0.0
                 self._last_prediction_validation_status_update = 0.0
                 self._last_multi_zone_status_signature = None
+                self._last_multi_zone_log_signature = None
                 result = (
                     "COMPLETED_ALL"
                     if reset_all_zones
