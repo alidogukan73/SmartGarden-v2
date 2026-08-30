@@ -1,6 +1,18 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.services)
+}
+
+val releaseSigningPropertiesFile = file(
+    "${System.getProperty("user.home")}/AVORA-Signing/keystore.properties"
+)
+val releaseSigningProperties = Properties().apply {
+    if (releaseSigningPropertiesFile.isFile) {
+        FileInputStream(releaseSigningPropertiesFile).use(::load)
+    }
 }
 
 android {
@@ -25,13 +37,35 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningPropertiesFile.isFile) {
+                storeFile = file(releaseSigningProperties.getProperty("storeFile"))
+                storePassword = releaseSigningProperties.getProperty("storePassword")
+                keyAlias = releaseSigningProperties.getProperty("keyAlias")
+                keyPassword = releaseSigningProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        create("internal") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("release")
+            versionNameSuffix = "-internal"
+            matchingFallbacks += listOf("release")
         }
     }
     compileOptions {
@@ -52,6 +86,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-messaging")
     debugImplementation("com.google.firebase:firebase-appcheck-debug")
+    add("internalImplementation", "com.google.firebase:firebase-appcheck-debug")
     releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
