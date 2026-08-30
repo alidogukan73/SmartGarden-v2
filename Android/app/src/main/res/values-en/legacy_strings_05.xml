@@ -70,6 +70,9 @@
     <string name="zone_test_start_title">Start zone simulation?</string>
     <string name="zone_test_start_message">The %1$s valve will be simulated for %2$s. The real pump will not run.</string>
     <string name="zone_test_start">Start simulation</string>
+    <string name="zone_physical_test_start_title">Start physical valve test?</string>
+    <string name="zone_physical_test_start_message">The %1$s valve will physically open for %2$s. The real pump will remain off for safety.</string>
+    <string name="zone_physical_test_start">Start valve test</string>
     <string name="zone_test_cancel">Stop simulation</string>
     <string name="zone_test_cancelled">Simulation stop command sent</string>
     <string name="zone_test_active">Simulation running · Real pump off</string>

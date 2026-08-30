@@ -1100,6 +1100,12 @@
     <string
         name="zone_test_start">Simülasyonu başlat</string>
     <string
+        name="zone_physical_test_start_title">Fiziksel vana testi başlatılsın mı?</string>
+    <string
+        name="zone_physical_test_start_message">%1$s vanası %2$s boyunca fiziksel olarak açılacak. Güvenlik için gerçek pompa çalıştırılmayacak.</string>
+    <string
+        name="zone_physical_test_start">Vana testini başlat</string>
+    <string
         name="zone_test_cancel">Simülasyonu durdur</string>
     <string
         name="zone_test_cancelled">Simülasyon durdurma komutu gönderildi</string>

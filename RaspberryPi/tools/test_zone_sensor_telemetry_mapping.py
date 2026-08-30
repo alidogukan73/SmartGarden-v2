@@ -69,6 +69,27 @@ def make_service(
 
 
 def main() -> None:
+    initial_signature = FirebaseService._zone_sensor_map_signature(
+        {
+            "soil-002": "zone-002",
+            "soil-001": "zone-001",
+        }
+    )
+    same_signature = FirebaseService._zone_sensor_map_signature(
+        {
+            "soil-001": "zone-001",
+            "soil-002": "zone-002",
+        }
+    )
+    reassigned_signature = FirebaseService._zone_sensor_map_signature(
+        {
+            "soil-001": "zone-004",
+            "soil-002": "zone-002",
+        }
+    )
+    assert initial_signature == same_signature
+    assert initial_signature != reassigned_signature
+
     service, reference = make_service(
         "soil-004",
         "zone-004",
@@ -104,4 +125,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -83,7 +83,11 @@ class FirebaseService:
         self._zone_by_sensor_id: dict[str, str] = {}
         self._zone_config_by_sensor_id: dict[str, dict] = {}
         self._zone_map_refreshed_at = 0.0
-        self._zone_map_refresh_seconds = max(1.0, AppConfig.LOOP_DELAY_SECONDS)
+        self._zone_map_refresh_seconds = max(
+            10.0,
+            FirebaseConfig.STATUS_UPDATE_INTERVAL_SECONDS,
+        )
+        self._zone_map_signature: tuple[tuple[str, str], ...] | None = None
         self._published_sensor_configs: dict[
             str,
             tuple[bool, int, int],
@@ -652,12 +656,18 @@ class FirebaseService:
             self._logger.warning,
         )
 
+        map_signature = self._zone_sensor_map_signature(
+            zone_by_sensor_id,
+        )
+        map_changed = map_signature != self._zone_map_signature
+
         self._zone_by_sensor_id = (
             zone_by_sensor_id
         )
         self._zone_config_by_sensor_id = (
             zone_config_by_sensor_id
         )
+        self._zone_map_signature = map_signature
         self._zone_map_refreshed_at = (
             time.monotonic()
         )
@@ -669,10 +679,19 @@ class FirebaseService:
             zone_config_by_sensor_id,
         )
 
-        self._logger.info(
-            "Garden zone sensor map refreshed. count=%d",
-            len(self._zone_by_sensor_id),
-        )
+        if map_changed:
+            self._logger.info(
+                "Garden zone sensor map refreshed. count=%d",
+                len(self._zone_by_sensor_id),
+            )
+
+    @staticmethod
+    def _zone_sensor_map_signature(
+        zone_by_sensor_id: dict[str, str],
+    ) -> tuple[tuple[str, str], ...]:
+        """Return a stable signature for sensor-to-zone assignments."""
+
+        return tuple(sorted(zone_by_sensor_id.items()))
 
     def _publish_saved_sensor_configs(
         self,

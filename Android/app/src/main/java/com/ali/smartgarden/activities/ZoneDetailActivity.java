@@ -282,11 +282,20 @@ public class ZoneDetailActivity extends AppCompatActivity {
                 1,
                 Math.round(durationSlider.getValue())
         );
+        boolean physical = "PHYSICAL".equals(
+                currentZone.getValve_mode()
+        );
         new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.zone_test_start_title)
+                .setTitle(
+                        physical
+                                ? R.string.zone_physical_test_start_title
+                                : R.string.zone_test_start_title
+                )
                 .setMessage(
                         getString(
-                                R.string.zone_test_start_message,
+                                physical
+                                        ? R.string.zone_physical_test_start_message
+                                        : R.string.zone_test_start_message,
                                 currentZone.getName(),
                                 formatPumpDuration(duration)
                         )
@@ -296,7 +305,9 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         null
                 )
                 .setPositiveButton(
-                        R.string.zone_test_start,
+                        physical
+                                ? R.string.zone_physical_test_start
+                                : R.string.zone_test_start,
                         (dialog, which) ->
                                 startZoneTest(duration)
                 )
