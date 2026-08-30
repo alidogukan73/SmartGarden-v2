@@ -20,7 +20,6 @@ from services.plant_vision_service import PlantVisionService
 HOST = os.getenv("SMARTGARDEN_VISION_HOST", "0.0.0.0")
 PORT = int(os.getenv("SMARTGARDEN_VISION_PORT", "8787"))
 MAX_BODY_BYTES = 7 * 1024 * 1024
-TOKEN_PATH = Path(os.getenv("SMARTGARDEN_VISION_TOKEN_FILE", "vision_client_token.txt"))
 FIREBASE_APP_ID = os.getenv(
     "SMARTGARDEN_VISION_FIREBASE_APP_ID",
     "1:891662021997:android:cb8c582fdcbd87e6829664",
@@ -28,13 +27,6 @@ FIREBASE_APP_ID = os.getenv(
 SERVICE = PlantVisionService()
 LOGGER = logging.getLogger("smartgarden.plant_vision")
 APP_CHECK_READY = False
-
-
-def _token() -> str:
-    try:
-        return TOKEN_PATH.read_text(encoding="utf-8").strip()
-    except OSError:
-        return ""
 
 
 def _initialize_app_check() -> None:
@@ -71,16 +63,11 @@ def _verify_app_check_token(
 
 def _authorization_method(
     headers: Mapping[str, str],
-    legacy_token: str,
     verifier: Callable[[str], Mapping[str, object]] | None = None,
 ) -> str:
     app_check_token = headers.get("X-Firebase-AppCheck", "").strip()
     if _verify_app_check_token(app_check_token, verifier):
         return "APP_CHECK"
-
-    supplied_legacy_token = headers.get("X-SmartGarden-Token", "").strip()
-    if legacy_token and hmac.compare_digest(supplied_legacy_token, legacy_token):
-        return "LEGACY"
     return ""
 
 
@@ -89,10 +76,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/health":
             self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
             return
-        authorization_ready = APP_CHECK_READY or bool(_token())
         self._json(
             HTTPStatus.OK,
-            {"configured": SERVICE.configured() and authorization_ready},
+            {"configured": SERVICE.configured() and APP_CHECK_READY},
         )
 
     def do_POST(self) -> None:  # noqa: N802
@@ -103,12 +89,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in supported_paths:
             self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
             return
-        authorization_method = _authorization_method(self.headers, _token())
+        authorization_method = _authorization_method(self.headers)
         if not authorization_method:
             self._json(HTTPStatus.UNAUTHORIZED, {"error": "UNAUTHORIZED"})
             return
-        if authorization_method == "LEGACY":
-            LOGGER.warning("Plant vision request used legacy authorization.")
         length = int(self.headers.get("Content-Length", "0"))
         if length <= 0 or length > MAX_BODY_BYTES:
             self._json(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, {"error": "REQUEST_TOO_LARGE"})
@@ -151,8 +135,7 @@ def main() -> None:
         _initialize_app_check()
     except Exception:
         LOGGER.exception("Plant vision Firebase App Check initialization failed.")
-        if not _token():
-            raise
+        raise
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     LOGGER.info("Plant vision server listening on %s:%s", HOST, PORT)
     server.serve_forever()
