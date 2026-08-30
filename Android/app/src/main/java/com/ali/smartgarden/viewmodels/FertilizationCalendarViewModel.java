@@ -20,6 +20,7 @@ import com.ali.smartgarden.models.FertilizerApplication;
 import com.ali.smartgarden.models.FertilizerProduct;
 import com.ali.smartgarden.models.GardenZone;
 import com.ali.smartgarden.models.WeatherForecast;
+import com.ali.smartgarden.zones.ZoneCapacityPolicy;
 import com.google.android.gms.tasks.Task;
 
 import java.util.List;
@@ -100,6 +101,10 @@ public class FertilizationCalendarViewModel extends AndroidViewModel {
 
     public LiveData<List<GardenZone>> getZones() {
         return zones;
+    }
+
+    public List<GardenZone> activeZones(List<GardenZone> values) {
+        return ZoneCapacityPolicy.activeZones(values);
     }
 
     public LiveData<List<FertilizerProduct>> getProducts() {

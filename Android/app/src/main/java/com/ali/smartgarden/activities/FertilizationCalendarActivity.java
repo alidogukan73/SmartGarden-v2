@@ -917,9 +917,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     }
 
     private void renderZones(List<GardenZone> zones) {
-        currentZones = zones == null
-                ? new ArrayList<>()
-                : zones;
+        currentZones = viewModel.activeZones(zones);
         renderTodayAdvice();
     }
 
