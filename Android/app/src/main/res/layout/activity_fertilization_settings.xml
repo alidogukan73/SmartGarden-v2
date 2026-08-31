@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fertilizationSettingsRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/fertilizationSettingsToolbar"
@@ -252,6 +251,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
+                        android:paddingStart="0dp"
                         android:paddingEnd="52dp"
                         android:text="@string/fertilizer_organic_preference_message"
                         android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle" />
@@ -275,6 +275,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
+                        android:paddingStart="0dp"
                         android:paddingEnd="52dp"
                         android:text="@string/fertilization_settings_reminder_message"
                         android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle" />
@@ -298,6 +299,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
+                        android:paddingStart="0dp"
                         android:paddingEnd="52dp"
                         android:text="@string/fertilization_settings_stock_warning_message"
                         android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle" />

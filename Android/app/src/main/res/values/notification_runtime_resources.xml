@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="notification_action_save">Kaydet</string>
     <string name="notification_action_remove_saved">Kaydı kaldır</string>
     <string name="notification_detail_zone_number">Bölge %1$d</string>
 
     <string name="notification_weather_rain_title">Yağış riski yüksek</string>
-    <string name="notification_weather_rain_description">Tahminde %%%1$d yağış olasılığı var. Sulama öncesi toprak nemini yeniden kontrol edin.</string>
+    <string name="notification_weather_rain_description" tools:ignore="PluralsCandidate">Tahminde %%%1$d yağış olasılığı var. Sulama öncesi toprak nemini yeniden kontrol edin.</string>
     <string name="notification_weather_heat_title">Yüksek sıcaklık uyarısı</string>
     <string name="notification_weather_heat_description">Tahminde %1$d°C görülüyor. Toprak nemini ve yapraklarda solmayı takip edin.</string>
     <string name="notification_weather_wind_title">Kuvvetli rüzgâr uyarısı</string>
@@ -13,7 +13,7 @@
 
     <string name="notification_device_offline_title">Raspberry Pi bağlantısı kesildi</string>
     <string name="notification_device_offline_unknown">Raspberry Pi’den bağlantı bilgisi alınamıyor. Enerji ve ağ bağlantısını kontrol edin.</string>
-    <string name="notification_device_offline_minutes">Raspberry Pi yaklaşık %1$d dakikadır yanıt vermiyor. Enerji ve ağ bağlantısını kontrol edin.</string>
+    <string name="notification_device_offline_minutes" tools:ignore="PluralsCandidate">Raspberry Pi yaklaşık %1$d dakikadır yanıt vermiyor. Enerji ve ağ bağlantısını kontrol edin.</string>
     <string name="notification_device_recovered_title">Raspberry Pi bağlantısı yeniden kuruldu</string>
     <string name="notification_device_recovered_description">Bahçe cihazı yeniden çevrimiçi ve bağlantı kararlı.</string>
     <string name="notification_sensor_unavailable_title">Sensör verisi alınamıyor</string>
@@ -24,11 +24,11 @@
     <string name="notification_device_health_description">Cihazda güç, sıcaklık veya kaynak sınırı algılandı. Cihaz Sağlığı ekranından ayrıntıları inceleyin.</string>
 
     <string name="notification_watering_started_title">Sulama başladı</string>
-    <string name="notification_watering_started_description">Pompa %1$d saniye için açıldı.</string>
+    <string name="notification_watering_started_description" tools:ignore="PluralsCandidate">Pompa %1$d saniye için açıldı.</string>
     <string name="notification_watering_completed_title">Sulama tamamlandı</string>
     <string name="notification_watering_completed_description">Sulama süresi: %1$d sn.</string>
     <string name="notification_watering_interrupted_title">Sulama beklenmeden durdu</string>
-    <string name="notification_watering_interrupted_description">Sulama %1$d saniye sonra kesildi. Pompa, vana ve cihaz durumunu kontrol edin.</string>
+    <string name="notification_watering_interrupted_description" tools:ignore="PluralsCandidate">Sulama %1$d saniye sonra kesildi. Pompa, vana ve cihaz durumunu kontrol edin.</string>
     <string name="notification_photo_follow_up_title">Fotoğraf takip zamanı</string>
     <string name="notification_photo_follow_up_description">Bitki Asistanı değerlendirmesi için aynı bölgeden yeni bir fotoğraf ekleyin.</string>
 

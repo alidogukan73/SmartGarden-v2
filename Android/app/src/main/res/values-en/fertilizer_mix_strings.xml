@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_mix_check">Mix compatibility check</string>
     <string name="fertilizer_mix_requires_two_products">Add at least two enabled fertilizers to check a mix.</string>
     <string name="fertilizer_mix_select_first">Select the first fertilizer</string>
@@ -15,7 +15,7 @@
     <string name="fertilizer_mix_stock_unit_mismatch">The stock unit for %1$s (%2$s) does not match the application unit (%3$s).</string>
     <string name="fertilizer_mix_stock_insufficient">%1$s requires %2$s %3$s; available stock is %4$s.</string>
     <string name="fertilizer_mix_confirm_title">Confirm mix application</string>
-    <string name="fertilizer_mix_confirm_message">Application to %1$d zones:\n\n%2$s: %3$s %4$s\n%5$s: %6$s %7$s\nDate: %8$s\n\nAVORA assessment: %9$s</string>
+    <string name="fertilizer_mix_confirm_message" tools:ignore="PluralsCandidate">Application to %1$d zones:\n\n%2$s: %3$s %4$s\n%5$s: %6$s %7$s\nDate: %8$s\n\nAVORA assessment: %9$s</string>
     <string name="fertilizer_mix_safety_confirmation">I checked both labels and performed a jar test with the same irrigation water.</string>
     <string name="fertilizer_mix_confirm_action">Record safely</string>
     <string name="fertilizer_mix_confirmation_required">Confirm the label and jar-test check before saving.</string>

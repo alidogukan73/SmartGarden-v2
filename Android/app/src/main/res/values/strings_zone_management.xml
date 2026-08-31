@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="zone_management_title">Bölge Yönetimi</string>
     <string name="zone_management_subtitle">Ürünleri, sensörleri ve vanaları güvenle eşleştirin</string>
     <string name="zone_management_capacity_initial">Bölge kapasitesi</string>
-    <string name="zone_management_capacity">%1$d / %2$d bölge kullanımda</string>
+    <string name="zone_management_capacity" tools:ignore="PluralsCandidate">%1$d / %2$d bölge kullanımda</string>
     <string name="zone_management_info">Sistem en fazla 8 bölgeyi destekler. Her etkin bölgede sensör ve vana yalnız bir kez kullanılabilir. Donanımı eksik bölge izlenebilir ancak otomatik sulama yapmaz.</string>
     <string name="zone_management_add">Bölge ekle</string>
     <string name="zone_management_open_catalog">Ürün kataloğu</string>

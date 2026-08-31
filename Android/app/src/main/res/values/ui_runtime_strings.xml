@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="runtime_location_permission_denied">Konum izni verilmedi. İl ve ilçe ile devam edebilirsiniz.</string>
     <string name="runtime_weather_source_auto">Otomatik (önerilen)</string>
     <string name="runtime_weather_source_open_meteo">Yalnız Open-Meteo</string>
@@ -182,7 +182,7 @@ Fotoğraf ekle</string>
     <string name="runtime_no_connection_badge">BAĞLANTI YOK</string>
     <string name="runtime_partial_connection_badge">KISMİ BAĞLI</string>
     <string name="runtime_connected_badge">BAĞLI</string>
-    <string name="runtime_live_sensor_count">%1$d / %2$d sensör canlı</string>
+    <string name="runtime_live_sensor_count" tools:ignore="PluralsCandidate">%1$d / %2$d sensör canlı</string>
     <string name="runtime_esp32_waiting">ESP32 kapalı olabilir veya Wi‑Fi / MQTT bağlantısı bekleniyor.</string>
     <string name="runtime_esp32_partial">Bazı ESP32 sensörlerinden güncel veri bekleniyor.</string>
     <string name="runtime_esp32_healthy">ESP32 kablosuz sensör ağı düzenli veri gönderiyor.</string>
@@ -251,7 +251,7 @@ Fotoğraf ekle</string>
     <string name="runtime_delete_photo_record_message">Bu kullanıcı fotoğraf kaydı ve telefonunuzdaki kopyası silinecek.</string>
 
     <string name="runtime_timeline_named_title">%1$s Günlüğü</string>
-    <string name="runtime_timeline_season_year">%1$d Sezonu</string>
+    <string name="runtime_timeline_season_year" tools:ignore="PluralsCandidate">%1$d Sezonu</string>
     <string name="runtime_timeline_season_header">%1$s · %2$s</string>
     <string name="runtime_timeline_season_selector_description">Sezon seçimi: %1$s</string>
     <string name="runtime_compare_empty">Karşılaştırmak için bu sezondan en az iki fotoğraf ekleyin.</string>

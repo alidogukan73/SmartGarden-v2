@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="sensor_points_health_waiting">Waiting for sensor information · view details</string>
-    <string name="sensor_points_health_summary_format">%1$d / %2$d sensors connected · view details</string>
+    <string name="sensor_points_health_summary_format" tools:ignore="PluralsCandidate">%1$d / %2$d sensors connected · view details</string>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilization_dose_result">%1$s–%2$s %3$s · %4$s</string>
     <string name="fertilization_dose_single">%1$s %2$s · %3$s</string>
     <string name="fertilization_dose_area_note">for a %1$s m² zone</string>
@@ -28,8 +28,8 @@
     <string name="fertilizer_deleted">Fertilizer product deleted</string>
     <string name="fertilizer_deactivated">Built-in fertilizer product deactivated</string>
     <string name="fertilizer_inactive">INACTIVE</string>
-    <string name="fertilization_stock_sufficient">Stock: %1$s %2$s · enough for about %3$d applications</string>
-    <string name="fertilization_stock_low_for_zone">Low stock: %1$s %2$s · about %3$d applications remaining</string>
+    <string name="fertilization_stock_sufficient" tools:ignore="PluralsCandidate">Stock: %1$s %2$s · enough for about %3$d applications</string>
+    <string name="fertilization_stock_low_for_zone" tools:ignore="PluralsCandidate">Low stock: %1$s %2$s · about %3$d applications remaining</string>
     <string name="fertilization_stock_insufficient">Insufficient stock: %1$s %2$s available, recommended minimum %3$s %2$s</string>
     <string name="fertilization_stock_unit_mismatch">Stock unit (%1$s) does not match the calculated amount (%2$s).</string>
     <string name="fertilizer_stock_summary_empty">No stock information entered yet.</string>
@@ -97,8 +97,8 @@
     <string name="label_today_waterings">Irrigations today</string>
     <string name="label_total_waterings">Total irrigations</string>
     <string name="label_success_rate">Success rate</string>
-    <string name="duration_seconds_format">%1$d sec</string>
-    <string name="duration_minutes_seconds_format">%1$d min %2$d sec</string>
+    <string name="duration_seconds_format" tools:ignore="PluralsCandidate">%1$d sec</string>
+    <string name="duration_minutes_seconds_format" tools:ignore="PluralsCandidate">%1$d min %2$d sec</string>
     <string name="title_watering_summary">Irrigation Summary</string>
     <string name="subtitle_watering_summary">Daily and total operating information</string>
     <string name="title_watering_results">Irrigation Results</string>

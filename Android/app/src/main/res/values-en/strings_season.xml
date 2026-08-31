@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="season_cancel">Cancel</string>
     <string name="season_management_title">Season Management</string>
     <string name="season_management_subtitle">Safely start, close, and archive each zone season</string>
@@ -39,7 +39,7 @@
     <string name="season_start_planting_date_hint">Planting or transplanting date (dd-MM-yyyy)</string>
     <string name="season_start_label_hint">Season name</string>
     <string name="season_default_label">%1$s Season</string>
-    <string name="season_invalid_date">Enter the date in day-month-year format. Example: 30-07-2026</string>
+    <string name="season_invalid_date" tools:ignore="TypographyDashes">Enter the date in day-month-year format. Example: 30-07-2026</string>
     <string name="season_started_success">The new season was started safely.</string>
     <string name="season_start_failed">The new season could not be started.</string>
     <string name="season_close_dialog_title">%1$s · Close season</string>

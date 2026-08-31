@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- UYGULAMA -->
     <string
         name="app_name" translatable="false">AVORA</string>
@@ -124,7 +124,7 @@
     <string
         name="fertilization_use_recommendation">Önerilen ürünü seç</string>
     <string
-        name="fertilization_recommendation_detail">%1$s · Damlama: %2$s–%3$s %4$s · %5$d günde bir</string>
+        name="fertilization_recommendation_detail" tools:ignore="PluralsCandidate">%1$s · Damlama: %2$s–%3$s %4$s · %5$d günde bir</string>
     <string
         name="fertilization_analysis_warning">Toprak veya yaprak analizine göre kesinleştirin; sistem gübreyi otomatik uygulamaz.</string>
     <string
@@ -304,9 +304,9 @@
     <string
         name="fertilizer_inactive">PASİF</string>
     <string
-        name="fertilization_stock_sufficient">Stok: %1$s %2$s · yaklaşık %3$d uygulama yeter</string>
+        name="fertilization_stock_sufficient" tools:ignore="PluralsCandidate">Stok: %1$s %2$s · yaklaşık %3$d uygulama yeter</string>
     <string
-        name="fertilization_stock_low_for_zone">Düşük stok: %1$s %2$s · yaklaşık %3$d uygulama kaldı</string>
+        name="fertilization_stock_low_for_zone" tools:ignore="PluralsCandidate">Düşük stok: %1$s %2$s · yaklaşık %3$d uygulama kaldı</string>
     <string
         name="fertilization_stock_insufficient">Stok yetersiz: %1$s %2$s mevcut, önerilen minimum %3$s %2$s</string>
     <string
@@ -602,7 +602,7 @@
     <string
         name="diagnostics_waiting">Sistem kontrolleri hazırlanıyor</string>
     <string
-        name="diagnostics_summary">%1$d / %2$d kontrol normal</string>
+        name="diagnostics_summary" tools:ignore="PluralsCandidate">%1$d / %2$d kontrol normal</string>
     <string
         name="diagnostics_pi_ok">Raspberry Pi bağlantısı güncel</string>
     <string
@@ -709,9 +709,9 @@
     <string
         name="health_badge_critical">PI KRİTİK</string>
     <string
-        name="health_uptime_days_format">%1$d gün %2$d saat</string>
+        name="health_uptime_days_format" tools:ignore="PluralsCandidate">%1$d gün %2$d saat</string>
     <string
-        name="health_uptime_hours_format">%1$d saat %2$d dk</string>
+        name="health_uptime_hours_format" tools:ignore="PluralsCandidate">%1$d saat %2$d dk</string>
     <string
         name="health_uptime_minutes_format">%1$d dk</string>
     <string
@@ -819,7 +819,7 @@
     <string
         name="queue_position">%1$d. sıra</string>
     <string
-        name="queue_zone_detail">%1$d%% nem · %2$d puan açık</string>
+        name="queue_zone_detail" tools:ignore="PluralsCandidate">%1$d%% nem · %2$d puan açık</string>
     <string
         name="sensor_status_title">Sensör durumu</string>
     <string
@@ -829,7 +829,7 @@
     <string
         name="sensor_summary_empty">0 / 0 sensör bağlı</string>
     <string
-        name="sensor_summary_format">%1$d / %2$d sensör bağlı</string>
+        name="sensor_summary_format" tools:ignore="PluralsCandidate">%1$d / %2$d sensör bağlı</string>
     <string
         name="sensor_soil_moisture">Toprak nemi</string>
     <string
@@ -994,7 +994,7 @@
     <string
         name="ai_zone_moisture_sufficient">Nem yeterli · %1$d%%</string>
     <string
-        name="ai_zone_moisture_low">Sulama gerekli · %1$d puan nem açığı</string>
+        name="ai_zone_moisture_low" tools:ignore="PluralsCandidate">Sulama gerekli · %1$d puan nem açığı</string>
     <string
         name="ai_zone_unstable">Sensör kararlılığı bekleniyor</string>
     <string
@@ -1254,8 +1254,8 @@
     <string name="settings_quick_editor_title">Hızlı Ayarları düzenle</string>
     <string name="settings_quick_editor_message">Dört kısayol seçin, oklarla görünme sırasını değiştirin.</string>
     <string name="settings_quick_selected_count">Seçili: %1$d / %2$d</string>
-    <string name="settings_quick_exact_count">Lütfen tam %1$d kısayol seçin.</string>
-    <string name="settings_quick_max_count">En fazla %1$d kısayol seçebilirsiniz.</string>
+    <string name="settings_quick_exact_count" tools:ignore="PluralsCandidate">Lütfen tam %1$d kısayol seçin.</string>
+    <string name="settings_quick_max_count" tools:ignore="PluralsCandidate">En fazla %1$d kısayol seçebilirsiniz.</string>
     <string name="settings_quick_saved">Hızlı Ayarlar kaydedildi.</string>
     <string name="settings_quick_restore_defaults">Varsayılana dön</string>
     <string name="settings_quick_move_up">Yukarı taşı</string>
@@ -1306,8 +1306,8 @@
     <string name="settings_about_subtitle">Uygulama, sürüm ve geliştirici bilgileri</string>
     <string name="home_garden_plan_title">Bahçe planı</string>
     <string name="symbol_warning_triangle">⚠</string>
-    <string name="home_device_alert_count">%1$d cihaz uyarısı</string>
-    <string name="home_device_alert_more"> · %1$d uyarı daha</string>
+    <string name="home_device_alert_count" tools:ignore="PluralsCandidate">%1$d cihaz uyarısı</string>
+    <string name="home_device_alert_more" tools:ignore="PluralsCandidate"> · %1$d uyarı daha</string>
     <string name="home_plan_waiting_for_zones">Bölge ve sensör verileri bekleniyor</string>
     <string name="home_plan_watering_active">%1$s şu anda sulanıyor</string>
     <string name="home_plan_watering_queued">%1$s sulama sırasında bekliyor</string>

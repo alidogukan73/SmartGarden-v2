@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="data_sync_title">Data Synchronization</string>
     <string name="data_sync_intro_title">AVORA data connection</string>
     <string name="data_sync_intro_waiting">Checking connection</string>
@@ -16,7 +16,7 @@
     <string name="data_sync_never">Not synced yet</string>
     <string name="data_sync_no_device_data">No device data found</string>
     <string name="data_sync_scope_waiting">Not validated yet</string>
-    <string name="data_sync_scope_value">%1$d zones · %2$s</string>
+    <string name="data_sync_scope_value" tools:ignore="PluralsCandidate">%1$d zones · %2$s</string>
     <string name="data_sync_scope_status_health_weather">status, health and weather</string>
     <string name="data_sync_scope_status_health">status and health</string>
     <string name="data_sync_scope_partial">basic device data</string>
@@ -28,7 +28,7 @@
     <string name="data_sync_transfer_message">Irrigation, fertilization, journal and settings records are saved on their related screens. If Firebase fails, AVORA shows an error there; this page does not show a fake pending-record count.</string>
     <string name="data_sync_now">Synchronize Now</string>
     <string name="data_sync_syncing">Validating data…</string>
-    <string name="data_sync_success">Synchronization complete. %1$d zones and device summaries validated.</string>
+    <string name="data_sync_success" tools:ignore="PluralsCandidate">Synchronization complete. %1$d zones and device summaries validated.</string>
     <string name="data_sync_offline_error">Could not connect. Check the internet and try again.</string>
     <string name="data_sync_read_error">Could not read Firebase data: %1$s</string>
     <string name="data_sync_empty_error">No data for this device was found in Firebase.</string>

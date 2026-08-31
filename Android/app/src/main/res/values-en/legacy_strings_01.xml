@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_subtitle">Smart Plant Assistant</string>
     <string name="label_connected_device">Connected device</string>
     <string name="status_online">● ONLINE</string>
@@ -48,18 +48,18 @@
     <string name="fertilizer_required_fields">Product name, a positive label dose, dose unit, and an interval of 1–365 days are required.</string>
     <string name="fertilizer_product_saved">Fertilizer product saved</string>
     <string name="fertilizer_product_info">%1$s · %2$s</string>
-    <string name="fertilizer_product_dose">Label dose: %1$s %2$s · At least %3$d days</string>
-    <string name="fertilizer_product_dose_range">Manufacturer range: %1$s–%2$s %3$s · At least %4$d days</string>
+    <string name="fertilizer_product_dose" tools:ignore="PluralsCandidate">Label dose: %1$s %2$s · At least %3$d days</string>
+    <string name="fertilizer_product_dose_range" tools:ignore="PluralsCandidate">Manufacturer range: %1$s–%2$s %3$s · At least %4$d days</string>
     <string name="fertilization_product_label">Fertilizer product to use</string>
     <string name="fertilization_product_required">First add and select a product on the Fertilizer Products screen.</string>
-    <string name="fertilization_first_application">First application: %1$s · Product interval: %2$d days</string>
+    <string name="fertilization_first_application" tools:ignore="PluralsCandidate">First application: %1$s · Product interval: %2$d days</string>
     <string name="fertilization_first_application_overdue">First application: %1$s · Appears overdue</string>
     <string name="fertilization_missing_product">Select a saved fertilizer product to enable the plan.</string>
     <string name="fertilization_season_end_no_application">The season is complete. Nutrient fertilizer is not applied; soil analysis and soil preparation are planned for the next season.</string>
     <string name="fertilization_no_stage_product">Select a product suitable for the chosen growth stage.</string>
     <string name="fertilization_smart_recommendation">Smart stage recommendation</string>
     <string name="fertilization_use_recommendation">Select recommended product</string>
-    <string name="fertilization_recommendation_detail">%1$s · Drip: %2$s–%3$s %4$s · Every %5$d days</string>
+    <string name="fertilization_recommendation_detail" tools:ignore="PluralsCandidate">%1$s · Drip: %2$s–%3$s %4$s · Every %5$d days</string>
     <string name="fertilization_analysis_warning">Confirm with soil or leaf analysis; the system does not apply fertilizer automatically.</string>
     <string name="fertilization_stage_focus">Purpose: %1$s</string>
     <string name="fertilization_stage_support">Support: %1$s</string>
@@ -82,8 +82,8 @@
     <string name="fertilization_status_today">TODAY</string>
     <string name="fertilization_status_upcoming">UPCOMING</string>
     <string name="fertilization_due_today">Apply today</string>
-    <string name="fertilization_due_overdue">Overdue by %1$d days</string>
-    <string name="fertilization_due_in_days">%1$d days remaining</string>
+    <string name="fertilization_due_overdue" tools:ignore="PluralsCandidate">Overdue by %1$d days</string>
+    <string name="fertilization_due_in_days" tools:ignore="PluralsCandidate">%1$d days remaining</string>
     <string name="fertilizer_notification_dose"> Product: %1$s · Prepare: %2$s–%3$s %4$s.</string>
     <string name="fertilizer_notification_stock_ok"> Stock is sufficient.</string>
     <string name="fertilizer_notification_stock_short"> Insufficient stock; %1$s %2$s short.</string>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- SDK 37 is not installed in the controlled build environment yet. -->
+    <issue id="GradleDependency">
+        <ignore regexp="A newer version of `compileSdk` than 36 is available: 37" />
+    </issue>
+    <issue id="OldTargetApi">
+        <ignore path="build.gradle.kts" />
+    </issue>
+
+</lint>

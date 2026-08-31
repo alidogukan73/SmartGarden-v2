@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="ai_zone_valve_not_physical">Watering was safely blocked because no physical valve is installed</string>
-    <string name="ai_zone_cycle_limit_reached">%1$d watering cycles completed · Waiting for moisture recovery</string>
+    <string name="ai_zone_cycle_limit_reached" tools:ignore="PluralsCandidate">%1$d watering cycles completed · Waiting for moisture recovery</string>
     <string name="ai_zone_system_disabled">The irrigation system is disabled in general settings</string>
     <string name="ai_zone_auto_mode_disabled">Automatic watering is off · Manual control is available</string>
     <string name="ai_zone_samples_collecting">Collecting enough sensor readings for a decision</string>
@@ -44,5 +44,5 @@
     <string name="ai_adaptive_card_label">Learned duration</string>
     <string name="ai_adaptive_runtime_increase">Watering duration can be increased safely</string>
     <string name="ai_adaptive_runtime_decrease">Watering duration can be reduced safely</string>
-    <string name="ai_adaptive_runtime_detail">%1$s → %2$s · %3$d watering records · %4$d%% confidence. Used only in safe automatic cycles; your saved setting is unchanged.</string>
+    <string name="ai_adaptive_runtime_detail" tools:ignore="PluralsCandidate">%1$s → %2$s · %3$d watering records · %4$d%% confidence. Used only in safe automatic cycles; your saved setting is unchanged.</string>
 </resources>

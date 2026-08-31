@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_past_zone_experience_title">Geçmiş bölge deneyimi</string>
     <string name="fertilizer_past_zone_experience_none">%1$s için bu bölgede henüz değerlendirilmiş sonuç yok. İlk uygulama sonucunu kaydettiğinizde AVORA öğrenmeye başlayacak.</string>
-    <string name="fertilizer_past_zone_experience_learning">%1$s · %2$d/%3$d sonuç değerlendirildi. Güvenilir deneyim için %4$d sonuç daha gerekli.</string>
-    <string name="fertilizer_past_zone_experience_reliable">%1$s · %2$d sonuç · başarı %3$d/100 · %4$s</string>
+    <string name="fertilizer_past_zone_experience_learning" tools:ignore="PluralsCandidate">%1$s · %2$d/%3$d sonuç değerlendirildi. Güvenilir deneyim için %4$d sonuç daha gerekli.</string>
+    <string name="fertilizer_past_zone_experience_reliable" tools:ignore="PluralsCandidate">%1$s · %2$d sonuç · başarı %3$d/100 · %4$s</string>
     <string name="fertilizer_past_zone_experience_positive">bu bölgede olumlu</string>
     <string name="fertilizer_past_zone_experience_balanced">bu bölgede dengeli</string>
     <string name="fertilizer_past_zone_experience_caution">bu bölgede dikkatle kullan</string>
@@ -13,12 +13,12 @@
     <string name="fertilizer_experience_pattern_title">Öğrenilen doz ve yöntem</string>
     <string name="fertilizer_experience_pattern_insufficient">Güvenilir bir uygulama deseni henüz oluşmadı.</string>
     <string name="fertilizer_experience_pattern_principle">Aynı doz, birim ve yöntemle en az iki değerlendirilmiş sonuç gerekli.</string>
-    <string name="fertilizer_experience_pattern_summary">%1$s %2$s · %3$s · %4$d sonuç · başarı %5$d/100</string>
+    <string name="fertilizer_experience_pattern_summary" tools:ignore="PluralsCandidate">%1$s %2$s · %3$s · %4$d sonuç · başarı %5$d/100</string>
     <string name="fertilizer_experience_pattern_comparative">Bu desen, diğer tekrarlanan uygulama desenlerinden daha olumlu sonuç verdi.</string>
     <string name="fertilizer_experience_pattern_positive">Bu desen tekrarlanan sonuçlarda olumlu; karşılaştırma için başka doz ve yöntem sonuçları gerekli.</string>
     <string name="fertilizer_experience_pattern_balanced">Bu desenin sonuçları dengeli; kesin tercih için daha fazla gözlem gerekli.</string>
     <string name="fertilizer_experience_pattern_caution">Bu desende sorun veya zayıf sonuç görüldü; güvenli bir öneri olarak kullanılmamalı.</string>
-    <string name="fertilizer_experience_pattern_mixed_excluded">%1$d karışımlı kayıt, sonucu tek ürüne bağlamamak için bu hesaba katılmadı.</string>
+    <string name="fertilizer_experience_pattern_mixed_excluded" tools:ignore="PluralsCandidate">%1$d karışımlı kayıt, sonucu tek ürüne bağlamamak için bu hesaba katılmadı.</string>
     <string name="fertilizer_experience_pattern_safety">Bu geçmiş gözlemi, ürün etiketi ve toprak/yaprak analizi sınırlarını değiştirmez.</string>
     <string name="fertilizer_experience_history_empty">Bu bölge ve ürün için henüz değerlendirilmiş uygulama sonucu bulunmuyor.</string>
     <string name="fertilizer_experience_outcome_improved">Olumlu sonuç</string>

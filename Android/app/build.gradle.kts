@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.api.tasks.compile.JavaCompile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -27,8 +28,8 @@ android {
         applicationId = "com.alidogukan.avora"
         minSdk = 26
         targetSdk = 36
-        versionCode = 33
-        versionName = "3.0.0"
+        versionCode = 34
+        versionName = "3.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -79,18 +80,22 @@ android {
     }
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
+}
+
 dependencies {
 
-    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
-    implementation("com.google.firebase:firebase-database")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-messaging")
-    debugImplementation("com.google.firebase:firebase-appcheck-debug")
-    add("internalImplementation", "com.google.firebase:firebase-appcheck-debug")
-    releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.work:work-runtime:2.11.2")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.messaging)
+    debugImplementation(libs.firebase.appcheck.debug)
+    add("internalImplementation", libs.firebase.appcheck.debug)
+    releaseImplementation(libs.firebase.appcheck.playintegrity)
+    implementation(libs.cardview)
+    implementation(libs.recyclerview)
+    implementation(libs.work.runtime)
 
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)

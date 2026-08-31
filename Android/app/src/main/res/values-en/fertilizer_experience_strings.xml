@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_past_zone_experience_title">Past zone experience</string>
     <string name="fertilizer_past_zone_experience_none">No evaluated outcome exists for %1$s in this zone yet. AVORA will start learning when you record the first application outcome.</string>
-    <string name="fertilizer_past_zone_experience_learning">%1$s · %2$d/%3$d outcomes evaluated. %4$d more outcome(s) needed for reliable zone experience.</string>
-    <string name="fertilizer_past_zone_experience_reliable">%1$s · %2$d outcomes · success %3$d/100 · %4$s</string>
+    <string name="fertilizer_past_zone_experience_learning" tools:ignore="PluralsCandidate">%1$s · %2$d/%3$d outcomes evaluated. %4$d more outcome(s) needed for reliable zone experience.</string>
+    <string name="fertilizer_past_zone_experience_reliable" tools:ignore="PluralsCandidate">%1$s · %2$d outcomes · success %3$d/100 · %4$s</string>
     <string name="fertilizer_past_zone_experience_positive">positive in this zone</string>
     <string name="fertilizer_past_zone_experience_balanced">balanced in this zone</string>
     <string name="fertilizer_past_zone_experience_caution">use with caution in this zone</string>
@@ -13,12 +13,12 @@
     <string name="fertilizer_experience_pattern_title">Learned dose and method</string>
     <string name="fertilizer_experience_pattern_insufficient">A reliable application pattern has not formed yet.</string>
     <string name="fertilizer_experience_pattern_principle">At least two evaluated outcomes with the same dose, unit and method are required.</string>
-    <string name="fertilizer_experience_pattern_summary">%1$s %2$s · %3$s · %4$d outcomes · success %5$d/100</string>
+    <string name="fertilizer_experience_pattern_summary" tools:ignore="PluralsCandidate">%1$s %2$s · %3$s · %4$d outcomes · success %5$d/100</string>
     <string name="fertilizer_experience_pattern_comparative">This pattern produced more positive outcomes than the other repeated application patterns.</string>
     <string name="fertilizer_experience_pattern_positive">This pattern is positive across repeated outcomes; other dose and method outcomes are needed for comparison.</string>
     <string name="fertilizer_experience_pattern_balanced">This pattern has balanced outcomes; more observations are needed before preferring it.</string>
     <string name="fertilizer_experience_pattern_caution">Issues or weak outcomes were seen with this pattern; it must not be treated as a safe recommendation.</string>
-    <string name="fertilizer_experience_pattern_mixed_excluded">%1$d mixed application(s) were excluded so the outcome is not attributed to one product.</string>
+    <string name="fertilizer_experience_pattern_mixed_excluded" tools:ignore="PluralsCandidate">%1$d mixed application(s) were excluded so the outcome is not attributed to one product.</string>
     <string name="fertilizer_experience_pattern_safety">This past observation does not override product-label or soil/leaf-analysis limits.</string>
     <string name="fertilizer_experience_history_empty">No evaluated application outcome exists for this zone and product yet.</string>
     <string name="fertilizer_experience_outcome_improved">Positive outcome</string>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_today_status_ready">BUGÜN UYGUN</string>
     <string name="fertilizer_today_status_wait">%1$d GÜN BEKLEYİN</string>
     <string name="fertilizer_today_status_check">ÖNCE KONTROL EDİN</string>
@@ -15,8 +15,8 @@
     <string name="fertilizer_today_support_organic_missing">Organik tarıma uygun ürün ekleyin veya AVORA önerisini inceleyin.</string>
     <string name="fertilizer_today_product_recommended">Önerilen ürün</string>
     <string name="fertilizer_today_product_next">Sonraki uygun ürün</string>
-    <string name="fertilizer_today_experience_learning">Geçmiş deneyim: %1$d kayıtla öğreniyor.</string>
-    <string name="fertilizer_today_experience_reliable">Geçmiş deneyim: %1$d uygulamada %%%2$d başarı.</string>
-    <string name="fertilizer_today_risk_notes">%1$d güvenlik notu var. Ayrıntıları inceleyin.</string>
+    <string name="fertilizer_today_experience_learning" tools:ignore="PluralsCandidate">Geçmiş deneyim: %1$d kayıtla öğreniyor.</string>
+    <string name="fertilizer_today_experience_reliable" tools:ignore="PluralsCandidate">Geçmiş deneyim: %1$d uygulamada %%%2$d başarı.</string>
+    <string name="fertilizer_today_risk_notes" tools:ignore="PluralsCandidate">%1$d güvenlik notu var. Ayrıntıları inceleyin.</string>
     <string name="fertilizer_today_open_details">Öneriyi görüntüle  ›</string>
 </resources>

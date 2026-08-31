@@ -2,9 +2,10 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    tools:ignore="MergeRootFrame">
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -101,7 +102,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/reliability_title"
                             android:textColor="@color/textSecondary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="68dp"
                             android:layout_height="28dp"
@@ -113,7 +114,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:gravity="center"
-                                android:orientation="horizontal">
+                                android:orientation="horizontal"
+                                tools:ignore="UseCompoundDrawables">
                                 <ImageView
                                     android:layout_width="16dp"
                                     android:layout_height="16dp"
@@ -296,7 +298,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            tools:ignore="UseCompoundDrawables">
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -461,7 +464,7 @@
                             android:gravity="center"
                             android:text="@string/ui_assistant_soil_moisture"
                             android:textColor="@color/textPrimary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:id="@+id/txtDoctorWeatherTemp"
                             android:layout_width="0dp"
@@ -470,7 +473,7 @@
                             android:gravity="center"
                             android:text="@string/weather_temperature_label"
                             android:textColor="@color/textPrimary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:id="@+id/txtDoctorSun"
                             android:layout_width="0dp"
@@ -479,7 +482,7 @@
                             android:gravity="center"
                             android:text="@string/ui_assistant_sunlight"
                             android:textColor="@color/textPrimary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:id="@+id/txtDoctorWind"
                             android:layout_width="0dp"
@@ -488,7 +491,7 @@
                             android:gravity="center"
                             android:text="@string/ui_assistant_wind"
                             android:textColor="@color/textPrimary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:id="@+id/txtDoctorHumidity"
                             android:layout_width="0dp"
@@ -497,7 +500,7 @@
                             android:gravity="center"
                             android:text="@string/ui_assistant_air_humidity"
                             android:textColor="@color/textPrimary"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

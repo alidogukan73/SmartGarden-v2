@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="settings_sensor_calibration_title">Sensor Calibration Wizard</string>
     <string name="settings_sensor_calibration_subtitle">Learn the real dry and wet values of a new sensor</string>
     <string name="sensor_calibration_title">Sensor Calibration</string>
@@ -20,7 +20,7 @@
     <string name="sensor_calibration_update_label">Last data</string>
     <string name="sensor_calibration_value_empty">—</string>
     <string name="sensor_calibration_voltage_format">%1$.3f V</string>
-    <string name="sensor_calibration_age_format">%1$d sec</string>
+    <string name="sensor_calibration_age_format" tools:ignore="PluralsCandidate">%1$d sec</string>
     <string name="sensor_calibration_current_empty">Waiting for saved calibration information.</string>
     <string name="sensor_calibration_current_format">Saved values · Dry: %1$d · Wet: %2$d</string>
     <string name="sensor_calibration_steps_section">2 · Learn the values</string>
@@ -35,7 +35,7 @@
     <string name="sensor_calibration_sample_idle">Five current samples will be collected automatically after measurement starts.</string>
     <string name="sensor_calibration_collecting_dry">Collecting current samples from dry soil…</string>
     <string name="sensor_calibration_collecting_wet">Collecting current samples from wet soil…</string>
-    <string name="sensor_calibration_sample_progress">%1$d of %2$d samples · Latest raw value: %3$d</string>
+    <string name="sensor_calibration_sample_progress" tools:ignore="PluralsCandidate">%1$d of %2$d samples · Latest raw value: %3$d</string>
     <string name="sensor_calibration_capture_complete">Value learned: %1$d · Sample spread: %2$d</string>
     <string name="sensor_calibration_unstable">The reading is not stable yet (spread %1$d). Hold the sensor still and restart this step.</string>
     <string name="sensor_calibration_validation_waiting">The result will be validated after dry and wet measurements are complete.</string>

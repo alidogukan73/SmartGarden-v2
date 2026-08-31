@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="title_duration_statistics">Duration Statistics</string>
     <string name="subtitle_duration_statistics">Operating durations of irrigation cycles</string>
     <string name="label_average_duration_short">Average</string>
@@ -67,7 +67,7 @@
     <string name="health_status_waiting">Waiting for data</string>
     <string name="diagnostics_title">Quick diagnostics</string>
     <string name="diagnostics_waiting">Preparing system checks</string>
-    <string name="diagnostics_summary">%1$d of %2$d checks normal</string>
+    <string name="diagnostics_summary" tools:ignore="PluralsCandidate">%1$d of %2$d checks normal</string>
     <string name="diagnostics_pi_ok">Raspberry Pi connection is current</string>
     <string name="diagnostics_pi_error">No Raspberry Pi connection</string>
     <string name="diagnostics_sensor_ok">Current data is arriving from at least one sensor</string>
@@ -120,8 +120,8 @@
     <string name="health_badge_good">PI HEALTHY</string>
     <string name="health_badge_warning">PI WARNING</string>
     <string name="health_badge_critical">PI CRITICAL</string>
-    <string name="health_uptime_days_format">%1$d days %2$d hours</string>
-    <string name="health_uptime_hours_format">%1$d hours %2$d min</string>
+    <string name="health_uptime_days_format" tools:ignore="PluralsCandidate">%1$d days %2$d hours</string>
+    <string name="health_uptime_hours_format" tools:ignore="PluralsCandidate">%1$d hours %2$d min</string>
     <string name="health_uptime_minutes_format">%1$d min</string>
     <string name="health_last_update_format">Last update: %1$s</string>
     <string name="health_firmware_unavailable">Not present in backend data</string>

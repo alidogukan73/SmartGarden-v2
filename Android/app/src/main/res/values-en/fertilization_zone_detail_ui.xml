@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilization_today_status_title">Today</string>
     <string name="fertilization_plan_information_title">Plan information</string>
     <string name="fertilization_plan_enabled_short">Fertilizer plan enabled</string>
@@ -29,9 +29,9 @@
     <string name="fertilization_unified_no_product">No suitable product has been identified yet</string>
     <string name="fertilization_unified_basis">Evaluated information: %1$s</string>
     <string name="fertilization_unified_summary_today">Today - priority need: %1$s</string>
-    <string name="fertilization_unified_summary_wait">Next need: %1$s · in %2$d days</string>
+    <string name="fertilization_unified_summary_wait" tools:ignore="PluralsCandidate">Next need: %1$s · in %2$d days</string>
     <string name="fertilization_unified_summary_status">AVORA decision: %1$s</string>
-    <string name="fertilization_unified_timing_wait">Application time: in %1$d days (%2$s)</string>
+    <string name="fertilization_unified_timing_wait" tools:ignore="PluralsCandidate">Application time: in %1$d days (%2$s)</string>
     <string name="fertilization_unified_timing_today">Application time: Can be considered today</string>
     <string name="fertilization_unified_timing_safety">Application time: %1$s</string>
 </resources>

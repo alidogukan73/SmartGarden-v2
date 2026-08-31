@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rainSettingsRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/rainSettingsToolbar"
@@ -201,6 +200,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
+                        android:paddingStart="0dp"
                         android:paddingEnd="52dp"
                         android:text="@string/rain_settings_delay_message"
                         android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle" />
@@ -362,6 +362,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
+                        android:paddingStart="0dp"
                         android:paddingEnd="52dp"
                         android:text="@string/rain_settings_notifications_message"
                         android:textAppearance="@style/TextAppearance.AVORA.Settings.RowSubtitle" />

@@ -25,14 +25,14 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="true"
-            android:drawableTop="@drawable/ic_nav_home"
-            android:drawableTint="@color/textSecondary"
+            app:drawableTopCompat="@drawable/ic_nav_home"
+            app:drawableTint="@color/textSecondary"
             android:focusable="true"
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/nav_home"
             android:textColor="@color/textSecondary"
-            android:textSize="8sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/navPrimaryPlants"
@@ -40,14 +40,14 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="true"
-            android:drawableTop="@drawable/ic_nav_plants"
-            android:drawableTint="@color/textSecondary"
+            app:drawableTopCompat="@drawable/ic_nav_plants"
+            app:drawableTint="@color/textSecondary"
             android:focusable="true"
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/nav_plant_journal"
             android:textColor="@color/textSecondary"
-            android:textSize="8sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/navPrimaryAssistant"
@@ -55,14 +55,14 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="true"
-            android:drawableTop="@drawable/ic_nav_assistant"
-            android:drawableTint="@color/textSecondary"
+            app:drawableTopCompat="@drawable/ic_nav_assistant"
+            app:drawableTint="@color/textSecondary"
             android:focusable="true"
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/nav_ai_assistant"
             android:textColor="@color/textSecondary"
-            android:textSize="8sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/navPrimaryNotifications"
@@ -70,14 +70,14 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="true"
-            android:drawableTop="@drawable/ic_device_health_24"
-            android:drawableTint="@color/textSecondary"
+            app:drawableTopCompat="@drawable/ic_device_health_24"
+            app:drawableTint="@color/textSecondary"
             android:focusable="true"
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/title_device_health"
             android:textColor="@color/textSecondary"
-            android:textSize="8sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/navPrimarySettings"
@@ -85,13 +85,13 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="true"
-            android:drawableTop="@drawable/ic_settings_24"
-            android:drawableTint="@color/textSecondary"
+            app:drawableTopCompat="@drawable/ic_settings_24"
+            app:drawableTint="@color/textSecondary"
             android:focusable="true"
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/nav_settings"
             android:textColor="@color/textSecondary"
-            android:textSize="8sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

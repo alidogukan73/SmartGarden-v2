@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_mix_check">Karışım kontrolü</string>
     <string name="fertilizer_mix_requires_two_products">Karışım kontrolü için en az iki etkin gübre ekleyin.</string>
     <string name="fertilizer_mix_select_first">İlk gübreyi seçin</string>
@@ -15,7 +15,7 @@
     <string name="fertilizer_mix_stock_unit_mismatch">%1$s stok birimi (%2$s) ile uygulama birimi (%3$s) uyuşmuyor.</string>
     <string name="fertilizer_mix_stock_insufficient">%1$s için %2$s %3$s gerekli; mevcut stok %4$s.</string>
     <string name="fertilizer_mix_confirm_title">Karışım uygulamasını onaylayın</string>
-    <string name="fertilizer_mix_confirm_message">%1$d bölgeye uygulanacak:\n\n%2$s: %3$s %4$s\n%5$s: %6$s %7$s\nTarih: %8$s\n\nAVORA değerlendirmesi: %9$s</string>
+    <string name="fertilizer_mix_confirm_message" tools:ignore="PluralsCandidate">%1$d bölgeye uygulanacak:\n\n%2$s: %3$s %4$s\n%5$s: %6$s %7$s\nTarih: %8$s\n\nAVORA değerlendirmesi: %9$s</string>
     <string name="fertilizer_mix_safety_confirmation">İki ürünün etiketini kontrol ettim ve aynı sulama suyuyla kavanoz testi yaptım.</string>
     <string name="fertilizer_mix_confirm_action">Güvenli biçimde kaydet</string>
     <string name="fertilizer_mix_confirmation_required">Kaydetmeden önce etiket ve kavanoz testi kontrolünü onaylayın.</string>

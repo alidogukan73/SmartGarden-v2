@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="settings_moisture_limit_description">Automatic irrigation starts when moisture falls below this value</string>
     <string name="settings_pump_duration">Pump duration</string>
     <string name="settings_pump_duration_description">How long the pump runs during one irrigation cycle</string>
@@ -22,9 +22,9 @@
     <string name="settings_saving">Saving…</string>
     <string name="settings_no_changes">No changes to save</string>
     <string name="settings_percentage_format">%1$d%%</string>
-    <string name="settings_seconds_format">%1$d sec</string>
+    <string name="settings_seconds_format" tools:ignore="PluralsCandidate">%1$d sec</string>
     <string name="settings_minutes_format">%1$d min</string>
-    <string name="settings_minutes_seconds_format">%1$d min %2$d sec</string>
+    <string name="settings_minutes_seconds_format" tools:ignore="PluralsCandidate">%1$d min %2$d sec</string>
     <string name="settings_system_enabled_active">Active — Automatic and manual irrigation available</string>
     <string name="settings_system_enabled_inactive">Disabled — Irrigation commands will not run</string>
     <string name="settings_reset_dialog_title">Restore defaults</string>
@@ -45,12 +45,12 @@
     <string name="queue_pump_active">Irrigating %1$s</string>
     <string name="queue_empty">Queue empty · No zones awaiting irrigation</string>
     <string name="queue_position">Position %1$d</string>
-    <string name="queue_zone_detail">%1$d%% moisture · %2$d points open</string>
+    <string name="queue_zone_detail" tools:ignore="PluralsCandidate">%1$d%% moisture · %2$d points open</string>
     <string name="sensor_status_title">Sensor status</string>
     <string name="sensor_status_description">Points are checked regularly.</string>
     <string name="sensor_active">ACTIVE</string>
     <string name="sensor_summary_empty">0 of 0 sensors connected</string>
-    <string name="sensor_summary_format">%1$d of %2$d sensors connected</string>
+    <string name="sensor_summary_format" tools:ignore="PluralsCandidate">%1$d of %2$d sensors connected</string>
     <string name="sensor_soil_moisture">Soil moisture</string>
     <string name="sensor_wifi">Wi-Fi</string>
     <string name="sensor_waiting_description">Waiting for a sensor connection for this zone.</string>
@@ -62,7 +62,7 @@
     <string name="sensor_status_disconnected">Disconnected</string>
     <string name="sensor_moisture_format">%%%1$d</string>
     <string name="sensor_rssi_format">%1$d dBm</string>
-    <string name="sensor_last_update_seconds">Last data: %1$d sec ago</string>
+    <string name="sensor_last_update_seconds" tools:ignore="PluralsCandidate">Last data: %1$d sec ago</string>
     <string name="settings_unsaved_dialog_title">Unsaved changes</string>
     <string name="settings_unsaved_dialog_message">Would you like to save your changes before leaving this screen?</string>
     <string name="settings_continue_editing">Continue editing</string>

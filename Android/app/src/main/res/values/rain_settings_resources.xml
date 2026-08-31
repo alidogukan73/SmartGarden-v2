@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="rain_settings_title">Yağış Ayarları</string>
     <string name="rain_settings_safety_title">Sensör öncelikli güvenli karar</string>
     <string name="rain_settings_safety_message">AVORA yağış tahminini tek başına kullanmaz. Önce canlı toprak nemini, sensör kararlılığını, bekleme süresini ve vana güvenliğini kontrol eder.</string>
@@ -13,7 +13,7 @@
     <string name="rain_settings_live_source_format">Son tahmin kaynağı: %1$s</string>
     <string name="rain_settings_source_auto">Otomatik yedeklemeli</string>
     <string name="rain_settings_forecast_waiting">Bugünkü yağış tahmini bekleniyor</string>
-    <string name="rain_settings_forecast_format">Bugün: %%%1$d yağış olasılığı · %2$s mm beklenen yağış</string>
+    <string name="rain_settings_forecast_format" tools:ignore="PluralsCandidate">Bugün: %%%1$d yağış olasılığı · %2$s mm beklenen yağış</string>
     <string name="rain_settings_open_location">Konum ve kaynak</string>
     <string name="rain_settings_open_forecast">Tahmini görüntüle</string>
     <string name="rain_settings_policy_section">Otomatik sulamaya etkisi</string>

@@ -5,7 +5,6 @@
     android:id="@+id/sensorPointsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
     android:clipToPadding="false"
     android:fillViewport="true"
     android:overScrollMode="never">
@@ -114,7 +113,7 @@
                         android:paddingEnd="13dp"
                         android:text="@string/sensor_active"
                         android:textColor="@color/online"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>

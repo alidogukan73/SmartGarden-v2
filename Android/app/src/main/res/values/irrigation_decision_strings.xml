@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="ai_zone_valve_not_physical">Fiziksel vana kurulmadığı için sulama güvenle engellendi</string>
-    <string name="ai_zone_cycle_limit_reached">%1$d sulama çevrimi tamamlandı · Nem toparlanması bekleniyor</string>
+    <string name="ai_zone_cycle_limit_reached" tools:ignore="PluralsCandidate">%1$d sulama çevrimi tamamlandı · Nem toparlanması bekleniyor</string>
     <string name="ai_zone_system_disabled">Sulama sistemi genel ayarlardan kapalı</string>
     <string name="ai_zone_auto_mode_disabled">Otomatik sulama kapalı · Manuel kontrol kullanılabilir</string>
     <string name="ai_zone_samples_collecting">Karar için yeterli sensör ölçümü birikiyor</string>
@@ -44,5 +44,5 @@
     <string name="ai_adaptive_card_label">Öğrenilmiş süre</string>
     <string name="ai_adaptive_runtime_increase">Sulama süresi güvenle artırılabilir</string>
     <string name="ai_adaptive_runtime_decrease">Sulama süresi güvenle azaltılabilir</string>
-    <string name="ai_adaptive_runtime_detail">%1$s → %2$s · %3$d sulama kaydı · güven %4$d%%. Yalnız güvenli otomatik çevrimlerde uygulanır; kayıtlı ayarınız değişmez.</string>
+    <string name="ai_adaptive_runtime_detail" tools:ignore="PluralsCandidate">%1$s → %2$s · %3$d sulama kaydı · güven %4$d%%. Yalnız güvenli otomatik çevrimlerde uygulanır; kayıtlı ayarınız değişmez.</string>
 </resources>

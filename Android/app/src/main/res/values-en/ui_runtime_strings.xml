@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="runtime_location_permission_denied">Location permission was not granted. You can continue with a city and district.</string>
     <string name="runtime_weather_source_auto">Automatic (recommended)</string>
     <string name="runtime_weather_source_open_meteo">Open-Meteo only</string>
@@ -168,7 +168,7 @@ Add photo</string>
     <string name="runtime_season_ongoing">Season in progress</string>
     <string name="runtime_garden_record">Garden record</string>
     <string name="runtime_growth_photo_added">Plant growth photo added.</string>
-    <string name="runtime_duration_seconds">Duration: %1$d sec</string>
+    <string name="runtime_duration_seconds" tools:ignore="PluralsCandidate">Duration: %1$d sec</string>
     <string name="runtime_restart_title">Restart the device?</string>
     <string name="runtime_restart_message">The Raspberry Pi will restart. Irrigation and sensor connections will be interrupted briefly.</string>
     <string name="runtime_restart_action">Restart</string>
@@ -182,12 +182,12 @@ Add photo</string>
     <string name="runtime_no_connection_badge">NO CONNECTION</string>
     <string name="runtime_partial_connection_badge">PARTIALLY CONNECTED</string>
     <string name="runtime_connected_badge">CONNECTED</string>
-    <string name="runtime_live_sensor_count">%1$d / %2$d sensors live</string>
+    <string name="runtime_live_sensor_count" tools:ignore="PluralsCandidate">%1$d / %2$d sensors live</string>
     <string name="runtime_esp32_waiting">The ESP32 may be off or waiting for a Wi‑Fi / MQTT connection.</string>
     <string name="runtime_esp32_partial">Waiting for current data from some ESP32 sensors.</string>
     <string name="runtime_esp32_healthy">The ESP32 wireless sensor network is sending data regularly.</string>
     <string name="runtime_just_now">Just now</string>
-    <string name="runtime_seconds_ago">%1$d sec ago</string>
+    <string name="runtime_seconds_ago" tools:ignore="PluralsCandidate">%1$d sec ago</string>
     <string name="runtime_minutes_ago">%1$d min ago</string>
     <string name="runtime_product_unnamed">Unnamed product</string>
     <string name="runtime_zone_data_preparing">Preparing zone data.</string>
@@ -212,7 +212,7 @@ Add photo</string>
     <string name="runtime_soil_values_message">These values are used for recommendations and risk warnings; they do not start automatic fertilization.</string>
     <string name="runtime_soil_values_invalid">pH must be 0–14 and EC must be 0–20.</string>
     <string name="runtime_active_harvest_note">During active harvest: Consider only products whose label explicitly permits use until harvest and has no pre-harvest restriction.</string>
-    <string name="runtime_application_wait_days">Application timing: Wait %1$d days before applying again.</string>
+    <string name="runtime_application_wait_days" tools:ignore="PluralsCandidate">Application timing: Wait %1$d days before applying again.</string>
     <string name="runtime_history_photo_prompt">You can also add a plant photo for this observation to the local archive.</string>
     <string name="runtime_not_now">Not now</string>
     <string name="runtime_valid_date_amount">Enter a valid date and amount.</string>
@@ -226,7 +226,7 @@ Add photo</string>
     <string name="runtime_no_linked_records">No irrigation or fertilization record is linked to this entry.</string>
     <string name="runtime_reason_label">Reason: %1$s</string>
     <string name="runtime_water_analysis_save_failed">Water analysis could not be saved.</string>
-    <string name="runtime_last_application_days">Last application: %1$d days ago.</string>
+    <string name="runtime_last_application_days" tools:ignore="PluralsCandidate">Last application: %1$d days ago.</string>
     <string name="runtime_stock_value">Stock: %1$s %2$s</string>
     <string name="runtime_follow_up_task">Follow-up task: Add a new photo from the same zone in 3 days.</string>
     <string name="runtime_follow_up_comparison">Follow-up assessment: The new photo was saved for comparison with the previous analysis (‘%1$s’).</string>
@@ -251,7 +251,7 @@ Add photo</string>
     <string name="runtime_delete_photo_record_message">This user photo record and its copy on your phone will be deleted.</string>
 
     <string name="runtime_timeline_named_title">%1$s Journal</string>
-    <string name="runtime_timeline_season_year">%1$d Season</string>
+    <string name="runtime_timeline_season_year" tools:ignore="PluralsCandidate">%1$d Season</string>
     <string name="runtime_timeline_season_header">%1$s · %2$s</string>
     <string name="runtime_timeline_season_selector_description">Season selection: %1$s</string>
     <string name="runtime_compare_empty">Add at least two photos from this season to compare them.</string>

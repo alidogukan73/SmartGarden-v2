@@ -341,7 +341,7 @@ public final class GardenNotificationManager {
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context, channelId)
-                        .setSmallIcon(R.drawable.ic_avora_notification_small)
+                        .setSmallIcon(R.drawable.ic_leaf_24)
                         .setColor(
                                 ContextCompat.getColor(
                                         context,

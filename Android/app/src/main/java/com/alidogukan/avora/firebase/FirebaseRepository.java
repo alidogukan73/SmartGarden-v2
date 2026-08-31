@@ -269,6 +269,11 @@ public class FirebaseRepository {
       });
    }
 
+   /**
+    * Keeps the token contract consumed by the Raspberry Pi Admin SDK sender.
+    * Migrating to FirebaseMessaging.register() requires a coordinated backend switch to FIDs.
+    */
+   @SuppressWarnings("deprecation")
    public Task<String> getPushToken() {
       return FirebaseMessaging.getInstance().getToken();
    }

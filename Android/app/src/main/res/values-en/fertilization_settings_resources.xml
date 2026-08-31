@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilization_settings_title">Fertilization Settings</string>
     <string name="fertilization_settings_safety_title">Safe guidance</string>
     <string name="fertilization_settings_safety_message">AVORA never applies fertilizer automatically. It evaluates growth stage, history, weather, stock and manufacturer dosage to provide an explained recommendation and plan.</string>
     <string name="fertilization_settings_live_section">Live status</string>
     <string name="fertilization_settings_plan_title">Zone plans</string>
     <string name="fertilization_settings_plan_loading">Loading plan information…</string>
-    <string name="fertilization_settings_plan_summary">%1$d / %2$d active plans · reminders enabled for %3$d zones</string>
+    <string name="fertilization_settings_plan_summary" tools:ignore="PluralsCandidate">%1$d / %2$d active plans · reminders enabled for %3$d zones</string>
     <string name="fertilization_settings_product_title">Fertilizer inventory</string>
     <string name="fertilization_settings_product_loading">Loading product information…</string>
-    <string name="fertilization_settings_product_summary">%1$d active products · stock information available for %2$d products</string>
+    <string name="fertilization_settings_product_summary" tools:ignore="PluralsCandidate">%1$d active products · stock information available for %2$d products</string>
     <string name="fertilization_settings_stock_title">Stock status</string>
     <string name="fertilization_settings_stock_loading">Loading stock status…</string>
     <string name="fertilization_settings_stock_normal">No low stock within the configured warning limits</string>

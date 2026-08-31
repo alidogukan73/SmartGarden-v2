@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="season_cancel">İptal</string>
     <string name="season_management_title">Sezon Yönetimi</string>
     <string name="season_management_subtitle">Her bölgenin sezonunu güvenle başlatın, kapatın ve arşivleyin</string>
@@ -39,7 +39,7 @@
     <string name="season_start_planting_date_hint">Dikim veya fide şaşırtma tarihi (gg-aa-yyyy)</string>
     <string name="season_start_label_hint">Sezon adı</string>
     <string name="season_default_label">%1$s Sezonu</string>
-    <string name="season_invalid_date">Tarihi gün-ay-yıl biçiminde girin. Örnek: 30-07-2026</string>
+    <string name="season_invalid_date" tools:ignore="TypographyDashes">Tarihi gün-ay-yıl biçiminde girin. Örnek: 30-07-2026</string>
     <string name="season_started_success">Yeni sezon güvenle başlatıldı.</string>
     <string name="season_start_failed">Yeni sezon başlatılamadı.</string>
     <string name="season_close_dialog_title">%1$s · Sezon kapanışı</string>

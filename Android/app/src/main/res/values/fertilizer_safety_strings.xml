@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilizer_bulk_no_products">Önce kullanılacak etkin bir gübre ürünü ekleyin.</string>
     <string name="fertilizer_bulk_select_product">Gübre ürününü seçin</string>
     <string name="fertilizer_bulk_no_eligible_zones">Alan veya tank bilgisi olan etkin bölge bulunamadı.</string>
@@ -14,7 +14,7 @@
     <string name="fertilizer_bulk_stock_unit_mismatch">Stok birimi (%1$s), hesaplanan uygulama birimiyle (%2$s) uyuşmuyor.</string>
     <string name="fertilizer_bulk_stock_insufficient">Toplam %1$s %2$s gerekli; mevcut stok %3$s %2$s. Kayıt yapılmadı.</string>
     <string name="fertilizer_bulk_confirm_title">Toplu uygulamayı doğrulayın</string>
-    <string name="fertilizer_bulk_confirm_message">%1$d bölgeye %2$s uygulanacak.\nToplam miktar: %3$s %4$s\nTarih: %5$s\n\nTüm kayıtlar ve stok tek işlemde güncellenecek.</string>
+    <string name="fertilizer_bulk_confirm_message" tools:ignore="PluralsCandidate">%1$d bölgeye %2$s uygulanacak.\nToplam miktar: %3$s %4$s\nTarih: %5$s\n\nTüm kayıtlar ve stok tek işlemde güncellenecek.</string>
     <string name="fertilizer_bulk_confirm_action">Uygulamayı kaydet</string>
     <string name="fertilizer_bulk_success">Uygulama seçilen bölgelere kaydedildi ve stok güncellendi.</string>
     <string name="fertilizer_bulk_failure">Kayıt tamamlanamadı: %1$s</string>

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="fertilization_settings_title">Gübreleme Ayarları</string>
     <string name="fertilization_settings_safety_title">Güvenli danışmanlık</string>
     <string name="fertilization_settings_safety_message">AVORA gübreyi otomatik uygulamaz. Bitki dönemi, geçmiş, hava, stok ve üretici dozunu değerlendirerek gerekçeli öneri ve plan sunar.</string>
     <string name="fertilization_settings_live_section">Canlı durum</string>
     <string name="fertilization_settings_plan_title">Bölge planları</string>
     <string name="fertilization_settings_plan_loading">Plan bilgileri yükleniyor…</string>
-    <string name="fertilization_settings_plan_summary">%1$d / %2$d etkin plan · %3$d bölgesel hatırlatma açık</string>
+    <string name="fertilization_settings_plan_summary" tools:ignore="PluralsCandidate">%1$d / %2$d etkin plan · %3$d bölgesel hatırlatma açık</string>
     <string name="fertilization_settings_product_title">Gübre envanteri</string>
     <string name="fertilization_settings_product_loading">Ürün bilgileri yükleniyor…</string>
-    <string name="fertilization_settings_product_summary">%1$d etkin ürün · %2$d üründe stok bilgisi var</string>
+    <string name="fertilization_settings_product_summary" tools:ignore="PluralsCandidate">%1$d etkin ürün · %2$d üründe stok bilgisi var</string>
     <string name="fertilization_settings_stock_title">Stok durumu</string>
     <string name="fertilization_settings_stock_loading">Stok durumu yükleniyor…</string>
     <string name="fertilization_settings_stock_normal">Tanımlı uyarı sınırlarında düşük stok yok</string>
