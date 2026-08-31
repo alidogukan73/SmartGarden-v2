@@ -25,9 +25,9 @@ Internal APK ve gelecekteki Play release APK ayni uygulama imza anahtarini
 kullandigi icin, daha yuksek `versionCode` degerine sahip Play surumu internal
 surumun uzerine yerel verileri silmeden kurulabilir.
 
-`debug` yapisi `com.ali.smartgarden.debug` paket adini ve `AVORA Debug` uygulama
+`debug` yapisi `com.alidogukan.avora.debug` paket adini ve `AVORA Debug` uygulama
 adini kullanir. Android Studio Run islemi bu nedenle telefondaki kalici
-`com.ali.smartgarden` internal/release kurulumunu kaldiramaz veya yerel verilerini
+`com.alidogukan.avora` internal/release kurulumunu kaldiramaz veya yerel verilerini
 silemez. Debug Firebase yapilandirmasi `app/src/debug/google-services.json`
 altinda yereldir ve Git tarafindan yok sayilir.
 

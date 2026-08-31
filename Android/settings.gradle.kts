@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmartGarden"
+rootProject.name = "AVORA"
 include(":app")

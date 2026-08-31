@@ -16,7 +16,7 @@ val releaseSigningProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.ali.smartgarden"
+    namespace = "com.alidogukan.avora"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -24,11 +24,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ali.smartgarden"
+        applicationId = "com.alidogukan.avora"
         minSdk = 26
         targetSdk = 36
-        versionCode = 32
-        versionName = "2.10.1"
+        versionCode = 33
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

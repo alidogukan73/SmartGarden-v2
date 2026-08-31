@@ -250,7 +250,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal" />
         </HorizontalScrollView>
-        <com.ali.smartgarden.views.WeatherTemperatureChartView
+        <com.alidogukan.avora.views.WeatherTemperatureChartView
             android:id="@+id/chartWeatherTemperature"
             android:layout_width="match_parent"
             android:layout_height="210dp"
