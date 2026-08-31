@@ -1,10 +1,12 @@
 package com.alidogukan.avora.activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -17,6 +19,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
@@ -266,6 +269,15 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         hardwareNote.setPadding(0, dp(4), 0, 0);
         form.addView(hardwareNote);
 
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int maxFormHeight = Math.min(dp(420), Math.round(screenHeight * 0.48f));
+        DialogFormScrollView formScroll = new DialogFormScrollView(this, maxFormHeight);
+        formScroll.setFillViewport(false);
+        formScroll.setVerticalScrollBarEnabled(true);
+        formScroll.addView(form, new NestedScrollView.LayoutParams(
+                NestedScrollView.LayoutParams.MATCH_PARENT,
+                NestedScrollView.LayoutParams.WRAP_CONTENT));
+
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(existing == null || viewModel.isInactive(existing)
                         ? R.string.zone_management_add_dialog
@@ -274,7 +286,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                         ? getString(R.string.zone_management_dialog_choose_channel)
                         : getString(R.string.zone_management_dialog_channel,
                                 viewModel.zoneId(slot)))
-                .setView(form)
+                .setView(formScroll)
                 .setNegativeButton(R.string.settings_cancel, null)
                 .setPositiveButton(R.string.settings_save, null)
                 .create();
@@ -307,6 +319,28 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                             });
                 }));
         dialog.show();
+    }
+
+    /** Keeps dialog actions visible while allowing the form to scroll on short screens. */
+    private static final class DialogFormScrollView extends NestedScrollView {
+        private final int maxHeight;
+
+        DialogFormScrollView(Context context, int maxHeight) {
+            super(context);
+            this.maxHeight = maxHeight;
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int parentLimit = View.MeasureSpec.getSize(heightMeasureSpec);
+            int heightLimit = parentLimit > 0
+                    ? Math.min(parentLimit, maxHeight)
+                    : maxHeight;
+            int limitedHeight = View.MeasureSpec.makeMeasureSpec(
+                    heightLimit,
+                    View.MeasureSpec.AT_MOST);
+            super.onMeasure(widthMeasureSpec, limitedHeight);
+        }
     }
 
     private void confirmDeactivate(GardenZone zone) {
