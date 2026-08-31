@@ -102,11 +102,32 @@ class PlantVisionService:
     @staticmethod
     def _prompt(context: dict[str, Any]) -> str:
         safe_context = json.dumps(context, ensure_ascii=False)
+        analysis_goal = (
+            "growth_status"
+            if context.get("analysis_goal") == "growth_status"
+            else "health_screening"
+        )
+        if analysis_goal == "growth_status":
+            analysis_focus = (
+                "The primary goal is plant growth assessment, not disease screening. "
+                "Assess visible vigor, likely development stage, leaf color and density, "
+                "stem and internode balance, flowering or fruiting progress, and visible "
+                "growth stress. Do not infer exact plant age or growth rate from a single "
+                "photo. Use possible_causes for factors that may be limiting growth and "
+                "next_steps for safe observation and same-angle photo follow-up. Mention "
+                "disease only when a clear red flag is visible. "
+            )
+        else:
+            analysis_focus = (
+                "The primary goal is a cautious visual health screening based on the "
+                "selected symptoms. "
+            )
         return (
             "You are AVORA Visual Plant Doctor. Analyze the supplied plant photo "
             "together with the garden context. This is agricultural decision support, "
             "not a diagnosis. Never recommend pesticides, dosage, or automatic irrigation. "
-            "If photo quality is insufficient, say so clearly. Return only JSON with these keys: "
+            + analysis_focus
+            + "If photo quality is insufficient, say so clearly. Return only JSON with these keys: "
             "is_plant_photo (boolean), title (Turkish short string), confidence (integer 0-100), "
             "urgency (Düşük|Orta|Yüksek), visual_findings (Turkish string), "
             "possible_causes (array of at most 3 Turkish strings), next_steps (array of at most 4 Turkish strings), "

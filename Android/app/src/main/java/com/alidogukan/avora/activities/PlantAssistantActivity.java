@@ -48,7 +48,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private ImageView photoPreview;
     private View photoHintLayout, otherNoteLayout;
     private TextInputEditText generalNote, otherNote;
-    private CheckBox yellowing, drying, spot, wilt, pest, flowerDrop, other;
+    private CheckBox growthStatus, yellowing, drying, spot, wilt, pest, flowerDrop, other;
     private String requestedZoneId = "";
     private Uri selectedPhotoUri;
     private Bitmap selectedPhotoBitmap;
@@ -110,6 +110,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         sunData = findViewById(R.id.txtDoctorSun);
         windData = findViewById(R.id.txtDoctorWind);
         humidityData = findViewById(R.id.txtDoctorHumidity);
+        growthStatus = findViewById(R.id.checkDoctorGrowthStatus);
         yellowing = findViewById(R.id.checkDoctorYellowing);
         drying = findViewById(R.id.checkDoctorDrying);
         spot = findViewById(R.id.checkDoctorSpot);
@@ -178,20 +179,25 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private void analyze() {
         GardenZone zone = selectedZone();
         List<String> symptoms = selectedSymptoms();
+        boolean growthStatusRequested = growthStatus.isChecked();
         if (zone == null) {
             toast(getString(R.string.runtime_select_zone_first));
             return;
         }
-        if (symptoms.isEmpty()) {
+        if (symptoms.isEmpty() && !growthStatusRequested) {
             toast(getString(R.string.runtime_select_symptom));
+            return;
+        }
+        if (growthStatusRequested && !hasPhoto()) {
+            toast(getString(R.string.runtime_growth_photo_required));
             return;
         }
         String note = text(generalNote);
         PlantAssistantResult result = viewModel.assess(
-                zone, symptoms, note, currentWeather, hasPhoto());
+                zone, symptoms, note, currentWeather, hasPhoto(), growthStatusRequested);
         renderHeuristicResult(result);
-        if (hasPhoto()) requestVisionAnalysis(zone, symptoms, note);
-        savePhotoToArchive(zone, symptoms, note);
+        if (hasPhoto()) requestVisionAnalysis(zone, symptoms, note, growthStatusRequested);
+        savePhotoToArchive(zone, symptoms, note, growthStatusRequested);
     }
 
     private void renderHeuristicResult(PlantAssistantResult result) {
@@ -218,7 +224,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
         );
     }
 
-    private void requestVisionAnalysis(GardenZone zone, List<String> symptoms, String note) {
+    private void requestVisionAnalysis(GardenZone zone, List<String> symptoms, String note,
+                                       boolean growthStatusRequested) {
         Bitmap bitmap = selectedPhotoBitmap;
         if (bitmap == null && photoPreview.getDrawable() instanceof BitmapDrawable) {
             bitmap = ((BitmapDrawable) photoPreview.getDrawable()).getBitmap();
@@ -227,12 +234,13 @@ public class PlantAssistantActivity extends AppCompatActivity {
         Bitmap image = bitmap;
         toast(getString(R.string.runtime_visual_ai_preparing));
         viewModel.analyzeVisionAsync(image, zone, symptoms, note, currentWeather,
-                visual -> runOnUiThread(() -> renderVisionResult(visual)),
+                growthStatusRequested,
+                visual -> runOnUiThread(() -> renderVisionResult(visual, growthStatusRequested)),
                 error -> runOnUiThread(() -> toast(getString(
                         R.string.runtime_visual_ai_unavailable, error.getMessage()))));
     }
 
-    private void renderVisionResult(JSONObject visual) {
+    private void renderVisionResult(JSONObject visual, boolean growthStatusRequested) {
         if (!visual.optBoolean("is_plant_photo", true)) {
             title.setText(R.string.runtime_photo_quality_title);
             meta.setText(getString(R.string.runtime_visual_confidence_urgency,
@@ -265,13 +273,17 @@ public class PlantAssistantActivity extends AppCompatActivity {
                         findings,
                         getString(
                                 R.string.runtime_two_lines,
-                                getString(R.string.runtime_possible_causes),
+                                getString(growthStatusRequested
+                                        ? R.string.runtime_growth_factors
+                                        : R.string.runtime_possible_causes),
                                 causes)));
         List<String> adviceSections = new ArrayList<>();
         if (!steps.isEmpty()) {
             adviceSections.add(getString(
                     R.string.runtime_two_lines,
-                    getString(R.string.runtime_recommended_observation),
+                    getString(growthStatusRequested
+                            ? R.string.runtime_growth_follow_up
+                            : R.string.runtime_recommended_observation),
                     steps));
         }
         if (!redFlags.isEmpty()) {
@@ -316,10 +328,15 @@ public class PlantAssistantActivity extends AppCompatActivity {
         humidityData.setText(getString(R.string.format_assistant_humidity_data, number(currentWeather == null ? null : currentWeather.getCurrentHumidity(), "%")));
     }
 
-    private void savePhotoToArchive(GardenZone zone, List<String> symptoms, String note) {
+    private void savePhotoToArchive(GardenZone zone, List<String> symptoms, String note,
+                                    boolean growthStatusRequested) {
         if (!hasPhoto() || selectedPhotoArchived) return;
         selectedPhotoArchived = true;
-        String archiveNote = getString(R.string.runtime_assistant_archive_note, String.join(", ", symptoms))
+        List<String> selections = new ArrayList<>(symptoms);
+        if (growthStatusRequested) {
+            selections.add(0, getString(R.string.runtime_growth_status_selection));
+        }
+        String archiveNote = getString(R.string.runtime_assistant_archive_note, String.join(", ", selections))
                 + (note.isEmpty() ? "" : " · " + note);
         Uri uri = selectedPhotoUri;
         Bitmap bitmap = selectedPhotoBitmap;

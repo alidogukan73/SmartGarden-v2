@@ -315,10 +315,19 @@
                                 android:src="@drawable/ic_info_outline_20" />
                         </LinearLayout>
                         <CheckBox
-                            android:id="@+id/checkDoctorYellowing"
+                            android:id="@+id/checkDoctorGrowthStatus"
                             android:layout_width="match_parent"
                             android:layout_height="34dp"
                             android:layout_marginTop="7dp"
+                            android:buttonTint="@color/primary"
+                            android:gravity="center_vertical"
+                            android:text="@string/plant_assistant_growth_status_option"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="12sp" />
+                        <CheckBox
+                            android:id="@+id/checkDoctorYellowing"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
                             android:buttonTint="@color/primary"
                             android:gravity="center_vertical"
                             android:text="@string/symptom_yellowing"

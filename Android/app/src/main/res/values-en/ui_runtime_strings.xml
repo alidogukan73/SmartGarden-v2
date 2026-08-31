@@ -75,7 +75,11 @@ Up to 5 photos · tap to change</item></plurals>
     <string name="runtime_start_season_first">Start a new season for this zone first.</string>
 
     <string name="runtime_select_zone_first">Select a zone first.</string>
-    <string name="runtime_select_symptom">Select at least one symptom.</string>
+    <string name="runtime_select_symptom">Select at least one analysis option.</string>
+    <string name="runtime_growth_photo_required">Add a photo showing the whole plant to assess its growth.</string>
+    <string name="runtime_growth_status_selection">Plant growth status</string>
+    <string name="runtime_growth_factors">Factors affecting growth</string>
+    <string name="runtime_growth_follow_up">Growth follow-up</string>
     <string name="runtime_probability_urgency">Probability: %1$s · Urgency: %2$s</string>
     <string name="runtime_evaluated_context">Garden data evaluated: %1$s</string>
     <string name="runtime_visual_ai_preparing">Preparing visual AI analysis…</string>

@@ -15,7 +15,7 @@ public final class PlantAssistantAdvisor {
 
     public static PlantAssistantResult assess(GardenZone zone, List<String> symptoms,
                                            String note, WeatherForecast weather,
-                                           boolean hasPhoto) {
+                                           boolean hasPhoto, boolean growthStatusRequested) {
         int moisture = zone.getMoisture();
         int limit = zone.getMoisture_limit();
         boolean veryDry = moisture < Math.max(0, limit - 10);
@@ -31,6 +31,12 @@ public final class PlantAssistantAdvisor {
                 + weatherContext(weather)
                 + " · " + (fertilizerDue ? "gübreleme planı gecikmiş" : "gübreleme planı güncel")
                 + " · " + (hasPhoto ? "fotoğraf eklendi" : "fotoğraf eklenmedi");
+
+        if (growthStatusRequested) {
+            return result("Bitki gelişimi yapay zekâ ile değerlendiriliyor", "%35", "Düşük", context,
+                    "Fotoğraf; bitkinin canlılığı, gelişim evresi, yaprak-gövde dengesi ve görünür stres işaretleri "
+                            + "için bahçe verileriyle birlikte inceleniyor.");
+        }
 
         if (symptoms.contains("Yaprakta leke / yanıklık")
                 && (symptoms.contains("Solma") || symptoms.contains("Yaprak kuruması"))) {

@@ -59,7 +59,8 @@ daha sağlıklı sonuçlar elde edebilirsin.</string>
 Yaprak veya bitkinin genel fotoğrafını ekleyin.</string>
     <string name="plant_assistant_zone_step">📍  2. Bölge</string>
     <string name="plant_assistant_description_hint">4. Açıklama (isteğe bağlı)</string>
-    <string name="plant_assistant_symptoms_step">🍃  3. Belirtiler</string>
+    <string name="plant_assistant_symptoms_step">🍃  3. Analiz seçenekleri</string>
+    <string name="plant_assistant_growth_status_option">🌿  Bitki gelişim durumunu değerlendir</string>
     <string name="symptom_info_description">Belirti bilgisi</string>
     <string name="symptom_yellowing">🍂  Yaprak Sararması</string>
     <string name="symptom_drying">🟤  Yaprak Kuruması</string>

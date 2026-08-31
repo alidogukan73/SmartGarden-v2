@@ -75,7 +75,11 @@ En fazla 5 fotoğraf · değiştirmek için dokunun</item></plurals>
     <string name="runtime_start_season_first">Önce bu bölge için yeni sezon başlatın.</string>
 
     <string name="runtime_select_zone_first">Önce bir bölge seçin.</string>
-    <string name="runtime_select_symptom">En az bir belirti seçin.</string>
+    <string name="runtime_select_symptom">En az bir analiz seçeneği seçin.</string>
+    <string name="runtime_growth_photo_required">Bitki gelişimini değerlendirmek için genel görünümü gösteren bir fotoğraf ekleyin.</string>
+    <string name="runtime_growth_status_selection">Bitki gelişim durumu</string>
+    <string name="runtime_growth_factors">Gelişimi etkileyen etmenler</string>
+    <string name="runtime_growth_follow_up">Gelişim takibi</string>
     <string name="runtime_probability_urgency">Olasılık: %1$s · Aciliyet: %2$s</string>
     <string name="runtime_evaluated_context">Değerlendirilen bahçe verisi: %1$s</string>
     <string name="runtime_visual_ai_preparing">Görsel AI analizi hazırlanıyor…</string>

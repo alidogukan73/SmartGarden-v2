@@ -55,8 +55,9 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
 
     public PlantAssistantResult assess(GardenZone zone, List<String> symptoms,
                                        String note, WeatherForecast weather,
-                                       boolean hasPhoto) {
-        return PlantAssistantAdvisor.assess(zone, symptoms, note, weather, hasPhoto);
+                                       boolean hasPhoto, boolean growthStatusRequested) {
+        return PlantAssistantAdvisor.assess(
+                zone, symptoms, note, weather, hasPhoto, growthStatusRequested);
     }
 
     public void saveRecommendation(String zoneId, String urgency,
@@ -71,6 +72,7 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
 
     public void analyzeVisionAsync(Bitmap bitmap, GardenZone zone, List<String> symptoms,
                                    String note, WeatherForecast forecast,
+                                   boolean growthStatusRequested,
                                    Consumer<JSONObject> success, Consumer<Throwable> failure) {
         executor.execute(() -> {
             try {
@@ -82,6 +84,8 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                 JSONArray symptomValues = new JSONArray();
                 for (String symptom : symptoms) symptomValues.put(symptom);
                 payload.put("symptoms", symptomValues);
+                payload.put("analysis_goal",
+                        growthStatusRequested ? "growth_status" : "health_screening");
                 payload.put("note", note);
                 if (forecast != null) {
                     payload.put("temperature", forecast.getCurrentTemperature());

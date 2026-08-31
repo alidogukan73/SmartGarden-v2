@@ -59,7 +59,8 @@ and make healthier decisions.</string>
 Add a leaf or whole-plant photo.</string>
     <string name="plant_assistant_zone_step">📍  2. Zone</string>
     <string name="plant_assistant_description_hint">4. Description (optional)</string>
-    <string name="plant_assistant_symptoms_step">🍃  3. Symptoms</string>
+    <string name="plant_assistant_symptoms_step">🍃  3. Analysis options</string>
+    <string name="plant_assistant_growth_status_option">🌿  Assess plant growth status</string>
     <string name="symptom_info_description">Symptom information</string>
     <string name="symptom_yellowing">🍂  Leaf Yellowing</string>
     <string name="symptom_drying">🟤  Leaf Drying</string>
