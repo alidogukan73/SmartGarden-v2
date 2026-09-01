@@ -2,6 +2,7 @@ package com.alidogukan.avora.viewmodels;
 
 import android.app.Application;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -26,6 +27,7 @@ import com.alidogukan.avora.plantassistant.PlantFollowUpStore;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,12 +72,14 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
         return PlantAssistantVisionClient.analyze(bitmap, context);
     }
 
-    public void analyzeVisionAsync(Bitmap bitmap, GardenZone zone, List<String> symptoms,
+    public void analyzeVisionAsync(Bitmap bitmap, Uri photoUri,
+                                   GardenZone zone, List<String> symptoms,
                                    String note, WeatherForecast forecast,
                                    boolean growthStatusRequested,
                                    Consumer<JSONObject> success, Consumer<Throwable> failure) {
         executor.execute(() -> {
             try {
+                Bitmap image = resolvePhoto(bitmap, photoUri);
                 JSONObject payload = new JSONObject();
                 payload.put("plant", zone.getName());
                 payload.put("zone", zone.getZone_id());
@@ -92,11 +96,22 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                     payload.put("humidity", forecast.getCurrentHumidity());
                     payload.put("rain_probability", forecast.getTodayRainProbability());
                 }
-                success.accept(PlantAssistantVisionClient.analyze(bitmap, payload));
+                success.accept(PlantAssistantVisionClient.analyze(image, payload));
             } catch (Exception error) {
                 failure.accept(error);
             }
         });
+    }
+
+    private Bitmap resolvePhoto(Bitmap bitmap, Uri photoUri) throws Exception {
+        if (bitmap != null) return bitmap;
+        if (photoUri == null) throw new IllegalStateException("PHOTO_DECODE_FAILED");
+        try (InputStream stream = getApplication()
+                .getContentResolver().openInputStream(photoUri)) {
+            Bitmap decoded = BitmapFactory.decodeStream(stream);
+            if (decoded == null) throw new IllegalStateException("PHOTO_DECODE_FAILED");
+            return decoded;
+        }
     }
 
     public String list(JSONArray values) { return PlantAssistantVisionClient.list(values); }

@@ -1991,16 +1991,32 @@ class FirebaseService:
         Complete a one-shot Android zone test command.
         """
 
+        updates = {
+            "requested": False,
+            "active": active,
+            "remaining_seconds": max(0, remaining_seconds),
+            "result": result,
+            "completed_request_id": request_id,
+            "completed_at": datetime.now().isoformat(),
+        }
+        if not active:
+            updates["cancel_requested"] = False
+
+        self._device_ref().child("commands").child(
+            "zone_test",
+        ).update(updates)
+
+    def reset_zone_test_after_restart(self) -> None:
+        """Clear a stale Android valve-test state after a service restart."""
         self._device_ref().child("commands").child(
             "zone_test",
         ).update(
             {
                 "requested": False,
                 "cancel_requested": False,
-                "active": active,
-                "remaining_seconds": max(0, remaining_seconds),
-                "result": result,
-                "completed_request_id": request_id,
+                "active": False,
+                "remaining_seconds": 0,
+                "result": "SERVICE_RESTARTED",
                 "completed_at": datetime.now().isoformat(),
             },
         )

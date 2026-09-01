@@ -84,6 +84,7 @@ En fazla 5 fotoğraf · değiştirmek için dokunun</item></plurals>
     <string name="runtime_evaluated_context">Değerlendirilen bahçe verisi: %1$s</string>
     <string name="runtime_visual_ai_preparing">Görsel AI analizi hazırlanıyor…</string>
     <string name="runtime_visual_ai_unavailable">Görsel AI servisine ulaşılamadı: %1$s</string>
+    <string name="runtime_visual_ai_retry">Tailscale bağlantısını kontrol edip tekrar deneyin. Sorun sürerse yukarıdaki hata kodunu paylaşın.</string>
     <string name="runtime_photo_quality_title">Fotoğraf bitkiyi yeterince göstermiyor</string>
     <string name="runtime_visual_confidence_urgency">Görsel güven: %%%1$d · Aciliyet: %2$s</string>
     <string name="runtime_urgency_low">Düşük</string>

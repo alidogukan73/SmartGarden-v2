@@ -84,6 +84,7 @@ Up to 5 photos · tap to change</item></plurals>
     <string name="runtime_evaluated_context">Garden data evaluated: %1$s</string>
     <string name="runtime_visual_ai_preparing">Preparing visual AI analysis…</string>
     <string name="runtime_visual_ai_unavailable">Visual AI service could not be reached: %1$s</string>
+    <string name="runtime_visual_ai_retry">Check the Tailscale connection and try again. If the issue continues, share the error code above.</string>
     <string name="runtime_photo_quality_title">The photo does not show the plant clearly enough</string>
     <string name="runtime_visual_confidence_urgency">Visual confidence: %%%1$d · Urgency: %2$s</string>
     <string name="runtime_urgency_low">Low</string>

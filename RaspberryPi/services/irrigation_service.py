@@ -197,6 +197,7 @@ class IrrigationService:
             None,
             False,
         )
+        self._firebase.reset_zone_test_after_restart()
 
         self._restore_zone_cooldowns()
         self._restore_zone_irrigation_safety_states()
@@ -2517,11 +2518,12 @@ class IrrigationService:
         return False
 
     def _manual_pump_interlock_ready(self) -> bool:
-        """A manual pump run requires one configured physical valve open."""
+        """A manual pump run requires one fully opened physical valve."""
         active_valve_id = self._valves.active_valve_id
         return (
             active_valve_id is not None
             and self._valves.is_physical_valve(active_valve_id)
+            and self._valves.is_ready_for_pump(active_valve_id)
         )
 
     def _process_zone_test_command(
@@ -2611,9 +2613,6 @@ class IrrigationService:
                 commands.zone_test_zone_id,
                 commands.zone_test_valve_id,
                 test_mode == "PHYSICAL_TEST",
-            )
-            self._valves.wait_for_opening(
-                commands.zone_test_valve_id,
             )
             self._active_zone_test_request_id = request_id
             self._active_zone_test_valve_id = (

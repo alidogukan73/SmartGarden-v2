@@ -24,6 +24,7 @@ class ValveController:
         self._logger = AppLogger().logger
         self._initialized = False
         self._active_valve_id: str | None = None
+        self._active_valve_opened_at: float | None = None
         self._physical_valve_ids = frozenset(
             ValveConfig.PHYSICAL_VALVE_IDS,
         )
@@ -84,6 +85,11 @@ class ValveController:
             )
 
         self._active_valve_id = valve_id
+        self._active_valve_opened_at = (
+            time.monotonic()
+            if self.is_physical_valve(valve_id)
+            else None
+        )
         self._logger.info(
             "Zone valve %s. valve_id=%s",
             "OPEN" if self.is_physical_valve(valve_id) else "simulated OPEN",
@@ -92,8 +98,34 @@ class ValveController:
 
     def wait_for_opening(self, valve_id: str) -> None:
         """Wait for a physical valve before starting the shared pump."""
-        if self.is_physical_valve(valve_id):
-            time.sleep(ValveConfig.OPENING_DELAY_SECONDS)
+        if not self.is_physical_valve(valve_id):
+            return
+
+        remaining = ValveConfig.OPENING_DELAY_SECONDS
+        if (
+            self._active_valve_id == valve_id
+            and self._active_valve_opened_at is not None
+        ):
+            remaining -= time.monotonic() - self._active_valve_opened_at
+
+        if remaining > 0:
+            time.sleep(remaining)
+
+    def is_ready_for_pump(self, valve_id: str | None = None) -> bool:
+        """Return true only after the active physical valve fully opens."""
+        selected_valve_id = valve_id or self._active_valve_id
+        if (
+            selected_valve_id is None
+            or selected_valve_id != self._active_valve_id
+            or not self.is_physical_valve(selected_valve_id)
+            or self._active_valve_opened_at is None
+        ):
+            return False
+
+        return (
+            time.monotonic() - self._active_valve_opened_at
+            >= ValveConfig.OPENING_DELAY_SECONDS
+        )
 
     def close_all(self) -> None:
         self._require_initialized()
@@ -110,6 +142,7 @@ class ValveController:
                 )
 
         self._active_valve_id = None
+        self._active_valve_opened_at = None
 
         if previous is not None:
             self._logger.info(
@@ -202,6 +235,7 @@ class ValveController:
         finally:
             self._initialized = False
             self._active_valve_id = None
+            self._active_valve_opened_at = None
 
     def _require_initialized(self) -> None:
         if not self._initialized:

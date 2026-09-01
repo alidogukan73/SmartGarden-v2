@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 import types
 from pathlib import Path
 
@@ -29,6 +30,14 @@ def main() -> None:
 
     assert valves.is_physical_valve("valve-001") is True
     assert valves.is_simulated_valve("valve-001") is False
+    valves._active_valve_id = "valve-001"
+    valves._active_valve_opened_at = time.monotonic()
+    assert valves.is_ready_for_pump("valve-001") is False
+    valves._active_valve_opened_at -= (
+        ValveConfig.OPENING_DELAY_SECONDS + 0.1
+    )
+    assert valves.is_ready_for_pump("valve-001") is True
+    assert valves.is_ready_for_pump("valve-002") is False
 
     for valve_id in (
         "valve-002",

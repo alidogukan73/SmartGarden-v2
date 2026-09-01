@@ -1,10 +1,10 @@
 package com.alidogukan.avora.activities;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -38,6 +38,7 @@ import org.json.JSONObject;
 
 /** AI Bitki Asistanı: fotoğraf, belirtiler, sensör ve hava bağlamıyla güvenli ön değerlendirme. */
 public class PlantAssistantActivity extends AppCompatActivity {
+    private static final String LOG_TAG = "AVORA-PlantAssistant";
     private PlantAssistantViewModel viewModel;
     private final Map<String, GardenZone> zones = new HashMap<>();
 
@@ -226,18 +227,22 @@ public class PlantAssistantActivity extends AppCompatActivity {
 
     private void requestVisionAnalysis(GardenZone zone, List<String> symptoms, String note,
                                        boolean growthStatusRequested) {
-        Bitmap bitmap = selectedPhotoBitmap;
-        if (bitmap == null && photoPreview.getDrawable() instanceof BitmapDrawable) {
-            bitmap = ((BitmapDrawable) photoPreview.getDrawable()).getBitmap();
-        }
-        if (bitmap == null) return;
-        Bitmap image = bitmap;
         toast(getString(R.string.runtime_visual_ai_preparing));
-        viewModel.analyzeVisionAsync(image, zone, symptoms, note, currentWeather,
+        viewModel.analyzeVisionAsync(selectedPhotoBitmap, selectedPhotoUri,
+                zone, symptoms, note, currentWeather,
                 growthStatusRequested,
                 visual -> runOnUiThread(() -> renderVisionResult(visual, growthStatusRequested)),
-                error -> runOnUiThread(() -> toast(getString(
-                        R.string.runtime_visual_ai_unavailable, error.getMessage()))));
+                error -> runOnUiThread(() -> renderVisionFailure(error)));
+    }
+
+    private void renderVisionFailure(Throwable error) {
+        String detail = error.getMessage();
+        if (detail == null || detail.isBlank()) detail = error.getClass().getSimpleName();
+        Log.e(LOG_TAG, "Plant vision analysis failed: " + detail, error);
+        title.setText(getString(R.string.runtime_visual_ai_unavailable, detail));
+        meta.setText("");
+        advice.setText(R.string.runtime_visual_ai_retry);
+        resultCard.setVisibility(View.VISIBLE);
     }
 
     private void renderVisionResult(JSONObject visual, boolean growthStatusRequested) {
