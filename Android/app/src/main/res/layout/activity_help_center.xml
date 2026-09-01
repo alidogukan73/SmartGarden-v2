@@ -72,14 +72,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/help_intro_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/help_intro_message"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -185,7 +185,7 @@
                 android:gravity="center"
                 android:padding="24dp"
                 android:text="@string/help_no_results"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                android:textAppearance="@style/TextAppearance.AVORA.Body"
                 android:visibility="gone" />
 
             <TextView
@@ -195,7 +195,7 @@
                 android:background="@color/surfaceGreen"
                 android:padding="14dp"
                 android:text="@string/help_safety_note"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

@@ -30,14 +30,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/zone_detail_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                 <TextView
                     android:id="@+id/txtZoneDetailSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/zone_detail_waiting"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </LinearLayout>
         <com.google.android.material.card.MaterialCardView
@@ -60,7 +60,7 @@
                 android:textStyle="bold" />
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -81,10 +81,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/switchZoneSensor"
-                    style="@style/Widget.SmartGarden.Switch"
+                    style="@style/Widget.AVORA.Switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/zone_sensor_enabled_description"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -126,11 +126,11 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/zone_sensor_calibration_hint"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -141,7 +141,7 @@
                 android:padding="18dp">
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/switchZoneIrrigation"
-                    style="@style/Widget.SmartGarden.Switch"
+                    style="@style/Widget.AVORA.Switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/zone_irrigation_enabled"
@@ -153,7 +153,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/zone_irrigation_disabled_description"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -223,7 +223,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/zone_cooldown_description"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:id="@+id/txtZoneCooldownValue"
                     android:layout_width="wrap_content"
@@ -258,7 +258,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/zone_restart_delta_description"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:id="@+id/txtZoneRestartDeltaValue"
                     android:layout_width="wrap_content"
@@ -282,7 +282,7 @@
                     app:trackColorInactive="@color/divider" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSaveZone"
-                    style="@style/Widget.SmartGarden.Button.Primary"
+                    style="@style/Widget.AVORA.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:layout_marginTop="18dp"
@@ -306,11 +306,11 @@
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:text="@string/settings_status_ready"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -332,13 +332,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/zone_valve_simulation"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/zone_test_safety_note"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTestZoneValve"
                     style="@style/Widget.Material3.Button.OutlinedButton"

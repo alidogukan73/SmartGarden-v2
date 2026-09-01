@@ -17,15 +17,15 @@ from firebase_admin import app_check, credentials
 from core.config import FirebaseConfig
 from services.plant_vision_service import PlantVisionService
 
-HOST = os.getenv("SMARTGARDEN_VISION_HOST", "0.0.0.0")
-PORT = int(os.getenv("SMARTGARDEN_VISION_PORT", "8787"))
+HOST = os.getenv("AVORA_VISION_HOST", "0.0.0.0")
+PORT = int(os.getenv("AVORA_VISION_PORT", "8787"))
 MAX_BODY_BYTES = 7 * 1024 * 1024
 FIREBASE_APP_ID = os.getenv(
-    "SMARTGARDEN_VISION_FIREBASE_APP_ID",
-    "1:891662021997:android:cb8c582fdcbd87e6829664",
+    "AVORA_VISION_FIREBASE_APP_ID",
+    "1:1067555097897:android:e2f618ead2f5410a807b38",
 ).strip()
 SERVICE = PlantVisionService()
-LOGGER = logging.getLogger("smartgarden.plant_vision")
+LOGGER = logging.getLogger("avora.plant_vision")
 APP_CHECK_READY = False
 
 

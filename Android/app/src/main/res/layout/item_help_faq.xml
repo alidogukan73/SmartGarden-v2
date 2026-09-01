@@ -55,7 +55,7 @@
             android:paddingTop="12dp"
             android:paddingEnd="14dp"
             android:paddingBottom="14dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+            android:textAppearance="@style/TextAppearance.AVORA.Body"
             android:visibility="gone"
             tools:text="Otomatik sulama için sistem, bölge ve sulama etkin olmalıdır."
             tools:visibility="visible" />

@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/Widget.SmartGarden.Card.Main"
+    style="@style/Widget.AVORA.Card.Main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp">
@@ -37,13 +37,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <TextView
             android:id="@+id/txtNextApplication"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <TextView
             android:id="@+id/txtSetupHint"
             android:layout_width="match_parent"

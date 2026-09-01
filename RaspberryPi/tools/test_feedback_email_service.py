@@ -267,14 +267,14 @@ def main() -> None:
         "alidogukan+avora@gmail.com",
         "abcdefghijklmnop",
     )
-    assert "SMARTGARDEN_FEEDBACK_EMAIL_ENABLED=true" in environment
+    assert "AVORA_FEEDBACK_EMAIL_ENABLED=true" in environment
     assert (
-        "SMARTGARDEN_FEEDBACK_EMAIL_TO=alidogukan+avora@gmail.com"
+        "AVORA_FEEDBACK_EMAIL_TO=alidogukan+avora@gmail.com"
         in environment
     )
-    assert "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE=auto" in environment
-    assert "SMARTGARDEN_GMAIL_APP_PASSWORD=abcdefghijklmnop" in environment
-    assert "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false" in environment
+    assert "AVORA_FEEDBACK_EMAIL_DELIVERY_MODE=auto" in environment
+    assert "AVORA_GMAIL_APP_PASSWORD=abcdefghijklmnop" in environment
+    assert "AVORA_FEEDBACK_EMAIL_SEND_EXISTING=false" in environment
 
     print("[PASS] Raspberry Pi feedback email delivery tests.")
 

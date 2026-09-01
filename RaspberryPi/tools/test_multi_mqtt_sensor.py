@@ -26,7 +26,7 @@ def _message(
 
     return SimpleNamespace(
         topic=(
-            "smartgarden/sensors/"
+            "avora/sensors/"
             f"{topic_sensor_id or sensor_id}"
         ),
         payload=json.dumps(
@@ -37,7 +37,7 @@ def _message(
 
 def main() -> None:
     sensor = MqttSoilMoistureSensor(
-        topic="smartgarden/sensors/+",
+        topic="avora/sensors/+",
         sensor_id="soil-001",
     )
 

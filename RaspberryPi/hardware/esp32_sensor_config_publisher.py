@@ -18,7 +18,7 @@ class Esp32SensorConfigPublisher:
         self,
         broker: str,
         port: int,
-        client_id: str = "smartgarden-pi-sensor-config",
+        client_id: str = "avora-pi-sensor-config",
     ) -> None:
         self._broker = broker
         self._port = port
@@ -78,7 +78,7 @@ class Esp32SensorConfigPublisher:
             raise ValueError("Dry calibration must be greater than wet calibration.")
 
         self.start()
-        base_topic = "smartgarden/config/esp32"
+        base_topic = "avora/config/esp32"
         enabled_result = self._client.publish(
             f"{base_topic}/sensors/{sensor_id}",
             "1" if enabled else "0",

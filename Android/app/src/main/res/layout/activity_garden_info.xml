@@ -65,14 +65,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/garden_info_intro_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/garden_info_intro_message"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -210,11 +210,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/garden_info_location_missing"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnManageGardenLocation"
-                        style="@style/Widget.SmartGarden.Button.Outlined"
+                        style="@style/Widget.AVORA.Button.Outlined"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="12dp"
@@ -224,7 +224,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveGardenInfo"
-                style="@style/Widget.SmartGarden.Button.Primary"
+                style="@style/Widget.AVORA.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginTop="18dp"
@@ -237,7 +237,7 @@
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="@string/settings_status_ready"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

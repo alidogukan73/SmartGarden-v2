@@ -31,56 +31,56 @@ def assert_rejected(action) -> None:
 
 def main() -> None:
     assert normalize_uid("  abcDEF_123-xyz  ") == "abcDEF_123-xyz"
-    assert normalize_device_id(" smartgarden-001 ") == "smartgarden-001"
+    assert normalize_device_id(" avora-001 ") == "avora-001"
     assert_rejected(lambda: normalize_uid(""))
     assert_rejected(lambda: normalize_uid("uid with spaces"))
-    assert_rejected(lambda: normalize_device_id("../smartgarden-001"))
+    assert_rejected(lambda: normalize_device_id("../avora-001"))
 
     claims = merge_device_claim(
         {"support_role": "viewer"},
-        "smartgarden-001",
+        "avora-001",
     )
     assert claims == {
         "support_role": "viewer",
-        CLAIM_NAME: "smartgarden-001",
+        CLAIM_NAME: "avora-001",
     }
 
-    unchanged = merge_device_claim(claims, "smartgarden-001")
+    unchanged = merge_device_claim(claims, "avora-001")
     assert unchanged == claims
     assert_rejected(
-        lambda: merge_device_claim(claims, "smartgarden-002"),
+        lambda: merge_device_claim(claims, "avora-002"),
     )
     replaced = merge_device_claim(
         claims,
-        "smartgarden-002",
+        "avora-002",
         replace_existing=True,
     )
-    assert replaced[CLAIM_NAME] == "smartgarden-002"
+    assert replaced[CLAIM_NAME] == "avora-002"
     assert replaced["support_role"] == "viewer"
 
-    removed = remove_device_claim(claims, "smartgarden-001")
+    removed = remove_device_claim(claims, "avora-001")
     assert CLAIM_NAME not in removed
     assert removed["support_role"] == "viewer"
     assert_rejected(
-        lambda: remove_device_claim(claims, "smartgarden-002"),
+        lambda: remove_device_claim(claims, "avora-002"),
     )
 
     users = [
         SimpleNamespace(
             uid="phone-owner",
-            custom_claims={CLAIM_NAME: "smartgarden-001"},
+            custom_claims={CLAIM_NAME: "avora-001"},
         ),
         SimpleNamespace(
             uid="other-garden",
-            custom_claims={CLAIM_NAME: "smartgarden-002"},
+            custom_claims={CLAIM_NAME: "avora-002"},
         ),
         SimpleNamespace(uid="no-claims", custom_claims=None),
         SimpleNamespace(
             uid="emulator-owner",
-            custom_claims={CLAIM_NAME: "smartgarden-001"},
+            custom_claims={CLAIM_NAME: "avora-001"},
         ),
     ]
-    assert filter_device_owner_uids(users, "smartgarden-001") == [
+    assert filter_device_owner_uids(users, "avora-001") == [
         "emulator-owner",
         "phone-owner",
     ]

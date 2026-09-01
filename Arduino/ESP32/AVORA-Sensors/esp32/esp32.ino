@@ -33,13 +33,13 @@ constexpr uint16_t ADS_SINGLE_ENDED_MUX[] = {
 const char* MQTT_BROKER = "192.168.1.99";
 const char* FIRMWARE_VERSION = "2.1.2";
 const char* SENSOR_CONFIG_TOPIC_FILTER =
-        "smartgarden/config/esp32/sensors/#";
+        "avora/config/esp32/sensors/#";
 const char* CALIBRATION_CONFIG_TOPIC_FILTER =
-        "smartgarden/config/esp32/calibration/#";
+        "avora/config/esp32/calibration/#";
 const char* SENSOR_CONFIG_TOPIC_PREFIX =
-        "smartgarden/config/esp32/sensors/";
+        "avora/config/esp32/sensors/";
 const char* CALIBRATION_CONFIG_TOPIC_PREFIX =
-        "smartgarden/config/esp32/calibration/";
+        "avora/config/esp32/calibration/";
 
 Adafruit_ADS1115 adsPrimary;
 Adafruit_ADS1115 adsSecondary;
@@ -159,8 +159,8 @@ bool parseCalibration(
 }
 
 // Retained MQTT command examples:
-// smartgarden/config/esp32/sensors/soil-003     -> 1 (enable) / 0 (disable)
-// smartgarden/config/esp32/calibration/soil-003 -> 12480,620 (dry,wet)
+// avora/config/esp32/sensors/soil-003     -> 1 (enable) / 0 (disable)
+// avora/config/esp32/calibration/soil-003 -> 12480,620 (dry,wet)
 void onMqttMessage(char* topic, byte* payload, unsigned int length) {
     size_t sensorPrefixLength = strlen(SENSOR_CONFIG_TOPIC_PREFIX);
     size_t calibrationPrefixLength = strlen(CALIBRATION_CONFIG_TOPIC_PREFIX);
@@ -291,7 +291,7 @@ void connectToWiFi() {
 void connectToMqtt() {
     while (!mqttClient.connected()) {
         String clientId =
-                "smartgarden-esp32-" +
+                "avora-esp32-" +
                 String(static_cast<uint32_t>(ESP.getEfuseMac()), HEX);
 
         if (mqttClient.connect(clientId.c_str())) {
@@ -338,7 +338,7 @@ void publishSensorData(const SensorConfig& sensor) {
 
     char topic[64];
     char payload[240];
-    snprintf(topic, sizeof(topic), "smartgarden/sensors/%s", sensor.id);
+    snprintf(topic, sizeof(topic), "avora/sensors/%s", sensor.id);
     snprintf(
             payload,
             sizeof(payload),

@@ -6,7 +6,7 @@ public final class AppInfo {
 
     public static final String APP_VERSION = "v" + BuildConfig.VERSION_NAME;
 
-    public static final String DEVICE_ID = "smartgarden-001";
+    public static final String DEVICE_ID = "avora-001";
 
     public static final String DEVELOPER_NAME = "Ali Doğukan";
 
@@ -14,7 +14,7 @@ public final class AppInfo {
             "Android ve Raspberry Pi geliştiricisi";
 
     public static final String GITHUB_URL =
-            "https://github.com/alidogukan73/SmartGarden-v2";
+            "https://github.com/alidogukan73/AVORA";
 
     private AppInfo() {
         // Utility class

@@ -9,9 +9,9 @@ Type=simple
 User=ali
 Group=ali
 
-WorkingDirectory=/home/ali/SmartGarden-v2/RaspberryPi
+WorkingDirectory=/home/ali/AVORA/RaspberryPi
 
-ExecStart=/home/ali/SmartGarden-v2/RaspberryPi/.venv/bin/python /home/ali/SmartGarden-v2/RaspberryPi/main.py
+ExecStart=/home/ali/AVORA/RaspberryPi/.venv/bin/python /home/ali/AVORA/RaspberryPi/main.py
 
 Restart=on-failure
 RestartSec=5
@@ -20,7 +20,7 @@ KillSignal=SIGTERM
 
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
-EnvironmentFile=-/etc/smartgarden/feedback-email.env
+EnvironmentFile=-/etc/avora/feedback-email.env
 
 StandardOutput=journal
 StandardError=journal

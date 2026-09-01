@@ -1,7 +1,7 @@
 # Raspberry Pi geri bildirim e-posta kurulumu
 
 Android uygulaması geri bildirimleri Realtime Database altında
-`devices/smartgarden-001/user_feedback` yoluna kaydeder. Gönderen ve alıcı
+`devices/avora-001/user_feedback` yoluna kaydeder. Gönderen ve alıcı
 aynı Gmail hesabıysa Raspberry Pi, iletiyi TLS korumalı Gmail IMAP
 bağlantısıyla doğrudan `INBOX` posta kutusuna ekler. Farklı bir alıcı
 kullanılırsa güvenli Gmail SMTP teslimine otomatik geçer.
@@ -17,7 +17,7 @@ yayım sırası için `FIREBASE_CIHAZ_SAHIPLIGI_GECISI.md` belgesini izleyin.
   16 karakterli Google uygulama şifresi kullanılır.
 - Aynı Gmail hesabına teslimde `gmail_inbox`, farklı hesaba teslimde
   `smtp` modu otomatik seçilir.
-- Uygulama şifresi `/etc/smartgarden/feedback-email.env` dosyasında
+- Uygulama şifresi `/etc/avora/feedback-email.env` dosyasında
   yalnız root tarafından okunabilecek `0600` izniyle tutulur.
 - Şifre Git deposuna, Firebase'e ve uygulama günlüklerine yazılmaz.
 - Firebase işlemi her kaydı göndermeden önce atomik olarak kilitler.
@@ -31,7 +31,7 @@ yayım sırası için `FIREBASE_CIHAZ_SAHIPLIGI_GECISI.md` belgesini izleyin.
 Depo güncellendikten sonra:
 
 ```bash
-cd ~/SmartGarden-v2/RaspberryPi
+cd ~/AVORA/RaspberryPi
 sudo .venv/bin/python tools/configure_feedback_email.py
 ```
 
@@ -41,18 +41,18 @@ Araç `AVORA Gmail uygulama şifresi:` diye sorunca 16 karakterli uygulama
 Güncel servis tanımını yükleyip AVORA'yı yeniden başlatın:
 
 ```bash
-sudo cp deploy/smartgarden.service /etc/systemd/system/smartgarden.service
+sudo cp deploy/avora.service /etc/systemd/system/avora.service
 sudo systemctl daemon-reload
-sudo systemctl restart smartgarden
-systemctl status smartgarden --no-pager
+sudo systemctl restart avora
+systemctl status avora --no-pager
 ```
 
 Şifrenin kendisini göstermeden yapılandırmayı doğrulayın:
 
 ```bash
-sudo test -s /etc/smartgarden/feedback-email.env
-sudo stat -c '%a %U %G' /etc/smartgarden/feedback-email.env
-sudo journalctl -u smartgarden -n 100 --no-pager | grep 'Feedback email'
+sudo test -s /etc/avora/feedback-email.env
+sudo stat -c '%a %U %G' /etc/avora/feedback-email.env
+sudo journalctl -u avora -n 100 --no-pager | grep 'Feedback email'
 ```
 
 Dosya izin çıktısı `600 root root` olmalıdır. Günlükte
@@ -71,7 +71,7 @@ deneme kaydı gönderin. En geç yaklaşık 15 saniye sonra:
 E-posta görünmezse:
 
 ```bash
-sudo journalctl -u smartgarden -n 150 --no-pager
+sudo journalctl -u avora -n 150 --no-pager
 ```
 
 `configuration is invalid` mesajı varsa yapılandırma aracını yeniden

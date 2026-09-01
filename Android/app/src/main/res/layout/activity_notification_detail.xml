@@ -41,7 +41,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="@string/notification_detail_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNotificationDetailMenu"
@@ -62,7 +62,7 @@
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
@@ -108,14 +108,14 @@
                                 android:id="@+id/txtNotificationDetailTitle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                             <TextView
                                 android:id="@+id/txtNotificationDetailTime"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -134,7 +134,7 @@
                             android:layout_width="92dp"
                             android:layout_height="wrap_content"
                             android:text="@string/notification_detail_category"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtNotificationDetailCategory"
                             android:layout_width="0dp"
@@ -154,7 +154,7 @@
                             android:layout_width="92dp"
                             android:layout_height="wrap_content"
                             android:text="@string/notification_detail_priority"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtNotificationDetailPriority"
                             android:layout_width="0dp"
@@ -174,7 +174,7 @@
                             android:layout_width="92dp"
                             android:layout_height="wrap_content"
                             android:text="@string/notification_detail_zone"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtNotificationDetailZone"
                             android:layout_width="0dp"
@@ -199,7 +199,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:lineSpacingExtra="2dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                     <TextView
                         android:id="@+id/txtNotificationDetailMeta"

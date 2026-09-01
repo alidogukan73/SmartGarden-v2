@@ -71,7 +71,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/device_info_intro_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:id="@+id/txtDeviceInfoConnectionStatus"

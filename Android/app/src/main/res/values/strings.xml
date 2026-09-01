@@ -395,7 +395,7 @@
     <string
         name="fertilizer_history_note">Not: %1$s</string>
     <string
-        name="default_device_name">smartgarden-001</string>
+        name="default_device_name">avora-001</string>
     <!-- NEM KARTI -->
     <string
         name="label_voltage">Voltaj</string>

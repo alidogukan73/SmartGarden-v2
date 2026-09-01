@@ -67,7 +67,7 @@ public final class DeviceConnectionVerificationWorker extends Worker {
 
             DataSnapshot snapshot = Tasks.await(FirebaseDatabase.getInstance()
                             .getReference("devices")
-                            .child("smartgarden-001")
+                            .child("avora-001")
                             .child("status")
                             .get(),
                     20, TimeUnit.SECONDS);

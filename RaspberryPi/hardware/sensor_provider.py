@@ -45,7 +45,7 @@ class SoilMoistureSensorProvider:
         mqtt_broker: str = "127.0.0.1",
         mqtt_port: int = 1883,
         mqtt_topic: str = (
-            "smartgarden/sensors/soil-001"
+            "avora/sensors/soil-001"
         ),
         mqtt_sensor_id: str = "soil-001",
         mqtt_stale_after_seconds: float = 30.0,
@@ -359,7 +359,7 @@ def main() -> None:
         mqtt_broker="127.0.0.1",
         mqtt_port=1883,
         mqtt_topic=(
-            "smartgarden/sensors/soil-001"
+            "avora/sensors/soil-001"
         ),
         mqtt_sensor_id="soil-001",
         mqtt_stale_after_seconds=15.0,

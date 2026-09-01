@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardAIProgress"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -32,13 +32,13 @@
                                 android:layout_height="wrap_content"
                                 android:includeFontPadding="false"
                                 android:text="@string/ai_tech_learning_title"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="@string/ai_tech_learning_subtitle"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <TextView
                             android:id="@+id/txtAIProgressPercent"

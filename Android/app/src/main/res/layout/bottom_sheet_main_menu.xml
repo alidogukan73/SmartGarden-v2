@@ -61,7 +61,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp"
             android:text="@string/main_menu_subtitle"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,14 +85,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/main_menu_garden_name"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                 <TextView
                     android:id="@+id/txtMenuConnection"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/main_menu_connection_connecting"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
             </LinearLayout>
             <TextView
                 android:layout_width="40dp"
@@ -103,7 +103,7 @@
                 android:textSize="24sp" />
         </LinearLayout>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -135,7 +135,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:text="@string/main_menu_sensor_weather_waiting"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <LinearLayout
@@ -406,7 +406,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardStatistics"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="10dp"
@@ -441,7 +441,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_statistics_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -452,7 +452,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardHistory"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -487,7 +487,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_history_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -498,7 +498,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardPlantJournal"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -533,7 +533,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_journal_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -544,7 +544,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardSeasonManagement"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -579,7 +579,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_season_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -590,7 +590,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardHealth"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -626,7 +626,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_health_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -637,7 +637,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardSettings"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -672,7 +672,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_settings_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -683,7 +683,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/menuCardAbout"
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
@@ -718,7 +718,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/main_menu_about_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"

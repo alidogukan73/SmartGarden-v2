@@ -19,14 +19,14 @@ Tarih: 2026-08-31
 - Birim testleri, Android cihaz testi ve lint görevi başarıyla tamamlandı.
 - Debug, internal ve release APK ile release AAB başarıyla üretildi.
 - Emülatörde App Check, Firebase yetkisi ve uygulama çökme sayısı sıfırlandı.
-- Ana ekranda gerçek `smartgarden-001` cihazı `BAĞLI` olarak görüntülendi.
+- Ana ekranda gerçek `avora-001` cihazı `BAĞLI` olarak görüntülendi.
 
 ## Bilinçli olarak ertelenen kontrol
 
 Kullanıcının isteğiyle fiziksel telefon USB üzerinden bağlanmadı. Bu nedenle
 release APK'nın gerçek telefondaki Play Integrity doğrulaması ve fiziksel saha
 testi bu kayıt kapsamında yapılmadı. APK telefona daha sonra elle kurulabilir;
-yeni paket eski `com.ali.smartgarden` uygulamasının yanında ayrı uygulama olarak
+yeni paket eski `com.alidogukan.avora` uygulamasının yanında ayrı uygulama olarak
 çalışır.
 
 ## Korunan çalışan protokol kimlikleri
@@ -34,9 +34,9 @@ yeni paket eski `com.ali.smartgarden` uygulamasının yanında ayrı uygulama ol
 Aşağıdaki adlar Android paketi veya kullanıcıya görünen marka değildir ve mevcut
 Raspberry Pi/Arduino bağlantısını bozmamak için değiştirilmemiştir:
 
-- Firebase proje kimliği: `smartgarden-v2`
-- Cihaz kimliği: `smartgarden-001`
-- MQTT konuları: `smartgarden/...`
+- Firebase proje kimliği: `avora-alidogukan`
+- Cihaz kimliği: `avora-001`
+- MQTT konuları: `avora/...`
 - Raspberry Pi servis adları
 
 `google-services.json` ve imzalama dosyaları Git'e eklenmez. Yerel tam yedek ve

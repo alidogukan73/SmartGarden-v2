@@ -24,10 +24,10 @@
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:text="@string/title_watering_control"
-                android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
         </LinearLayout>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -40,16 +40,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/title_watering_control"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_pump_and_mode"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardControlPumpStatus"
-                    style="@style/Widget.SmartGarden.Card.Inner"
+                    style="@style/Widget.AVORA.Card.Inner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="17dp">
@@ -86,7 +86,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/label_pump_status"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Label" />
                             <TextView
                                 android:id="@+id/txtControlPumpState"
                                 android:layout_width="wrap_content"
@@ -102,18 +102,18 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/pump_description_idle"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
                         </LinearLayout>
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchControlPump"
-                            style="@style/Widget.SmartGarden.Switch"
+                            style="@style/Widget.AVORA.Switch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/manual_relay_test_button" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
                 <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.SmartGarden.Card.Inner"
+                    style="@style/Widget.AVORA.Card.Inner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -165,11 +165,11 @@
                                 android:layout_marginTop="4dp"
                                 android:maxLines="2"
                                 android:text="@string/auto_mode_default_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
                         </LinearLayout>
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchControlAuto"
-                            style="@style/Widget.SmartGarden.Switch"
+                            style="@style/Widget.AVORA.Switch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -179,14 +179,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:text="@string/manual_valves_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:id="@+id/txtManualValveSafety"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/manual_valves_simulation"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <LinearLayout
                     android:id="@+id/layoutManualValves"
                     android:layout_width="match_parent"
@@ -195,7 +195,7 @@
                     android:orientation="vertical" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnValveSetup"
-                    style="@style/Widget.SmartGarden.Button.Secondary"
+                    style="@style/Widget.AVORA.Button.Secondary"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:layout_marginTop="14dp"
@@ -205,7 +205,7 @@
                     app:iconPadding="8dp" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnControlPump"
-                    style="@style/Widget.SmartGarden.Button.Primary"
+                    style="@style/Widget.AVORA.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:layout_marginTop="15dp"

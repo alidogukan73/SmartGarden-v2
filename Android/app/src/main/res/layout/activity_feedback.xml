@@ -71,14 +71,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/feedback_intro_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/feedback_intro_message"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -264,11 +264,11 @@
                 android:background="@color/surfaceGreen"
                 android:padding="12dp"
                 android:text="@string/feedback_privacy_note"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubmitFeedback"
-                style="@style/Widget.SmartGarden.Button.Primary"
+                style="@style/Widget.AVORA.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="14dp"

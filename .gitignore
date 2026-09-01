@@ -5,7 +5,7 @@ firebase-debug.log
 firebase-debug.*.log
 ui-debug.log
 
-smartgarden.log
+avora.log*
 
 firebase_key.json
 RaspberryPi/weather_api_key.txt

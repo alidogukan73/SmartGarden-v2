@@ -48,7 +48,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/fertilization_zone_settings"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
 
                     <TextView
                         android:id="@+id/txtSubtitle"
@@ -56,13 +56,13 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="@string/fertilization_zone_settings_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardZoneAiAdvice"
-                style="@style/Widget.SmartGarden.Card.Info"
+                style="@style/Widget.AVORA.Card.Info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
@@ -96,14 +96,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                     <TextView
                         android:id="@+id/txtZoneAiAdviceContext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
 
                     <TextView
                         android:id="@+id/txtApplicationPreview"
@@ -116,7 +116,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRecordFertilizerApplication"
-                        style="@style/Widget.SmartGarden.Button.Primary"
+                        style="@style/Widget.AVORA.Button.Primary"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginTop="12dp"
@@ -126,7 +126,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
@@ -147,7 +147,7 @@
 
                     <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/switchPlanEnabled"
-                        style="@style/Widget.SmartGarden.Switch"
+                        style="@style/Widget.AVORA.Switch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
@@ -161,7 +161,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="@string/fertilization_plan_missing_description"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -234,7 +234,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdvanceGrowthStage"
-                        style="@style/Widget.SmartGarden.Button.Secondary"
+                        style="@style/Widget.AVORA.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
@@ -245,7 +245,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
@@ -283,11 +283,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardFertilizerRecommendation"
-                        style="@style/Widget.SmartGarden.Card.Info"
+                        style="@style/Widget.AVORA.Card.Info"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
@@ -312,11 +312,11 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnUseFertilizerRecommendation"
-                                style="@style/Widget.SmartGarden.Button.Secondary"
+                                style="@style/Widget.AVORA.Button.Secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="end"
@@ -327,7 +327,7 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardZoneAiExperience"
-                        style="@style/Widget.SmartGarden.Card.Inner"
+                        style="@style/Widget.AVORA.Card.Inner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
@@ -358,7 +358,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -376,13 +376,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardZoneApplicationSchedule"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
@@ -423,7 +423,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/fertilization_schedule_summary_empty"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
                         </LinearLayout>
 
                         <TextView
@@ -449,33 +449,33 @@
                             android:id="@+id/txtNutritionSchedule"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                         <TextView
                             android:id="@+id/txtOrganicSchedule"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                         <TextView
                             android:id="@+id/txtConditionerSchedule"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
                         <TextView
                             android:id="@+id/txtBiostimulantSchedule"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
 
                     <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/switchReminder"
-                        style="@style/Widget.SmartGarden.Switch"
+                        style="@style/Widget.AVORA.Switch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
@@ -488,12 +488,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="@string/fertilization_reminders_description"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
@@ -514,7 +514,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnWaterAnalysis"
-                        style="@style/Widget.SmartGarden.Button.Secondary"
+                        style="@style/Widget.AVORA.Button.Secondary"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
@@ -526,7 +526,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/fertilization_water_analysis_missing"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Supporting" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Supporting" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -538,7 +538,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnZonePhoto"
-                            style="@style/Widget.SmartGarden.Button.Secondary"
+                            style="@style/Widget.AVORA.Button.Secondary"
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_marginEnd="5dp"
@@ -550,7 +550,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnZonePlantAssistant"
-                            style="@style/Widget.SmartGarden.Button.Secondary"
+                            style="@style/Widget.AVORA.Button.Secondary"
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_marginStart="5dp"
@@ -566,7 +566,7 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardUnsavedChanges"
-        style="@style/Widget.SmartGarden.Card.Main"
+        style="@style/Widget.AVORA.Card.Main"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
@@ -595,7 +595,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDiscardChanges"
-                style="@style/Widget.SmartGarden.Button.Secondary"
+                style="@style/Widget.AVORA.Button.Secondary"
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:layout_marginStart="8dp"
@@ -603,7 +603,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
-                style="@style/Widget.SmartGarden.Button.Primary"
+                style="@style/Widget.AVORA.Button.Primary"
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:layout_marginStart="8dp"

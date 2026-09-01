@@ -36,7 +36,7 @@
         android:textSize="14sp" />
 
     <com.google.android.material.card.MaterialCardView
-        style="@style/Widget.SmartGarden.Card.Inner"
+        style="@style/Widget.AVORA.Card.Inner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp">
@@ -66,7 +66,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        style="@style/Widget.SmartGarden.Card.Inner"
+        style="@style/Widget.AVORA.Card.Inner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -135,7 +135,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCloseExperienceHistory"
-        style="@style/Widget.SmartGarden.Button.Secondary"
+        style="@style/Widget.AVORA.Button.Secondary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"

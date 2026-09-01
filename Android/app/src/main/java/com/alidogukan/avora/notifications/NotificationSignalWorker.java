@@ -41,7 +41,7 @@ public final class NotificationSignalWorker extends Worker {
             }
 
             DataSnapshot device = Tasks.await(FirebaseDatabase.getInstance()
-                    .getReference("devices").child("smartgarden-001").get(),
+                    .getReference("devices").child("avora-001").get(),
                     20, TimeUnit.SECONDS);
 
             if (!FirebaseConnectionProbe.awaitConnected(10, TimeUnit.SECONDS)) {

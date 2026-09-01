@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView android:id="@+id/cardAIDecisionFlow" style="@style/Widget.SmartGarden.Card.Main" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" >
+<com.google.android.material.card.MaterialCardView android:id="@+id/cardAIDecisionFlow" style="@style/Widget.AVORA.Card.Main" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" >
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/ai_decision_flow_title" android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/ai_decision_flow_subtitle" android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/ai_decision_flow_title" android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/ai_decision_flow_subtitle" android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerAIDecisionFlow" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:clipToPadding="false" android:nestedScrollingEnabled="false" android:overScrollMode="never" android:paddingBottom="4dp" tools:listitem="@layout/item_ai_decision_step" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

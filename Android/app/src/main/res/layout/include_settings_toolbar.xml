@@ -30,7 +30,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettingsToolbarAction"
-        style="@style/Widget.SmartGarden.Button.Icon"
+        style="@style/Widget.AVORA.Button.Icon"
         android:contentDescription="@string/title_settings"
         android:visibility="gone"
         app:icon="@drawable/ic_settings_24"

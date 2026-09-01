@@ -7,8 +7,8 @@ After=network-online.target
 Type=simple
 User=ali
 Group=ali
-WorkingDirectory=/home/ali/SmartGarden-v2/RaspberryPi
-ExecStart=/home/ali/SmartGarden-v2/RaspberryPi/.venv/bin/python -m services.plant_vision_server
+WorkingDirectory=/home/ali/AVORA/RaspberryPi
+ExecStart=/home/ali/AVORA/RaspberryPi/.venv/bin/python -m services.plant_vision_server
 Restart=on-failure
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1

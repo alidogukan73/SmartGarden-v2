@@ -29,14 +29,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/home_weather_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                 <TextView
                     android:id="@+id/txtWeatherLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/garden_info_location_label"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="42dp"
@@ -53,7 +53,7 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Inner"
+            style="@style/Widget.AVORA.Card.Inner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -97,7 +97,7 @@
                         android:id="@+id/txtWeatherDeviceLocation"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Label" />
                 </LinearLayout>
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnWeatherLocationSettings"
@@ -112,7 +112,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -158,7 +158,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Label" />
                     </LinearLayout>
                     <TextView
                         android:layout_width="wrap_content"
@@ -185,28 +185,28 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtWeatherMetricWind"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtWeatherMetricRain"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtWeatherMetricPressure"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <TextView
                     android:id="@+id/txtWeatherUpdated"
@@ -214,7 +214,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
                     android:text="@string/weather_refresh_note"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Label" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <LinearLayout
@@ -228,7 +228,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/weather_seven_day_title"
-                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -262,7 +262,7 @@
             android:layout_marginTop="14dp"
             android:orientation="horizontal" />
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
@@ -297,7 +297,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

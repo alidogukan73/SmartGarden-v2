@@ -30,7 +30,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="@string/record_detail_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:id="@+id/btnRecordEdit"
                     android:layout_width="32dp"
@@ -79,12 +79,12 @@
                                 android:id="@+id/txtRecordTitle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                             <TextView
                                 android:id="@+id/txtRecordDate"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                     </LinearLayout>
                     <TextView
@@ -100,7 +100,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtPhotosTitle"
                         android:layout_width="match_parent"
@@ -156,7 +156,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             <TextView
@@ -180,7 +180,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="15dp"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </com.google.android.material.card.MaterialCardView>
             <TextView
                 android:layout_width="match_parent"

@@ -74,7 +74,7 @@
     <string name="fertilization_safety_required">Confirm the product, dose, and unit check before saving.</string>
     <string name="fertilizer_history_method">Method: %1$s</string>
     <string name="fertilizer_history_note">Note: %1$s</string>
-    <string name="default_device_name">smartgarden-001</string>
+    <string name="default_device_name">avora-001</string>
     <string name="label_voltage">Voltage</string>
     <string name="label_raw_value">Raw Value</string>
     <string name="title_watering_control">Irrigation Control</string>

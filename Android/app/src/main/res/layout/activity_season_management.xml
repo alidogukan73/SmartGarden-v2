@@ -36,19 +36,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/season_management_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/season_management_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </LinearLayout>
 
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Info"
+            style="@style/Widget.AVORA.Card.Info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -63,14 +63,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/season_management_info_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:text="@string/season_management_info_body"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -79,7 +79,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/season_management_zones_title"
-            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
         <TextView
             android:id="@+id/txtSeasonEmpty"
@@ -87,7 +87,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/season_management_loading"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
         <LinearLayout
             android:id="@+id/layoutSeasonZones"
@@ -101,7 +101,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"
+            android:textAppearance="@style/TextAppearance.AVORA.CardTitle"
             android:visibility="gone" />
 
         <TextView
@@ -110,7 +110,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:text="@string/season_management_inactive_description"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+            android:textAppearance="@style/TextAppearance.AVORA.Body"
             android:visibility="gone" />
 
         <LinearLayout

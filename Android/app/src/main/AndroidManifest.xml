@@ -22,7 +22,7 @@
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         tools:targetApi="tiramisu"
-        android:theme="@style/Theme.SmartGarden">
+        android:theme="@style/Theme.AVORA">
         <activity
             android:name=".activities.ThemeSettingsActivity"
             android:exported="false" />

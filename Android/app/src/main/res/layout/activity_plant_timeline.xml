@@ -33,7 +33,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="@string/nav_plant_journal"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:layout_width="30dp"
                     android:layout_height="wrap_content"
@@ -278,7 +278,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
             <LinearLayout
                 android:id="@+id/layoutTimelineEvents"
                 android:layout_width="match_parent"
@@ -292,7 +292,7 @@
                 android:layout_marginTop="26dp"
                 android:gravity="center"
                 android:text="@string/timeline_empty"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     <com.google.android.material.button.MaterialButton

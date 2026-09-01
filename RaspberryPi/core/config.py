@@ -10,7 +10,7 @@ class AppConfig:
     General application configuration.
     """
 
-    DEVICE_ID = "smartgarden-001"
+    DEVICE_ID = "avora-001"
 
     VERSION = "2.10.0"
 
@@ -23,7 +23,7 @@ class FirebaseConfig:
     """
 
     DATABASE_URL = (
-        "https://smartgarden-v2-default-rtdb.europe-west1.firebasedatabase.app/"
+        "https://avora-alidogukan-default-rtdb.europe-west1.firebasedatabase.app/"
     )
 
     CREDENTIALS_FILE = "firebase_key.json"
@@ -75,7 +75,7 @@ class SensorConfig:
     MQTT_PORT = 1883
 
     MQTT_TOPIC = (
-        "smartgarden/sensors/+"
+        "avora/sensors/+"
     )
 
     MQTT_SENSOR_ID = "soil-001"
@@ -158,7 +158,7 @@ class LogConfig:
 
     DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-    LOG_FILE = "smartgarden.log"
+    LOG_FILE = "avora.log"
 
     MAX_BYTES = 5 * 1024 * 1024
 

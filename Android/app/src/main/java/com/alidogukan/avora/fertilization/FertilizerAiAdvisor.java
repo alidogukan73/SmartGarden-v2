@@ -5,7 +5,7 @@ import com.alidogukan.avora.models.FertilizerProduct;
 import java.util.Arrays;
 import java.util.Locale;
 
-/** Rule-based, traceable first layer of the SmartGarden fertilizer assistant. */
+/** Rule-based, traceable first layer of the AVORA fertilizer assistant. */
 public final class FertilizerAiAdvisor {
 
     private FertilizerAiAdvisor() { }

@@ -60,10 +60,10 @@ class MqttSoilMoistureSensor:
         self,
         broker: str = "127.0.0.1",
         port: int = 1883,
-        topic: str = "smartgarden/sensors/soil-001",
+        topic: str = "avora/sensors/soil-001",
         sensor_id: str = "soil-001",
         stale_after_seconds: float = 30.0,
-        client_id: str = "smartgarden-pi-wireless-sensor",
+        client_id: str = "avora-pi-wireless-sensor",
     ) -> None:
         if not broker:
             raise ValueError("MQTT broker adresi boş olamaz.")
@@ -559,7 +559,7 @@ def main() -> None:
     sensor = MqttSoilMoistureSensor(
         broker="127.0.0.1",
         port=1883,
-        topic="smartgarden/sensors/soil-001",
+        topic="avora/sensors/soil-001",
         sensor_id="soil-001",
         stale_after_seconds=15.0,
     )

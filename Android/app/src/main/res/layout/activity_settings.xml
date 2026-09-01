@@ -43,19 +43,19 @@
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="@string/settings_irrigation_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="@string/settings_irrigation_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </LinearLayout>
             <!-- SULAMA KONTROLÜ HIZLI ERİŞİMİ -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardWateringControlShortcut"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="76dp"
                 android:layout_marginTop="14dp"
@@ -100,7 +100,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/menu_watering_control_description"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
 
                     <TextView
@@ -113,7 +113,7 @@
             </com.google.android.material.card.MaterialCardView>
             <!-- SULAMA AYARLARI -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -126,13 +126,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_irrigation_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="@string/settings_irrigation_subtitle"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <!-- NEM LİMİTİ -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -157,7 +157,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/settings_moisture_limit_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="72dp"
@@ -220,7 +220,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/settings_pump_duration_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="72dp"
@@ -284,7 +284,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/settings_cooldown_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="72dp"
@@ -347,7 +347,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/settings_restart_delta_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="72dp"
@@ -396,7 +396,7 @@
 
             <!-- SİSTEM AYARLARI -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -439,12 +439,12 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="@string/irrigation_settings_auto_mode_active"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
 
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchAutoMode"
-                            style="@style/Widget.SmartGarden.Switch"
+                            style="@style/Widget.AVORA.Switch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/irrigation_settings_auto_mode_title" />
@@ -484,12 +484,12 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="@string/settings_system_enabled_description"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
 
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchSystemEnabled"
-                            style="@style/Widget.SmartGarden.Switch"
+                            style="@style/Widget.AVORA.Switch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/settings_system_enabled" />
@@ -516,7 +516,7 @@
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="@string/settings_status_ready"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     <include

@@ -76,7 +76,7 @@ import java.util.function.Consumer;
 
 public class FirebaseRepository {
    private static final String TAG = "FirebaseRepository";
-   private static final String DEVICE_ID = "smartgarden-001";
+   private static final String DEVICE_ID = "avora-001";
    private final DatabaseReference deviceRef = FirebaseDatabase.getInstance()
          .getReference("devices")
          .child(DEVICE_ID);

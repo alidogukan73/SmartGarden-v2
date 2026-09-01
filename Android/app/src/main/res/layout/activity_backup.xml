@@ -71,7 +71,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/backup_intro_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -189,14 +189,14 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCreateBackup"
-                style="@style/Widget.SmartGarden.Button.Primary"
+                style="@style/Widget.AVORA.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:text="@string/backup_create_button" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRestoreBackup"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginTop="10dp"

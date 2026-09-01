@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Base.Theme.SmartGarden" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.AVORA" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/textOnPrimary</item>
         <item name="colorPrimaryContainer">@color/primaryLight</item>
@@ -24,8 +24,8 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:fontFamily">sans</item>
         <item name="fontFamily">sans</item>
-        <item name="materialCardViewStyle">@style/Widget.SmartGarden.Card.Main</item>
-        <item name="materialButtonStyle">@style/Widget.SmartGarden.Button.Primary</item>
-        <item name="switchStyle">@style/Widget.SmartGarden.Switch</item>
+        <item name="materialCardViewStyle">@style/Widget.AVORA.Card.Main</item>
+        <item name="materialButtonStyle">@style/Widget.AVORA.Button.Primary</item>
+        <item name="switchStyle">@style/Widget.AVORA.Switch</item>
     </style>
 </resources>

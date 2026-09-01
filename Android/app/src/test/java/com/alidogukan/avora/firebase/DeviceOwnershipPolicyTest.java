@@ -13,22 +13,22 @@ public class DeviceOwnershipPolicyTest {
     @Test
     public void acceptsOnlyTheExactClaimedDevice() {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("avora_device_id", "smartgarden-001");
+        claims.put("avora_device_id", "avora-001");
 
-        assertTrue(DeviceOwnershipPolicy.ownsDevice(claims, "smartgarden-001"));
-        assertFalse(DeviceOwnershipPolicy.ownsDevice(claims, "smartgarden-002"));
+        assertTrue(DeviceOwnershipPolicy.ownsDevice(claims, "avora-001"));
+        assertFalse(DeviceOwnershipPolicy.ownsDevice(claims, "avora-002"));
     }
 
     @Test
     public void rejectsMissingMalformedOrBlankClaims() {
-        assertFalse(DeviceOwnershipPolicy.ownsDevice(null, "smartgarden-001"));
-        assertFalse(DeviceOwnershipPolicy.ownsDevice(Map.of(), "smartgarden-001"));
+        assertFalse(DeviceOwnershipPolicy.ownsDevice(null, "avora-001"));
+        assertFalse(DeviceOwnershipPolicy.ownsDevice(Map.of(), "avora-001"));
         assertFalse(DeviceOwnershipPolicy.ownsDevice(
                 Map.of("avora_device_id", 1),
-                "smartgarden-001"
+                "avora-001"
         ));
         assertFalse(DeviceOwnershipPolicy.ownsDevice(
-                Map.of("avora_device_id", "smartgarden-001"),
+                Map.of("avora_device_id", "avora-001"),
                 " "
         ));
     }

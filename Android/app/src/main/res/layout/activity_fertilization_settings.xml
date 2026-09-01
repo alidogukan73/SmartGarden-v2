@@ -67,14 +67,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/fertilization_settings_safety_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/fertilization_settings_safety_message"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -311,7 +311,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/fertilization_settings_zone_note"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -323,7 +323,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenFertilizationAssistant"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="@string/fertilization_settings_open_assistant"
@@ -331,7 +331,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnManageFertilizerProducts"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="10dp"
@@ -340,7 +340,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenFertilizerHistory"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="10dp"
@@ -349,7 +349,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenFertilizerNotificationSettings"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="10dp"
@@ -358,7 +358,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveFertilizationSettings"
-                style="@style/Widget.SmartGarden.Button.Primary"
+                style="@style/Widget.AVORA.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginTop="18dp"
@@ -366,7 +366,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnResetFertilizationSettings"
-                style="@style/Widget.SmartGarden.Button.Outlined"
+                style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="10dp"
@@ -379,7 +379,7 @@
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="@string/settings_status_ready"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

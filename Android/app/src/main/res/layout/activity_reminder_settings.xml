@@ -257,7 +257,7 @@
                         android:orientation="horizontal">
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnReminderQuietStart"
-                            style="@style/Widget.SmartGarden.Button.Outlined"
+                            style="@style/Widget.AVORA.Button.Outlined"
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_weight="1"
@@ -270,7 +270,7 @@
                             android:textColor="@color/textSecondary" />
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnReminderQuietEnd"
-                            style="@style/Widget.SmartGarden.Button.Outlined"
+                            style="@style/Widget.AVORA.Button.Outlined"
                             android:layout_width="0dp"
                             android:layout_height="48dp"
                             android:layout_weight="1"

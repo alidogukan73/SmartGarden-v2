@@ -13,7 +13,7 @@ from pathlib import Path
 
 DEFAULT_SENDER_EMAIL = "alidogukan@gmail.com"
 DEFAULT_RECIPIENT_EMAIL = "alidogukan+avora@gmail.com"
-DEFAULT_TARGET = Path("/etc/smartgarden/feedback-email.env")
+DEFAULT_TARGET = Path("/etc/avora/feedback-email.env")
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 
@@ -43,12 +43,12 @@ def render_environment(
 ) -> str:
     return "\n".join(
         (
-            "SMARTGARDEN_FEEDBACK_EMAIL_ENABLED=true",
-            f"SMARTGARDEN_FEEDBACK_EMAIL_FROM={sender_email}",
-            f"SMARTGARDEN_FEEDBACK_EMAIL_TO={recipient_email}",
-            f"SMARTGARDEN_GMAIL_APP_PASSWORD={app_password}",
-            "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE=auto",
-            "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING=false",
+            "AVORA_FEEDBACK_EMAIL_ENABLED=true",
+            f"AVORA_FEEDBACK_EMAIL_FROM={sender_email}",
+            f"AVORA_FEEDBACK_EMAIL_TO={recipient_email}",
+            f"AVORA_GMAIL_APP_PASSWORD={app_password}",
+            "AVORA_FEEDBACK_EMAIL_DELIVERY_MODE=auto",
+            "AVORA_FEEDBACK_EMAIL_SEND_EXISTING=false",
             "",
         ),
     )

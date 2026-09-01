@@ -10,8 +10,8 @@ const {
 const { get, ref, set, update } = require("firebase/database");
 
 
-const PROJECT_ID = "demo-smartgarden-v2";
-const DEVICE_ID = "smartgarden-001";
+const PROJECT_ID = "demo-avora-alidogukan";
+const DEVICE_ID = "avora-001";
 const OWNER_UID = "owner-user-001";
 const OTHER_UID = "other-user-001";
 const RULES_PATH = path.join(__dirname, "..", "firebase-database.rules.json");
@@ -77,7 +77,7 @@ test("only the claimed device owner can read or write the device", async () => {
   });
 
   const owner = authenticatedDatabase(OWNER_UID);
-  const otherDevice = authenticatedDatabase(OWNER_UID, "smartgarden-002");
+  const otherDevice = authenticatedDatabase(OWNER_UID, "avora-002");
   const otherUser = unclaimedDatabase(OTHER_UID);
   const anonymous = testEnvironment.unauthenticatedContext().database();
 

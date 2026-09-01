@@ -29,17 +29,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/garden_health_detail_screen_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/garden_health_detail_screen_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
         </LinearLayout>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp">
@@ -59,13 +59,13 @@
                         android:id="@+id/txtGardenHealthDetailTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:id="@+id/txtGardenHealthDetailSummary"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -92,13 +92,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:text="@string/home_quick_zones"
-            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/garden_health_detail_zones_hint"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <LinearLayout
             android:id="@+id/layoutGardenHealthZones"
             android:layout_width="match_parent"

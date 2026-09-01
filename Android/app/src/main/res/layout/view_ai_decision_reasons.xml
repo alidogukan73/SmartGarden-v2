@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView android:id="@+id/cardAIReasons" style="@style/Widget.SmartGarden.Card.Main" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" xmlns:android="http://schemas.android.com/apk/res/android" >
+<com.google.android.material.card.MaterialCardView android:id="@+id/cardAIReasons" style="@style/Widget.AVORA.Card.Main" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" xmlns:android="http://schemas.android.com/apk/res/android" >
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="18dp" android:paddingTop="16dp" android:paddingEnd="18dp" android:paddingBottom="16dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
             <TextView android:layout_width="26dp" android:layout_height="26dp" android:background="@color/primaryLight" android:gravity="center" android:text="@string/symbol_check" android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
-            <TextView android:id="@+id/txtAIReasonOne" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_sensor_waiting" android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            <TextView android:id="@+id/txtAIReasonOne" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_sensor_waiting" android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal">
             <TextView android:layout_width="26dp" android:layout_height="26dp" android:background="@color/primaryLight" android:gravity="center" android:text="@string/symbol_check" android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
-            <TextView android:id="@+id/txtAIReasonTwo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_history_analyzing" android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            <TextView android:id="@+id/txtAIReasonTwo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_history_analyzing" android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal">
             <TextView android:layout_width="26dp" android:layout_height="26dp" android:background="@color/primaryLight" android:gravity="center" android:text="@string/symbol_check" android:textColor="@color/primary" android:textSize="14sp" android:textStyle="bold" />
-            <TextView android:id="@+id/txtAIReasonThree" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_soil_profile_preparing" android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            <TextView android:id="@+id/txtAIReasonThree" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="10dp" android:layout_weight="1" android:text="@string/ai_reason_soil_profile_preparing" android:textAppearance="@style/TextAppearance.AVORA.Body" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -159,66 +159,66 @@ class FeedbackEmailSettings:
     def from_environment(cls) -> "FeedbackEmailSettings":
         return cls(
             enabled=_environment_flag(
-                "SMARTGARDEN_FEEDBACK_EMAIL_ENABLED",
+                "AVORA_FEEDBACK_EMAIL_ENABLED",
             ),
             sender=os.getenv(
-                "SMARTGARDEN_FEEDBACK_EMAIL_FROM",
+                "AVORA_FEEDBACK_EMAIL_FROM",
                 "alidogukan@gmail.com",
             ).strip(),
             recipient=os.getenv(
-                "SMARTGARDEN_FEEDBACK_EMAIL_TO",
+                "AVORA_FEEDBACK_EMAIL_TO",
                 "alidogukan+avora@gmail.com",
             ).strip(),
             app_password="".join(
                 os.getenv(
-                    "SMARTGARDEN_GMAIL_APP_PASSWORD",
+                    "AVORA_GMAIL_APP_PASSWORD",
                     "",
                 ).split(),
             ),
             smtp_host=os.getenv(
-                "SMARTGARDEN_FEEDBACK_SMTP_HOST",
+                "AVORA_FEEDBACK_SMTP_HOST",
                 "smtp.gmail.com",
             ).strip(),
             smtp_port=_environment_int(
-                "SMARTGARDEN_FEEDBACK_SMTP_PORT",
+                "AVORA_FEEDBACK_SMTP_PORT",
                 465,
                 1,
             ),
             imap_host=os.getenv(
-                "SMARTGARDEN_FEEDBACK_IMAP_HOST",
+                "AVORA_FEEDBACK_IMAP_HOST",
                 "imap.gmail.com",
             ).strip(),
             imap_port=_environment_int(
-                "SMARTGARDEN_FEEDBACK_IMAP_PORT",
+                "AVORA_FEEDBACK_IMAP_PORT",
                 993,
                 1,
             ),
             delivery_mode=os.getenv(
-                "SMARTGARDEN_FEEDBACK_EMAIL_DELIVERY_MODE",
+                "AVORA_FEEDBACK_EMAIL_DELIVERY_MODE",
                 "auto",
             ).strip().lower(),
             poll_interval_seconds=_environment_int(
-                "SMARTGARDEN_FEEDBACK_EMAIL_POLL_SECONDS",
+                "AVORA_FEEDBACK_EMAIL_POLL_SECONDS",
                 15,
                 5,
             ),
             retry_initial_seconds=_environment_int(
-                "SMARTGARDEN_FEEDBACK_EMAIL_RETRY_SECONDS",
+                "AVORA_FEEDBACK_EMAIL_RETRY_SECONDS",
                 60,
                 10,
             ),
             retry_max_seconds=_environment_int(
-                "SMARTGARDEN_FEEDBACK_EMAIL_RETRY_MAX_SECONDS",
+                "AVORA_FEEDBACK_EMAIL_RETRY_MAX_SECONDS",
                 3600,
                 60,
             ),
             lease_seconds=_environment_int(
-                "SMARTGARDEN_FEEDBACK_EMAIL_LEASE_SECONDS",
+                "AVORA_FEEDBACK_EMAIL_LEASE_SECONDS",
                 300,
                 60,
             ),
             send_existing=_environment_flag(
-                "SMARTGARDEN_FEEDBACK_EMAIL_SEND_EXISTING",
+                "AVORA_FEEDBACK_EMAIL_SEND_EXISTING",
             ),
         )
 
@@ -340,7 +340,7 @@ def build_feedback_email(
         f"[AVORA Geri Bildirim] {feedback_type}: {subject}"
     )[:240]
     message["Date"] = formatdate(localtime=False)
-    message["Message-ID"] = f"<{message_key}@feedback.smartgarden-v2>"
+    message["Message-ID"] = f"<{message_key}@feedback.avora-alidogukan>"
     message["X-AVORA-Feedback-ID"] = safe_feedback_id
     if contact:
         message["Reply-To"] = contact

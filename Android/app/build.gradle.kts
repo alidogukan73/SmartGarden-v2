@@ -65,6 +65,7 @@ android {
         create("internal") {
             initWith(getByName("release"))
             signingConfig = signingConfigs.getByName("release")
+            isDebuggable = true
             versionNameSuffix = "-internal"
             matchingFallbacks += listOf("release")
         }

@@ -42,13 +42,13 @@
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
                     android:text="@string/title_device_health"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/subtitle_device_health"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHealthSummary"
@@ -72,7 +72,7 @@
         <!-- GENEL DURUM -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardOverallHealth"
-            style="@style/Widget.SmartGarden.Card.Featured"
+            style="@style/Widget.AVORA.Card.Featured"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp">
@@ -91,7 +91,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/health_overall_label"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtOverallHealth"
                         android:layout_width="wrap_content"
@@ -107,7 +107,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/health_update_waiting"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardOverallHealthBadge"
@@ -133,7 +133,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -146,14 +146,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/diagnostics_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:id="@+id/txtDiagnosticsSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/diagnostics_waiting"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <LinearLayout
                     android:id="@+id/layoutDiagnostics"
                     android:layout_width="match_parent"
@@ -164,7 +164,7 @@
         </com.google.android.material.card.MaterialCardView>
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardEsp32SensorHealth"
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -187,13 +187,13 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/health_esp32_sensor_network"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/health_wireless_soil_sensor_connection"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardEsp32SensorBadge"
@@ -230,18 +230,18 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:id="@+id/txtEsp32SensorLastSeen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Label" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
         <!-- CPU -->
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -254,13 +254,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/health_cpu_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/health_cpu_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -287,7 +287,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/health_cpu_temperature"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                     <View
                         android:layout_width="1dp"
@@ -314,7 +314,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/health_cpu_usage"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
                 <ProgressBar
@@ -337,7 +337,7 @@
             android:baselineAligned="false"
             android:orientation="horizontal">
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
@@ -351,7 +351,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/health_ram_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:id="@+id/txtRamUsage"
                         android:layout_width="wrap_content"
@@ -379,11 +379,11 @@
                         android:layout_marginTop="8dp"
                         android:gravity="center"
                         android:text="@string/health_detail_waiting"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
@@ -397,7 +397,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/health_disk_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:id="@+id/txtDiskUsage"
                         android:layout_width="wrap_content"
@@ -425,13 +425,13 @@
                         android:layout_marginTop="8dp"
                         android:gravity="center"
                         android:text="@string/health_detail_waiting"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
         <!-- AĞ BİLGİLERİ -->
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -444,13 +444,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/health_network_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/health_network_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -466,7 +466,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/health_wifi_signal"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtWifiSignal"
                             android:layout_width="wrap_content"
@@ -482,7 +482,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:text="@string/health_status_waiting"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardWifiStatus"
@@ -519,7 +519,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/health_ip_address"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtIpAddress"
                         android:layout_width="wrap_content"
@@ -535,7 +535,7 @@
         <!-- THROTTLING -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardThrottling"
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -554,14 +554,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/health_throttling_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:id="@+id/txtThrottlingDescription"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/health_throttling_waiting"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 </LinearLayout>
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardThrottlingBadge"
@@ -588,7 +588,7 @@
         </com.google.android.material.card.MaterialCardView>
         <!-- AYRINTILI GÜÇ VE THROTTLING DURUMU -->
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -601,13 +601,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/health_power_details_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/health_power_details_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <!-- AKTİF DURUMLAR -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -666,7 +666,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/health_throttling_raw_label"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtThrottlingRaw"
                         android:layout_width="wrap_content"
@@ -681,7 +681,7 @@
         <!-- CİHAZ YÖNETİMİ -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardDeviceRestart"
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -724,7 +724,7 @@
         </com.google.android.material.card.MaterialCardView>
         <!-- SİSTEM BİLGİLERİ -->
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.SmartGarden.Card.Main"
+            style="@style/Widget.AVORA.Card.Main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp">
@@ -737,7 +737,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/health_system_title"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                    android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -749,7 +749,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/health_firmware"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtFirmware"
                         android:layout_width="wrap_content"
@@ -775,7 +775,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/health_uptime"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     <TextView
                         android:id="@+id/txtUptime"
                         android:layout_width="wrap_content"

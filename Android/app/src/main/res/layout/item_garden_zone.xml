@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.SmartGarden.Card.Main"
+    style="@style/Widget.AVORA.Card.Main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="14dp">
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
         <LinearLayout
             android:id="@+id/layoutZoneMeasurement"
             android:layout_width="match_parent"
@@ -54,7 +54,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/sensor_soil_moisture"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:id="@+id/txtZoneMoisture"
                     android:layout_width="wrap_content"
@@ -73,7 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/sensor_wifi"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <TextView
                     android:id="@+id/txtZoneRssi"
                     android:layout_width="wrap_content"
@@ -99,7 +99,7 @@
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Metric"
+                style="@style/Widget.AVORA.Card.Metric"
                 android:layout_width="0dp"
                 android:layout_height="72dp"
                 android:layout_marginEnd="5dp"
@@ -113,7 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/label_voltage"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Label" />
                     <TextView
                         android:id="@+id/txtZoneVoltage"
                         android:layout_width="wrap_content"
@@ -126,7 +126,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Metric"
+                style="@style/Widget.AVORA.Card.Metric"
                 android:layout_width="0dp"
                 android:layout_height="72dp"
                 android:layout_marginStart="5dp"
@@ -140,7 +140,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/label_raw_value"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.Label" />
+                        android:textAppearance="@style/TextAppearance.AVORA.Label" />
                     <TextView
                         android:id="@+id/txtZoneRaw"
                         android:layout_width="wrap_content"
@@ -168,13 +168,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/sensor_waiting_description"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+            android:textAppearance="@style/TextAppearance.AVORA.Body"
             android:visibility="gone" />
         <TextView
             android:id="@+id/txtZoneLastUpdate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+            android:textAppearance="@style/TextAppearance.AVORA.Body" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

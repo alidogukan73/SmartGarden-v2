@@ -36,7 +36,7 @@ import java.util.Map;
 
 public class FertilizerReminderWorker extends Worker {
 
-    private static final String DEVICE_ID = "smartgarden-001";
+    private static final String DEVICE_ID = "avora-001";
     private static final String PREFS =
             "fertilizer_reminder_state";
     private static final String AI_STATE_PREFS =

@@ -31,7 +31,7 @@ import java.util.Map;
  * preserve hardware configuration, inventory, calibration and historical data.
  */
 public final class SeasonRepository {
-    private static final String DEVICE_ID = "smartgarden-001";
+    private static final String DEVICE_ID = "avora-001";
     private final DatabaseReference deviceRef = FirebaseDatabase.getInstance()
             .getReference("devices")
             .child(DEVICE_ID);

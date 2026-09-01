@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cardHomeWeather"
-    style="@style/Widget.SmartGarden.Card.Main"
+    style="@style/Widget.AVORA.Card.Main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="14dp"
@@ -42,7 +42,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/home_weather_title"
-                        android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                        android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     <TextView
                         android:id="@+id/txtHomeWeatherLocation"
                         android:layout_width="0dp"
@@ -121,7 +121,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="@string/ui_rain_probability_empty"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                    android:textAppearance="@style/TextAppearance.AVORA.Body"
                     android:textSize="12sp" />
                 <TextView
                     android:id="@+id/txtHomeWeatherTodayWind"
@@ -129,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="@string/ui_wind_empty"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                    android:textAppearance="@style/TextAppearance.AVORA.Body"
                     android:textSize="12sp" />
             </LinearLayout>
             <View
@@ -185,7 +185,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="@string/ui_rain_probability_empty"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                    android:textAppearance="@style/TextAppearance.AVORA.Body"
                     android:textSize="12sp" />
                 <TextView
                     android:id="@+id/txtHomeWeatherTomorrowWind"
@@ -193,7 +193,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="@string/ui_wind_empty"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                    android:textAppearance="@style/TextAppearance.AVORA.Body"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
@@ -224,7 +224,7 @@
                 android:layout_weight="1"
                 android:maxLines="3"
                 android:text="@string/home_weather_balanced_comment"
-                android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                android:textAppearance="@style/TextAppearance.AVORA.Body"
                 android:textColor="@color/primary"
                 android:textSize="12sp" />
             <TextView

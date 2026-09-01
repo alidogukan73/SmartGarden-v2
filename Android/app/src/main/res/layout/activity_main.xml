@@ -25,7 +25,7 @@
             android:paddingEnd="16dp"
             android:paddingBottom="16dp">
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.SmartGarden.Card.Featured"
+                style="@style/Widget.AVORA.Card.Featured"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp">
@@ -61,7 +61,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/label_connected_device"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtDevice"
                             android:layout_width="wrap_content"
@@ -76,7 +76,7 @@
                     </LinearLayout>
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardOnlineStatus"
-                        style="@style/Widget.SmartGarden.Card.Success"
+                        style="@style/Widget.AVORA.Card.Success"
                         android:layout_width="wrap_content"
                         android:layout_height="38dp">
                         <TextView
@@ -112,7 +112,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="@string/home_zones_subtitle"
-                    android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                    android:textAppearance="@style/TextAppearance.AVORA.Body" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerHomeZones"
                     android:layout_width="match_parent"
@@ -130,7 +130,7 @@
             </LinearLayout>
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHomeHealth"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -168,7 +168,7 @@
                             android:ellipsize="end"
                             android:maxLines="2"
                             android:text="@string/home_health_summary_accessibility"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle"
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -179,7 +179,7 @@
                             android:layout_marginTop="4dp"
                             android:ellipsize="end"
                             android:maxLines="2"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body"
+                            android:textAppearance="@style/TextAppearance.AVORA.Body"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/txtHomeHealthTitle" />
@@ -228,7 +228,7 @@
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHomeGardenPlan"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -258,11 +258,11 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
                             android:text="@string/home_garden_plan_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                     </LinearLayout>
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardHomeWateringSummary"
-                        style="@style/Widget.SmartGarden.Card.Main"
+                        style="@style/Widget.AVORA.Card.Main"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -313,7 +313,7 @@
                         android:background="@color/divider" />
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardHomeFertilizationSummary"
-                        style="@style/Widget.SmartGarden.Card.Main"
+                        style="@style/Widget.AVORA.Card.Main"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -366,7 +366,7 @@
                 android:layout="@layout/include_home_weather_card" />
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHomePlantAssistantSummary"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
@@ -398,7 +398,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/home_plant_assistant_title"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                            android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                         <TextView
                             android:id="@+id/txtHomePlantAssistantSummary"
                             android:layout_width="match_parent"
@@ -407,7 +407,7 @@
                             android:ellipsize="end"
                             android:maxLines="2"
                             android:text="@string/home_plant_assistant_empty"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                     <TextView
                         android:layout_width="wrap_content"
@@ -487,7 +487,7 @@
                             android:includeFontPadding="false"
                             android:maxLines="1"
                             android:text="@string/app_name"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.ScreenTitle"
+                            android:textAppearance="@style/TextAppearance.AVORA.ScreenTitle"
                             android:textColor="@color/primaryLogo" />
                         <TextView
                             android:layout_width="wrap_content"
@@ -496,7 +496,7 @@
                             android:includeFontPadding="false"
                             android:maxLines="1"
                             android:text="@string/app_subtitle"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                     </LinearLayout>
                 </LinearLayout>
                 <FrameLayout

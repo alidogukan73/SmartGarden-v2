@@ -441,7 +441,7 @@ class WeatherService:
 
     @staticmethod
     def _load_openweather_api_key() -> str:
-        env_key = os.getenv("SMARTGARDEN_OPENWEATHER_API_KEY", "").strip()
+        env_key = os.getenv("AVORA_OPENWEATHER_API_KEY", "").strip()
         if env_key:
             return env_key
         key_file = Path(__file__).resolve().parent.parent / "weather_api_key.txt"

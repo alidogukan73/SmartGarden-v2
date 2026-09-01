@@ -12,8 +12,8 @@ import paho.mqtt.client as mqtt
 
 MQTT_BROKER = "127.0.0.1"
 MQTT_PORT = 1883
-MQTT_TOPIC = "smartgarden/sensors/soil-001"
-MQTT_CLIENT_ID = "smartgarden-pi-test"
+MQTT_TOPIC = "avora/sensors/soil-001"
+MQTT_CLIENT_ID = "avora-pi-test"
 
 
 @dataclass(frozen=True)
@@ -187,7 +187,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, stop_program)
     signal.signal(signal.SIGTERM, stop_program)
 
-    print("SmartGarden kablosuz sensör testi")
+    print("AVORA kablosuz sensör testi")
     print(f"Broker: {MQTT_BROKER}:{MQTT_PORT}")
 
     try:

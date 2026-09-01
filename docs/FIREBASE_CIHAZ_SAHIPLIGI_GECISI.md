@@ -2,7 +2,7 @@
 
 Bu geçiş, anonim olarak oturum açan her Android istemcisinin bütün AVORA
 cihazlarına erişebilmesi riskini kaldırır. Android kullanıcısına Raspberry Pi
-hizmet hesabıyla `avora_device_id=smartgarden-001` özel yetkisi verilir.
+hizmet hesabıyla `avora_device_id=avora-001` özel yetkisi verilir.
 
 ## Önemli sıra
 
@@ -19,7 +19,7 @@ Android uygulaması Firebase erişimini kaybeder. Güvenli sıra şöyledir:
 ## Raspberry Pi üzerinde sahiplik verme
 
 ```bash
-cd ~/SmartGarden-v2
+cd ~/AVORA
 git pull --ff-only origin main
 cd RaspberryPi
 .venv/bin/python tools/configure_device_owner.py --uid 'FIREBASE_KULLANICI_KIMLIGI'
@@ -31,7 +31,7 @@ cihazına bağlıysa yanlışlıkla üzerine yazmaz.
 Mevcut yetkili kullanıcıları değiştirmeden listelemek için:
 
 ```bash
-cd ~/SmartGarden-v2/RaspberryPi
+cd ~/AVORA/RaspberryPi
 .venv/bin/python tools/configure_device_owner.py --list
 ```
 
@@ -40,21 +40,21 @@ cd ~/SmartGarden-v2/RaspberryPi
 Proje kökünde:
 
 ```powershell
-cd D:\Projects\SmartGarden-v2\firebase-rules-tests
+cd D:\Projects\AVORA\firebase-rules-tests
 npm.cmd install
 npm.cmd test
 ```
 
-Testler gerçek `smartgarden-v2` veritabanına bağlanmaz; yalnız
-`demo-smartgarden-v2` emülatörünü kullanır.
+Testler gerçek `avora-alidogukan` veritabanına bağlanmaz; yalnız
+`demo-avora-alidogukan` emülatörünü kullanır.
 
 ## Kuralları yayımlama
 
 Android sahipliği doğrulandıktan sonra proje kökünde:
 
 ```powershell
-cd D:\Projects\SmartGarden-v2
-npx.cmd --yes firebase-tools@15.28.2 deploy --only database --project smartgarden-v2
+cd D:\Projects\AVORA
+npx.cmd --yes firebase-tools@15.28.2 deploy --only database --project avora-alidogukan
 ```
 
 Bu işlem Cloud Functions veya Blaze planı gerektirmez.
@@ -65,7 +65,7 @@ Anonim Firebase kullanıcı kimliği uygulama verileri silindiğinde değişebil
 Yeni kimliğe sahiplik verdikten sonra eski kimliğin erişimini kaldırın:
 
 ```bash
-cd ~/SmartGarden-v2/RaspberryPi
+cd ~/AVORA/RaspberryPi
 .venv/bin/python tools/configure_device_owner.py \
   --uid 'ESKI_FIREBASE_KULLANICI_KIMLIGI' \
   --remove

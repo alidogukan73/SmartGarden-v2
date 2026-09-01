@@ -1,49 +1,58 @@
-# AVORA Teknik Kimlik Geçişi — Android
+# AVORA teknik kimlik ve altyapı geçişi
 
-Durum: Android paket geçişi tamamlandı; saha doğrulaması sürüyor.
+Durum: Kod ve yeni Firebase altyapısı hazır; Raspberry Pi, ESP32, emülatör ve
+telefon saha geçişi tamamlanmadan eski çalışan altyapı geri dönüş için korunur.
 
-Uygulamanın kullanıcıya görünen markası ve Android teknik kimliği AVORA olarak
-güncellendi:
+## Hedef kimlikler
 
-- Release/internal paket adı: `com.alidogukan.avora`
-- Debug paket adı: `com.alidogukan.avora.debug`
-- Firebase Android uygulamaları yeni paket adlarıyla aynı `smartgarden-v2`
-  projesinde oluşturuldu.
-- Sürüm: `3.0.0` (`versionCode 33`)
+- Release/internal Android paketi: com.alidogukan.avora
+- Debug Android paketi: com.alidogukan.avora.debug
+- Firebase proje kimliği: avora-alidogukan
+- Realtime Database:
+  https://avora-alidogukan-default-rtdb.europe-west1.firebasedatabase.app
+- Cihaz kimliği: avora-001
+- MQTT konuları: avora/...
+- Raspberry Pi servisleri: avora.service ve avora-vision.service
+- Raspberry Pi gizli ayar dizini: /etc/avora
+- Depo ve çalışma klasörü: AVORA
+- Sürüm: 3.0.1 (versionCode 34)
 
-Mevcut Raspberry Pi, Arduino ve Firebase verileriyle bağlantıyı bozmamak için
-aşağıdaki çalışan protokol kimlikleri bilinçli olarak korunur:
+## Tamamlananlar
 
-- Firebase proje kimliği ve Realtime Database adresi
-- Cihaz kimliği: `smartgarden-001`
-- MQTT konuları: `smartgarden/...`
-- Raspberry Pi servis adları: `smartgarden.service`, `smartgarden-vision.service`
-- Depo ve proje klasörü adları
+1. Android paket adı, kaynaklar, temalar ve testler AVORA adına geçirildi.
+2. Yeni Firebase projesi ile release ve debug Android uygulamaları oluşturuldu.
+3. Anonymous Authentication etkinleştirildi.
+4. Realtime Database oluşturuldu ve sahiplik kuralları yayımlandı.
+5. Eski cihaz verisi silinmeden devices/avora-001 yoluna kopyalandı; kaynak ve
+   hedef dışa aktarımlarının boyutu ve SHA-256 özeti birebir eşleşti.
+6. Release uygulamasında Play Integrity; cihaz bütünlüğü zorunlu, Play lisansı
+   zorunlu değil ve APK sürümleri desteklenecek biçimde yapılandırıldı.
+7. Emülatörün internal Debug App Check anahtarı yeni release Firebase
+   uygulamasına kaydedildi.
+8. Emülatör kullanıcısına avora_device_id=avora-001 yetkisi verildi ve yeni
+   veritabanındaki bölgeleri okuyabildiği doğrulandı.
+9. Yeni Firebase Admin anahtarı oluşturuldu; Database ve Auth yönetim erişimi
+   doğrulandı ve etkinleştirilmeden Raspberry Pi'ye güvenli biçimde aktarıldı.
+10. GitHub deposu AVORA olarak yeniden adlandırıldı; bilgisayar ve Raspberry Pi
+    origin adresleri güncellendi.
+11. Android birim testi, lint, internal ve release derlemeleri geçti.
+12. Firebase kurallarının dört sahiplik ve geri bildirim senaryosu geçti.
+13. Raspberry Pi Python kaynaklarının sözdizimi kontrolü geçti.
 
-Bu adlar kullanıcıya görünen Android markası veya paket adı değildir. Bunları
-yalnız isim benzerliği nedeniyle değiştirmek sensör, vana ve backend bağlantılarını
-gereksiz yere keser.
+## Güvenli geçiş sırası
 
-## Tamamlanan geçiş
+1. Yerel değişiklikleri son kez doğrula; kullanıcı gönder dediğinde main dalına
+   kaydet ve gönder.
+2. Raspberry Pi'de yeni kodu al, hazırlanmış Admin anahtarını etkinleştir;
+   klasör, ortam değişkenleri ve systemd servislerini AVORA
+   adlarına geçir.
+3. ESP32 aygıt yazılımını yeni avora/... MQTT konularıyla yükle.
+4. Telefonun yeni Firebase kullanıcı kimliğine
+   avora_device_id=avora-001 yetkisini ver.
+5. Internal ve release sürümlerde sensör, sulama, geri bildirim ve Bitki
+   Asistanı uçtan uca testlerini tamamla.
+6. Başarılı saha testinden sonra Realtime Database App Check zorlamasını aç.
+7. Son olarak yerel çalışma klasörünü AVORA olarak yeniden adlandır.
 
-1. `com.ali.smartgarden` kaynak paketleri ve klasörleri
-   `com.alidogukan.avora` altına taşındı.
-2. Gradle namespace, applicationId, özel XML view referansları ve test kaynakları
-   yeni paket adına geçirildi.
-3. Release ve debug için ayrı Firebase Android uygulamaları oluşturuldu.
-4. Kalıcı AVORA imza sertifikası release Firebase uygulamasına eklendi.
-5. Debug sertifikası debug Firebase uygulamasına eklendi.
-6. Birim testleri, lint, debug/internal APK, release APK ve AAB derlemeleri
-   doğrulandı.
-
-## Kalan doğrulama
-
-1. Yeni Firebase uygulamalarında App Check sağlayıcılarını kaydet.
-2. Yeni paketi telefona ve emülatöre yan yana kur.
-3. Oluşan yeni Firebase kullanıcı kimliklerini AVORA cihazının yetki listesine ekle.
-4. Sensör, vana, sulama, bildirim, geri bildirim ve Bitki Asistanı saha testlerini
-   tamamla.
-5. Çalışan sürümün son yedeğini, Git kaydını ve sürüm etiketini oluştur.
-
-Eski Firebase Android uygulamaları saha doğrulaması tamamlanana kadar geri dönüş
-seçeneği olarak korunur.
+Geçiş tamamlanana kadar eski Firebase projesi, çalışan Raspberry Pi servisi ve
+ESP32 aygıt yazılımı silinmez. Böylece her aşamada geri dönüş mümkündür.

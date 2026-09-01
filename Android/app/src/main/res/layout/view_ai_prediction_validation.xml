@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/cardPredictionValidation"
-                style="@style/Widget.SmartGarden.Card.Main"
+                style="@style/Widget.AVORA.Card.Main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp">
@@ -45,13 +45,13 @@
                                 android:layout_height="wrap_content"
                                 android:includeFontPadding="false"
                                 android:text="@string/ai_tech_validation_title"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.CardTitle" />
+                                android:textAppearance="@style/TextAppearance.AVORA.CardTitle" />
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="@string/ai_tech_validation_subtitle"
-                                android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                                android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         </LinearLayout>
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardPredictionValidationStatusBadge"
@@ -242,7 +242,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/ai_last_updated_label"
-                            android:textAppearance="@style/TextAppearance.SmartGarden.Body" />
+                            android:textAppearance="@style/TextAppearance.AVORA.Body" />
                         <TextView
                             android:id="@+id/txtPredictionValidationUpdatedAt"
                             android:layout_width="0dp"

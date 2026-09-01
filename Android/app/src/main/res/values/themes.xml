@@ -4,7 +4,7 @@
     <!-- ANA UYGULAMA TEMASI                                       -->
     <!-- ========================================================= -->
     <style
-        name="Base.Theme.SmartGarden"
+        name="Base.Theme.AVORA"
         parent="Theme.Material3.DayNight.NoActionBar">
         <!-- MARKA RENKLERİ -->
         <item
@@ -58,23 +58,23 @@
             name="fontFamily">sans</item>
         <!-- VARSAYILAN BİLEŞEN STİLLERİ -->
         <item
-            name="materialCardViewStyle"> @style/Widget.SmartGarden.Card.Main </item>
+            name="materialCardViewStyle"> @style/Widget.AVORA.Card.Main </item>
         <item
-            name="materialButtonStyle"> @style/Widget.SmartGarden.Button.Primary </item>
+            name="materialButtonStyle"> @style/Widget.AVORA.Button.Primary </item>
         <item
-            name="switchStyle"> @style/Widget.SmartGarden.Switch </item>
+            name="switchStyle"> @style/Widget.AVORA.Switch </item>
     </style>
 
 
     <!-- UYGULAMANIN KULLANDIĞI TEMA -->
     <style
-        name="Theme.SmartGarden"
-        parent="Base.Theme.SmartGarden" />
+        name="Theme.AVORA"
+        parent="Base.Theme.AVORA" />
     <!-- ========================================================= -->
     <!-- KART STİLLERİ                                             -->
     <!-- ========================================================= -->
     <style
-        name="Widget.SmartGarden.Card.Main"
+        name="Widget.AVORA.Card.Main"
         parent="Widget.Material3.CardView.Elevated">
         <item
             name="cardBackgroundColor">@color/card</item>
@@ -88,7 +88,7 @@
             name="strokeWidth">1dp</item>
     </style>
     <style
-        name="Widget.SmartGarden.Card.Featured"
+        name="Widget.AVORA.Card.Featured"
         parent="Widget.Material3.CardView.Elevated">
         <item
             name="cardBackgroundColor">@color/card</item>
@@ -102,7 +102,7 @@
             name="strokeWidth">1dp</item>
     </style>
     <style
-        name="Widget.SmartGarden.Card.Inner"
+        name="Widget.AVORA.Card.Inner"
         parent="Widget.Material3.CardView.Filled">
         <item
             name="cardBackgroundColor">@color/surfaceSoft</item>
@@ -116,7 +116,7 @@
             name="strokeWidth">1dp</item>
     </style>
     <style
-        name="Widget.SmartGarden.Card.Success"
+        name="Widget.AVORA.Card.Success"
         parent="Widget.Material3.CardView.Filled">
         <item
             name="cardBackgroundColor">@color/onlineBackground</item>
@@ -133,7 +133,7 @@
     <!-- BUTON STİLLERİ                                            -->
     <!-- ========================================================= -->
     <style
-        name="Widget.SmartGarden.Button.Primary"
+        name="Widget.AVORA.Button.Primary"
         parent="Widget.Material3.Button">
         <item
             name="android:layout_height">58dp</item>
@@ -161,7 +161,7 @@
             name="rippleColor">#40FFFFFF</item>
     </style>
     <style
-        name="Widget.SmartGarden.Button.Outlined"
+        name="Widget.AVORA.Button.Outlined"
         parent="Widget.Material3.Button">
         <item
             name="android:layout_height">52dp</item>
@@ -194,7 +194,7 @@
     <!-- SWITCH STİLİ                                              -->
     <!-- ========================================================= -->
     <style
-        name="Widget.SmartGarden.Switch"
+        name="Widget.AVORA.Switch"
         parent="Widget.Material3.CompoundButton.MaterialSwitch">
         <item
             name="thumbTint">@color/switch_thumb_selector</item>
@@ -209,7 +209,7 @@
     <!-- METİN STİLLERİ                                            -->
     <!-- ========================================================= -->
     <style
-        name="TextAppearance.SmartGarden.ScreenTitle"
+        name="TextAppearance.AVORA.ScreenTitle"
         parent="TextAppearance.Material3.HeadlineSmall">
         <item
             name="android:textColor">@color/textPrimary</item>
@@ -219,7 +219,7 @@
             name="android:textStyle">bold</item>
     </style>
     <style
-        name="TextAppearance.SmartGarden.CardTitle"
+        name="TextAppearance.AVORA.CardTitle"
         parent="TextAppearance.Material3.TitleMedium">
         <item
             name="android:textColor">@color/textPrimary</item>
@@ -229,7 +229,7 @@
             name="android:textStyle">bold</item>
     </style>
     <style
-        name="TextAppearance.SmartGarden.Body"
+        name="TextAppearance.AVORA.Body"
         parent="TextAppearance.Material3.BodyMedium">
         <item
             name="android:textColor">@color/textSecondary</item>
@@ -237,7 +237,7 @@
             name="android:textSize">13sp</item>
     </style>
     <style
-        name="TextAppearance.SmartGarden.Label"
+        name="TextAppearance.AVORA.Label"
         parent="TextAppearance.Material3.LabelMedium">
         <item
             name="android:textColor">@color/textSecondary</item>
@@ -247,7 +247,7 @@
             name="android:textStyle">bold</item>
     </style>
     <style
-        name="TextAppearance.SmartGarden.Value"
+        name="TextAppearance.AVORA.Value"
         parent="TextAppearance.Material3.TitleLarge">
         <item
             name="android:textColor">@color/textPrimary</item>
@@ -257,13 +257,13 @@
             name="android:textStyle">bold</item>
     </style>
     <!-- ========================================================= -->
-    <!-- SMARTGARDEN DESIGN SYSTEM EK STİLLERİ                    -->
+    <!-- AVORA DESIGN SYSTEM EK STİLLERİ                    -->
     <!-- ========================================================= -->
     <!-- Küçük bölüm başlığı -->
     <!-- Büyük gösterge değeri -->
     <!-- Kart içi yardımcı açıklama -->
     <style
-        name="TextAppearance.SmartGarden.Supporting"
+        name="TextAppearance.AVORA.Supporting"
         parent="TextAppearance.Material3.BodySmall">
         <item
             name="android:textColor">@color/textSecondary</item>
@@ -275,7 +275,7 @@
     <!-- Durum rozeti metni -->
     <!-- İkincil buton -->
     <style
-        name="Widget.SmartGarden.Button.Secondary"
+        name="Widget.AVORA.Button.Secondary"
         parent="Widget.Material3.Button.OutlinedButton">
         <item
             name="android:layout_height">52dp</item>
@@ -305,7 +305,7 @@
     <!-- Tehlikeli işlem butonu -->
     <!-- Küçük ikon butonu -->
     <style
-        name="Widget.SmartGarden.Button.Icon"
+        name="Widget.AVORA.Button.Icon"
         parent="Widget.Material3.Button.IconButton">
         <item
             name="android:layout_width">44dp</item>
@@ -348,7 +348,7 @@
         <item name="iconTint">@color/backButtonIcon</item>
     </style>    <!-- Dashboard küçük iç kartı -->
     <style
-        name="Widget.SmartGarden.Card.Metric"
+        name="Widget.AVORA.Card.Metric"
         parent="Widget.Material3.CardView.Filled">
         <item
             name="cardBackgroundColor">@color/surfaceSoft</item>
@@ -364,7 +364,7 @@
     <!-- Düz liste kartı -->
     <!-- Bilgi kartı -->
     <style
-        name="Widget.SmartGarden.Card.Info"
+        name="Widget.AVORA.Card.Info"
         parent="Widget.Material3.CardView.Filled">
         <item
             name="cardBackgroundColor">@color/infoBackground</item>

@@ -19,7 +19,7 @@ def test_valid_app_check_is_accepted() -> None:
     method = plant_vision_server._authorization_method(
         {
             "X-Firebase-AppCheck": "valid-app-check-token",
-            "X-SmartGarden-Token": "legacy-token",
+            "X-AVORA-Token": "legacy-token",
         },
         _valid_verifier,
     )
@@ -47,7 +47,7 @@ def test_verification_failure_is_rejected() -> None:
 
 def test_legacy_token_is_rejected() -> None:
     method = plant_vision_server._authorization_method(
-        {"X-SmartGarden-Token": "legacy-token"},
+        {"X-AVORA-Token": "legacy-token"},
         lambda _: {},
     )
     assert method == ""

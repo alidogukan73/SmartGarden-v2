@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="main_menu_garden_name">AVORA Garden</string>
-    <string name="main_menu_connection_connecting">● Connecting · smartgarden-001</string>
+    <string name="main_menu_connection_connecting">● Connecting · avora-001</string>
     <string name="main_menu_today_recommendation">Today’s Recommendation</string>
     <string name="main_menu_garden_data_preparing">Preparing garden data</string>
     <string name="main_menu_sensor_weather_waiting">Waiting for sensor and weather data.</string>

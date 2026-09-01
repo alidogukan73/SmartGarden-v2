@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="main_menu_garden_name">AVORA Bahçesi</string>
-    <string name="main_menu_connection_connecting">● Bağlanıyor · smartgarden-001</string>
+    <string name="main_menu_connection_connecting">● Bağlanıyor · avora-001</string>
     <string name="main_menu_today_recommendation">Bugünkü Öneri</string>
     <string name="main_menu_garden_data_preparing">Bahçe verisi hazırlanıyor</string>
     <string name="main_menu_sensor_weather_waiting">Sensör ve hava verisi bekleniyor.</string>
