@@ -30,10 +30,11 @@ import com.alidogukan.avora.health.GardenHealthSummary;
 import com.alidogukan.avora.health.GardenHealthZoneResult;
 import com.alidogukan.avora.notifications.GardenNotificationManager;
 import com.alidogukan.avora.notifications.NotificationPolicy;
+import com.alidogukan.avora.notifications.NotificationPermissionPromptStore;
 import com.alidogukan.avora.notifications.NotificationSignalCoordinator;
 import com.alidogukan.avora.plantassistant.PlantAssistantHomeRecommendation;
 import com.alidogukan.avora.plantassistant.PlantAssistantRecommendationStore;
-import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.season.SeasonScope;
 
 import java.util.List;
 
@@ -64,11 +65,13 @@ public class MainViewModel extends AndroidViewModel {
     private final LiveData<List<WateringHistory>> wateringHistory;
     private final MutableLiveData<Boolean> authenticated = new MutableLiveData<>();
     private final GardenNotificationManager notifications;
+    private final NotificationPermissionPromptStore notificationPermissionPrompts;
 
     public MainViewModel(@NonNull Application application) {
         super(application);
         repository = new FirebaseRepository();
         notifications = new GardenNotificationManager(application);
+        notificationPermissionPrompts = new NotificationPermissionPromptStore(application);
         sensorLiveData = repository.observeSensor(error -> handleFirebaseError());
         statusLiveData = repository.observeStatus(error -> handleFirebaseError());
         commandLiveData = repository.observeCommands(error -> handleFirebaseError());
@@ -132,8 +135,21 @@ public class MainViewModel extends AndroidViewModel {
                 repository.savePushToken(getApplication(), token));
     }
 
+    public boolean shouldPromptForNotificationPermission(boolean permissionGranted,
+                                                         long nowMillis) {
+        return notificationPermissionPrompts.shouldPrompt(permissionGranted, nowMillis);
+    }
+
+    public boolean wasNotificationPermissionPrompted() {
+        return notificationPermissionPrompts.wasPrompted();
+    }
+
+    public void markNotificationPermissionPrompted(long nowMillis) {
+        notificationPermissionPrompts.markPrompted(nowMillis);
+    }
+
     public List<GardenZone> activeZones(List<GardenZone> zones) {
-        return ZoneCapacityPolicy.activeZones(zones);
+        return SeasonScope.activeSeasonZones(zones);
     }
 
     public void evaluateWateringSignals(List<WateringHistory> history, List<GardenZone> zones) {

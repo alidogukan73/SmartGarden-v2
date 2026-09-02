@@ -20,7 +20,7 @@ import com.alidogukan.avora.models.FertilizerApplication;
 import com.alidogukan.avora.models.FertilizerProduct;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
-import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.season.SeasonScope;
 import com.google.android.gms.tasks.Task;
 
 import java.util.List;
@@ -104,7 +104,7 @@ public class FertilizationCalendarViewModel extends AndroidViewModel {
     }
 
     public List<GardenZone> activeZones(List<GardenZone> values) {
-        return ZoneCapacityPolicy.activeZones(values);
+        return SeasonScope.activeSeasonZones(values);
     }
 
     public LiveData<List<FertilizerProduct>> getProducts() {

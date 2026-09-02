@@ -10,6 +10,10 @@
     <string name="notification_phone_closed_message">Permission not granted. Records continue to be stored in Notification Center.</string>
     <string name="notification_system_settings">System settings</string>
     <string name="notification_allow">Allow</string>
+    <string name="notification_startup_permission_title">Allow notifications</string>
+    <string name="notification_startup_permission_message">AVORA requests permission so it can notify you about important updates such as irrigation, device status and maintenance timing.</string>
+    <string name="notification_startup_settings_message">Notification permission was previously disabled. You can enable AVORA notifications in system settings to receive alerts on your phone.</string>
+    <string name="notification_permission_later">Later</string>
     <string name="notification_categories_section">Notification categories</string>
     <string name="notification_category_irrigation">Irrigation</string>
     <string name="notification_category_fertilization">Fertilization</string>

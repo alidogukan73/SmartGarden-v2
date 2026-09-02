@@ -1,9 +1,6 @@
 package com.alidogukan.avora.activities;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.app.DatePickerDialog;
 import android.widget.Toast;
@@ -14,8 +11,6 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.alidogukan.avora.R;
@@ -49,15 +44,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     private List<FertilizerApplication> currentHistory =
             new ArrayList<>();
     private WeatherForecast currentWeather;
-
-    private final ActivityResultLauncher<String>
-            notificationPermissionLauncher =
-            registerForActivityResult(
-                    new ActivityResultContracts.RequestPermission(),
-                    granted -> {
-                        // The calendar remains usable if permission is denied.
-                    }
-            );
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -111,7 +97,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             currentWeather = weather;
             renderTodayAdvice();
         });
-        requestNotificationPermissionIfNeeded();
     }
 
     private void showMixFirstProductPicker() {
@@ -898,18 +883,6 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                && ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED) {
-            notificationPermissionLauncher.launch(
-                    Manifest.permission.POST_NOTIFICATIONS
-            );
-        }
-    }
-
     private String formatAmount(double value) {
         return value == Math.rint(value)
                 ? String.format(Locale.getDefault(), "%.0f", value)
@@ -928,7 +901,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         layoutTodayAdvice.removeAllViews();
         if (currentZones.isEmpty()) {
             TextView empty = new TextView(this);
-            empty.setText(R.string.runtime_zone_data_preparing);
+            empty.setText(R.string.runtime_no_active_season_zones);
             layoutTodayAdvice.addView(empty);
             return;
         }

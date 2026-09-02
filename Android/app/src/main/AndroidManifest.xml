@@ -23,6 +23,15 @@
         android:supportsRtl="true"
         tools:targetApi="tiramisu"
         android:theme="@style/Theme.AVORA">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <activity
             android:name=".activities.ThemeSettingsActivity"
             android:exported="false" />
@@ -88,6 +97,9 @@
             android:exported="false" />
         <activity
             android:name=".activities.GardenPhotoGalleryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.PlantGrowthTrackingActivity"
             android:exported="false" />
         <activity
             android:name=".activities.PlantAssistantActivity"

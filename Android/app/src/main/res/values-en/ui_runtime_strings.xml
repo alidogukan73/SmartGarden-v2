@@ -115,6 +115,7 @@ Wind
     <string name="runtime_assistant_archive_note">Plant Assistant · %1$s</string>
     <string name="runtime_photo_analysis_archived">Photo and analysis added to the Plant Journal.</string>
     <string name="runtime_photo_archive_failed">The photo was added to the analysis but could not be archived.</string>
+    <string name="runtime_photo_metadata_sync_failed">The record is safe on this phone but could not be uploaded to Firebase. Check the connection and try the analysis again later.</string>
 
     <string name="runtime_weather_updated">↻ Updated: %1$s</string>
     <string name="runtime_weather_raining">It is raining now — check soil moisture again before irrigation.</string>
@@ -167,6 +168,9 @@ Add photo</string>
     <string name="runtime_photo_added">Photo added to the record.</string>
     <string name="runtime_photo_add_failed">Photo could not be added.</string>
     <string name="runtime_growth_photo">Growth photo</string>
+    <string name="runtime_photo_swipe_position">%1$d / %2$d · Swipe left or right</string>
+    <string name="runtime_photo_page_description">Photo %1$d of %2$d</string>
+    <string name="runtime_open_photo_description">Open photo %1$d of %2$d</string>
     <string name="runtime_close">Close</string>
     <string name="runtime_plant_default">Plant</string>
     <string name="runtime_planned_season">Planned season</string>
@@ -196,6 +200,7 @@ Add photo</string>
     <string name="runtime_minutes_ago">%1$d min ago</string>
     <string name="runtime_product_unnamed">Unnamed product</string>
     <string name="runtime_zone_data_preparing">Preparing zone data.</string>
+    <string name="runtime_no_active_season_zones">No zone has an active season. Start one in Season Management first.</string>
     <string name="runtime_status_organic_required">ORGANIC PRODUCT REQUIRED</string>
     <string name="runtime_status_preparation_required">PREPARATION REQUIRED</string>
     <string name="runtime_status_too_early">TOO EARLY</string>
@@ -302,4 +307,29 @@ Add photo</string>
     <string name="runtime_zone_sensor_detail">%1$s %2$s\n%3$s</string>
     <string name="home_zone_ideal_range">%1$d%% – %2$d%%</string>
     <string name="runtime_value_suffix">%1$s%2$s</string>
+    <string name="runtime_growth_tracking_title">Plant Growth Tracking</string>
+    <string name="runtime_growth_tracking_intro">Compare growth photos from the same zone. Photos stay private on your device; the score and summary sync across your two AVORA devices.</string>
+    <string name="runtime_growth_tracking_open">View growth history</string>
+    <string name="runtime_growth_tracking_empty">There is no growth record for this zone yet. Add a photo in Plant Assistant and select “Assess plant growth status.”</string>
+    <string name="runtime_growth_latest_title">Latest visible growth indicator</string>
+    <string name="runtime_growth_score_format">%1$d/100</string>
+    <string name="runtime_growth_stage_format">Growth stage: %1$s</string>
+    <string name="runtime_growth_trend_first">Baseline record</string>
+    <string name="runtime_growth_trend_improving">↑ Positive development</string>
+    <string name="runtime_growth_trend_stable">→ Similar appearance</string>
+    <string name="runtime_growth_trend_declining">↓ Decline signal</string>
+    <string name="runtime_growth_first_record_detail">The next photo will be compared with this baseline.</string>
+    <string name="runtime_growth_signals_format">Observed signals:\n%1$s</string>
+    <string name="runtime_growth_no_signals">No visible growth signal was provided.</string>
+    <string name="runtime_growth_score_disclaimer">This score is a visible indicator from one photo; it is not an exact age or growth rate.</string>
+    <string name="runtime_unknown_date">Unknown date</string>
+    <string name="runtime_not_available_short">—</string>
+    <plurals name="runtime_growth_record_count">
+        <item quantity="one">%1$d growth record</item>
+        <item quantity="other">%1$d growth records</item>
+    </plurals>
+    <plurals name="runtime_growth_delta_format">
+        <item quantity="one">%1$+d point from the previous record · %2$s</item>
+        <item quantity="other">%1$+d points from the previous record · %2$s</item>
+    </plurals>
 </resources>

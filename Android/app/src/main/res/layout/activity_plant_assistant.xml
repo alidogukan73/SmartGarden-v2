@@ -439,6 +439,14 @@
                 android:text="@string/plant_assistant_start_analysis"
                 android:textAllCaps="false"
                 android:textSize="14sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPlantGrowthHistory"
+                style="@style/Widget.AVORA.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="9dp"
+                android:text="@string/runtime_growth_tracking_open"
+                android:textAllCaps="false" />
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -551,6 +559,7 @@
                         android:layout_marginTop="5dp"
                         android:textColor="@color/warning"
                         android:textStyle="bold" />
+                    <include layout="@layout/view_plant_growth_summary" />
                     <TextView
                         android:id="@+id/txtDoctorContext"
                         android:layout_width="match_parent"

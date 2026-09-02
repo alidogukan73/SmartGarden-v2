@@ -10,6 +10,10 @@
     <string name="notification_phone_closed_message">İzin verilmedi. Kayıtlar Bildirim Merkezi’nde tutulmaya devam eder.</string>
     <string name="notification_system_settings">Sistem ayarları</string>
     <string name="notification_allow">İzin ver</string>
+    <string name="notification_startup_permission_title">Bildirimlere izin verin</string>
+    <string name="notification_startup_permission_message">AVORA; sulama, cihaz durumu ve bakım zamanı gibi önemli gelişmeleri size bildirebilmek için izin istiyor.</string>
+    <string name="notification_startup_settings_message">Bildirim izni daha önce kapatıldı. Uyarıları telefonda almak için AVORA bildirimlerini sistem ayarlarından açabilirsiniz.</string>
+    <string name="notification_permission_later">Daha sonra</string>
     <string name="notification_categories_section">Bildirim kategorileri</string>
     <string name="notification_category_irrigation">Sulama</string>
     <string name="notification_category_fertilization">Gübreleme</string>

@@ -25,6 +25,7 @@ import com.alidogukan.avora.models.FertilizerApplication;
 import com.alidogukan.avora.models.SeasonStatus;
 import com.alidogukan.avora.models.WateringHistory;
 import com.alidogukan.avora.models.WeatherForecast;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.models.ZoneSeasonState;
 import com.alidogukan.avora.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -150,9 +151,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
                 R.string.runtime_icon_label,
                 "●",
                 liveSeasonStatus()));
-        String archiveEmoji = selected == null ? "" : selected.getEmoji();
-        emoji.setText(archiveEmoji == null || archiveEmoji.isBlank()
-                ? zone == null || zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji() : archiveEmoji);
+        emoji.setText(SeasonDisplayIdentity.emoji(selected, zone));
         month.setText(tabHeading());
         month.setVisibility("compare".equals(activeTab) ? View.VISIBLE : View.GONE);
         entries.removeAllViews(); int shown = 0; String lastMonthKey = "";

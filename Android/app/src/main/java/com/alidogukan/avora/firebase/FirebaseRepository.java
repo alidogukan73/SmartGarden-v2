@@ -41,6 +41,7 @@ import com.alidogukan.avora.models.WeatherForecast;
 import com.alidogukan.avora.models.WeatherLocation;
 import com.alidogukan.avora.models.RainSettings;
 import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.zones.ZoneOperationSafetyPolicy;
 import com.alidogukan.avora.models.IrrigationTimingSettings;
 import com.alidogukan.avora.models.GardenProfile;
 import com.alidogukan.avora.models.DisplayUnitSettings;
@@ -167,6 +168,34 @@ public class FirebaseRepository {
 
          public void onCancelled(@NonNull DatabaseError error) {
             Log.e("FirebaseRepository", "Garden zones read failed", error.toException());
+         }
+      });
+      return liveData;
+   }
+
+   public LiveData<List<GardenPhoto>> observeGardenPhotoMetadata() {
+      final FirebaseLiveData<List<GardenPhoto>> liveData =
+            new FirebaseLiveData<>(journalPhotoMetadataRef);
+      liveData.setEventListener(new ValueEventListener() {
+         @Override
+         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            List<GardenPhoto> photos = new ArrayList<>();
+            for (DataSnapshot child : snapshot.getChildren()) {
+               GardenPhoto photo = child.getValue(GardenPhoto.class);
+               if (photo == null) continue;
+               if (photo.getId() == null || photo.getId().isBlank()) {
+                  photo.setId(child.getKey());
+               }
+               photos.add(photo);
+            }
+            photos.sort((left, right) -> Long.compare(
+                  right.getCaptured_at_epoch(), left.getCaptured_at_epoch()));
+            liveData.setValue(photos);
+         }
+
+         @Override
+         public void onCancelled(@NonNull DatabaseError error) {
+            Log.e(TAG, "Garden photo metadata read failed", error.toException());
          }
       });
       return liveData;
@@ -707,7 +736,7 @@ public class FirebaseRepository {
                   zone.exists(),
                   snapshotString(zone.child("season").child("status")),
                   snapshotString(zone.child("season").child("active_season_id")),
-                  isIrrigationBusySnapshot(root),
+                  isZoneIrrigationBusySnapshot(root, zoneId),
                   hasLocalHistory,
                   hasZoneCloudHistory(root, zoneId));
          } catch (IllegalStateException error) {
@@ -1427,23 +1456,42 @@ public class FirebaseRepository {
             : value.trim().toUpperCase(Locale.ROOT);
    }
 
-   private static boolean isIrrigationBusySnapshot(DataSnapshot root) {
-      if (snapshotBoolean(root.child("status").child("relay"))
-            || snapshotBoolean(root.child("status").child("valve_open"))
-            || snapshotBoolean(root.child("commands").child("relay"))
-            || snapshotBoolean(root.child("irrigation_hardware").child("valve_open"))
-            || root.child("irrigation_runtime").child("pending_waterings").hasChildren()) {
-         return true;
-      }
-      for (DataSnapshot zone : root.child("zones").getChildren()) {
-         DataSnapshot status = zone.child("irrigation_status");
-         if (snapshotBoolean(status.child("watering_active"))
-               || snapshotBoolean(status.child("selected_for_watering"))
-               || snapshotLong(status.child("queue_position")) > 0L) {
-            return true;
+   private static boolean isZoneIrrigationBusySnapshot(
+         DataSnapshot root, String zoneId) {
+      DataSnapshot zone = root.child("zones").child(zoneId);
+      DataSnapshot irrigation = zone.child("irrigation_status");
+      boolean pending = false;
+      for (DataSnapshot item : root.child("irrigation_runtime")
+            .child("pending_waterings").getChildren()) {
+         if (zoneId.equals(snapshotString(item.child("record").child("zone_id")))) {
+            pending = true;
+            break;
          }
       }
-      return false;
+      boolean hardwareBusy = snapshotBoolean(root.child("status").child("relay"))
+            || snapshotBoolean(root.child("status").child("valve_open"))
+            || snapshotBoolean(root.child("commands").child("relay"))
+            || snapshotBoolean(root.child("irrigation_hardware").child("valve_open"));
+      String activeZoneId = firstNonBlankSnapshot(
+            snapshotString(root.child("status").child("active_zone_id")),
+            snapshotString(root.child("irrigation_runtime").child("active_zone_id")));
+      String activeValveId = firstNonBlankSnapshot(
+            snapshotString(root.child("status").child("active_valve_id")),
+            snapshotString(root.child("irrigation_hardware").child("active_valve_id")));
+      return ZoneOperationSafetyPolicy.isTargetBusy(
+            zoneId,
+            snapshotString(zone.child("valve_id")),
+            snapshotBoolean(irrigation.child("watering_active")),
+            snapshotBoolean(irrigation.child("selected_for_watering")),
+            snapshotLong(irrigation.child("queue_position")),
+            pending,
+            hardwareBusy,
+            activeZoneId,
+            activeValveId);
+   }
+
+   private static String firstNonBlankSnapshot(String first, String second) {
+      return first == null || first.isBlank() ? second : first;
    }
 
    private static boolean hasZoneCloudHistory(DataSnapshot root, String zoneId) {
@@ -1842,9 +1890,17 @@ public class FirebaseRepository {
             values.put("related_application_id", photo.getRelated_application_id() == null ? "" : photo.getRelated_application_id());
             values.put("analysis_title", photo.getAnalysis_title() == null ? "" : photo.getAnalysis_title());
             values.put("analysis_meta", photo.getAnalysis_meta() == null ? "" : photo.getAnalysis_meta());
-            values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
-            values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
-            values.put("captured_at_epoch", photo.getCaptured_at_epoch());
+             values.put("analysis_context", photo.getAnalysis_context() == null ? "" : photo.getAnalysis_context());
+             values.put("analysis_advice", photo.getAnalysis_advice() == null ? "" : photo.getAnalysis_advice());
+             values.put("analysis_goal", photo.getAnalysis_goal() == null ? "" : photo.getAnalysis_goal());
+             values.put("analysis_confidence", photo.getAnalysis_confidence());
+             values.put("growth_score", photo.getGrowth_score());
+             values.put("growth_stage", photo.getGrowth_stage() == null ? "" : photo.getGrowth_stage());
+             values.put("growth_trend", photo.getGrowth_trend() == null ? "" : photo.getGrowth_trend());
+             values.put("growth_score_delta", photo.getGrowth_score_delta());
+             values.put("growth_signals", photo.getGrowth_signals() == null ? "" : photo.getGrowth_signals());
+             values.put("growth_previous_captured_at_epoch", photo.getGrowth_previous_captured_at_epoch());
+             values.put("captured_at_epoch", photo.getCaptured_at_epoch());
             values.put("photo_kept_on_owner_phone", true);
             values.put("metadata_updated_at_epoch", System.currentTimeMillis() / 1000L);
             return this.journalPhotoMetadataRef.child(photo.getId()).setValue(values);

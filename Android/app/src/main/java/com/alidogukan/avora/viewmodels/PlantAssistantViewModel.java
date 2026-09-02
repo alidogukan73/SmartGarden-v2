@@ -23,12 +23,18 @@ import com.alidogukan.avora.plantassistant.PlantAssistantRecommendationStore;
 import com.alidogukan.avora.plantassistant.PlantAssistantResult;
 import com.alidogukan.avora.plantassistant.PlantAssistantVisionClient;
 import com.alidogukan.avora.plantassistant.PlantFollowUpStore;
+import com.alidogukan.avora.plantassistant.PlantGrowthAssessment;
+import com.alidogukan.avora.plantassistant.PlantGrowthTrendPolicy;
+import com.alidogukan.avora.season.SeasonScope;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -42,6 +48,8 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     private final GardenNotificationManager notifications;
     private final LiveData<List<GardenZone>> zones = repository.observeGardenZones();
     private final LiveData<WeatherForecast> weather = repository.observeWeatherForecast();
+    private final LiveData<List<GardenPhoto>> photoMetadata =
+            repository.observeGardenPhotoMetadata();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public PlantAssistantViewModel(@NonNull Application application) {
@@ -54,6 +62,11 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
 
     public LiveData<List<GardenZone>> getZones() { return zones; }
     public LiveData<WeatherForecast> getWeather() { return weather; }
+    public LiveData<List<GardenPhoto>> getPhotoMetadata() { return photoMetadata; }
+
+    public List<GardenZone> activeZones(List<GardenZone> values) {
+        return SeasonScope.activeSeasonZones(values);
+    }
 
     public PlantAssistantResult assess(GardenZone zone, List<String> symptoms,
                                        String note, WeatherForecast weather,
@@ -136,7 +149,10 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     }
 
     public void finalizeAnalysisAsync(String photoId, String zoneId, String title,
-                                      String meta, String context, String advice) {
+                                      String meta, String context, String advice,
+                                      String analysisGoal, int confidence,
+                                      PlantGrowthAssessment growth,
+                                      Consumer<Throwable> syncFailure) {
         executor.execute(() -> {
             FollowUpResult followUp = registerFollowUp(zoneId, photoId, title);
             String contextText = context;
@@ -148,9 +164,10 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                 contextText += "\n\n" + getApplication().getString(
                         R.string.runtime_follow_up_comparison, followUp.previousTitle);
             }
-            GardenPhoto updated = updateAnalysis(photoId, title, meta, contextText, advice);
+            GardenPhoto updated = updateAnalysis(photoId, title, meta, contextText, advice,
+                    analysisGoal, confidence, growth);
             if (updated == null) return;
-            syncPhoto(updated);
+            syncPhoto(updated, syncFailure);
             publish("HIGH", zoneId, title, getApplication().getString(
                     R.string.notification_plant_analysis_saved_description),
                     "plant_analysis:" + photoId);
@@ -177,14 +194,49 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     }
 
     public GardenPhoto updateAnalysis(String photoId, String title, String meta,
-                                      String context, String advice) {
-        return photos.updateAnalysis(photoId, title, meta, context, advice);
+                                      String context, String advice,
+                                      String analysisGoal, int confidence,
+                                      PlantGrowthAssessment growth) {
+        PlantGrowthAssessment value = growth == null
+                ? new PlantGrowthAssessment(-1, confidence, "", "", 0, "", 0L)
+                : growth;
+        return photos.updateAnalysis(photoId, title, meta, context, advice,
+                analysisGoal, confidence, value.getScore(), value.getStage(),
+                value.getTrend(), value.getScoreDelta(), value.getSignals(),
+                value.getPreviousCapturedAtEpoch());
     }
 
-    public void syncPhoto(GardenPhoto photo) {
+    public PlantGrowthAssessment evaluateGrowth(String zoneId, String photoId,
+                                                 int score, int confidence,
+                                                 String stage, String signals) {
+        PlantGrowthTrendPolicy.Result comparison = PlantGrowthTrendPolicy.compare(
+                combinedPhotoMetadata(), zoneId, photoId, score);
+        return new PlantGrowthAssessment(score, confidence, stage, comparison.trend,
+                comparison.scoreDelta, signals, comparison.previousCapturedAtEpoch);
+    }
+
+    private List<GardenPhoto> combinedPhotoMetadata() {
+        Map<String, GardenPhoto> combined = new LinkedHashMap<>();
+        List<GardenPhoto> cloud = photoMetadata.getValue();
+        if (cloud != null) {
+            for (GardenPhoto photo : cloud) {
+                if (photo != null && photo.getId() != null) combined.put(photo.getId(), photo);
+            }
+        }
+        for (GardenPhoto local : photos.load()) {
+            if (local == null || local.getId() == null) continue;
+            combined.putIfAbsent(local.getId(), local);
+        }
+        return new ArrayList<>(combined.values());
+    }
+
+    public void syncPhoto(GardenPhoto photo, Consumer<Throwable> failure) {
         if (photo == null) return;
         repository.saveGardenPhotoMetadata(photo).addOnSuccessListener(unused ->
-                photos.updateSeasonId(photo.getId(), photo.getSeason_id()));
+                photos.updateSeasonId(photo.getId(), photo.getSeason_id()))
+                .addOnFailureListener(error -> {
+                    if (failure != null) failure.accept(error);
+                });
     }
 
     public void publish(String priority, String zoneId, String title,

@@ -2423,7 +2423,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         if (predictionZones.isEmpty()) {
             txtMoisturePredictionTitle.setText(R.string.ai_moisture_prediction_default_title);
-            txtMoisturePredictionZone.setText(R.string.ai_zone_data_waiting);
+            txtMoisturePredictionZone.setText(R.string.runtime_no_active_season_zones);
             renderAIDecision(fallbackAIDecision);
             renderAdaptiveRecommendation(fallbackAdaptiveRecommendation);
             renderAIExplanation(fallbackAIExplanation);

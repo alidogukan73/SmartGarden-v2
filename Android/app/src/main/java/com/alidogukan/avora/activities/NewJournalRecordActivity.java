@@ -2,7 +2,6 @@ package com.alidogukan.avora.activities;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
+import com.alidogukan.avora.photos.GardenPhotoCapture;
 import com.alidogukan.avora.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -44,7 +44,8 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private String selectedType = TYPES[0];
     private static final int MAX_PHOTOS_PER_RECORD = 5;
     private final List<Uri> selectedPhotos = new ArrayList<>();
-    private final List<Bitmap> selectedPhotoBitmaps = new ArrayList<>();
+    private final List<GardenPhotoCapture.Target> capturedPhotos = new ArrayList<>();
+    private GardenPhotoCapture.Target pendingCameraPhoto;
     private TextView dateText, timeText, photoState;
     private TextInputEditText noteInput;
     private PlantJournalViewModel viewModel;
@@ -52,20 +53,27 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
     private final ActivityResultLauncher<PickVisualMediaRequest> photoPicker =
             registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS_PER_RECORD), uris -> {
                 if (uris == null || uris.isEmpty()) return;
+                clearCapturedPhotos();
                 selectedPhotos.clear();
-                selectedPhotoBitmaps.clear();
                 selectedPhotos.addAll(uris.subList(0, Math.min(MAX_PHOTOS_PER_RECORD, uris.size())));
                 showSelectedPhotoState();
             });
 
-    private final ActivityResultLauncher<Void> photoCamera =
-            registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
-                if (bitmap == null) return;
-                if (selectedPhotos.size() + selectedPhotoBitmaps.size() >= MAX_PHOTOS_PER_RECORD) {
+    private final ActivityResultLauncher<Uri> photoCamera =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), saved -> {
+                GardenPhotoCapture.Target target = pendingCameraPhoto;
+                pendingCameraPhoto = null;
+                if (!saved || target == null) {
+                    if (target != null) target.delete();
+                    return;
+                }
+                if (selectedPhotos.size() >= MAX_PHOTOS_PER_RECORD) {
+                    target.delete();
                     Toast.makeText(this, R.string.runtime_photo_limit, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                selectedPhotoBitmaps.add(bitmap);
+                capturedPhotos.add(target);
+                selectedPhotos.add(target.getUri());
                 showSelectedPhotoState();
             });
 
@@ -140,7 +148,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                         getString(R.string.runtime_choose_gallery)
                 }, (dialog, which) -> {
                     if (which == 0) {
-                        photoCamera.launch(null);
+                        launchCamera();
                     } else {
                         choosePhotoFromGallery();
                     }
@@ -153,9 +161,24 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
     }
 
+    private void launchCamera() {
+        if (selectedPhotos.size() >= MAX_PHOTOS_PER_RECORD) {
+            Toast.makeText(this, R.string.runtime_photo_limit, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            pendingCameraPhoto = GardenPhotoCapture.create(this);
+            photoCamera.launch(pendingCameraPhoto.getUri());
+        } catch (Exception error) {
+            if (pendingCameraPhoto != null) pendingCameraPhoto.delete();
+            pendingCameraPhoto = null;
+            Toast.makeText(this, R.string.runtime_photo_add_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void showSelectedPhotoState() {
         if (photoState == null) return;
-        int count = selectedPhotos.size() + selectedPhotoBitmaps.size();
+        int count = selectedPhotos.size();
         photoState.setText(getString(
                 R.string.runtime_icon_label,
                 getString(R.string.symbol_check),
@@ -172,7 +195,7 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
 
     private void save() {
         if (zoneId.isBlank()) { Toast.makeText(this, R.string.runtime_zone_not_found, Toast.LENGTH_SHORT).show(); return; }
-        boolean hasPhoto = !selectedPhotos.isEmpty() || !selectedPhotoBitmaps.isEmpty();
+        boolean hasPhoto = !selectedPhotos.isEmpty();
         if (RECORD_TYPE_PHOTO.equals(selectedType) && !hasPhoto) {
             Toast.makeText(this, R.string.runtime_photo_required, Toast.LENGTH_SHORT).show();
             return;
@@ -196,8 +219,9 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                     viewModel.persistRecord(zoneId, seasonId, selectedType, note,
                                     selectedDateTime.getTimeInMillis() / 1000L,
                                     relatedApplicationId, selectedPhotos,
-                                    selectedPhotoBitmaps)
+                                    java.util.Collections.emptyList())
                             .addOnSuccessListener(unused -> {
+                                clearCapturedPhotos();
                                 Toast.makeText(this, R.string.runtime_journal_added, Toast.LENGTH_SHORT).show();
                                 finish();
                             })
@@ -214,6 +238,18 @@ public final class NewJournalRecordActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG
                     ).show();
                 });
+    }
+
+    @Override protected void onDestroy() {
+        if (isFinishing()) clearCapturedPhotos();
+        super.onDestroy();
+    }
+
+    private void clearCapturedPhotos() {
+        for (GardenPhotoCapture.Target target : capturedPhotos) target.delete();
+        capturedPhotos.clear();
+        if (pendingCameraPhoto != null) pendingCameraPhoto.delete();
+        pendingCameraPhoto = null;
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

@@ -52,6 +52,32 @@ function validFeedback(id, uid = OWNER_UID) {
   };
 }
 
+function validGrowthPhoto(id, overrides = {}) {
+  return {
+    id,
+    zone_id: "zone-001",
+    season_id: "season-zone-001-2026",
+    note: "Aynı açıdan gelişim takibi",
+    related_application_id: "plant_assistant",
+    analysis_title: "Gelişim dengeli görünüyor",
+    analysis_meta: "Görsel güveni %87",
+    analysis_context: "Yaprak yoğunluğu ve gövde dengesi değerlendirildi.",
+    analysis_advice: "Üç gün sonra aynı açıdan tekrar fotoğraf çekin.",
+    analysis_goal: "growth_status",
+    analysis_confidence: 87,
+    growth_score: 76,
+    growth_stage: "Vejetatif gelişim",
+    growth_trend: "FIRST_RECORD",
+    growth_score_delta: 0,
+    growth_signals: "Yeni yaprak oluşumu\nCanlı yaprak rengi",
+    growth_previous_captured_at_epoch: 0,
+    captured_at_epoch: 1788271200,
+    photo_kept_on_owner_phone: true,
+    metadata_updated_at_epoch: 1788271260,
+    ...overrides,
+  };
+}
+
 before(async () => {
   testEnvironment = await initializeTestEnvironment({
     projectId: PROJECT_ID,
@@ -146,6 +172,63 @@ test("feedback cannot be edited or submitted by an unclaimed user", async () => 
     ),
   );
   await assertSucceeds(set(ref(owner, feedbackPath), null));
+});
+
+test("growth photo metadata accepts only the bounded owner schema", async () => {
+  const owner = authenticatedDatabase(OWNER_UID);
+  const otherUser = unclaimedDatabase(OTHER_UID);
+  const validId = "growth-photo-001";
+  const basePath = `devices/${DEVICE_ID}/garden_journal/photo_metadata`;
+
+  await assertSucceeds(
+    set(ref(owner, `${basePath}/${validId}`), validGrowthPhoto(validId)),
+  );
+
+  const incompleteId = "growth-photo-incomplete";
+  const incomplete = validGrowthPhoto(incompleteId, {
+    growth_score: -1,
+    growth_stage: "",
+    growth_trend: "",
+    growth_score_delta: 0,
+    growth_signals: "",
+    growth_previous_captured_at_epoch: 0,
+  });
+  await assertSucceeds(
+    set(ref(owner, `${basePath}/${incompleteId}`), incomplete),
+  );
+  await assertFails(
+    set(
+      ref(otherUser, `${basePath}/growth-photo-other`),
+      validGrowthPhoto("growth-photo-other"),
+    ),
+  );
+
+  const outOfRange = validGrowthPhoto("growth-photo-score", {
+    growth_score: 101,
+  });
+  await assertFails(set(ref(owner, `${basePath}/${outOfRange.id}`), outOfRange));
+
+  const mismatchedGoal = validGrowthPhoto("growth-photo-health", {
+    analysis_goal: "health_screening",
+  });
+  await assertFails(
+    set(ref(owner, `${basePath}/${mismatchedGoal.id}`), mismatchedGoal),
+  );
+
+  const oversizedSignals = validGrowthPhoto("growth-photo-signals", {
+    growth_signals: "x".repeat(1001),
+  });
+  await assertFails(
+    set(ref(owner, `${basePath}/${oversizedSignals.id}`), oversizedSignals),
+  );
+
+  const unknownField = validGrowthPhoto("growth-photo-secret");
+  unknownField.api_key = "must-not-be-accepted";
+  await assertFails(
+    set(ref(owner, `${basePath}/${unknownField.id}`), unknownField),
+  );
+
+  await assertSucceeds(set(ref(owner, `${basePath}/${validId}`), null));
 });
 
 test("backend delivery state remains read-only to the Android owner", async () => {

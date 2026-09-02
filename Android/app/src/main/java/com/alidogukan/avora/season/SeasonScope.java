@@ -2,10 +2,14 @@ package com.alidogukan.avora.season;
 
 import com.alidogukan.avora.models.SeasonStatus;
 import com.alidogukan.avora.models.GardenSeason;
+import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.ZoneSeasonState;
+import com.alidogukan.avora.zones.ZoneCapacityPolicy;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /** Pure season rules shared by screens, repositories and tests. */
@@ -36,6 +40,26 @@ public final class SeasonScope {
 
     public static boolean canClose(ZoneSeasonState current, boolean wateringActive) {
         return current != null && current.isActive() && !wateringActive;
+    }
+
+    /**
+     * Plant work belongs to a season, not merely to a configured hardware zone.
+     * Pre-season zones remain available to Zone and Season Management screens.
+     */
+    public static boolean hasActiveSeason(GardenZone zone) {
+        return ZoneCapacityPolicy.isActive(zone)
+                && zone.getSeason() != null
+                && zone.getSeason().isActive();
+    }
+
+    /** Returns only operational zones whose current season is active. */
+    public static List<GardenZone> activeSeasonZones(List<GardenZone> zones) {
+        List<GardenZone> result = new ArrayList<>();
+        if (zones == null) return result;
+        for (GardenZone zone : zones) {
+            if (hasActiveSeason(zone)) result.add(zone);
+        }
+        return result;
     }
 
 

@@ -25,6 +25,7 @@ import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.SeasonOutcome;
 import com.alidogukan.avora.models.ZoneSeasonState;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.viewmodels.SeasonManagementViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -789,8 +790,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
 
     private String archiveZoneLabel(GardenZone zone, GardenSeason season) {
         if (season == null) return zoneLabel(zone);
-        String emoji = blank(season.getEmoji()) ? safe(zone.getEmoji()).trim() : season.getEmoji().trim();
-        String name = blank(season.getZone_name()) ? safe(zone.getName()) : season.getZone_name().trim();
+        String emoji = SeasonDisplayIdentity.emoji(season, zone);
+        String name = SeasonDisplayIdentity.name(season, zone);
         return (emoji.isEmpty() ? "" : emoji + " ") + name;
     }
 

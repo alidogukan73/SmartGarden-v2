@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp"
-            android:paddingBottom="94dp">
+            android:paddingBottom="150dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
@@ -195,19 +195,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRecordDelete"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="18dp"
-                android:text="@string/record_delete_action"
-                android:textColor="@color/error"
-                app:backgroundTint="@color/card"
-                app:cornerRadius="10dp"
-                app:strokeColor="@color/error"
-                app:strokeWidth="1dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRecordDelete"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="70dp"
+        android:text="@string/record_delete_action"
+        android:textColor="@color/error"
+        android:visibility="gone"
+        app:backgroundTint="@color/card"
+        app:cornerRadius="10dp"
+        app:strokeColor="@color/error"
+        app:strokeWidth="1dp" />
     <include
         layout="@layout/include_primary_navigation" />
 </FrameLayout>

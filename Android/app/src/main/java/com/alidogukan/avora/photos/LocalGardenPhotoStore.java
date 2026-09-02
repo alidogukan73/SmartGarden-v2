@@ -73,11 +73,7 @@ public class LocalGardenPhotoStore {
             throw new IllegalStateException("Photo folder could not be created");
         }
         File target = new File(folder, id + ".jpg");
-        try (FileOutputStream output = new FileOutputStream(target)) {
-            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
-                throw new IllegalStateException("Photo could not be written");
-            }
-        }
+        writeOptimizedBitmap(bitmap, target);
         GardenPhoto photo = new GardenPhoto();
         photo.setId(id);
         photo.setZone_id(zoneId);
@@ -125,6 +121,15 @@ public class LocalGardenPhotoStore {
                 photo.setAnalysis_meta(item.optString("analysis_meta"));
                 photo.setAnalysis_context(item.optString("analysis_context"));
                 photo.setAnalysis_advice(item.optString("analysis_advice"));
+                photo.setAnalysis_goal(item.optString("analysis_goal"));
+                photo.setAnalysis_confidence(item.optInt("analysis_confidence"));
+                photo.setGrowth_score(item.optInt("growth_score", -1));
+                photo.setGrowth_stage(item.optString("growth_stage"));
+                photo.setGrowth_trend(item.optString("growth_trend"));
+                photo.setGrowth_score_delta(item.optInt("growth_score_delta"));
+                photo.setGrowth_signals(item.optString("growth_signals"));
+                photo.setGrowth_previous_captured_at_epoch(
+                        item.optLong("growth_previous_captured_at_epoch"));
                 photo.setCaptured_at_epoch(item.optLong("captured_at_epoch"));
                 photos.add(photo);
                 validIndex.put(item);
@@ -139,7 +144,12 @@ public class LocalGardenPhotoStore {
 
     /** Attaches the final AI assessment to its already archived photo. */
     public GardenPhoto updateAnalysis(String photoId, String title, String meta,
-                               String contextText, String advice) {
+                                      String contextText, String advice,
+                                      String analysisGoal, int confidence,
+                                      int growthScore, String growthStage,
+                                      String growthTrend, int growthScoreDelta,
+                                      String growthSignals,
+                                      long previousCapturedAtEpoch) {
         if (photoId == null || photoId.isBlank()) return null;
         JSONArray index = readIndex();
         for (int i = 0; i < index.length(); i++) {
@@ -150,6 +160,15 @@ public class LocalGardenPhotoStore {
                 item.put("analysis_meta", safe(meta));
                 item.put("analysis_context", safe(contextText));
                 item.put("analysis_advice", safe(advice));
+                item.put("analysis_goal", safe(analysisGoal));
+                item.put("analysis_confidence", Math.max(0, Math.min(100, confidence)));
+                item.put("growth_score", growthScore);
+                item.put("growth_stage", safe(growthStage));
+                item.put("growth_trend", safe(growthTrend));
+                item.put("growth_score_delta", growthScoreDelta);
+                item.put("growth_signals", safe(growthSignals));
+                item.put("growth_previous_captured_at_epoch",
+                        Math.max(0L, previousCapturedAtEpoch));
                 context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                         .putString(KEY_INDEX, index.toString()).apply();
                 for (GardenPhoto photo : load()) {
@@ -241,11 +260,9 @@ public class LocalGardenPhotoStore {
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
             throw new IllegalArgumentException("Selected file is not a readable image");
         }
-        int sample = 1;
-        int largestEdge = Math.max(bounds.outWidth, bounds.outHeight);
-        while (largestEdge / sample > 1600) sample *= 2;
         BitmapFactory.Options decode = new BitmapFactory.Options();
-        decode.inSampleSize = sample;
+        decode.inSampleSize = GardenPhotoQualityPolicy.decodeSampleSize(
+                bounds.outWidth, bounds.outHeight);
         decode.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap bitmap;
         try (InputStream input = context.getContentResolver().openInputStream(source)) {
@@ -253,12 +270,28 @@ public class LocalGardenPhotoStore {
             bitmap = BitmapFactory.decodeStream(input, null, decode);
         }
         if (bitmap == null) throw new IllegalStateException("Photo could not be decoded");
+        try {
+            writeOptimizedBitmap(bitmap, target);
+        } finally {
+            bitmap.recycle();
+        }
+    }
+
+    private void writeOptimizedBitmap(Bitmap source, File target) throws Exception {
+        int[] dimensions = GardenPhotoQualityPolicy.scaledDimensions(
+                source.getWidth(), source.getHeight());
+        Bitmap outputBitmap = source;
+        if (dimensions[0] != source.getWidth() || dimensions[1] != source.getHeight()) {
+            outputBitmap = Bitmap.createScaledBitmap(
+                    source, dimensions[0], dimensions[1], true);
+        }
         try (FileOutputStream output = new FileOutputStream(target)) {
-            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 88, output)) {
+            if (!outputBitmap.compress(Bitmap.CompressFormat.JPEG,
+                    GardenPhotoQualityPolicy.JPEG_QUALITY, output)) {
                 throw new IllegalStateException("Photo could not be written");
             }
         } finally {
-            bitmap.recycle();
+            if (outputBitmap != source) outputBitmap.recycle();
         }
     }
 }

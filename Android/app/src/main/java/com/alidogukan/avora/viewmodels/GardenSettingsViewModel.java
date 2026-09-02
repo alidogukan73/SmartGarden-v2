@@ -18,6 +18,7 @@ import com.alidogukan.avora.models.RainSettings;
 import com.alidogukan.avora.models.WeatherForecast;
 import com.alidogukan.avora.models.WeatherLocation;
 import com.alidogukan.avora.notifications.NotificationSettingsStore;
+import com.alidogukan.avora.notifications.NotificationPermissionPromptStore;
 import com.alidogukan.avora.notifications.NotificationSignalScheduler;
 import com.alidogukan.avora.settings.GardenProfileStore;
 import com.alidogukan.avora.settings.UnitPreferences;
@@ -33,8 +34,6 @@ import java.util.function.Consumer;
 
 /** Shared persistence boundary for garden identity, location and user preferences. */
 public final class GardenSettingsViewModel extends AndroidViewModel {
-    private static final String NOTIFICATION_PREFS = "avora_notification_settings";
-    private static final String PHONE_PERMISSION_REQUESTED = "phone_permission_requested";
     private static final String HUB_PREFS = "settings_hub_preferences";
     private static final String QUICK_ACTIONS = "quick_actions_order";
 
@@ -42,7 +41,7 @@ public final class GardenSettingsViewModel extends AndroidViewModel {
     private final GardenProfileStore profileStore;
     private final UnitPreferences unitPreferences;
     private final NotificationSettingsStore notificationSettings;
-    private final SharedPreferences notificationPreferences;
+    private final NotificationPermissionPromptStore notificationPermissionPrompts;
     private final SharedPreferences hubPreferences;
     private final LiveData<GardenProfile> cloudProfile = repository.observeGardenProfile();
     private final LiveData<WeatherLocation> weatherLocation = repository.observeWeatherLocation();
@@ -56,8 +55,7 @@ public final class GardenSettingsViewModel extends AndroidViewModel {
         profileStore = new GardenProfileStore(application);
         unitPreferences = new UnitPreferences(application);
         notificationSettings = new NotificationSettingsStore(application);
-        notificationPreferences = application.getSharedPreferences(
-                NOTIFICATION_PREFS, Context.MODE_PRIVATE);
+        notificationPermissionPrompts = new NotificationPermissionPromptStore(application);
         hubPreferences = application.getSharedPreferences(HUB_PREFS, Context.MODE_PRIVATE);
     }
 
@@ -159,10 +157,10 @@ public final class GardenSettingsViewModel extends AndroidViewModel {
     }
 
     public void markPhonePermissionRequested() {
-        notificationPreferences.edit().putBoolean(PHONE_PERMISSION_REQUESTED, true).apply();
+        notificationPermissionPrompts.markPrompted(System.currentTimeMillis());
     }
     public boolean wasPhonePermissionRequested() {
-        return notificationPreferences.getBoolean(PHONE_PERMISSION_REQUESTED, false);
+        return notificationPermissionPrompts.wasPrompted();
     }
 
     public List<String> loadQuickActionIds(List<String> defaults, List<String> allowed,

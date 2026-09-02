@@ -24,7 +24,7 @@
     <string name="plant_list_hero_title">Gelişimi kaydet, geleceği planla</string>
     <string name="plant_list_hero_detail">Bitkilerinize dokunarak gelişim fotoğraflarını, önemli olayları ve sezon geçmişini kayıt altına alın.</string>
     <string name="plant_list_journal_description">Gelişim günlüğü</string>
-    <string name="plant_list_empty">Henüz bitki bölgesi yok.</string>
+    <string name="plant_list_empty">Aktif sezonu olan bitki bölgesi yok. Önce Sezon Yönetimi’nden sezon başlatın.</string>
     <string name="plant_list_total">Toplam bitki</string>
     <string name="plant_list_healthy">Sağlıklı</string>
     <string name="plant_list_attention">Takip gerekli</string>

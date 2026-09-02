@@ -10,6 +10,7 @@ import com.alidogukan.avora.models.SeasonOutcome;
 import com.alidogukan.avora.models.SeasonStatus;
 import com.alidogukan.avora.models.ZoneSeasonState;
 import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.zones.ZoneOperationSafetyPolicy;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
@@ -209,7 +210,8 @@ public final class SeasonRepository {
                     .child("growth_stage"));
             boolean untouchedStage = growthStage.isBlank()
                     || "SOIL_PREPARATION".equalsIgnoreCase(growthStage);
-            if (hasFieldRecords || !untouchedStage || isIrrigationBusy(root)) {
+            if (hasFieldRecords || !untouchedStage
+                    || isZoneIrrigationBusy(root, zoneId)) {
                 return Tasks.forResult(false);
             }
 
@@ -566,7 +568,7 @@ public final class SeasonRepository {
                 || counts.eventCount > 0
                 || counts.photoCount > 0
                 || counts.analysisCount > 0;
-        boolean irrigationBusy = isIrrigationBusy(root);
+        boolean irrigationBusy = isZoneIrrigationBusy(root, zoneId);
         if (SeasonScope.canCancelNewSeason(
                 state,
                 growthStage,
@@ -610,6 +612,45 @@ public final class SeasonRepository {
             }
         }
         return false;
+    }
+
+    private static boolean isZoneIrrigationBusy(DataSnapshot root, String zoneId) {
+        DataSnapshot zone = root.child("zones").child(zoneId);
+        DataSnapshot irrigation = zone.child("irrigation_status");
+        boolean pending = hasPendingWateringForZone(root, zoneId);
+        boolean hardwareBusy = booleanValue(root.child("status").child("relay"))
+                || booleanValue(root.child("status").child("valve_open"))
+                || booleanValue(root.child("commands").child("relay"))
+                || booleanValue(root.child("irrigation_hardware").child("valve_open"));
+        String activeZoneId = firstNonBlank(
+                stringValue(root.child("status").child("active_zone_id")),
+                stringValue(root.child("irrigation_runtime").child("active_zone_id")));
+        String activeValveId = firstNonBlank(
+                stringValue(root.child("status").child("active_valve_id")),
+                stringValue(root.child("irrigation_hardware").child("active_valve_id")));
+        return ZoneOperationSafetyPolicy.isTargetBusy(
+                zoneId,
+                stringValue(zone.child("valve_id")),
+                booleanValue(irrigation.child("watering_active")),
+                booleanValue(irrigation.child("selected_for_watering")),
+                longValue(irrigation.child("queue_position")),
+                pending,
+                hardwareBusy,
+                activeZoneId,
+                activeValveId);
+    }
+
+    private static boolean hasPendingWateringForZone(DataSnapshot root, String zoneId) {
+        for (DataSnapshot pending : root.child("irrigation_runtime")
+                .child("pending_waterings").getChildren()) {
+            DataSnapshot record = pending.child("record");
+            if (zoneId.equals(stringValue(record.child("zone_id")))) return true;
+        }
+        return false;
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        return safe(first).isBlank() ? safe(second) : safe(first);
     }
 
     private static void restorePriorSeasonOrClose(

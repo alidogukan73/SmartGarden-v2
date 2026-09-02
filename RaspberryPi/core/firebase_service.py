@@ -256,7 +256,11 @@ class FirebaseService:
 
     def update_status(self) -> None:
         """
-        Update device status.
+        Update the device heartbeat without changing an active error.
+
+        ``last_error`` is owned by report_error()/clear_error(). Clearing it
+        from the periodic heartbeat briefly turns one continuing failure into
+        a recovery and lets clients create duplicate incidents.
         """
 
         self._device_ref().child(
@@ -267,9 +271,22 @@ class FirebaseService:
                 "version": AppConfig.VERSION,
                 "last_seen": datetime.now().isoformat(),
                 "last_seen_epoch": int(time.time()),
-                "last_error": "",
             },
         )
+
+    def has_active_error(self) -> bool:
+        """Return whether Firebase still contains an unresolved service error."""
+
+        try:
+            status = self._device_ref().child("status").get() or {}
+        except Exception as exc:
+            self._logger.warning(
+                "Active device error state could not be restored: %s",
+                exc,
+            )
+            return False
+
+        return bool(str(status.get("last_error", "")).strip())
 
     def set_online(
         self,

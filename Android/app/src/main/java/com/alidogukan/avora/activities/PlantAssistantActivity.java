@@ -17,12 +17,15 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
+import com.alidogukan.avora.photos.GardenPhotoCapture;
 import com.alidogukan.avora.plantassistant.PlantAssistantResult;
+import com.alidogukan.avora.plantassistant.PlantGrowthAssessment;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.PlantAssistantViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -31,6 +34,8 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +50,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private MaterialAutoCompleteTextView zoneDropdown;
     private MaterialCardView resultCard;
     private TextView title, meta, context, advice;
+    private TextView growthScore, growthStage, growthTrend, growthComparison, growthSignals;
     private TextView soilData, weatherTemperatureData, sunData, windData, humidityData;
     private ImageView photoPreview;
     private View photoHintLayout, otherNoteLayout;
@@ -57,14 +63,28 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private boolean selectedPhotoArchived;
     private String archivedPhotoId = "";
     private AnalysisSnapshot pendingAnalysis;
+    private boolean awaitingVisionResult;
+    private GardenPhotoCapture.Target pendingCameraPhoto;
+    private GardenPhotoCapture.Target capturedCameraPhoto;
 
-    private final ActivityResultLauncher<Void> camera =
-            registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
-                if (bitmap != null) showPhoto(bitmap);
+    private final ActivityResultLauncher<Uri> camera =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), saved -> {
+                GardenPhotoCapture.Target target = pendingCameraPhoto;
+                pendingCameraPhoto = null;
+                if (!saved || target == null) {
+                    if (target != null) target.delete();
+                    return;
+                }
+                discardCapturedCameraPhoto();
+                capturedCameraPhoto = target;
+                showPhoto(target.getUri());
             });
     private final ActivityResultLauncher<PickVisualMediaRequest> photoPicker =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-                if (uri != null) showPhoto(uri);
+                if (uri != null) {
+                    discardCapturedCameraPhoto();
+                    showPhoto(uri);
+                }
             });
     private final ActivityResultLauncher<Intent> journalPhotoPicker =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -72,6 +92,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 String path = result.getData().getStringExtra(GardenPhotoGalleryActivity.EXTRA_SELECTED_PHOTO_PATH);
                 String photoId = result.getData().getStringExtra(GardenPhotoGalleryActivity.EXTRA_SELECTED_PHOTO_ID);
                 if (path != null && !path.isBlank()) {
+                    discardCapturedCameraPhoto();
                     showPhoto(Uri.fromFile(new java.io.File(path)));
                     archivedPhotoId = photoId == null ? "" : photoId;
                     selectedPhotoArchived = !archivedPhotoId.isBlank();
@@ -92,6 +113,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
             currentWeather = weather;
             renderLiveData(selectedZone());
         });
+        viewModel.getPhotoMetadata().observe(this, ignored -> { });
     }
 
     private void bindViews() {
@@ -101,6 +123,11 @@ public class PlantAssistantActivity extends AppCompatActivity {
         meta = findViewById(R.id.txtDoctorMeta);
         context = findViewById(R.id.txtDoctorContext);
         advice = findViewById(R.id.txtDoctorAdvice);
+        growthScore = findViewById(R.id.txtDoctorGrowthScore);
+        growthStage = findViewById(R.id.txtDoctorGrowthStage);
+        growthTrend = findViewById(R.id.txtDoctorGrowthTrend);
+        growthComparison = findViewById(R.id.txtDoctorGrowthComparison);
+        growthSignals = findViewById(R.id.txtDoctorGrowthSignals);
         photoHintLayout = findViewById(R.id.layoutDoctorPhotoHint);
         photoPreview = findViewById(R.id.imgDoctorPhoto);
         generalNote = findViewById(R.id.inputDoctorNote);
@@ -125,6 +152,8 @@ public class PlantAssistantActivity extends AppCompatActivity {
         findViewById(R.id.btnDoctorBack).setOnClickListener(view -> finish());
         findViewById(R.id.cardDoctorPhotoPicker).setOnClickListener(view -> showPhotoSourceDialog());
         findViewById(R.id.btnAnalyzePlant).setOnClickListener(view -> analyze());
+        findViewById(R.id.btnPlantGrowthHistory).setOnClickListener(
+                view -> openGrowthHistory());
         other.setOnCheckedChangeListener((button, checked) -> {
             otherNoteLayout.setVisibility(checked ? View.VISIBLE : View.GONE);
             if (!checked) otherNote.setText("");
@@ -140,7 +169,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
                         getString(R.string.runtime_choose_journal)
                 }, (dialog, which) -> {
                     if (which == 0) {
-                        camera.launch(null);
+                        launchCamera();
                     } else if (which == 1) {
                         photoPicker.launch(new PickVisualMediaRequest.Builder()
                                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
@@ -153,17 +182,36 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void launchCamera() {
+        try {
+            pendingCameraPhoto = GardenPhotoCapture.create(this);
+            camera.launch(pendingCameraPhoto.getUri());
+        } catch (Exception error) {
+            if (pendingCameraPhoto != null) pendingCameraPhoto.delete();
+            pendingCameraPhoto = null;
+            toast(getString(R.string.runtime_photo_add_failed));
+        }
+    }
+
+    private void discardCapturedCameraPhoto() {
+        if (capturedCameraPhoto != null) capturedCameraPhoto.delete();
+        capturedCameraPhoto = null;
+    }
+
     private void renderZones(List<GardenZone> items) {
         zones.clear();
         List<String> labels = new ArrayList<>();
         GardenZone requested = null;
-        if (items != null) for (GardenZone zone : items) {
+        for (GardenZone zone : viewModel.activeZones(items)) {
             String label = labelFor(zone);
             labels.add(label);
             zones.put(label, zone);
             if (zone.getZone_id().equals(requestedZoneId)) requested = zone;
         }
         zoneDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, labels));
+        zoneDropdown.setHint(labels.isEmpty()
+                ? getString(R.string.runtime_no_active_season_zones)
+                : null);
         zoneDropdown.setOnItemClickListener((parent, view, position, id) -> {
             resultCard.setVisibility(View.GONE);
             renderLiveData(selectedZone());
@@ -171,7 +219,9 @@ public class PlantAssistantActivity extends AppCompatActivity {
         if (requested != null) {
             zoneDropdown.setText(labelFor(requested), false);
             renderLiveData(requested);
-        } else if (!labels.isEmpty() && selectedZone() == null) {
+        } else if (labels.isEmpty()) {
+            zoneDropdown.setText("", false);
+        } else if (selectedZone() == null) {
             zoneDropdown.setText(labels.get(0), false);
             renderLiveData(zones.get(labels.get(0)));
         }
@@ -182,7 +232,9 @@ public class PlantAssistantActivity extends AppCompatActivity {
         List<String> symptoms = selectedSymptoms();
         boolean growthStatusRequested = growthStatus.isChecked();
         if (zone == null) {
-            toast(getString(R.string.runtime_select_zone_first));
+            toast(getString(zones.isEmpty()
+                    ? R.string.runtime_no_active_season_zones
+                    : R.string.runtime_select_zone_first));
             return;
         }
         if (symptoms.isEmpty() && !growthStatusRequested) {
@@ -196,18 +248,21 @@ public class PlantAssistantActivity extends AppCompatActivity {
         String note = text(generalNote);
         PlantAssistantResult result = viewModel.assess(
                 zone, symptoms, note, currentWeather, hasPhoto(), growthStatusRequested);
-        renderHeuristicResult(result);
+        awaitingVisionResult = hasPhoto();
+        renderHeuristicResult(result, growthStatusRequested);
         if (hasPhoto()) requestVisionAnalysis(zone, symptoms, note, growthStatusRequested);
         savePhotoToArchive(zone, symptoms, note, growthStatusRequested);
     }
 
-    private void renderHeuristicResult(PlantAssistantResult result) {
+    private void renderHeuristicResult(PlantAssistantResult result,
+                                       boolean growthStatusRequested) {
         title.setText(result.getTitle());
         meta.setText(getString(R.string.runtime_probability_urgency,
                 result.getProbability(), result.getUrgency()));
         context.setText(getString(R.string.runtime_evaluated_context,
                 result.getContext()));
         advice.setText(result.getAdvice());
+        findViewById(R.id.layoutDoctorGrowthSummary).setVisibility(View.GONE);
         GardenZone zone = selectedZone();
         viewModel.saveRecommendation(
                 zone == null ? "" : zone.getZone_id(),
@@ -221,7 +276,9 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 getString(R.string.runtime_probability_urgency,
                         result.getProbability(), result.getUrgency()),
                 result.getContext(),
-                result.getAdvice()
+                result.getAdvice(),
+                growthStatusRequested ? "growth_status" : "health_screening",
+                0, null
         );
     }
 
@@ -236,6 +293,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
     }
 
     private void renderVisionFailure(Throwable error) {
+        awaitingVisionResult = false;
         String detail = error.getMessage();
         if (detail == null || detail.isBlank()) detail = error.getClass().getSimpleName();
         Log.e(LOG_TAG, "Plant vision analysis failed: " + detail, error);
@@ -243,9 +301,11 @@ public class PlantAssistantActivity extends AppCompatActivity {
         meta.setText("");
         advice.setText(R.string.runtime_visual_ai_retry);
         resultCard.setVisibility(View.VISIBLE);
+        applyPendingAnalysis();
     }
 
     private void renderVisionResult(JSONObject visual, boolean growthStatusRequested) {
+        awaitingVisionResult = false;
         if (!visual.optBoolean("is_plant_photo", true)) {
             title.setText(R.string.runtime_photo_quality_title);
             meta.setText(getString(R.string.runtime_visual_confidence_urgency,
@@ -253,8 +313,10 @@ public class PlantAssistantActivity extends AppCompatActivity {
             context.setText(R.string.runtime_photo_quality_detail);
             advice.setText(R.string.runtime_photo_quality_advice);
             resultCard.setVisibility(View.VISIBLE);
+            findViewById(R.id.layoutDoctorGrowthSummary).setVisibility(View.GONE);
             archiveAnalysis(String.valueOf(title.getText()), String.valueOf(meta.getText()),
-                    String.valueOf(context.getText()), String.valueOf(advice.getText()));
+                    String.valueOf(context.getText()), String.valueOf(advice.getText()),
+                    "", visual.optInt("confidence", 0), null);
             return;
         }
         String findings = visual.optString("visual_findings", getString(R.string.runtime_no_visual_findings));
@@ -301,9 +363,28 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 "disclaimer",
                 getString(R.string.runtime_not_diagnosis)));
         advice.setText(String.join("\n\n", adviceSections));
+        int confidence = visual.optInt("confidence", 0);
+        PlantGrowthAssessment growth = null;
+        if (growthStatusRequested) {
+            int score = visual.optInt("growth_score", -1);
+            if (score >= 0 && score <= 100) {
+                GardenZone zone = selectedZone();
+                growth = viewModel.evaluateGrowth(
+                        zone == null ? "" : zone.getZone_id(), archivedPhotoId,
+                        score, confidence, visual.optString("growth_stage"),
+                        viewModel.list(visual.optJSONArray("growth_signals")));
+                renderGrowthSummary(growth);
+            } else {
+                findViewById(R.id.layoutDoctorGrowthSummary).setVisibility(View.GONE);
+            }
+        } else {
+            findViewById(R.id.layoutDoctorGrowthSummary).setVisibility(View.GONE);
+        }
         resultCard.setVisibility(View.VISIBLE);
         archiveAnalysis(String.valueOf(title.getText()), String.valueOf(meta.getText()),
-                String.valueOf(context.getText()), String.valueOf(advice.getText()));
+                String.valueOf(context.getText()), String.valueOf(advice.getText()),
+                growthStatusRequested ? "growth_status" : "health_screening",
+                confidence, growth);
     }
 
     private List<String> selectedSymptoms() {
@@ -359,32 +440,104 @@ public class PlantAssistantActivity extends AppCompatActivity {
     }
 
     private void archiveAnalysis(String analysisTitle, String analysisMeta,
-                                 String analysisContext, String analysisAdvice) {
+                                 String analysisContext, String analysisAdvice,
+                                 String analysisGoal, int confidence,
+                                 PlantGrowthAssessment growth) {
         if (!hasPhoto()) return;
         GardenZone zone = selectedZone();
-        pendingAnalysis = new AnalysisSnapshot(analysisTitle, analysisMeta, analysisContext, analysisAdvice,
-                zone == null ? "" : zone.getZone_id());
+        pendingAnalysis = new AnalysisSnapshot(analysisTitle, analysisMeta, analysisContext,
+                analysisAdvice, zone == null ? "" : zone.getZone_id(), analysisGoal,
+                confidence, growth);
         applyPendingAnalysis();
     }
 
     private void applyPendingAnalysis() {
-        if (pendingAnalysis == null || archivedPhotoId.isBlank()) return;
+        if (awaitingVisionResult || pendingAnalysis == null || archivedPhotoId.isBlank()) return;
         AnalysisSnapshot snapshot = pendingAnalysis;
         pendingAnalysis = null;
         viewModel.finalizeAnalysisAsync(archivedPhotoId, snapshot.zoneId, snapshot.title,
-                snapshot.meta, snapshot.context, snapshot.advice);
+                snapshot.meta, snapshot.context, snapshot.advice, snapshot.analysisGoal,
+                snapshot.confidence, snapshot.growth,
+                error -> runOnUiThread(() -> {
+                    Log.w(LOG_TAG, "Plant analysis metadata sync failed", error);
+                    toast(getString(R.string.runtime_photo_metadata_sync_failed));
+                }));
     }
 
     private static final class AnalysisSnapshot {
-        final String title, meta, context, advice, zoneId;
+        final String title, meta, context, advice, zoneId, analysisGoal;
+        final int confidence;
+        final PlantGrowthAssessment growth;
 
-        AnalysisSnapshot(String title, String meta, String context, String advice, String zoneId) {
+        AnalysisSnapshot(String title, String meta, String context, String advice,
+                         String zoneId, String analysisGoal, int confidence,
+                         PlantGrowthAssessment growth) {
             this.title = title;
             this.meta = meta;
             this.context = context;
             this.advice = advice;
             this.zoneId = zoneId;
+            this.analysisGoal = analysisGoal;
+            this.confidence = confidence;
+            this.growth = growth;
         }
+    }
+
+    private void openGrowthHistory() {
+        GardenZone zone = selectedZone();
+        if (zone == null) {
+            toast(getString(zones.isEmpty()
+                    ? R.string.runtime_no_active_season_zones
+                    : R.string.runtime_select_zone_first));
+            return;
+        }
+        Intent intent = new Intent(this, PlantGrowthTrackingActivity.class);
+        intent.putExtra(PlantGrowthTrackingActivity.EXTRA_ZONE_ID, zone.getZone_id());
+        intent.putExtra(PlantGrowthTrackingActivity.EXTRA_ZONE_LABEL, labelFor(zone));
+        startActivity(intent);
+    }
+
+    private void renderGrowthSummary(PlantGrowthAssessment growth) {
+        findViewById(R.id.layoutDoctorGrowthSummary).setVisibility(View.VISIBLE);
+        growthScore.setText(getString(R.string.runtime_growth_score_format, growth.getScore()));
+        growthStage.setText(getString(R.string.runtime_growth_stage_format,
+                growth.getStage().isEmpty()
+                        ? getString(R.string.runtime_not_available_short) : growth.getStage()));
+        growthTrend.setText(growthTrendLabel(growth.getTrend()));
+        int trendColor = growth.isImproving()
+                ? R.color.success
+                : growth.isDeclining()
+                ? R.color.error
+                : growth.isStable()
+                ? R.color.info : R.color.textSecondary;
+        growthTrend.setTextColor(ContextCompat.getColor(this, trendColor));
+        growthComparison.setText(growth.isFirstRecord()
+                ? getString(R.string.runtime_growth_first_record_detail)
+                : getResources().getQuantityString(R.plurals.runtime_growth_delta_format,
+                Math.abs(growth.getScoreDelta()), growth.getScoreDelta(),
+                formatGrowthDate(growth.getPreviousCapturedAtEpoch())));
+        growthSignals.setText(growth.getSignals().isEmpty()
+                ? getString(R.string.runtime_growth_no_signals)
+                : getString(R.string.runtime_growth_signals_format, growth.getSignals()));
+    }
+
+    private String growthTrendLabel(String trend) {
+        if (PlantGrowthAssessment.isImproving(trend)) {
+            return getString(R.string.runtime_growth_trend_improving);
+        }
+        if (PlantGrowthAssessment.isDeclining(trend)) {
+            return getString(R.string.runtime_growth_trend_declining);
+        }
+        if (PlantGrowthAssessment.isStable(trend)) {
+            return getString(R.string.runtime_growth_trend_stable);
+        }
+        return getString(R.string.runtime_growth_trend_first);
+    }
+
+    private String formatGrowthDate(long epoch) {
+        if (epoch <= 0L) return getString(R.string.runtime_unknown_date);
+        return DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                .format(new Date(epoch * 1000L));
     }
 
     private GardenZone selectedZone() { return zones.get(String.valueOf(zoneDropdown.getText())); }
@@ -404,6 +557,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         selectedPhotoArchived = false;
         archivedPhotoId = "";
         pendingAnalysis = null;
+        awaitingVisionResult = false;
         selectedPhotoUri = uri;
         selectedPhotoBitmap = null;
         photoPreview.setImageURI(uri);
@@ -415,6 +569,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         selectedPhotoArchived = false;
         archivedPhotoId = "";
         pendingAnalysis = null;
+        awaitingVisionResult = false;
         selectedPhotoBitmap = bitmap;
         selectedPhotoUri = null;
         photoPreview.setImageBitmap(bitmap);

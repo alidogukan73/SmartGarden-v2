@@ -206,6 +206,9 @@ class IrrigationService:
         self._restore_prediction_history()
         self._restore_ai_sensor_history()
 
+        # Preserve a continuing incident across service restarts. A healthy
+        # service cycle will clear it only after the normal stability window.
+        self._update_error_active = self._firebase.has_active_error()
         self._firebase.update_status()
 
         self._update_prediction_validation_status(
@@ -559,6 +562,25 @@ class IrrigationService:
                 for item in value
             ]
         return value
+
+    @staticmethod
+    def _zone_has_operational_season(zone: dict) -> bool:
+        """Accept modern zones only while their season is active.
+
+        Zones without season metadata are legacy installations and retain
+        their existing behaviour until the one-time migration completes.
+        """
+
+        if not isinstance(zone, dict):
+            return False
+        season = zone.get("season")
+        if not isinstance(season, dict):
+            return True
+        status = str(season.get("status", "")).strip().upper()
+        season_id = str(season.get("active_season_id", "")).strip()
+        if not status:
+            return True
+        return status == "ACTIVE" and bool(season_id)
 
     @staticmethod
     def _active_zone_season_id(zone: dict) -> str:
@@ -2027,9 +2049,16 @@ class IrrigationService:
         Evaluate every connected zone and publish queue state.
         """
 
-        configs = (
+        hardware_configs = (
             self._firebase.get_all_zone_configs_by_sensor()
         )
+        # Hardware configuration and telemetry stay active before planting,
+        # but irrigation and AI decisions begin only with an active season.
+        configs = {
+            sensor_id: zone
+            for sensor_id, zone in hardware_configs.items()
+            if self._zone_has_operational_season(zone)
+        }
         results = []
         self._weather_adjustments_by_zone = {}
         self._irrigation_time_plans_by_zone = {}

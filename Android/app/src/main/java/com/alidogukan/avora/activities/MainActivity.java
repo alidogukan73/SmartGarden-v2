@@ -1,12 +1,16 @@
 package com.alidogukan.avora.activities;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.content.Intent;
+import android.provider.Settings;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +20,8 @@ import android.view.ViewStub;
 import android.os.SystemClock;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -54,6 +60,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
+    private boolean notificationPermissionChecked;
     private boolean authorizationErrorShown;
     private long connectionStartedElapsedMillis;
     private MaterialCardView cardOnlineStatus;
@@ -109,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final long CONNECTION_SETTLE_MILLIS = 15_000L;
     private static final long ONLINE_CHECK_INTERVAL_MILLIS = 5_000L;
+
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    granted -> {
+                        // Android exposes the result through the permission state.
+                    }
+            );
 
     private enum ConnectionState {
         CONNECTING,
@@ -204,6 +219,61 @@ public class MainActivity extends AppCompatActivity {
         observeViewModel();
         initializeButtons();
         viewModel.initializeNotificationSync();
+        requestNotificationPermissionAtStartupIfNeeded();
+    }
+
+    private void requestNotificationPermissionAtStartupIfNeeded() {
+        if (notificationPermissionChecked
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+        notificationPermissionChecked = true;
+
+        boolean granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED;
+        long nowMillis = System.currentTimeMillis();
+        if (!viewModel.shouldPromptForNotificationPermission(granted, nowMillis)) return;
+
+        boolean promptedBefore = viewModel.wasNotificationPermissionPrompted();
+        viewModel.markNotificationPermissionPrompted(nowMillis);
+        getWindow().getDecorView().post(() -> {
+            if (!promptedBefore) {
+                notificationPermissionLauncher.launch(
+                        Manifest.permission.POST_NOTIFICATIONS);
+            } else if (shouldShowRequestPermissionRationale(
+                    Manifest.permission.POST_NOTIFICATIONS)) {
+                showNotificationPermissionExplanation();
+            } else {
+                showNotificationPermissionSettingsGuidance();
+            }
+        });
+    }
+
+    private void showNotificationPermissionExplanation() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.notification_startup_permission_title)
+                .setMessage(R.string.notification_startup_permission_message)
+                .setNegativeButton(R.string.notification_permission_later, null)
+                .setPositiveButton(R.string.notification_allow, (dialog, which) ->
+                        notificationPermissionLauncher.launch(
+                                Manifest.permission.POST_NOTIFICATIONS))
+                .show();
+    }
+
+    private void showNotificationPermissionSettingsGuidance() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.notification_startup_permission_title)
+                .setMessage(R.string.notification_startup_settings_message)
+                .setNegativeButton(R.string.notification_permission_later, null)
+                .setPositiveButton(R.string.notification_system_settings, (dialog, which) ->
+                        openNotificationSettings())
+                .show();
+    }
+
+    private void openNotificationSettings() {
+        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+        startActivity(intent);
     }
 
     @Override

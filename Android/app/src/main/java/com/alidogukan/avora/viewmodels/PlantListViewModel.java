@@ -10,7 +10,7 @@ import androidx.lifecycle.LiveData;
 
 import com.alidogukan.avora.firebase.FirebaseRepository;
 import com.alidogukan.avora.models.GardenZone;
-import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.season.SeasonScope;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public final class PlantListViewModel extends AndroidViewModel {
 
     public LiveData<List<GardenZone>> getZones() { return zones; }
     public List<GardenZone> activeZones(List<GardenZone> values) {
-        return ZoneCapacityPolicy.activeZones(values);
+        return SeasonScope.activeSeasonZones(values);
     }
     public int getSortMode(int fallback) { return preferences.getInt(SORT_MODE, fallback); }
     public void setSortMode(int value) { preferences.edit().putInt(SORT_MODE, value).apply(); }

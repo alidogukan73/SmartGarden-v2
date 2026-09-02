@@ -12,6 +12,14 @@ public class GardenPhoto {
     private String analysis_meta;
     private String analysis_context;
     private String analysis_advice;
+    private String analysis_goal;
+    private int analysis_confidence;
+    private int growth_score = -1;
+    private String growth_stage;
+    private String growth_trend;
+    private int growth_score_delta;
+    private String growth_signals;
+    private long growth_previous_captured_at_epoch;
     private long captured_at_epoch;
 
     public GardenPhoto() { }
@@ -42,6 +50,26 @@ public class GardenPhoto {
     public void setAnalysis_context(String value) { analysis_context = value; }
     public String getAnalysis_advice() { return analysis_advice; }
     public void setAnalysis_advice(String value) { analysis_advice = value; }
+    public String getAnalysis_goal() { return analysis_goal; }
+    public void setAnalysis_goal(String value) { analysis_goal = value; }
+    public int getAnalysis_confidence() { return analysis_confidence; }
+    public void setAnalysis_confidence(int value) { analysis_confidence = value; }
+    public int getGrowth_score() { return growth_score; }
+    public void setGrowth_score(int value) { growth_score = value; }
+    public String getGrowth_stage() { return growth_stage; }
+    public void setGrowth_stage(String value) { growth_stage = value; }
+    public String getGrowth_trend() { return growth_trend; }
+    public void setGrowth_trend(String value) { growth_trend = value; }
+    public int getGrowth_score_delta() { return growth_score_delta; }
+    public void setGrowth_score_delta(int value) { growth_score_delta = value; }
+    public String getGrowth_signals() { return growth_signals; }
+    public void setGrowth_signals(String value) { growth_signals = value; }
+    public long getGrowth_previous_captured_at_epoch() {
+        return growth_previous_captured_at_epoch;
+    }
+    public void setGrowth_previous_captured_at_epoch(long value) {
+        growth_previous_captured_at_epoch = value;
+    }
     public long getCaptured_at_epoch() { return captured_at_epoch; }
     public void setCaptured_at_epoch(long value) { captured_at_epoch = value; }
 }

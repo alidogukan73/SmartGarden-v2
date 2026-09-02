@@ -225,6 +225,30 @@ def main() -> None:
     assert ("soil-002", "zone-002") in service._firebase.history_requests
     assert all(zone_id for _, zone_id in service._firebase.history_requests)
 
+    # A newly configured hardware zone remains available for telemetry, but
+    # must not enter irrigation/AI decisions until its season is started.
+    pre_season = service._firebase._zone(
+        "zone-003",
+        "valve-003",
+        3,
+    )
+    pre_season["season"] = {
+        "status": "CLOSED",
+        "active_season_id": "",
+    }
+    service._firebase.configs["soil-003"] = pre_season
+    readings["soil-003"] = reading("soil-003", 18)
+
+    after_zone_creation = service._update_multi_zone_decisions(
+        readings=readings,
+        global_commands=commands,
+    )
+    assert after_zone_creation is not None
+    assert after_zone_creation.candidate.zone_id == "zone-002"
+    assert "zone-003" not in service._firebase.states
+    assert "zone-003" not in service._firebase.ai_states
+    assert ("soil-003", "zone-003") not in service._firebase.history_requests
+
     repeated = service._update_multi_zone_decisions(
         readings=readings,
         global_commands=commands,

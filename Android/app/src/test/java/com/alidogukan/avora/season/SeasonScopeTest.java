@@ -1,13 +1,18 @@
 package com.alidogukan.avora.season;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.alidogukan.avora.models.GardenSeason;
+import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.SeasonStatus;
 import com.alidogukan.avora.models.ZoneSeasonState;
 
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SeasonScopeTest {
 
@@ -84,6 +89,32 @@ public class SeasonScopeTest {
 
         waiting.setEnded_at_epoch(100L);
         assertFalse(SeasonScope.isSeasonNotStarted(waiting));
+    }
+
+    @Test
+    public void plantWorkRequiresAnActiveZoneSeason() {
+        GardenZone active = zone("zone-001", true, season("season-1", false, 100L, 0L));
+        GardenZone notStarted = zone("zone-002", true, null);
+        GardenZone blankSeasonId = zone("zone-003", true, season("", false, 100L, 0L));
+        GardenZone disabled = zone("zone-004", false, season("season-4", false, 100L, 0L));
+
+        assertTrue(SeasonScope.hasActiveSeason(active));
+        assertFalse(SeasonScope.hasActiveSeason(notStarted));
+        assertFalse(SeasonScope.hasActiveSeason(blankSeasonId));
+        assertFalse(SeasonScope.hasActiveSeason(disabled));
+    }
+
+    @Test
+    public void activeSeasonZonesExcludePreSeasonZonesAndPreserveOrder() {
+        GardenZone first = zone("zone-001", true, season("season-1", false, 100L, 0L));
+        GardenZone waiting = zone("zone-002", true, null);
+        GardenZone second = zone("zone-003", true, season("season-3", false, 300L, 0L));
+
+        List<GardenZone> result = SeasonScope.activeSeasonZones(
+                Arrays.asList(first, waiting, second));
+
+        assertEquals(Arrays.asList(first, second), result);
+        assertTrue(SeasonScope.activeSeasonZones(null).isEmpty());
     }
 
     @Test
@@ -173,6 +204,14 @@ public class SeasonScopeTest {
         value.setInclude_legacy_records(includesLegacy);
         value.setStarted_at_epoch(startedAt);
         value.setEnded_at_epoch(endedAt);
+        return value;
+    }
+
+    private static GardenZone zone(String id, boolean enabled, ZoneSeasonState season) {
+        GardenZone value = new GardenZone();
+        value.setZone_id(id);
+        value.setEnabled(enabled);
+        value.setSeason(season);
         return value;
     }
 }

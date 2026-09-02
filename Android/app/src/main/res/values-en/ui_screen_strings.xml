@@ -24,7 +24,7 @@
     <string name="plant_list_hero_title">Record growth, plan ahead</string>
     <string name="plant_list_hero_detail">Tap a plant to save growth photos, important events, and its season history.</string>
     <string name="plant_list_journal_description">Growth journal</string>
-    <string name="plant_list_empty">No plant zones yet.</string>
+    <string name="plant_list_empty">No plant zone has an active season. Start one in Season Management first.</string>
     <string name="plant_list_total">Total plants</string>
     <string name="plant_list_healthy">Healthy</string>
     <string name="plant_list_attention">Needs attention</string>

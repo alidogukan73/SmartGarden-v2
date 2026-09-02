@@ -375,7 +375,8 @@ public final class NotificationSignalCoordinator {
                     sensorFailure
                             ? context.getString(
                                     R.string.notification_sensor_unavailable_description)
-                            : error,
+                            : context.getString(
+                                    R.string.notification_device_warning_description),
                     stableSource
             );
 

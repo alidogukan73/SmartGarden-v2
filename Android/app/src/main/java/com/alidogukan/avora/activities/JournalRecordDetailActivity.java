@@ -1,7 +1,6 @@
 package com.alidogukan.avora.activities;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -23,6 +22,9 @@ import com.alidogukan.avora.R;
 import com.alidogukan.avora.models.FertilizerApplication;
 import com.alidogukan.avora.models.GardenPhoto;
 import com.alidogukan.avora.models.WateringHistory;
+import com.alidogukan.avora.photos.GardenPhotoCapture;
+import com.alidogukan.avora.photos.JournalPhotoRecordFilter;
+import com.alidogukan.avora.ui.GardenPhotoViewerDialog;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.PlantJournalViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -48,15 +50,26 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     private List<FertilizerApplication> fertilizers = new ArrayList<>();
     private List<WateringHistory> wateringRecords = new ArrayList<>();
     private List<GardenPhoto> relatedPhotos = new ArrayList<>();
+    private GardenPhotoCapture.Target pendingCameraPhoto;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> extraPhotoPicker =
             registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(5), uris -> {
                 if (uris == null || uris.isEmpty()) return;
-                saveExtraPhotos(uris, null);
+                saveExtraPhotos(uris);
             });
-    private final ActivityResultLauncher<Void> extraPhotoCamera =
-            registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
-                if (bitmap != null) saveExtraPhotos(null, bitmap);
+    private final ActivityResultLauncher<Uri> extraPhotoCamera =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), saved -> {
+                GardenPhotoCapture.Target target = pendingCameraPhoto;
+                pendingCameraPhoto = null;
+                if (!saved || target == null) {
+                    if (target != null) target.delete();
+                    return;
+                }
+                try {
+                    saveExtraPhotos(java.util.Collections.singletonList(target.getUri()));
+                } finally {
+                    target.delete();
+                }
             });
     @Override protected void onCreate(@Nullable Bundle state) {
         super.onCreate(state);
@@ -114,18 +127,12 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     }
 
     private void renderPhotosAndAnalysis() {
-        List<GardenPhoto> related = new ArrayList<>();
-        for (GardenPhoto photo : viewModel.loadPhotos()) {
-            if (!zoneId.equals(photo.getZone_id())) continue;
-            if (!photoGroupId.isBlank() && photoGroupId.equals(photo.getRelated_application_id())) {
-                related.add(photo);
-                continue;
-            }
-            if (!selectedPhotoPath.isBlank() && selectedPhotoPath.equals(photo.getLocal_path())) {
-                related.add(photo);
-                break;
-            }
-        }
+        List<GardenPhoto> related = JournalPhotoRecordFilter.select(
+                viewModel.loadPhotos(),
+                zoneId,
+                photoGroupId,
+                selectedPhotoPath
+        );
         relatedPhotos = related;
         photosLayout.removeAllViews();
         if (related.isEmpty()) {
@@ -136,7 +143,9 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
             photosLayout.setVisibility(View.VISIBLE);
             photosTitle.setText(getResources().getQuantityString(
                     R.plurals.runtime_record_photos_title, related.size(), related.size()));
-            for (GardenPhoto photo : related) addPhoto(photo);
+            for (int index = 0; index < related.size(); index++) {
+                addPhoto(related.get(index), index, related.size());
+            }
             if (!seasonReadOnly && related.size() < 5) addPhotoAddTile();
         }
         GardenPhoto analyzed = related.isEmpty() ? null : related.get(0);
@@ -154,10 +163,12 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
         findViewById(R.id.cardRecordFollowup).setVisibility(View.GONE);
     }
 
-    private void addPhoto(GardenPhoto photo) {
+    private void addPhoto(GardenPhoto photo, int position, int total) {
         ImageView image = new ImageView(this);
         image.setScaleType(ImageView.ScaleType.CENTER_CROP);
         image.setImageURI(Uri.fromFile(new File(photo.getLocal_path())));
+        image.setContentDescription(getString(
+                R.string.runtime_open_photo_description, position + 1, total));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(108), dp(108));
         params.setMarginEnd(dp(8));
         image.setLayoutParams(params);
@@ -185,21 +196,30 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
                         getString(R.string.runtime_take_photo),
                         getString(R.string.runtime_choose_gallery)
                 }, (dialog, which) -> {
-                    if (which == 0) extraPhotoCamera.launch(null);
+                    if (which == 0) launchExtraPhotoCamera();
                     else extraPhotoPicker.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
                 }).show();
     }
 
-    private void saveExtraPhotos(List<Uri> uris, Bitmap bitmap) {
+    private void launchExtraPhotoCamera() {
+        try {
+            pendingCameraPhoto = GardenPhotoCapture.create(this);
+            extraPhotoCamera.launch(pendingCameraPhoto.getUri());
+        } catch (Exception error) {
+            if (pendingCameraPhoto != null) pendingCameraPhoto.delete();
+            pendingCameraPhoto = null;
+            Toast.makeText(this, R.string.runtime_photo_add_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveExtraPhotos(List<Uri> uris) {
         if (selectedPhotoRecord == null) return;
         int remaining = 5 - relatedPhotos.size();
         if (remaining <= 0) return;
         try {
             photoGroupId = viewModel.ensureJournalPhotoGroup(
                     selectedPhotoRecord, photoGroupId);
-            if (bitmap != null) viewModel.addPhoto(
-                    bitmap, zoneId, currentDetail, photoGroupId, seasonId);
-            else if (uris != null) {
+            if (uris != null) {
                 for (int i = 0; i < Math.min(remaining, uris.size()); i++) {
                     viewModel.addPhoto(uris.get(i), zoneId, currentDetail,
                             photoGroupId, seasonId);
@@ -213,10 +233,13 @@ public class JournalRecordDetailActivity extends AppCompatActivity {
     }
 
     private void showPhoto(GardenPhoto photo) {
-        ImageView full = new ImageView(this);
-        full.setAdjustViewBounds(true);
-        full.setImageURI(Uri.fromFile(new File(photo.getLocal_path())));
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.runtime_growth_photo).setView(full).setPositiveButton(R.string.runtime_close, null).show();
+        GardenPhotoViewerDialog.show(this, relatedPhotos, photo.getId());
+    }
+
+    @Override protected void onDestroy() {
+        if (isFinishing() && pendingCameraPhoto != null) pendingCameraPhoto.delete();
+        pendingCameraPhoto = null;
+        super.onDestroy();
     }
 
     private void renderLinks() {

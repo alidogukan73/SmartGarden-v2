@@ -131,7 +131,12 @@ class PlantVisionService:
             "is_plant_photo (boolean), title (Turkish short string), confidence (integer 0-100), "
             "urgency (Düşük|Orta|Yüksek), visual_findings (Turkish string), "
             "possible_causes (array of at most 3 Turkish strings), next_steps (array of at most 4 Turkish strings), "
-            "red_flags (array of Turkish strings), disclaimer (Turkish string). "
+            "red_flags (array of Turkish strings), disclaimer (Turkish string), "
+            "growth_score (integer 0-100 only for growth_status, otherwise -1), "
+            "growth_stage (Turkish short string only for growth_status, otherwise empty), "
+            "growth_signals (array of at most 4 Turkish strings only for growth_status). "
+            "The growth_score is a cautious visible-vigor indicator from this photo, not "
+            "an exact plant age or measured growth rate. "
             "Do not claim a disease with certainty. Garden context: " + safe_context
         )
 
@@ -178,6 +183,18 @@ class PlantVisionService:
         urgency = value.get("urgency", "Düşük")
         if urgency not in {"Düşük", "Orta", "Yüksek"}:
             urgency = "Düşük"
+        growth_score = value.get("growth_score", -1)
+        try:
+            growth_score = int(growth_score)
+            if growth_score < 0 or growth_score > 100:
+                growth_score = -1
+        except (TypeError, ValueError):
+            growth_score = -1
+        if not bool(value.get("is_plant_photo", False)):
+            growth_score = -1
+        growth_signals = value.get("growth_signals", [])
+        if not isinstance(growth_signals, list):
+            growth_signals = []
         return {
             "is_plant_photo": bool(value.get("is_plant_photo", False)),
             "title": str(value.get("title", "Görsel ön değerlendirme"))[:120],
@@ -188,6 +205,9 @@ class PlantVisionService:
             "next_steps": [str(x)[:220] for x in value.get("next_steps", [])[:4]],
             "red_flags": [str(x)[:220] for x in value.get("red_flags", [])[:3]],
             "disclaimer": str(value.get("disclaimer", "Bu sonuç kesin teşhis değildir."))[:300],
+            "growth_score": growth_score,
+            "growth_stage": str(value.get("growth_stage", ""))[:120],
+            "growth_signals": [str(x)[:220] for x in growth_signals[:4]],
         }
     @staticmethod
     def _unsafe_organic_advice(value: str) -> bool:
