@@ -10,8 +10,10 @@ import androidx.lifecycle.LiveData;
 import com.alidogukan.avora.fertilization.FertilizationRepository;
 import com.alidogukan.avora.fertilization.FertilizerOutcomeFollowUpPolicy;
 import com.alidogukan.avora.models.FertilizerApplication;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.notifications.GardenNotificationManager;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.google.android.gms.tasks.Task;
 
 import java.util.List;
@@ -27,6 +29,8 @@ public final class FertilizerHistoryViewModel extends AndroidViewModel {
     private final FertilizationRepository repository = new FertilizationRepository();
     private final LiveData<List<FertilizerApplication>> history = repository.observeHistory();
     private final LiveData<List<GardenZone>> zones = repository.observeZones();
+    private final LiveData<List<GardenSeason>> seasons =
+            new SeasonRepository().observeAllSeasons();
     private final GardenNotificationManager notifications;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -37,6 +41,7 @@ public final class FertilizerHistoryViewModel extends AndroidViewModel {
 
     public LiveData<List<FertilizerApplication>> getHistory() { return history; }
     public LiveData<List<GardenZone>> getZones() { return zones; }
+    public LiveData<List<GardenSeason>> getSeasons() { return seasons; }
 
     public Task<Void> update(FertilizerApplication application) {
         return repository.updateApplication(application);

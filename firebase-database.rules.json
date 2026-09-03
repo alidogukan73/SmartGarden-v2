@@ -14,6 +14,50 @@
             ".validate": false
           }
         },
+        "commands": {
+          "network_configuration": {
+            ".validate": "newData.hasChildren(['requested', 'request_id', 'interface', 'mode', 'ip_address', 'prefix_length', 'gateway', 'primary_dns', 'secondary_dns', 'requested_at', 'expires_at', 'source'])",
+            "requested": {
+              ".validate": "newData.isBoolean() && newData.val() == true"
+            },
+            "request_id": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)"
+            },
+            "interface": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 32 && newData.val() != 'lo' && newData.val().matches(/^[A-Za-z0-9_.:-]+$/)"
+            },
+            "mode": {
+              ".validate": "newData.isString() && (newData.val() == 'DHCP' || newData.val() == 'STATIC')"
+            },
+            "ip_address": {
+              ".validate": "newData.isString() && newData.val().length <= 15"
+            },
+            "prefix_length": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 30 && newData.val() % 1 == 0"
+            },
+            "gateway": {
+              ".validate": "newData.isString() && newData.val().length <= 15"
+            },
+            "primary_dns": {
+              ".validate": "newData.isString() && newData.val().length <= 15"
+            },
+            "secondary_dns": {
+              ".validate": "newData.isString() && newData.val().length <= 15"
+            },
+            "requested_at": {
+              ".validate": "newData.isNumber() && newData.val() >= now - 10000 && newData.val() <= now + 5000"
+            },
+            "expires_at": {
+              ".validate": "newData.isNumber() && newData.val() > now && newData.val() <= now + 300000"
+            },
+            "source": {
+              ".validate": "newData.isString() && newData.val() == 'android'"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
         "user_feedback": {
           ".indexOn": "created_at",
           ".validate": "newData.hasChildren()",

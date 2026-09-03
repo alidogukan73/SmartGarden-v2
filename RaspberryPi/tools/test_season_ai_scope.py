@@ -29,6 +29,18 @@ def main() -> None:
         {"season": {"status": "CLOSED", "active_season_id": "season-old"}}
     ) == ""
     assert IrrigationService._active_zone_season_id({}) == ""
+    assert IrrigationService._active_zone_season_scope_key(
+        {
+            "season": {
+                "status": "ACTIVE",
+                "active_season_id": "tomato-season",
+                "active_season_ids": {
+                    "pepper-season": True,
+                    "tomato-season": True,
+                },
+            }
+        }
+    ) == "pepper-season|tomato-season"
 
     service = IrrigationService.__new__(IrrigationService)
     service._zone_ai_pipelines = {"zone-001": object(), "zone-002": object()}

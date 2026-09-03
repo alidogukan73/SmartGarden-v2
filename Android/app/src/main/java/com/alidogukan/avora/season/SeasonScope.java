@@ -14,6 +14,12 @@ import java.util.Locale;
 
 /** Pure season rules shared by screens, repositories and tests. */
 public final class SeasonScope {
+    public enum AutoStartedRepairAction {
+        NONE,
+        DELETE_EMPTY,
+        CLOSE_WITH_ARCHIVE
+    }
+
     private SeasonScope() { }
 
     public static String createSeasonId(String zoneId, long startedAtEpoch) {
@@ -81,6 +87,29 @@ public final class SeasonScope {
                 && zoneCreatedAtEpoch > 0L;
     }
 
+    public static AutoStartedRepairAction autoStartedRepairAction(
+            boolean generatedLegacyManifest,
+            boolean hasFieldRecords,
+            boolean untouchedStage,
+            boolean irrigationBusy
+    ) {
+        if (!generatedLegacyManifest || hasFieldRecords || !untouchedStage || irrigationBusy) {
+            return AutoStartedRepairAction.NONE;
+        }
+        return AutoStartedRepairAction.DELETE_EMPTY;
+    }
+
+    public static boolean isCurrentActiveSeason(
+            GardenSeason season,
+            ZoneSeasonState current
+    ) {
+        return season != null
+                && current != null
+                && current.isActive()
+                && SeasonStatus.isActive(season.getStatus())
+                && current.isSeasonActive(season.getSeason_id());
+    }
+
     public static boolean isRealCompletedArchive(GardenSeason season) {
         if (season == null
                 || !SeasonStatus.isClosed(season.getStatus())
@@ -115,17 +144,12 @@ public final class SeasonScope {
             ZoneSeasonState current
     ) {
         if (isRealCompletedArchive(season)) return true;
-        return season != null
-                && current != null
-                && current.isActive()
-                && SeasonStatus.isActive(season.getStatus())
-                && !season.getSeason_id().isBlank()
-                && season.getSeason_id().equals(current.getActive_season_id());
+        return isCurrentActiveSeason(season, current);
     }
 
     /**
-     * A newly opened season may be cancelled only before any field work starts.
-     * Completed/legacy seasons and seasons that advanced beyond soil preparation
+     * A newly opened season may be deleted only before any field work starts.
+     * Completed and legacy seasons
      * are deliberately excluded from this reversible operation.
      */
     public static boolean canCancelNewSeason(
@@ -137,7 +161,6 @@ public final class SeasonScope {
         return current != null
                 && current.isActive()
                 && !current.isInclude_legacy_records()
-                && "SOIL_PREPARATION".equalsIgnoreCase(safe(growthStage).trim())
                 && !hasSeasonRecords
                 && !irrigationBusy;
     }

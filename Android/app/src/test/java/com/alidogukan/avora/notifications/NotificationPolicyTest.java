@@ -123,6 +123,42 @@ public class NotificationPolicyTest {
     }
 
     @Test
+    public void backendDeviceIncidentUsesOneSourceAcrossAllClients() {
+        assertEquals(
+                "device-error:incident:abc123",
+                NotificationPolicy.incidentSourceKey(
+                        "device_error", "device-error:incident:abc123", 42L));
+        assertEquals(
+                "device:health:started:42",
+                NotificationPolicy.incidentSourceKey(
+                        "device_health", "device:health", 42L));
+        assertEquals(
+                "device-error:system:legacy:started:42",
+                NotificationPolicy.incidentSourceKey(
+                        "device_error", "device-error:system:legacy", 42L));
+    }
+
+    @Test
+    public void wateringRequiresMatchingLiveValveAndFreshDeviceHeartbeat() {
+        long now = 10_000L;
+        assertTrue(NotificationPolicy.isConfirmedWateringState(
+                true, "valve-001", true, "valve-001",
+                9_990L, now, 90L));
+        assertFalse(NotificationPolicy.isConfirmedWateringState(
+                true, "valve-001", false, "valve-001",
+                9_990L, now, 90L));
+        assertFalse(NotificationPolicy.isConfirmedWateringState(
+                true, "valve-001", true, "valve-002",
+                9_990L, now, 90L));
+        assertFalse(NotificationPolicy.isConfirmedWateringState(
+                true, "valve-001", true, "valve-001",
+                9_800L, now, 90L));
+        assertTrue(NotificationPolicy.isConfirmedWateringState(
+                true, "valve-001", true, "valve-001",
+                10_005L, now, 90L));
+    }
+
+    @Test
     public void irrigationAiRequiresAnEnabledZoneAndFreshActionableDecision() {
         long now = 1_800_000L;
         String fresh = "1970-01-01T00:29:00Z";
@@ -135,6 +171,26 @@ public class NotificationPolicyTest {
                 true, false, true, fresh, now, 5L * 60L * 1000L));
         assertFalse(NotificationPolicy.shouldNotifyIrrigationAi(
                 true, true, true, stale, now, 5L * 60L * 1000L));
+    }
+
+    @Test
+    public void lowMoistureAlertRequiresActiveSeasonFreshSensorAndZonePreference() {
+        long now = 10_000L;
+        assertTrue(NotificationPolicy.shouldNotifyLowMoisture(
+                true, true, "season-1", true, true,
+                30, 40, 9_900L, now, 1_200L));
+        assertFalse(NotificationPolicy.shouldNotifyLowMoisture(
+                true, true, "season-1", true, false,
+                30, 40, 9_900L, now, 1_200L));
+        assertFalse(NotificationPolicy.shouldNotifyLowMoisture(
+                true, false, "season-1", true, true,
+                30, 40, 9_900L, now, 1_200L));
+        assertFalse(NotificationPolicy.shouldNotifyLowMoisture(
+                true, true, "season-1", true, true,
+                45, 40, 9_900L, now, 1_200L));
+        assertFalse(NotificationPolicy.shouldNotifyLowMoisture(
+                true, true, "season-1", true, true,
+                30, 40, 8_000L, now, 1_200L));
     }
 
     @Test

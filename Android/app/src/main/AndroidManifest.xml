@@ -23,6 +23,13 @@
         android:supportsRtl="true"
         tools:targetApi="tiramisu"
         android:theme="@style/Theme.AVORA">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_avora_notification_small" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/homeGardenPlanIcon" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -109,6 +116,9 @@
             android:exported="false" />
         <activity
             android:name=".activities.CropCatalogActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ZoneEditorActivity"
             android:exported="false" />
         <activity
             android:name=".activities.ZoneManagementActivity"

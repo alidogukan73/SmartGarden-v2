@@ -141,6 +141,8 @@ public final class SeasonRepository {
 
             updates.put(manifestPath + "season_id", seasonId);
             updates.put(manifestPath + "zone_id", zoneId);
+            updates.put(manifestPath + "area_id", ZoneAreaIdentity.effective(zone));
+            updates.put(manifestPath + "area_name", safe(zone.getArea_name()));
             updates.put(manifestPath + "zone_name", safe(zone.getName()));
             updates.put(manifestPath + "plant_type", safe(zone.getPlant_type()));
             updates.put(manifestPath + "emoji", safe(zone.getEmoji()));
@@ -167,9 +169,9 @@ public final class SeasonRepository {
 
     /**
      * Repairs the old compatibility behavior that could create an active legacy
-     * season immediately after a modern zone was added. Only a completely empty,
-     * automatically generated manifest is removed; user-started and recorded
-     * seasons are never eligible.
+     * season immediately after a modern zone was added. Empty generated seasons
+     * are removed; generated seasons that already own field records are closed
+     * and preserved as archives so they can no longer block zone removal.
      */
     public Task<Boolean> repairEmptyAutoStartedSeason(String zoneId) {
         if (safe(zoneId).isBlank()) return Tasks.forResult(false);
@@ -197,7 +199,6 @@ public final class SeasonRepository {
                     && SeasonStatus.isActive(stringValue(manifest.child("status")))
                     && booleanValue(manifest.child("includes_legacy_records"))
                     && !manifest.child("cancellation_snapshot").exists();
-            if (!generatedLegacyManifest) return Tasks.forResult(false);
 
             SeasonCounts counts = calculateCounts(root, zoneId, state, false);
             boolean hasFieldRecords = counts.wateringCount > 0
@@ -210,14 +211,22 @@ public final class SeasonRepository {
                     .child("growth_stage"));
             boolean untouchedStage = growthStage.isBlank()
                     || "SOIL_PREPARATION".equalsIgnoreCase(growthStage);
-            if (hasFieldRecords || !untouchedStage
-                    || isZoneIrrigationBusy(root, zoneId)) {
+            SeasonScope.AutoStartedRepairAction repairAction =
+                    SeasonScope.autoStartedRepairAction(
+                            generatedLegacyManifest,
+                            hasFieldRecords,
+                            untouchedStage,
+                            isZoneIrrigationBusy(root, zoneId)
+                    );
+            if (repairAction == SeasonScope.AutoStartedRepairAction.NONE) {
                 return Tasks.forResult(false);
             }
 
             long now = nowEpoch();
             String zonePath = "zones/" + zoneId + "/";
+            String manifestPath = "garden_journal/seasons/" + seasonId + "/";
             Map<String, Object> updates = new HashMap<>();
+            updates.put(zonePath + "season/active_season_ids", null);
             updates.put(zonePath + "season/active_season_id", "");
             updates.put(zonePath + "season/status", SeasonStatus.CLOSED);
             updates.put(zonePath + "season/label", "");
@@ -225,17 +234,47 @@ public final class SeasonRepository {
             updates.put(zonePath + "season/ended_at_epoch", 0L);
             updates.put(zonePath + "season/include_legacy_records", false);
             updates.put(zonePath + "season/updated_at_epoch", now);
+            updates.put(zonePath + "irrigation_enabled", false);
+            updates.put(zonePath + "fertilization/enabled", false);
+            updates.put(zonePath + "fertilization/reminder_enabled", false);
+            updates.put(zonePath + "fertilization/next_application_at_epoch", 0L);
+            updates.put(zonePath + "fertilization/updated_at_epoch", now);
             updates.put(zonePath + "ai/season_id", "");
             updates.put(zonePath + "ai/season_status", SeasonStatus.CLOSED);
             updates.put(zonePath + "ai/season_started_at_epoch", 0L);
             updates.put(zonePath + "ai/season_closed_at_epoch", 0L);
-            updates.put("garden_journal/seasons/" + seasonId, null);
+            updates.put(zonePath + "ai/updated_at_epoch", now);
+            putCancelledIrrigationState(updates, zonePath, now);
+
+            if (repairAction == SeasonScope.AutoStartedRepairAction.DELETE_EMPTY) {
+                updates.put("garden_journal/seasons/" + seasonId, null);
+            } else {
+                updates.put(manifestPath + "status", SeasonStatus.CLOSED);
+                updates.put(manifestPath + "ended_at_epoch", now);
+                updates.put(manifestPath + "watering_count", counts.wateringCount);
+                updates.put(manifestPath + "watering_seconds", counts.wateringSeconds);
+                updates.put(manifestPath + "fertilizer_application_count",
+                        counts.fertilizerCount);
+                updates.put(manifestPath + "journal_event_count", counts.eventCount);
+                updates.put(manifestPath + "manual_journal_event_count",
+                        counts.eventCount);
+                updates.put(manifestPath + "photo_count", counts.photoCount);
+                updates.put(manifestPath + "plant_assistant_analysis_count",
+                        counts.analysisCount);
+                updates.put(manifestPath + "notification_count",
+                        counts.notificationCount);
+                updates.put(manifestPath + "final_moisture",
+                        (int) longValue(zoneData.child("moisture")));
+                updates.put(manifestPath + "final_sensor_updated_at_epoch",
+                        longValue(zoneData.child("updated_at_epoch")));
+                updates.put(manifestPath + "updated_at_epoch", now);
+            }
 
             return deviceRef.updateChildren(updates).continueWithTask(writeTask -> {
                 if (writeTask.isSuccessful()) return Tasks.forResult(true);
                 Exception error = writeTask.getException();
                 return Tasks.forException(error == null
-                        ? new IllegalStateException("Boş sezon düzeltilemedi.")
+                        ? new IllegalStateException("Eski sezon kaydı düzeltilemedi.")
                         : error);
             });
         });
@@ -319,11 +358,15 @@ public final class SeasonRepository {
         }
 
         ZoneSeasonState current = zoneData.child("season").getValue(ZoneSeasonState.class);
-        if (!SeasonScope.canStart(current)) {
+        List<GardenSeason> activeSeasons = activeSeasonsForArea(root, persistedZone);
+        SharedIrrigationCompatibility.Result compatibility =
+                SharedIrrigationCompatibility.evaluate(activeSeasons, configuration);
+        if (!compatibility.isCompatible()) {
             return Tasks.forException(new IllegalStateException(
-                    "Bu bölgede açık bir sezon zaten var."
+                    "SHARED_IRRIGATION_INCOMPATIBLE"
             ));
         }
+        boolean firstActiveSeason = current == null || !current.isActive();
 
         long now = nowEpoch();
         String seasonId = SeasonScope.createSeasonId(zoneId, now);
@@ -333,11 +376,11 @@ public final class SeasonRepository {
         String manifestPath = "garden_journal/seasons/" + seasonId + "/";
         Map<String, Object> updates = new HashMap<>();
 
-        updates.put(zonePath + "name", configuration.getCropName());
         updates.put(zonePath + "plant_type", configuration.getPlantType());
         updates.put(zonePath + "emoji", configuration.getEmoji());
+        updates.put(zonePath + "moisture_limit", compatibility.getCommonMin());
 
-        putNewSeasonState(updates, zonePath, seasonId, label, now);
+        putNewSeasonState(updates, zonePath, current, seasonId, label, now);
         putNewSeasonManifest(
                 updates,
                 manifestPath,
@@ -346,22 +389,42 @@ public final class SeasonRepository {
                 seasonId,
                 label,
                 plantingDate,
+                growthStage,
                 now
         );
-        putNewSeasonFertilization(updates, zonePath, plantingDate, growthStage, now);
-        putNewSeasonIrrigationState(updates, zonePath, now);
-        putNewSeasonAiState(updates, zonePath, seasonId, now);
+        if (firstActiveSeason) {
+            putNewSeasonFertilization(updates, zonePath, plantingDate, growthStage, now);
+            putNewSeasonIrrigationState(updates, zonePath, now);
+            putNewSeasonAiState(updates, zonePath, seasonId, now);
+        } else {
+            updates.put(zonePath + "ai/season_id", seasonId);
+            updates.put(zonePath + "ai/updated_at_epoch", now);
+        }
         return deviceRef.updateChildren(updates);
     }
 
     private static void putNewSeasonState(
             Map<String, Object> updates,
             String zonePath,
+            ZoneSeasonState current,
             String seasonId,
             String label,
             long now
     ) {
         String state = zonePath + "season/";
+        if (current != null && current.isActive()) {
+            if (current.getActive_season_ids() != null) {
+                for (Map.Entry<String, Boolean> entry : current.getActive_season_ids().entrySet()) {
+                    if (Boolean.TRUE.equals(entry.getValue())) {
+                        updates.put(state + "active_season_ids/" + entry.getKey(), true);
+                    }
+                }
+            }
+            if (!current.getActive_season_id().isBlank()) {
+                updates.put(state + "active_season_ids/" + current.getActive_season_id(), true);
+            }
+        }
+        updates.put(state + "active_season_ids/" + seasonId, true);
         updates.put(state + "active_season_id", seasonId);
         updates.put(state + "status", SeasonStatus.ACTIVE);
         updates.put(state + "label", label);
@@ -379,13 +442,20 @@ public final class SeasonRepository {
             String seasonId,
             String label,
             String plantingDate,
+            String growthStage,
             long now
     ) {
         updates.put(path + "season_id", seasonId);
         updates.put(path + "zone_id", safe(zoneData.getKey()));
+        GardenZone storedZone = zoneData.getValue(GardenZone.class);
+        updates.put(path + "area_id", ZoneAreaIdentity.effective(storedZone));
+        updates.put(path + "area_name",
+                storedZone == null ? "" : safe(storedZone.getArea_name()));
         updates.put(path + "zone_name", configuration.getCropName());
         updates.put(path + "plant_type", configuration.getPlantType());
         updates.put(path + "emoji", configuration.getEmoji());
+        updates.put(path + "ideal_moisture_min", configuration.getIdealMoistureMin());
+        updates.put(path + "ideal_moisture_max", configuration.getIdealMoistureMax());
         updates.put(path + "sensor_id", stringValue(zoneData.child("sensor_id")));
         updates.put(path + "sensor_enabled", booleanValue(zoneData.child("sensor_enabled")));
         updates.put(path + "valve_id", stringValue(zoneData.child("valve_id")));
@@ -393,12 +463,33 @@ public final class SeasonRepository {
         updates.put(path + "label", label);
         updates.put(path + "status", SeasonStatus.ACTIVE);
         updates.put(path + "planting_date", plantingDate);
+        updates.put(path + "growth_stage", normalizedGrowthStage(growthStage));
         updates.put(path + "started_at_epoch", now);
         updates.put(path + "ended_at_epoch", 0L);
         updates.put(path + "includes_legacy_records", false);
         updates.put(path + "created_at_epoch", now);
         updates.put(path + "updated_at_epoch", now);
         putCancellationSnapshot(updates, path, zoneData);
+    }
+
+    private static List<GardenSeason> activeSeasonsForArea(
+            DataSnapshot root,
+            GardenZone zone
+    ) {
+        List<GardenSeason> result = new ArrayList<>();
+        ZoneSeasonState current = zone == null
+                ? null
+                : zone.getSeason();
+        for (DataSnapshot child : root.child("garden_journal").child("seasons").getChildren()) {
+            GardenSeason season = child.getValue(GardenSeason.class);
+            if (season == null) continue;
+            if (season.getSeason_id().isBlank()) season.setSeason_id(safe(child.getKey()));
+            if (SeasonScope.isCurrentActiveSeason(season, current)
+                    && ZoneAreaIdentity.belongsToCurrentOrArea(zone, season)) {
+                result.add(season);
+            }
+        }
+        return result;
     }
 
     /**
@@ -416,9 +507,11 @@ public final class SeasonRepository {
         updates.put(path + "ai", zoneData.child("ai").getValue());
 
         String[] fields = {
+                "area_name", "location_name", "area_icon", "area_color",
+                "low_moisture_alert_enabled", "watering_complete_alert_enabled",
                 "name", "plant_type", "emoji", "sensor_id", "sensor_enabled",
                 "sensor_config_updated_at_epoch", "irrigation_enabled", "moisture",
-                "raw", "voltage", "rssi", "updated_at_epoch"
+                "moisture_limit", "raw", "voltage", "rssi", "updated_at_epoch"
         };
         for (String field : fields) {
             updates.put(path + "zone/" + field, zoneData.child(field).getValue());
@@ -485,16 +578,24 @@ public final class SeasonRepository {
         updates.put(path + "updated_at_epoch", now);
     }
     public Task<Boolean> canCancelNewSeason(String zoneId) {
+        return canCancelNewSeason(zoneId, "");
+    }
+
+    public Task<Boolean> canCancelNewSeason(String zoneId, String seasonId) {
         if (safe(zoneId).isBlank()) return Tasks.forResult(false);
         return deviceRef.get().continueWith(task -> {
             if (!task.isSuccessful() || task.getResult() == null || !task.getResult().exists()) {
                 return false;
             }
-            return evaluateCancellation(zoneId, task.getResult()).allowed;
+            return evaluateCancellation(zoneId, seasonId, task.getResult()).allowed;
         });
     }
 
     public Task<Void> cancelNewSeason(String zoneId) {
+        return cancelNewSeason(zoneId, "");
+    }
+
+    public Task<Void> cancelNewSeason(String zoneId, String seasonId) {
         if (safe(zoneId).isBlank()) {
             return Tasks.forException(new IllegalArgumentException("Bölge bilgisi gerekli."));
         }
@@ -508,12 +609,13 @@ public final class SeasonRepository {
                                 ? new IllegalStateException("Sezon verileri okunamadı.")
                                 : error);
                     }
-                    return cancelNewSeasonFromSnapshot(zoneId, readTask.getResult());
+                    return cancelNewSeasonFromSnapshot(zoneId, seasonId, readTask.getResult());
                 });
     }
 
-    private Task<Void> cancelNewSeasonFromSnapshot(String zoneId, DataSnapshot root) {
-        CancellationCheck check = evaluateCancellation(zoneId, root);
+    private Task<Void> cancelNewSeasonFromSnapshot(
+            String zoneId, String requestedSeasonId, DataSnapshot root) {
+        CancellationCheck check = evaluateCancellation(zoneId, requestedSeasonId, root);
         if (!check.allowed) {
             return Tasks.forException(new IllegalStateException(check.message));
         }
@@ -524,45 +626,82 @@ public final class SeasonRepository {
             return Tasks.forException(new IllegalStateException("İptal edilecek sezon bulunamadı."));
         }
 
+        String seasonId = requestedSeasonId == null || requestedSeasonId.isBlank()
+                ? state.getActive_season_id() : requestedSeasonId.trim();
+        GardenZone persistedZone = zoneData.getValue(GardenZone.class);
+        if (persistedZone == null) {
+            return Tasks.forException(new IllegalStateException("Bölge bilgisi bulunamadı."));
+        }
         long now = nowEpoch();
-        String seasonId = state.getActive_season_id();
         String zonePath = "zones/" + zoneId + "/";
-        DataSnapshot snapshot = root.child("garden_journal")
-                .child("seasons")
-                .child(seasonId)
-                .child("cancellation_snapshot");
         Map<String, Object> updates = new HashMap<>();
 
-        restorePriorSeasonOrClose(updates, zonePath, snapshot, state, now);
-        restoreSnapshotObject(updates, zonePath + "fertilization", snapshot.child("fertilization"));
-        restoreSnapshotObject(updates, zonePath + "ai", snapshot.child("ai"));
-        restoreZoneFields(updates, zonePath, snapshot.child("zone"));
-        putCancelledIrrigationState(updates, zonePath, now);
-        updates.put(zonePath + "irrigation_enabled", false);
+        List<GardenSeason> remaining = remainingActiveSeasons(root, persistedZone, seasonId);
+        putSeasonState(updates, zonePath, remaining, now);
+        if (remaining.isEmpty()) {
+            updates.put(zonePath + "irrigation_enabled", false);
+            updates.put(zonePath + "fertilization/enabled", false);
+            updates.put(zonePath + "fertilization/reminder_enabled", false);
+            updates.put(zonePath + "fertilization/next_application_at_epoch", 0L);
+            updates.put(zonePath + "fertilization/updated_at_epoch", now);
+            updates.put(zonePath + "ai/season_id", "");
+            updates.put(zonePath + "ai/season_status", SeasonStatus.CLOSED);
+            updates.put(zonePath + "ai/season_started_at_epoch", 0L);
+            updates.put(zonePath + "ai/season_closed_at_epoch", 0L);
+            updates.put(zonePath + "ai/updated_at_epoch", now);
+            putCancelledIrrigationState(updates, zonePath, now);
+        } else {
+            GardenSeason primary = remaining.get(0);
+            updates.put(zonePath + "plant_type", primary.getPlant_type());
+            updates.put(zonePath + "emoji", primary.getEmoji());
+            updates.put(zonePath + "moisture_limit",
+                    SharedIrrigationCompatibility.commonMinimumOrFallback(
+                            remaining, persistedZone.getMoisture_limit()));
+            updates.put(zonePath + "ai/season_id", primary.getSeason_id());
+            updates.put(zonePath + "ai/season_status", SeasonStatus.ACTIVE);
+            updates.put(zonePath + "ai/season_started_at_epoch",
+                    primary.getStarted_at_epoch());
+            updates.put(zonePath + "ai/season_closed_at_epoch", 0L);
+            updates.put(zonePath + "ai/updated_at_epoch", now);
+        }
 
         // Only the untouched, currently active manifest is removed. Closed archives remain intact.
         updates.put("garden_journal/seasons/" + seasonId, null);
         return deviceRef.updateChildren(updates);
     }
 
-    private static CancellationCheck evaluateCancellation(String zoneId, DataSnapshot root) {
+    private static CancellationCheck evaluateCancellation(
+            String zoneId, String requestedSeasonId, DataSnapshot root) {
         DataSnapshot zoneData = root.child("zones").child(zoneId);
         ZoneSeasonState state = zoneData.child("season").getValue(ZoneSeasonState.class);
         if (state == null || !state.isActive() || safe(state.getActive_season_id()).isBlank()) {
             return CancellationCheck.blocked("İptal edilecek aktif sezon bulunamadı.");
         }
+        String seasonId = safe(requestedSeasonId).isBlank()
+                ? state.getActive_season_id() : safe(requestedSeasonId);
+        if (!state.isSeasonActive(seasonId)) {
+            return CancellationCheck.blocked("Silinecek aktif sezon bulunamadı.");
+        }
 
         DataSnapshot manifest = root.child("garden_journal")
                 .child("seasons")
-                .child(state.getActive_season_id());
-        if (!manifest.child("cancellation_snapshot").exists()) {
-            return CancellationCheck.blocked(
-                    "Bu sezon güvenli iptal desteğinden önce açıldığı için silinemez."
-            );
-        }
+                .child(seasonId);
 
-        String growthStage = stringValue(zoneData.child("fertilization").child("growth_stage"));
-        SeasonCounts counts = calculateCounts(root, zoneId, state, false);
+        GardenSeason targetSeason = manifest.getValue(GardenSeason.class);
+        if (targetSeason == null) {
+            return CancellationCheck.blocked("İptal edilecek sezon kaydı bulunamadı.");
+        }
+        if (targetSeason.getSeason_id().isBlank()) {
+            targetSeason.setSeason_id(safe(manifest.getKey()));
+        }
+        GardenZone persistedZone = zoneData.getValue(GardenZone.class);
+        if (persistedZone == null
+                || !SeasonStatus.isActive(targetSeason.getStatus())
+                || !ZoneAreaIdentity.belongsToCurrentOrArea(persistedZone, targetSeason)) {
+            return CancellationCheck.blocked("Silinecek aktif sezon bulunamadı.");
+        }
+        ZoneSeasonState targetScope = seasonScopeFor(targetSeason);
+        SeasonCounts counts = calculateCounts(root, zoneId, targetScope, false);
         boolean hasSeasonRecords = counts.wateringCount > 0
                 || counts.fertilizerCount > 0
                 || counts.eventCount > 0
@@ -570,48 +709,24 @@ public final class SeasonRepository {
                 || counts.analysisCount > 0;
         boolean irrigationBusy = isZoneIrrigationBusy(root, zoneId);
         if (SeasonScope.canCancelNewSeason(
-                state,
-                growthStage,
+                targetScope,
+                "",
                 hasSeasonRecords,
                 irrigationBusy
         )) {
             return CancellationCheck.allowed();
         }
-        if (state.isInclude_legacy_records()) {
+        if (targetSeason.isIncludes_legacy_records()) {
             return CancellationCheck.blocked("Arşivlenmiş veya eski kayıtları içeren sezon silinemez.");
-        }
-        if (!"SOIL_PREPARATION".equalsIgnoreCase(safe(growthStage).trim())) {
-            return CancellationCheck.blocked(
-                    "Yeni sezon yalnız Toprak hazırlığı dönemindeyken iptal edilebilir."
-            );
         }
         if (hasSeasonRecords) {
             return CancellationCheck.blocked(
-                    "Bu sezonda saha kaydı bulunduğu için sezon artık silinemez."
+                    "Bu sezonda işlem kaydı bulunduğu için sezon silinemez; sezonu kapatın."
             );
         }
         return CancellationCheck.blocked(
                 "Sulama, pompa, vana veya sulama kuyruğu çalışırken sezon iptal edilemez."
         );
-    }
-
-    private static boolean isIrrigationBusy(DataSnapshot root) {
-        if (booleanValue(root.child("status").child("relay"))
-                || booleanValue(root.child("status").child("valve_open"))
-                || booleanValue(root.child("commands").child("relay"))
-                || booleanValue(root.child("irrigation_hardware").child("valve_open"))
-                || root.child("irrigation_runtime").child("pending_waterings").hasChildren()) {
-            return true;
-        }
-        for (DataSnapshot zone : root.child("zones").getChildren()) {
-            DataSnapshot status = zone.child("irrigation_status");
-            if (booleanValue(status.child("watering_active"))
-                    || booleanValue(status.child("selected_for_watering"))
-                    || longValue(status.child("queue_position")) > 0L) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static boolean isZoneIrrigationBusy(DataSnapshot root, String zoneId) {
@@ -691,8 +806,11 @@ public final class SeasonRepository {
             DataSnapshot snapshot
     ) {
         String[] fields = {
+                "area_name", "location_name", "area_icon", "area_color",
+                "low_moisture_alert_enabled", "watering_complete_alert_enabled",
                 "name", "plant_type", "emoji", "sensor_id", "sensor_enabled",
-                "sensor_config_updated_at_epoch", "moisture", "raw", "voltage",
+                "sensor_config_updated_at_epoch", "irrigation_enabled", "moisture",
+                "moisture_limit", "raw", "voltage",
                 "rssi", "updated_at_epoch"
         };
         for (String field : fields) {
@@ -719,6 +837,10 @@ public final class SeasonRepository {
         updates.put(path + "updated_at_epoch", now);
     }
     public Task<Void> closeSeason(String zoneId, SeasonOutcome outcome) {
+        return closeSeason(zoneId, "", outcome);
+    }
+
+    public Task<Void> closeSeason(String zoneId, String requestedSeasonId, SeasonOutcome outcome) {
         if (safe(zoneId).isBlank()) {
             return Tasks.forException(new IllegalArgumentException("Bölge bilgisi gerekli."));
         }
@@ -730,31 +852,47 @@ public final class SeasonRepository {
                         ? new IllegalStateException("Sezon verileri okunamadı.")
                         : error);
             }
-            return closeSeasonFromSnapshot(zoneId, outcome, now, task.getResult());
+            return closeSeasonFromSnapshot(zoneId, requestedSeasonId, outcome, now, task.getResult());
         });
     }
 
     private Task<Void> closeSeasonFromSnapshot(
             String zoneId,
+            String requestedSeasonId,
             SeasonOutcome outcome,
             long now,
             DataSnapshot root
     ) {
         DataSnapshot zoneData = root.child("zones").child(zoneId);
         ZoneSeasonState state = zoneData.child("season").getValue(ZoneSeasonState.class);
-        if (state == null || !state.isActive() || safe(state.getActive_season_id()).isBlank()) {
+        String seasonId = safe(requestedSeasonId).isBlank()
+                ? safe(state == null ? "" : state.getActive_season_id())
+                : safe(requestedSeasonId);
+        if (state == null || !state.isActive() || seasonId.isBlank()
+                || !state.isSeasonActive(seasonId)) {
             return Tasks.forException(new IllegalStateException("Kapatılacak aktif sezon bulunamadı."));
         }
 
-        if (!SeasonScope.canClose(state, isIrrigationBusy(root))) {
+        GardenZone persistedZone = zoneData.getValue(GardenZone.class);
+        DataSnapshot manifestData = root.child("garden_journal")
+                .child("seasons")
+                .child(seasonId);
+        GardenSeason targetSeason = manifestData.getValue(GardenSeason.class);
+        if (persistedZone == null || targetSeason == null
+                || !SeasonStatus.isActive(targetSeason.getStatus())
+                || !ZoneAreaIdentity.belongsToCurrentOrArea(persistedZone, targetSeason)) {
+            return Tasks.forException(new IllegalStateException("Kapatılacak aktif sezon bulunamadı."));
+        }
+
+        if (isZoneIrrigationBusy(root, zoneId)) {
             return Tasks.forException(new IllegalStateException(
                     "Sulama, pompa, vana veya sulama kuyruğu çalışırken sezon kapatılamaz."
             ));
         }
 
-        String seasonId = state.getActive_season_id();
+        ZoneSeasonState targetScope = seasonScopeFor(targetSeason);
         boolean pendingFinalMeasurement = hasPendingWateringForSeason(root, zoneId, seasonId);
-        SeasonCounts counts = calculateCounts(root, zoneId, state, pendingFinalMeasurement);
+        SeasonCounts counts = calculateCounts(root, zoneId, targetScope, pendingFinalMeasurement);
         String manifest = "garden_journal/seasons/" + seasonId + "/";
         String zone = "zones/" + zoneId + "/";
         Map<String, Object> updates = new HashMap<>();
@@ -789,15 +927,30 @@ public final class SeasonRepository {
         putOutcome(updates, manifest, outcome, seasonId, zoneId, now);
         updates.put(manifest + "updated_at_epoch", now);
 
-        putSeasonState(updates, zone, state, now);
-        updates.put(zone + "irrigation_enabled", false);
-        updates.put(zone + "fertilization/enabled", false);
-        updates.put(zone + "fertilization/reminder_enabled", false);
-        updates.put(zone + "fertilization/next_application_at_epoch", 0L);
-        updates.put(zone + "fertilization/updated_at_epoch", now);
-        updates.put(zone + "ai/season_status", SeasonStatus.CLOSED);
-        updates.put(zone + "ai/season_closed_at_epoch", now);
-        updates.put(zone + "ai/updated_at_epoch", now);
+        List<GardenSeason> remaining = remainingActiveSeasons(root, persistedZone, seasonId);
+        putSeasonState(updates, zone, remaining, now);
+        if (remaining.isEmpty()) {
+            updates.put(zone + "irrigation_enabled", false);
+            updates.put(zone + "fertilization/enabled", false);
+            updates.put(zone + "fertilization/reminder_enabled", false);
+            updates.put(zone + "fertilization/next_application_at_epoch", 0L);
+            updates.put(zone + "fertilization/updated_at_epoch", now);
+            updates.put(zone + "ai/season_id", "");
+            updates.put(zone + "ai/season_status", SeasonStatus.CLOSED);
+            updates.put(zone + "ai/season_closed_at_epoch", now);
+            updates.put(zone + "ai/updated_at_epoch", now);
+        } else {
+            GardenSeason primary = remaining.get(0);
+            updates.put(zone + "moisture_limit",
+                    SharedIrrigationCompatibility.commonMinimumOrFallback(
+                            remaining, persistedZone.getMoisture_limit()));
+            updates.put(zone + "plant_type", primary.getPlant_type());
+            updates.put(zone + "emoji", primary.getEmoji());
+            updates.put(zone + "ai/season_id", primary.getSeason_id());
+            updates.put(zone + "ai/season_status", SeasonStatus.ACTIVE);
+            updates.put(zone + "ai/season_closed_at_epoch", 0L);
+            updates.put(zone + "ai/updated_at_epoch", now);
+        }
 
         String outcomePath = "garden_journal/season_outcomes/" + seasonId + "/";
         putOutcome(updates, outcomePath, outcome, seasonId, zoneId, now);
@@ -818,16 +971,55 @@ public final class SeasonRepository {
     private static void putSeasonState(
             Map<String, Object> updates,
             String zone,
-            ZoneSeasonState state,
+            List<GardenSeason> remaining,
             long now
     ) {
-        updates.put(zone + "season/active_season_id", state.getActive_season_id());
-        updates.put(zone + "season/status", SeasonStatus.CLOSED);
-        updates.put(zone + "season/label", state.getLabel());
-        updates.put(zone + "season/started_at_epoch", state.getStarted_at_epoch());
-        updates.put(zone + "season/ended_at_epoch", now);
-        updates.put(zone + "season/include_legacy_records", state.isInclude_legacy_records());
+        if (remaining.isEmpty()) {
+            updates.put(zone + "season/active_season_ids", null);
+            updates.put(zone + "season/active_season_id", "");
+            updates.put(zone + "season/status", SeasonStatus.CLOSED);
+            updates.put(zone + "season/label", "");
+            updates.put(zone + "season/started_at_epoch", 0L);
+            updates.put(zone + "season/ended_at_epoch", now);
+            updates.put(zone + "season/include_legacy_records", false);
+            updates.put(zone + "season/updated_at_epoch", now);
+            return;
+        }
+
+        GardenSeason primary = remaining.get(0);
+        Map<String, Boolean> activeSeasonIds = new HashMap<>();
+        for (GardenSeason season : remaining) {
+            activeSeasonIds.put(season.getSeason_id(), true);
+        }
+        updates.put(zone + "season/active_season_ids", activeSeasonIds);
+        updates.put(zone + "season/active_season_id", primary.getSeason_id());
+        updates.put(zone + "season/status", SeasonStatus.ACTIVE);
+        updates.put(zone + "season/label", primary.getLabel());
+        updates.put(zone + "season/started_at_epoch", primary.getStarted_at_epoch());
+        updates.put(zone + "season/ended_at_epoch", 0L);
+        updates.put(zone + "season/include_legacy_records", primary.isIncludes_legacy_records());
         updates.put(zone + "season/updated_at_epoch", now);
+    }
+
+    private static List<GardenSeason> remainingActiveSeasons(
+            DataSnapshot root,
+            GardenZone zone,
+            String excludedSeasonId
+    ) {
+        List<GardenSeason> result = activeSeasonsForArea(root, zone);
+        result.removeIf(season -> safe(season.getSeason_id()).equals(safe(excludedSeasonId)));
+        result.sort(Comparator.comparingLong(GardenSeason::getStarted_at_epoch).reversed());
+        return result;
+    }
+
+    private static ZoneSeasonState seasonScopeFor(GardenSeason season) {
+        ZoneSeasonState scope = new ZoneSeasonState();
+        scope.setActive_season_id(season.getSeason_id());
+        scope.setStatus(SeasonStatus.ACTIVE);
+        scope.setStarted_at_epoch(season.getStarted_at_epoch());
+        scope.setEnded_at_epoch(season.getEnded_at_epoch());
+        scope.setInclude_legacy_records(season.isIncludes_legacy_records());
+        return scope;
     }
 
     public Task<String> resolveActiveSeasonId(String zoneId) {
@@ -963,9 +1155,7 @@ public final class SeasonRepository {
                     .child("pending_waterings").getChildren()) {
                 DataSnapshot record = pending.child("record");
                 if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
-                String pendingSeasonId = stringValue(record.child("season_id"));
-                if (!pendingSeasonId.isBlank()
-                        && !state.getActive_season_id().equals(pendingSeasonId)) continue;
+                if (!belongs(record, state)) continue;
                 long duration = Math.max(0L, longValue(record.child("duration")));
                 if (!SeasonRecordPolicy.hasMeaningfulWatering(duration)) continue;
                 counts.wateringCount++;
@@ -1004,15 +1194,37 @@ public final class SeasonRepository {
     }
 
     private static boolean belongs(DataSnapshot record, ZoneSeasonState state) {
+        if (containsSeasonId(record, state.getActive_season_id())) return true;
         String recordSeasonId = stringValue(record.child("season_id"));
         if (!recordSeasonId.isBlank()) return state.getActive_season_id().equals(recordSeasonId);
         return state.isInclude_legacy_records();
     }
 
     private static boolean belongs(MutableData record, ZoneSeasonState state) {
+        if (containsSeasonId(record, state.getActive_season_id())) return true;
         String recordSeasonId = stringValue(record.child("season_id"));
         if (!recordSeasonId.isBlank()) return state.getActive_season_id().equals(recordSeasonId);
         return state.isInclude_legacy_records();
+    }
+
+    private static boolean containsSeasonId(DataSnapshot record, String seasonId) {
+        String expected = safe(seasonId);
+        if (expected.isBlank()) return false;
+        for (DataSnapshot child : record.child("season_ids").getChildren()) {
+            if (expected.equals(stringValue(child))) return true;
+            if (expected.equals(safe(child.getKey())) && booleanValue(child)) return true;
+        }
+        return false;
+    }
+
+    private static boolean containsSeasonId(MutableData record, String seasonId) {
+        String expected = safe(seasonId);
+        if (expected.isBlank()) return false;
+        for (MutableData child : record.child("season_ids").getChildren()) {
+            if (expected.equals(stringValue(child))) return true;
+            if (expected.equals(safe(child.getKey())) && booleanValue(child)) return true;
+        }
+        return false;
     }
 
     private static boolean hasPendingWateringForSeason(
@@ -1025,7 +1237,8 @@ public final class SeasonRepository {
             MutableData record = pending.child("record");
             if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
             String pendingSeasonId = stringValue(record.child("season_id"));
-            if (pendingSeasonId.isBlank() || pendingSeasonId.equals(seasonId)) return true;
+            if (containsSeasonId(record, seasonId)
+                    || pendingSeasonId.isBlank() || pendingSeasonId.equals(seasonId)) return true;
         }
         return false;
     }
@@ -1040,7 +1253,8 @@ public final class SeasonRepository {
             DataSnapshot record = pending.child("record");
             if (!zoneId.equals(stringValue(record.child("zone_id")))) continue;
             String pendingSeasonId = stringValue(record.child("season_id"));
-            if (pendingSeasonId.isBlank() || pendingSeasonId.equals(seasonId)) return true;
+            if (containsSeasonId(record, seasonId)
+                    || pendingSeasonId.isBlank() || pendingSeasonId.equals(seasonId)) return true;
         }
         return false;
     }

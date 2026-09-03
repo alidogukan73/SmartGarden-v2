@@ -34,6 +34,7 @@ class WateringRecord:
     zone_id: str = ""
     sensor_id: str = ""
     season_id: str = ""
+    season_ids: tuple[str, ...] = ()
     
     @property
     def firebase_key(

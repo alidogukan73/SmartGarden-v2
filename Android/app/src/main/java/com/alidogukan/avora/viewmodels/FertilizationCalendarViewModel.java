@@ -18,8 +18,10 @@ import com.alidogukan.avora.fertilization.OrganicFertilizerAiAdvisor;
 import com.alidogukan.avora.models.FertilizationProfile;
 import com.alidogukan.avora.models.FertilizerApplication;
 import com.alidogukan.avora.models.FertilizerProduct;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.season.SeasonScope;
 import com.google.android.gms.tasks.Task;
 
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 public class FertilizationCalendarViewModel extends AndroidViewModel {
 
     private final LiveData<List<GardenZone>> zones;
+    private final LiveData<List<GardenSeason>> seasons;
     private final LiveData<List<FertilizerProduct>> products;
     private final LiveData<List<FertilizerApplication>> history;
     private final LiveData<WeatherForecast> weather;
@@ -40,6 +43,7 @@ public class FertilizationCalendarViewModel extends AndroidViewModel {
         repository = new FertilizationRepository();
         preferences = new FertilizationPreferenceStore(application);
         zones = repository.observeZones();
+        seasons = new SeasonRepository().observeAllSeasons();
         products = repository.observeProducts();
         history = repository.observeHistory();
         weather = repository.observeWeather();
@@ -101,6 +105,10 @@ public class FertilizationCalendarViewModel extends AndroidViewModel {
 
     public LiveData<List<GardenZone>> getZones() {
         return zones;
+    }
+
+    public LiveData<List<GardenSeason>> getSeasons() {
+        return seasons;
     }
 
     public List<GardenZone> activeZones(List<GardenZone> values) {

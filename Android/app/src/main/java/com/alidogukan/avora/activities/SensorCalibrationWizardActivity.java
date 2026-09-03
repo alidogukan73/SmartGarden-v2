@@ -504,7 +504,7 @@ public class SensorCalibrationWizardActivity extends AppCompatActivity {
 
     private String zoneLabel(GardenZone zone) {
         String emoji = safe(zone.getEmoji());
-        String name = safe(zone.getName());
+        String name = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         return (emoji.isEmpty() ? getString(R.string.symbol_plant) : emoji)
                 + " " + name + " · " + safe(zone.getSensor_id());
     }

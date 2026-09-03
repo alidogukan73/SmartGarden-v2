@@ -26,6 +26,7 @@ import java.util.List;
 
 /** Shows comparable plant growth assessments for one garden zone. */
 public final class PlantGrowthTrackingActivity extends AppCompatActivity {
+    public static final String EXTRA_SEASON_ID = "season_id";
     public static final String EXTRA_ZONE_ID = "zone_id";
     public static final String EXTRA_ZONE_LABEL = "zone_label";
 
@@ -37,6 +38,7 @@ public final class PlantGrowthTrackingActivity extends AppCompatActivity {
     private TextView summaryTrend;
     private TextView summaryStage;
     private TextView recordCount;
+    private String seasonId;
     private String zoneId;
 
     @Override
@@ -44,6 +46,7 @@ public final class PlantGrowthTrackingActivity extends AppCompatActivity {
         super.onCreate(state);
         setContentView(R.layout.activity_plant_growth_tracking);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
+        seasonId = safe(getIntent().getStringExtra(EXTRA_SEASON_ID));
         zoneId = safe(getIntent().getStringExtra(EXTRA_ZONE_ID));
         String zoneLabel = safe(getIntent().getStringExtra(EXTRA_ZONE_LABEL));
         viewModel = new ViewModelProvider(this).get(PlantGrowthTrackingViewModel.class);
@@ -57,9 +60,9 @@ public final class PlantGrowthTrackingActivity extends AppCompatActivity {
         findViewById(R.id.btnGrowthBack).setOnClickListener(view -> finish());
         ((TextView) findViewById(R.id.txtGrowthZone)).setText(
                 zoneLabel.isEmpty() ? zoneId : zoneLabel);
-        render(viewModel.recordsForZone(null, zoneId));
+        render(viewModel.recordsForZone(null, zoneId, seasonId));
         viewModel.getPhotoMetadata().observe(this,
-                cloud -> render(viewModel.recordsForZone(cloud, zoneId)));
+                cloud -> render(viewModel.recordsForZone(cloud, zoneId, seasonId)));
     }
 
     private void render(List<GardenPhoto> records) {

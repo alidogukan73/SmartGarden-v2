@@ -2,6 +2,7 @@ package com.alidogukan.avora.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +11,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import com.alidogukan.avora.models.GardenSeason;
+import com.alidogukan.avora.models.Status;
 
 import com.alidogukan.avora.R;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
+import com.alidogukan.avora.notifications.NotificationPolicy;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.ZoneIrrigationStatus;
+import com.alidogukan.avora.zones.PhysicalZoneIdentity;
 import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.ArrayList;
@@ -27,7 +34,9 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
     }
 
     private final List<GardenZone> zones = new ArrayList<>();
+    private final List<GardenSeason> seasons = new ArrayList<>();
     private final OnZoneClickListener listener;
+    private Status status;
 
     public HomeZonePagerAdapter(OnZoneClickListener listener) {
         this.listener = listener;
@@ -41,6 +50,19 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
         // change alters every virtual position, so a full invalidation is required.
         notifyDataSetChanged();
     }
+    @SuppressLint("NotifyDataSetChanged")
+    public void submitSeasons(List<GardenSeason> items) {
+        seasons.clear();
+        if (items != null) seasons.addAll(items);
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void submitStatus(Status value) {
+        status = value;
+        notifyDataSetChanged();
+    }
+
 
     public int getZoneCount() {
         return zones.size();
@@ -121,15 +143,26 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
 
         void bind(GardenZone zone) {
             Context context = itemView.getContext();
-            String emoji = zone.getEmoji() == null || zone.getEmoji().isBlank() ? "🌱" : zone.getEmoji();
-            String zoneName = zone.getName() == null ? context.getString(R.string.zone_fallback_name) : zone.getName();
+            String emoji = SeasonDisplayIdentity.physicalIcon(zone);
+            String zoneName = SeasonDisplayIdentity.operationalName(zone, seasons);
+            String crops = SeasonDisplayIdentity.activeCropNames(zone, seasons);
             String sensorId = zone.getSensor_id() == null ? "—" : zone.getSensor_id();
 
             name.setText(context.getString(
                     R.string.runtime_icon_label,
                     emoji,
                     zoneName));
-            sensor.setText(context.getString(R.string.home_zone_sensor_subtitle, sensorId));
+            sensor.setText(crops.isBlank()
+                    ? context.getString(R.string.home_zone_sensor_subtitle, sensorId)
+                    : context.getString(R.string.home_zone_crops_sensor_subtitle, crops, sensorId));
+            if (itemView instanceof MaterialCardView) {
+                try {
+                    ((MaterialCardView) itemView).setStrokeColor(
+                            Color.parseColor(PhysicalZoneIdentity.color(zone)));
+                } catch (IllegalArgumentException ignored) {
+                    // PhysicalZoneIdentity already supplies a safe default.
+                }
+            }
 
             if (!zone.isSensor_enabled()) {
                 bindPaused(context);
@@ -225,7 +258,16 @@ public class HomeZonePagerAdapter extends RecyclerView.Adapter<HomeZonePagerAdap
 
         private void bindWateringState(Context context, GardenZone zone) {
             ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
-            if (irrigation != null && irrigation.isWatering_active()) {
+            boolean wateringConfirmed = irrigation != null
+                    && NotificationPolicy.isConfirmedWateringState(
+                    irrigation.isWatering_active(),
+                    zone.getValve_id(),
+                    status != null && status.isValveOpen(),
+                    status == null ? "" : status.getActiveValveId(),
+                    status == null ? 0L : status.getLastSeenEpoch(),
+                    System.currentTimeMillis() / 1000L,
+                    90L);
+            if (wateringConfirmed) {
                 wateringValue.setText(R.string.runtime_irrigation_running);
                 wateringDetail.setText(R.string.runtime_pump_valve_active);
                 wateringValue.setTextColor(color(context, R.color.info));

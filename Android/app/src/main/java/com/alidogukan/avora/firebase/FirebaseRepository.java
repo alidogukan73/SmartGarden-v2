@@ -20,17 +20,23 @@ import com.alidogukan.avora.models.GardenEvent;
 import com.alidogukan.avora.models.GardenAISummary;
 import com.alidogukan.avora.models.GardenNotification;
 import com.alidogukan.avora.models.GardenPhoto;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.Health;
+import com.alidogukan.avora.models.DeviceNetworkStatus;
+import com.alidogukan.avora.models.NetworkConfigurationRequest;
+import com.alidogukan.avora.models.NetworkConfigurationResult;
 import com.alidogukan.avora.models.MoisturePrediction;
 import com.alidogukan.avora.models.PredictionAccuracy;
 import com.alidogukan.avora.models.PredictionValidationStatus;
 import com.alidogukan.avora.models.SeasonOutcome;
 import com.alidogukan.avora.models.SeasonStatus;
+import com.alidogukan.avora.models.ZoneSeasonState;
 import com.alidogukan.avora.models.Sensor;
 import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.season.SeasonScope;
 import com.alidogukan.avora.season.SeasonRecordPolicy;
+import com.alidogukan.avora.season.ZoneAreaIdentity;
 import com.alidogukan.avora.models.SoilLearningProfile;
 import com.alidogukan.avora.models.Statistics;
 import com.alidogukan.avora.models.Status;
@@ -152,6 +158,7 @@ public class FirebaseRepository {
             List<GardenZone> zones = new ArrayList<>();
 
             for(DataSnapshot child : snapshot.getChildren()) {
+               if (!isConfiguredZoneSnapshot(child)) continue;
                GardenZone zone = (GardenZone)child.getValue(GardenZone.class);
                if (zone != null) {
                   if (zone.getZone_id() == null || zone.getZone_id().isBlank()) {
@@ -171,6 +178,19 @@ public class FirebaseRepository {
          }
       });
       return liveData;
+   }
+
+   private static boolean isConfiguredZoneSnapshot(DataSnapshot snapshot) {
+      return snapshot != null
+            && (snapshot.hasChild("enabled")
+            || snapshot.hasChild("lifecycle_status")
+            || snapshot.hasChild("area_id")
+            || snapshot.hasChild("area_name")
+            || snapshot.hasChild("name")
+            || snapshot.hasChild("sensor_id")
+            || snapshot.hasChild("valve_id")
+            || snapshot.hasChild("created_at_epoch")
+            || snapshot.hasChild("order"));
    }
 
    public LiveData<List<GardenPhoto>> observeGardenPhotoMetadata() {
@@ -233,9 +253,15 @@ public class FirebaseRepository {
          public void onDataChange(@NonNull DataSnapshot snapshot) {
             Status status = snapshot.child("status").getValue(Status.class);
             Health health = snapshot.child("health").getValue(Health.class);
+            DataSnapshot network = snapshot.child("network");
+            DeviceNetworkStatus networkStatus =
+                  network.child("status").getValue(DeviceNetworkStatus.class);
+            NetworkConfigurationResult networkResult = network.child("configuration_result")
+                  .getValue(NetworkConfigurationResult.class);
             List<GardenZone> zones = new ArrayList<>();
             Set<String> firmwareVersions = new LinkedHashSet<>();
             for (DataSnapshot child : snapshot.child("zones").getChildren()) {
+               if (!isConfiguredZoneSnapshot(child)) continue;
                GardenZone zone = child.getValue(GardenZone.class);
                if (zone == null) continue;
                if (zone.getZone_id() == null || zone.getZone_id().isBlank()) {
@@ -248,7 +274,8 @@ public class FirebaseRepository {
                }
             }
             liveData.setValue(new DeviceInfoSnapshot(
-                  status, health, zones, firmwareVersions));
+                  status, health, zones, firmwareVersions,
+                  networkStatus, networkResult));
          }
 
          @Override
@@ -660,10 +687,17 @@ public class FirebaseRepository {
          }
          long now = System.currentTimeMillis() / 1000L;
          long createdAt = snapshotLong(zonesSnapshot.child(zoneId).child("created_at_epoch"));
-         if (createdAt <= 0L) createdAt = now;
+         if (initializeWithoutSeason || createdAt <= 0L) createdAt = now;
          String path = "zones/" + zoneId + "/";
          Map<String, Object> updates = new HashMap<>();
          updates.put(path + "zone_id", zoneId);
+         updates.put(path + "area_id", clean(zone.getArea_id()));
+         updates.put(path + "area_name", clean(zone.getArea_name()));
+         updates.put(path + "location_name", clean(zone.getLocation_name()));
+         updates.put(path + "area_icon", clean(zone.getArea_icon()));
+         updates.put(path + "area_color", clean(zone.getArea_color()));
+         updates.put(path + "low_moisture_alert_enabled", zone.isLow_moisture_alert_enabled());
+         updates.put(path + "watering_complete_alert_enabled", zone.isWatering_complete_alert_enabled());
          updates.put(path + "name", clean(zone.getName()));
          updates.put(path + "plant_type", clean(zone.getPlant_type()));
          updates.put(path + "emoji", clean(zone.getEmoji()));
@@ -701,6 +735,7 @@ public class FirebaseRepository {
           }
          if (initializeWithoutSeason) {
             updates.put(path + "season/active_season_id", "");
+            updates.put(path + "season/active_season_ids", null);
             updates.put(path + "season/status", SeasonStatus.CLOSED);
             updates.put(path + "season/label", "");
             updates.put(path + "season/started_at_epoch", 0L);
@@ -736,9 +771,10 @@ public class FirebaseRepository {
                   zone.exists(),
                   snapshotString(zone.child("season").child("status")),
                   snapshotString(zone.child("season").child("active_season_id")),
+                  hasActiveSeasonManifest(root, zone),
                   isZoneIrrigationBusySnapshot(root, zoneId),
                   hasLocalHistory,
-                  hasZoneCloudHistory(root, zoneId));
+                  hasZoneCloudHistory(root, zone));
          } catch (IllegalStateException error) {
             return Tasks.forException(error);
          }
@@ -974,7 +1010,7 @@ public class FirebaseRepository {
             for(DataSnapshot child : ((DataSnapshot)task.getResult()).getChildren()) {
                GardenZone zone = (GardenZone)child.getValue(GardenZone.class);
                if (zone != null && zone.getFertilization() != null && zone.getFertilization().isEnabled() && productId.equals(zone.getFertilization().getActive_product_id())) {
-                  String name = zone.getName();
+                  String name = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
                   zoneNames.add(name != null && !name.isBlank() ? name : child.getKey());
                }
             }
@@ -1217,13 +1253,14 @@ public class FirebaseRepository {
    }
 
    private void writeFertilizerApplication(MutableData root, String applicationId, BulkFertilizerApplication application, FertilizerProduct product, String appliedUnit, boolean stockDeducted, long recordedAt) {
-      String seasonId = ensureActiveSeasonForWrite(root, application.zoneId, recordedAt);
+      List<String> seasonIds = ensureActiveSeasonsForWrite(root, application.zoneId, recordedAt);
       String type = normalizedApplicationType(application.applicationType);
       int intervalDays = Math.max(0, product.getMinimum_interval_days());
       long nextAt = intervalDays == 0 ? 0L
             : application.appliedAt + (long)intervalDays * 86400L;
       MutableData history = root.child("fertilizer_history").child(applicationId);
-      history.child("season_id").setValue(seasonId);
+      history.child("season_id").setValue(seasonIds.get(0));
+      history.child("season_ids").setValue(new ArrayList<>(seasonIds));
       history.child("application_id").setValue(applicationId);
       history.child("zone_id").setValue(application.zoneId);
       history.child("zone_name").setValue(application.zoneName);
@@ -1273,6 +1310,26 @@ public class FirebaseRepository {
       }
    }
 
+   private List<String> ensureActiveSeasonsForWrite(
+         MutableData root, String zoneId, long now) {
+      String primary = ensureActiveSeasonForWrite(root, zoneId, now);
+      LinkedHashSet<String> seasonIds = new LinkedHashSet<>();
+      seasonIds.add(primary);
+      MutableData active = root.child("zones").child(zoneId)
+            .child("season").child("active_season_ids");
+      for (MutableData child : active.getChildren()) {
+         Object raw = child.getValue();
+         if (raw instanceof Boolean && !Boolean.TRUE.equals(raw)) continue;
+         String value = raw instanceof String ? ((String) raw).trim() : "";
+         if (value.isBlank()) {
+            String key = child.getKey();
+            value = key == null ? "" : key.trim();
+         }
+         if (!value.isBlank()) seasonIds.add(value);
+      }
+      return new ArrayList<>(seasonIds);
+   }
+
    private String ensureActiveSeasonForWrite(MutableData root, String zoneId, long now) {
       if (zoneId == null || zoneId.isBlank()) {
          throw new IllegalStateException("Bölge bilgisi gerekli.");
@@ -1297,6 +1354,7 @@ public class FirebaseRepository {
       String label = year + " " + zoneName;
 
       state.child("active_season_id").setValue(seasonId);
+      state.child("active_season_ids").child(seasonId).setValue(true);
       state.child("status").setValue(SeasonStatus.ACTIVE);
       state.child("label").setValue(label);
       state.child("started_at_epoch").setValue(now);
@@ -1332,11 +1390,8 @@ public class FirebaseRepository {
             continue;
          }
          if (!activeSeasonId.isBlank()) {
-            String candidateSeasonId = stringValue(candidate.child("season_id"));
-            if ((candidateSeasonId.isBlank() && !includeLegacy)
-                  || (!candidateSeasonId.isBlank() && !activeSeasonId.equals(candidateSeasonId))) {
-               continue;
-            }
+            if (!fertilizerRecordBelongsToSeason(
+                  candidate, activeSeasonId, includeLegacy)) continue;
          }
          if (!type.equals(normalizedApplicationType(stringValue(candidate.child("application_type"))))) {
             continue;
@@ -1359,6 +1414,16 @@ public class FirebaseRepository {
       if ("NUTRITION".equals(type)) {
          updateNutritionPointers(root, zoneId, latest, recordedAt);
       }
+   }
+
+   private static boolean fertilizerRecordBelongsToSeason(
+         MutableData record, String seasonId, boolean includeLegacy) {
+      for (MutableData child : record.child("season_ids").getChildren()) {
+         if (seasonId.equals(stringValue(child))) return true;
+         if (seasonId.equals(child.getKey()) && booleanValue(child)) return true;
+      }
+      String primary = stringValue(record.child("season_id"));
+      return primary.isBlank() ? includeLegacy : seasonId.equals(primary);
    }
 
    private void copyHistoryToSchedule(MutableData schedule, MutableData history, long recordedAt) {
@@ -1494,25 +1559,44 @@ public class FirebaseRepository {
       return first == null || first.isBlank() ? second : first;
    }
 
-   private static boolean hasZoneCloudHistory(DataSnapshot root, String zoneId) {
+   private static boolean hasActiveSeasonManifest(
+         DataSnapshot root, DataSnapshot zoneSnapshot) {
+      GardenZone zone = zoneSnapshot.getValue(GardenZone.class);
+      if (zone == null) return false;
+      ZoneSeasonState current = zone.getSeason();
+      if (current == null || !current.isActive()) return false;
+      for (DataSnapshot child : root.child("garden_journal")
+            .child("seasons").getChildren()) {
+         GardenSeason season = child.getValue(GardenSeason.class);
+         if (season == null) continue;
+         if (season.getSeason_id().isBlank()) {
+            season.setSeason_id(child.getKey());
+         }
+         if (SeasonScope.isCurrentActiveSeason(season, current)
+               && ZoneAreaIdentity.belongsToCurrentOrArea(zone, season)) return true;
+      }
+      return false;
+   }
+
+   private static boolean hasZoneCloudHistory(DataSnapshot root, DataSnapshot zone) {
       for (DataSnapshot record : root.child("watering_history").getChildren()) {
-         if (zoneId.equals(snapshotString(record.child("zone_id")))
+         if (recordBelongsToCurrentArea(root, zone, record)
                && SeasonRecordPolicy.hasMeaningfulWatering(
                snapshotLong(record.child("duration")))) return true;
       }
-      if (containsZoneRecord(root.child("fertilizer_history"), zoneId)) return true;
+      if (containsCurrentAreaRecord(root, zone, root.child("fertilizer_history"))) return true;
 
       DataSnapshot journal = root.child("garden_journal");
       for (DataSnapshot record : journal.child("events").getChildren()) {
-         if (!zoneId.equals(snapshotString(record.child("zone_id")))) continue;
+         if (!recordBelongsToCurrentArea(root, zone, record)) continue;
          if (SeasonRecordPolicy.isFieldJournalEvent(
                snapshotString(record.child("type")),
                snapshotString(record.child("source")),
                snapshotString(record.child("source_key")))) return true;
       }
-      if (containsZoneRecord(journal.child("photo_metadata"), zoneId)) return true;
+      if (containsCurrentAreaRecord(root, zone, journal.child("photo_metadata"))) return true;
       for (DataSnapshot outcome : journal.child("season_outcomes").getChildren()) {
-         if (!zoneId.equals(snapshotString(outcome.child("zone_id")))) continue;
+         if (!recordBelongsToCurrentArea(root, zone, outcome)) continue;
          if (SeasonRecordPolicy.hasMeaningfulOutcomeValues(
                snapshotString(outcome.child("harvest_amount")),
                snapshotString(outcome.child("yield_note")),
@@ -1525,14 +1609,47 @@ public class FirebaseRepository {
       return false;
    }
 
-   private static boolean containsZoneRecord(
-         DataSnapshot collection, String zoneId) {
+   private static boolean containsCurrentAreaRecord(
+         DataSnapshot root, DataSnapshot zone, DataSnapshot collection) {
       for (DataSnapshot record : collection.getChildren()) {
-         if (zoneId.equals(snapshotString(record.child("zone_id")))) {
-            return true;
-         }
+         if (recordBelongsToCurrentArea(root, zone, record)) return true;
       }
       return false;
+   }
+
+   private static boolean recordBelongsToCurrentArea(
+         DataSnapshot root, DataSnapshot zone, DataSnapshot record) {
+      String zoneId = snapshotString(zone.child("zone_id"));
+      if (zoneId.isBlank()) zoneId = snapshotStringKey(zone);
+      if (!zoneId.equals(snapshotString(record.child("zone_id")))) return false;
+
+      String areaId = snapshotString(zone.child("area_id"));
+      if (areaId.isBlank()) return true;
+
+      java.util.LinkedHashSet<String> seasonIds = new java.util.LinkedHashSet<>();
+      String primary = snapshotString(record.child("season_id"));
+      if (!primary.isBlank()) seasonIds.add(primary);
+      for (DataSnapshot child : record.child("season_ids").getChildren()) {
+         Object raw = child.getValue();
+         if (raw instanceof Boolean && !Boolean.TRUE.equals(raw)) continue;
+         String value = raw instanceof String ? ((String) raw).trim() : "";
+         if (value.isBlank()) {
+            String key = child.getKey();
+            value = key == null ? "" : key.trim();
+         }
+         if (value != null && !value.isBlank()) seasonIds.add(value);
+      }
+      for (String seasonId : seasonIds) {
+         DataSnapshot manifest = root.child("garden_journal")
+               .child("seasons").child(seasonId);
+         if (areaId.equals(snapshotString(manifest.child("area_id")))) return true;
+      }
+      return false;
+   }
+
+   private static String snapshotStringKey(DataSnapshot snapshot) {
+      String key = snapshot == null ? null : snapshot.getKey();
+      return key == null ? "" : key;
    }
 
    private static boolean containsZoneReference(
@@ -1647,6 +1764,27 @@ public class FirebaseRepository {
       command.put("zone_id", zoneId == null ? "" : zoneId.trim());
       command.put("requested_at", ServerValue.TIMESTAMP);
       return this.commandsRef.child("irrigation_assistant_reset").setValue(command);
+   }
+
+   public Task<Void> requestNetworkConfiguration(NetworkConfigurationRequest value) {
+      if (value == null) {
+         return Tasks.forException(new IllegalArgumentException(
+               "Network configuration is required"));
+      }
+      Map<String, Object> command = new HashMap<>();
+      command.put("requested", true);
+      command.put("request_id", value.requestId);
+      command.put("interface", value.interfaceName);
+      command.put("mode", value.mode);
+      command.put("ip_address", value.ipAddress);
+      command.put("prefix_length", value.prefixLength);
+      command.put("gateway", value.gateway);
+      command.put("primary_dns", value.primaryDns);
+      command.put("secondary_dns", value.secondaryDns);
+      command.put("requested_at", ServerValue.TIMESTAMP);
+      command.put("expires_at", System.currentTimeMillis() + 180_000L);
+      command.put("source", "android");
+      return commandsRef.child("network_configuration").setValue(command);
    }
 
    public LiveData<Status> observeStatus(Consumer<DatabaseError> errorHandler) {

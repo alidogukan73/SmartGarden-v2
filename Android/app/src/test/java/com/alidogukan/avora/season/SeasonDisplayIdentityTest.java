@@ -4,8 +4,13 @@ import static org.junit.Assert.assertEquals;
 
 import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.models.SeasonStatus;
+import com.alidogukan.avora.models.ZoneSeasonState;
 
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 
 public final class SeasonDisplayIdentityTest {
     @Test
@@ -43,6 +48,56 @@ public final class SeasonDisplayIdentityTest {
         assertEquals("🍅", SeasonDisplayIdentity.emoji(null, current));
     }
 
+    @Test
+    public void sharedAreaShowsEveryActiveCropButOnlyOnce() {
+        GardenZone current = zone("Domates", "🍅");
+        current.setZone_id("zone-001");
+        current.setArea_id("area-one");
+        ZoneSeasonState state = new ZoneSeasonState();
+        state.setStatus(SeasonStatus.ACTIVE);
+        state.setActive_season_id("tomato-season");
+        LinkedHashMap<String, Boolean> ids = new LinkedHashMap<>();
+        ids.put("tomato-season", true);
+        ids.put("pepper-season", true);
+        state.setActive_season_ids(ids);
+        current.setSeason(state);
+
+        GardenSeason pepper = activeSeason(
+                "pepper-season", "Biber", "🌶️", "area-one", 200L);
+        GardenSeason tomato = activeSeason(
+                "tomato-season", "Domates", "🍅", "area-one", 100L);
+
+        assertEquals("1. Bölge", SeasonDisplayIdentity.operationalName(
+                current, Arrays.asList(pepper, tomato)));
+        assertEquals("Domates + Biber", SeasonDisplayIdentity.activeCropNames(
+                current, Arrays.asList(pepper, tomato)));
+        assertEquals("🌿 1. Bölge · 🍅🌶️ Domates + Biber",
+                SeasonDisplayIdentity.operationalLabel(current, Arrays.asList(pepper, tomato)));
+        assertEquals("🍅🌶️", SeasonDisplayIdentity.operationalEmoji(
+                current, Arrays.asList(pepper, tomato)));
+        assertEquals(2, SeasonDisplayIdentity.activeSeasons(
+                current, Arrays.asList(pepper, tomato)).size());
+    }
+
+    @Test
+    public void identicalCropNamesIncludeTheirPhysicalArea() {
+        GardenZone first = zone("Biber", "🌶️");
+        first.setZone_id("zone-001");
+        first.setArea_name("Ön Bahçe");
+        GardenZone second = zone("Biber", "🌶️");
+        second.setZone_id("zone-004");
+        second.setArea_name("Sera");
+
+        assertEquals("Biber · Ön Bahçe",
+                SeasonDisplayIdentity.cropAreaName(null, first));
+        assertEquals("Biber · Sera",
+                SeasonDisplayIdentity.cropAreaName(null, second));
+        assertEquals("🌶️ Biber · Ön Bahçe",
+                SeasonDisplayIdentity.cropAreaLabel(null, first));
+        assertEquals("🌶️ Biber\nÖn Bahçe",
+                SeasonDisplayIdentity.stackedCropAreaLabel(null, first));
+    }
+
     private static GardenZone zone(String name, String emoji) {
         GardenZone zone = new GardenZone();
         zone.setName(name);
@@ -55,6 +110,17 @@ public final class SeasonDisplayIdentityTest {
         season.setZone_name(name);
         season.setPlant_type(plantType);
         season.setEmoji(emoji);
+        return season;
+    }
+
+    private static GardenSeason activeSeason(String id, String name, String emoji,
+                                             String areaId, long startedAt) {
+        GardenSeason season = season(name, name, emoji);
+        season.setSeason_id(id);
+        season.setZone_id("zone-001");
+        season.setArea_id(areaId);
+        season.setStatus(SeasonStatus.ACTIVE);
+        season.setStarted_at_epoch(startedAt);
         return season;
     }
 }

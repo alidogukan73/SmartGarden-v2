@@ -17,6 +17,11 @@ public final class PlantFollowUpStore {
     }
 
     public Result registerAnalysis(String zoneId, String photoId, String title) {
+        return registerAnalysis(zoneId, "", photoId, title);
+    }
+
+    public Result registerAnalysis(String zoneId, String seasonId,
+                                   String photoId, String title) {
         if (zoneId == null || zoneId.isBlank() || photoId == null || photoId.isBlank()) {
             return Result.none();
         }
@@ -33,6 +38,7 @@ public final class PlantFollowUpStore {
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.getJSONObject(i);
                 if (zoneId.equals(item.optString("zone_id"))
+                        && sameSeason(item.optString("season_id"), seasonId)
                         && !item.optBoolean("completed", false)) {
                     item.put("completed", true);
                     item.put("completed_photo_id", photoId);
@@ -44,6 +50,7 @@ public final class PlantFollowUpStore {
             JSONObject task = new JSONObject();
             task.put("zone_id", zoneId);
             task.put("title", title == null ? "" : title);
+            task.put("season_id", seasonId == null ? "" : seasonId.trim());
             task.put("analysis_photo_id", photoId);
             task.put("created_at_epoch", now);
             task.put("due_at_epoch", now + 3 * 24 * 60 * 60L);
@@ -93,6 +100,12 @@ public final class PlantFollowUpStore {
             }
         } catch (Exception ignored) { }
     }
+    private static boolean sameSeason(String stored, String requested) {
+        String expected = requested == null ? "" : requested.trim();
+        if (expected.isEmpty()) return true;
+        return expected.equals(stored == null ? "" : stored.trim());
+    }
+
 
     private JSONArray read() {
         String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

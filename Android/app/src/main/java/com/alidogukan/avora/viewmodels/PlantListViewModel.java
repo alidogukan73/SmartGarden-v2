@@ -9,7 +9,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.alidogukan.avora.firebase.FirebaseRepository;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.season.SeasonScope;
 
 import java.util.List;
@@ -20,14 +22,17 @@ public final class PlantListViewModel extends AndroidViewModel {
     private static final String SORT_MODE = "sort_mode";
     private final SharedPreferences preferences;
     private final LiveData<List<GardenZone>> zones;
+    private final LiveData<List<GardenSeason>> seasons;
 
     public PlantListViewModel(@NonNull Application application) {
         super(application);
         preferences = application.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         zones = new FirebaseRepository().observeGardenZones();
+        seasons = new SeasonRepository().observeAllSeasons();
     }
 
     public LiveData<List<GardenZone>> getZones() { return zones; }
+    public LiveData<List<GardenSeason>> getSeasons() { return seasons; }
     public List<GardenZone> activeZones(List<GardenZone> values) {
         return SeasonScope.activeSeasonZones(values);
     }

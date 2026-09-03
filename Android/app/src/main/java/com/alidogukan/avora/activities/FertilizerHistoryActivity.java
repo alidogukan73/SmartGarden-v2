@@ -22,6 +22,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.adapters.FertilizerHistoryAdapter;
 import com.alidogukan.avora.models.FertilizerApplication;
+import com.alidogukan.avora.models.GardenSeason;
+import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.zones.ZoneChipRenderer;
 import com.alidogukan.avora.viewmodels.FertilizerHistoryViewModel;
 import com.google.android.material.chip.ChipGroup;
@@ -52,6 +55,8 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
     private TextView outcomeSummary;
     private List<FertilizerApplication> allValues =
             Collections.emptyList();
+    private List<GardenZone> latestZones = Collections.emptyList();
+    private List<GardenSeason> latestSeasons = Collections.emptyList();
     private String selectedZoneId = "";
     private String pendingOutcomeApplicationId = "";
     private boolean pendingOutcomeOpened;
@@ -115,20 +120,36 @@ public class FertilizerHistoryActivity extends AppCompatActivity {
         ChipGroup zoneGroup = findViewById(
                 R.id.chipGroupFertilizerZones
         );
-        viewModel.getZones().observe(this, zones ->
-                ZoneChipRenderer.render(
-                        this,
-                        zoneGroup,
-                        zones,
-                        selectedZoneId,
-                        R.string.history_zone_all,
-                        zoneId -> {
-                            selectedZoneId = zoneId;
-                            applyFilter();
-                        }
-                )
+        viewModel.getZones().observe(this, zones -> {
+            latestZones = zones == null ? Collections.emptyList() : zones;
+            renderZoneFilters(zoneGroup);
+        });
+        viewModel.getSeasons().observe(this, seasons -> {
+            latestSeasons = seasons == null ? Collections.emptyList() : seasons;
+            renderZoneFilters(zoneGroup);
+        });
+    }
+    private void renderZoneFilters(ChipGroup zoneGroup) {
+        java.util.Map<String, String> labels = new java.util.HashMap<>();
+        for (GardenZone zone : latestZones) {
+            if (zone == null || zone.getZone_id() == null) continue;
+            labels.put(zone.getZone_id(),
+                    SeasonDisplayIdentity.operationalLabel(zone, latestSeasons));
+        }
+        ZoneChipRenderer.render(
+                this,
+                zoneGroup,
+                latestZones,
+                selectedZoneId,
+                R.string.history_zone_all,
+                labels,
+                zoneId -> {
+                    selectedZoneId = zoneId;
+                    applyFilter();
+                }
         );
     }
+
 
     private void render(List<FertilizerApplication> values) {
         allValues = values == null

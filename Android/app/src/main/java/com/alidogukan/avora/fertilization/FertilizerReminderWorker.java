@@ -211,7 +211,7 @@ public class FertilizerReminderWorker extends Worker {
                     || !applicationBelongsToActiveSeason(zone, application)) continue;
             String zoneName = zone == null
                     ? safe(application.getZone_name(), zoneId)
-                    : safe(zone.getName(), safe(application.getZone_name(), zoneId));
+                    : com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
             String productName = safe(application.getProduct_name(),
                     context.getString(R.string.fertilizer_outcome_follow_up_product));
             manager.publishOnce(
@@ -323,7 +323,7 @@ public class FertilizerReminderWorker extends Worker {
             return;
         }
 
-        String zoneName = safe(zone.getName(), zoneId);
+        String zoneName = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         String title = days == 0L
                 ? context.getString(R.string.notification_fertilizer_due_today_title)
                 : days == -1L
@@ -572,7 +572,7 @@ public class FertilizerReminderWorker extends Worker {
                 title = context.getString(R.string.notification_fertilizer_ai_ready_title);
                 break;
         }
-        String zoneName = safe(zone.getName(), zoneId);
+        String zoneName = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         new GardenNotificationManager(context).publishOnce(
                 "FERTILIZATION",
                 priority,
@@ -601,8 +601,14 @@ public class FertilizerReminderWorker extends Worker {
     private static boolean applicationBelongsToActiveSeason(
             GardenZone zone,
             FertilizerApplication application) {
-        return zone != null && zone.getSeason() != null && application != null
-                && NotificationPolicy.recordBelongsToActiveSeason(
+        if (zone == null || zone.getSeason() == null || application == null) return false;
+        if (application.hasExplicitSeasonMembership()) {
+            for (String seasonId : application.getSeason_ids()) {
+                if (zone.getSeason().isSeasonActive(seasonId)) return true;
+            }
+            return false;
+        }
+        return NotificationPolicy.recordBelongsToActiveSeason(
                 zone.isEnabled(),
                 zone.getSeason().isActive(),
                 zone.getSeason().getActive_season_id(),

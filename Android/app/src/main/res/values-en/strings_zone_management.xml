@@ -6,7 +6,7 @@
     <string name="zone_management_capacity" tools:ignore="PluralsCandidate">%1$d / %2$d zones in use</string>
     <string name="zone_management_info">The system supports up to 8 zones. A sensor and valve can be assigned only once among active zones. A zone with missing hardware can be monitored but cannot water automatically.</string>
     <string name="zone_management_add">Add zone</string>
-    <string name="zone_management_open_catalog">Crop catalog</string>
+    <string name="zone_management_open_seasons">Go to seasons</string>
     <string name="zone_management_regions_heading">Active zones</string>
     <string name="zone_management_capacity_full">All 8 zones are in use. Deactivate a zone before adding another.</string>
     <string name="zone_management_empty_slot_title">Zone %1$d · Empty slot</string>

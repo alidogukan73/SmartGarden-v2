@@ -206,9 +206,7 @@ public final class PlantAssistantHomeRecommendation {
     }
 
     private static String zoneName(GardenZone zone) {
-        if (zone == null || clean(zone.getName()).isEmpty()) return "Bu bölge";
-        String emoji = clean(zone.getEmoji());
-        return (emoji.isEmpty() ? "" : emoji + " ") + clean(zone.getName());
+        return com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
     }
 
     private static String clean(String value) {

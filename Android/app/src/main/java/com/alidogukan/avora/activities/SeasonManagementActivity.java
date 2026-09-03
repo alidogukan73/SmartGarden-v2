@@ -115,13 +115,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         inactiveZoneContainer.removeAllViews();
 
         List<GardenZone> activeZones = viewModel.activeZones(zones);
-        List<GardenZone> inactiveZones = new ArrayList<>();
-        for (GardenZone zone : zones) {
-            if (viewModel.isInactiveArchiveZone(zone)
-                    && hasCompletedSeasonArchive(zone.getZone_id())) {
-                inactiveZones.add(zone);
-            }
-        }
+        List<GardenZone> inactiveZones =
+                viewModel.inactiveArchiveZones(zones, seasons);
 
         emptyView.setVisibility(activeZones.isEmpty() ? View.VISIBLE : View.GONE);
         emptyView.setText(zones.isEmpty()
@@ -157,6 +152,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
             ZoneSeasonState state = zone.getSeason();
             value.append("Z|")
                     .append(safe(zone.getZone_id())).append('|')
+                    .append(safe(zone.getArea_name())).append('|')
                     .append(safe(zone.getName())).append('|')
                     .append(safe(zone.getEmoji())).append('|')
                     .append(zone.isEnabled()).append('|')
@@ -220,9 +216,11 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         TextView name = text(zoneLabel(zone), 18, R.color.textPrimary, Typeface.BOLD);
         heading.addView(name, weighted());
         ZoneSeasonState state = zone.getSeason();
+        List<GardenSeason> history = seasonsFor(zone);
+        List<GardenSeason> activeSeasons = activeSeasons(history);
         boolean preparing = state == null || blank(state.getStatus());
         boolean notStarted = viewModel.isSeasonNotStarted(state);
-        boolean active = !preparing && state.isActive();
+        boolean active = !activeSeasons.isEmpty();
         int badgeText = preparing
                 ? R.string.season_status_preparing
                 : (notStarted
@@ -243,20 +241,21 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         label.setPadding(0, dp(7), 0, 0);
         content.addView(label);
 
-        List<GardenSeason> history = seasonsFor(zone);
         TextView historySummary = text(historySummary(history), 12, R.color.textSecondary, Typeface.NORMAL);
         historySummary.setPadding(0, dp(8), 0, 0);
         content.addView(historySummary);
+        for (GardenSeason season : activeSeasons) {
+            content.addView(createActiveSeasonRow(zone, season));
+        }
 
         MaterialButton action = new MaterialButton(
                 this,
                 null,
-                active ? com.google.android.material.R.attr.materialButtonOutlinedStyle
-                        : com.google.android.material.R.attr.materialButtonStyle
+                com.google.android.material.R.attr.materialButtonStyle
         );
         action.setText(preparing
                 ? R.string.season_prepare_action
-                : (active ? R.string.season_close_action : R.string.season_start_action));
+                : (active ? R.string.season_add_crop_action : R.string.season_start_action));
         action.setEnabled(!preparing);
         action.setAlpha(preparing ? 0.65f : 1f);
         action.setAllCaps(false);
@@ -270,49 +269,9 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         action.setLayoutParams(actionParams);
         action.setOnClickListener(view -> {
             if (preparing) return;
-            if (active) showCloseDialog(zone, state, action);
-            else showStartDialog(zone, action);
+            showStartDialog(zone, action);
         });
         content.addView(action);
-
-        if (active) {
-            MaterialButton cancelNewSeason = new MaterialButton(
-                    this,
-                    null,
-                    com.google.android.material.R.attr.materialButtonOutlinedStyle
-            );
-            cancelNewSeason.setText(R.string.season_cancel_new_action);
-            cancelNewSeason.setAllCaps(false);
-            cancelNewSeason.setTextSize(14);
-            cancelNewSeason.setTypeface(cancelNewSeason.getTypeface(), Typeface.BOLD);
-            cancelNewSeason.setVisibility(View.GONE);
-            LinearLayout.LayoutParams cancelParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    dp(48)
-            );
-            cancelParams.topMargin = dp(8);
-            cancelNewSeason.setLayoutParams(cancelParams);
-            cancelNewSeason.setOnClickListener(view -> showCancelNewSeasonDialog(
-                    zone,
-                    cancelNewSeason
-            ));
-            content.addView(cancelNewSeason);
-
-            String expectedSeasonId = safe(state.getActive_season_id());
-            viewModel.canCancelNewSeason(zone.getZone_id())
-                    .addOnSuccessListener(canCancel -> {
-                        ZoneSeasonState latest = zone.getSeason();
-                        boolean sameSeason = latest != null
-                                && latest.isActive()
-                                && expectedSeasonId.equals(safe(latest.getActive_season_id()));
-                        cancelNewSeason.setVisibility(
-                                Boolean.TRUE.equals(canCancel) && sameSeason
-                                        ? View.VISIBLE
-                                        : View.GONE
-                        );
-                    })
-                    .addOnFailureListener(error -> cancelNewSeason.setVisibility(View.GONE));
-        }
 
         MaterialButton archive = new MaterialButton(
                 this,
@@ -337,6 +296,77 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         return card;
     }
 
+    private View createActiveSeasonRow(GardenZone zone, GardenSeason season) {
+        LinearLayout row = horizontal();
+        row.setPadding(0, dp(10), 0, 0);
+        String crop = archiveZoneLabel(zone, season);
+        TextView details = text(
+                getString(
+                        R.string.season_active_crop_summary,
+                        crop,
+                        formatEpoch(season.getStarted_at_epoch())
+                ),
+                13,
+                R.color.textPrimary,
+                Typeface.BOLD
+        );
+        row.addView(details, weighted());
+
+        MaterialButton delete = new MaterialButton(
+                this,
+                null,
+                com.google.android.material.R.attr.materialButtonOutlinedStyle
+        );
+        delete.setText(R.string.season_delete_empty_action);
+        delete.setAllCaps(false);
+        delete.setTextSize(12);
+        delete.setVisibility(View.GONE);
+        LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(44)
+        );
+        deleteParams.setMarginStart(dp(6));
+        delete.setLayoutParams(deleteParams);
+        delete.setOnClickListener(view -> showCancelNewSeasonDialog(
+                zone,
+                season,
+                delete
+        ));
+        row.addView(delete);
+
+        MaterialButton close = new MaterialButton(
+                this,
+                null,
+                com.google.android.material.R.attr.materialButtonOutlinedStyle
+        );
+        close.setText(R.string.season_close_short_action);
+        close.setAllCaps(false);
+        close.setTextSize(12);
+        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(44)
+        );
+        closeParams.setMarginStart(dp(6));
+        close.setLayoutParams(closeParams);
+        close.setOnClickListener(view -> showCloseDialog(zone, season, close));
+        row.addView(close);
+
+        String expectedSeasonId = safe(season.getSeason_id());
+        viewModel.canCancelNewSeason(zone.getZone_id(), expectedSeasonId)
+                .addOnSuccessListener(canCancel -> {
+                    ZoneSeasonState latest = zone.getSeason();
+                    boolean stillActive = latest != null
+                            && latest.isSeasonActive(expectedSeasonId);
+                    delete.setVisibility(
+                            Boolean.TRUE.equals(canCancel) && stillActive
+                                    ? View.VISIBLE
+                                    : View.GONE
+                    );
+                })
+                .addOnFailureListener(error -> delete.setVisibility(View.GONE));
+        return row;
+    }
+
     private View createInactiveZoneCard(GardenZone zone) {
         MaterialCardView card = new MaterialCardView(this);
         card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.card));
@@ -356,7 +386,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         GardenSeason archiveIdentity = latestCompletedSeason(seasonsFor(zone), true);
 
         LinearLayout heading = horizontal();
-        heading.addView(text(archiveZoneLabel(zone, archiveIdentity), 18, R.color.textPrimary, Typeface.BOLD), weighted());
+        heading.addView(text(zoneLabel(zone), 18, R.color.textPrimary, Typeface.BOLD), weighted());
         TextView badge = text(
                 getString(R.string.season_status_zone_inactive),
                 10,
@@ -426,26 +456,19 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     }
 
     private String currentSeasonSummary(GardenZone zone) {
+        List<GardenSeason> active = activeSeasons(seasonsFor(zone));
+        if (!active.isEmpty()) {
+            return getResources().getQuantityString(
+                    R.plurals.season_active_crop_count,
+                    active.size(),
+                    active.size()
+            );
+        }
         ZoneSeasonState state = zone.getSeason();
         if (state == null || blank(state.getStatus())) {
             return getString(R.string.season_management_preparing);
         }
-        if (viewModel.isSeasonNotStarted(state)) {
-            return getString(R.string.season_not_started_summary);
-        }
-        String label = blank(state.getLabel()) ? getString(R.string.season_label_fallback) : state.getLabel();
-        if (state.isActive()) {
-            return getString(
-                    R.string.season_active_summary,
-                    label,
-                    formatEpoch(state.getStarted_at_epoch())
-            );
-        }
-        return getString(
-                R.string.season_closed_summary,
-                label,
-                formatEpoch(state.getEnded_at_epoch())
-        );
+        return getString(R.string.season_not_started_summary);
     }
 
     private String historySummary(List<GardenSeason> history) {
@@ -490,8 +513,14 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         return viewModel.visibleSeasonsFor(zone, seasons);
     }
 
-    private boolean hasCompletedSeasonArchive(String zoneId) {
-        return viewModel.hasRecordedArchive(zoneId, seasons);
+    private static List<GardenSeason> activeSeasons(List<GardenSeason> history) {
+        List<GardenSeason> result = new ArrayList<>();
+        if (history == null) return result;
+        for (GardenSeason season : history) {
+            if (season != null && com.alidogukan.avora.models.SeasonStatus.isActive(
+                    season.getStatus())) result.add(season);
+        }
+        return result;
     }
 
     private void showStartDialog(GardenZone zone, MaterialButton action) {
@@ -551,8 +580,8 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         ScrollView scroll = new ScrollView(this);
         scroll.addView(form);
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.season_start_dialog_title, safe(zone.getName())))
-                .setMessage(R.string.season_start_dialog_message)
+                .setTitle(getString(R.string.season_start_dialog_title, com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone)))
+                .setMessage(R.string.season_shared_operations_message)
                 .setView(scroll)
                 .setNegativeButton(R.string.season_cancel, null)
                 .setPositiveButton(R.string.season_start_action, null)
@@ -584,7 +613,9 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                                     value(label),
                                     cropName,
                                     plantType,
-                                    emoji
+                                    emoji,
+                                    selectedCrop.getIdeal_moisture_min(),
+                                    selectedCrop.getIdeal_moisture_max()
                             )
                             .addOnSuccessListener(result -> {
                                 setBusy(action, false);
@@ -631,33 +662,40 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         return 0;
     }
 
-    private void showCancelNewSeasonDialog(GardenZone zone, MaterialButton action) {
+    private void showCancelNewSeasonDialog(
+            GardenZone zone,
+            GardenSeason season,
+            MaterialButton action
+    ) {
         new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.season_cancel_new_dialog_title, safe(zone.getName())))
-                .setMessage(R.string.season_cancel_new_dialog_message)
+                .setTitle(getString(
+                        R.string.season_delete_empty_dialog_title,
+                        archiveZoneLabel(zone, season)
+                ))
+                .setMessage(R.string.season_delete_empty_dialog_message)
                 .setNegativeButton(R.string.season_cancel, null)
-                .setPositiveButton(R.string.season_cancel_new_confirm, (dialog, which) -> {
+                .setPositiveButton(R.string.season_delete_empty_confirm, (dialog, which) -> {
                     setBusy(action, true);
-                    viewModel.cancelNewSeason(zone.getZone_id())
+                    viewModel.cancelNewSeason(zone.getZone_id(), season.getSeason_id())
                             .addOnSuccessListener(ignored -> {
                                 setBusy(action, false);
                                 lastRenderSignature = "";
                                 renderIfChanged();
                                 Toast.makeText(
                                         this,
-                                        R.string.season_cancel_new_success,
+                                        R.string.season_delete_empty_success,
                                         Toast.LENGTH_LONG
                                 ).show();
                             })
                             .addOnFailureListener(error -> {
                                 setBusy(action, false);
-                                showError(error, R.string.season_cancel_new_failed);
+                                showError(error, R.string.season_delete_empty_failed);
                             });
                 })
                 .show();
     }
 
-    private void showCloseDialog(GardenZone zone, ZoneSeasonState state, MaterialButton action) {
+    private void showCloseDialog(GardenZone zone, GardenSeason season, MaterialButton action) {
         LinearLayout form = dialogForm();
         Spinner result = new Spinner(this);
         ArrayAdapter<CharSequence> resultAdapter = ArrayAdapter.createFromResource(
@@ -679,14 +717,14 @@ public final class SeasonManagementActivity extends AppCompatActivity {
         form.addView(next);
 
         new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.season_close_dialog_title, safe(zone.getName())))
+                .setTitle(getString(R.string.season_close_dialog_title, archiveZoneLabel(zone, season)))
                 .setMessage(R.string.season_close_dialog_message)
                 .setView(form)
                 .setNegativeButton(R.string.season_cancel, null)
                 .setPositiveButton(R.string.season_close_action, (dialog, which) -> {
                     SeasonOutcome outcome = new SeasonOutcome();
-                    outcome.setId(state.getActive_season_id());
-                    outcome.setSeason_id(state.getActive_season_id());
+                    outcome.setId(season.getSeason_id());
+                    outcome.setSeason_id(season.getSeason_id());
                     outcome.setZone_id(zone.getZone_id());
                     outcome.setResult(String.valueOf(result.getSelectedItem()));
                     outcome.setHarvest_amount(value(harvest));
@@ -696,7 +734,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
                     outcome.setNext_season_note(value(next));
                     outcome.setRecorded_at_epoch(System.currentTimeMillis() / 1000L);
                     setBusy(action, true);
-                    viewModel.closeSeason(zone, state, outcome)
+                    viewModel.closeSeason(zone, season, outcome)
                             .addOnSuccessListener(ignored -> {
                                 setBusy(action, false);
                                 Toast.makeText(this, R.string.season_closed_success, Toast.LENGTH_LONG).show();
@@ -784,8 +822,7 @@ public final class SeasonManagementActivity extends AppCompatActivity {
     }
 
     private String zoneLabel(GardenZone zone) {
-        String emoji = safe(zone.getEmoji()).trim();
-        return (emoji.isEmpty() ? "" : emoji + " ") + safe(zone.getName());
+        return com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
     }
 
     private String archiveZoneLabel(GardenZone zone, GardenSeason season) {
@@ -840,6 +877,9 @@ public final class SeasonManagementActivity extends AppCompatActivity {
 
     private void showError(Exception error, int fallback) {
         String message = error == null || blank(error.getMessage()) ? getString(fallback) : error.getMessage();
+        if ("SHARED_IRRIGATION_INCOMPATIBLE".equals(message)) {
+            message = getString(R.string.season_shared_irrigation_incompatible);
+        }
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 

@@ -85,13 +85,13 @@
                 android:text="@string/zone_management_add" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnOpenCropCatalog"
+                android:id="@+id/btnOpenSeasonManagement"
                 style="@style/Widget.AVORA.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="@string/zone_management_open_catalog" />
+                android:text="@string/zone_management_open_crop_seasons" />
         </LinearLayout>
 
         <TextView

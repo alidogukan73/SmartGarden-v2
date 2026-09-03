@@ -7,9 +7,13 @@ import com.google.firebase.database.IgnoreExtraProperties;
 public class GardenSeason {
     private String season_id = "";
     private String zone_id = "";
+    private String area_id = "";
+    private String area_name = "";
     private String zone_name = "";
     private String plant_type = "";
     private String emoji = "";
+    private int ideal_moisture_min;
+    private int ideal_moisture_max = 100;
     private String sensor_id = "";
     private boolean sensor_enabled;
     private String valve_id = "";
@@ -45,12 +49,20 @@ public class GardenSeason {
     public void setSeason_id(String value) { season_id = safe(value); }
     public String getZone_id() { return zone_id; }
     public void setZone_id(String value) { zone_id = safe(value); }
+    public String getArea_id() { return area_id; }
+    public void setArea_id(String value) { area_id = safe(value); }
+    public String getArea_name() { return area_name; }
+    public void setArea_name(String value) { area_name = safe(value); }
     public String getZone_name() { return zone_name; }
     public void setZone_name(String value) { zone_name = safe(value); }
     public String getPlant_type() { return plant_type; }
     public void setPlant_type(String value) { plant_type = safe(value); }
     public String getEmoji() { return emoji; }
     public void setEmoji(String value) { emoji = safe(value); }
+    public int getIdeal_moisture_min() { return ideal_moisture_min; }
+    public void setIdeal_moisture_min(int value) { ideal_moisture_min = clamp(value); }
+    public int getIdeal_moisture_max() { return ideal_moisture_max; }
+    public void setIdeal_moisture_max(int value) { ideal_moisture_max = clamp(value); }
     public String getSensor_id() { return sensor_id; }
     public void setSensor_id(String value) { sensor_id = safe(value); }
     public boolean isSensor_enabled() { return sensor_enabled; }
@@ -109,4 +121,5 @@ public class GardenSeason {
     public void setUpdated_at_epoch(long value) { updated_at_epoch = Math.max(0L, value); }
 
     private static String safe(String value) { return value == null ? "" : value; }
+    private static int clamp(int value) { return Math.max(0, Math.min(100, value)); }
 }

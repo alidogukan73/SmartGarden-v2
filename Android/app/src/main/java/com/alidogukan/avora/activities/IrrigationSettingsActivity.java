@@ -426,11 +426,7 @@ public class IrrigationSettingsActivity extends AppCompatActivity {
         if (zone == null) {
             return "";
         }
-        String name = zone.getName();
-        if (name == null || name.isBlank()) {
-            return zone.getZone_id();
-        }
-        return name.trim();
+        return com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
     }
 
     private void restartIrrigationProcess(String scope, int successMessage) {

@@ -102,6 +102,9 @@ class FakeFirebase:
         self.states = states
         self.decision_update_count += 1
 
+    def update_zone_irrigation_safety_state(self, **_kwargs) -> None:
+        return None
+
     def update_zone_ai_states(
         self,
         states: dict,
@@ -224,6 +227,28 @@ def main() -> None:
     assert ("soil-001", "zone-001") in service._firebase.history_requests
     assert ("soil-002", "zone-002") in service._firebase.history_requests
     assert all(zone_id for _, zone_id in service._firebase.history_requests)
+
+    # Changing the crops in an existing physical zone resets transient AI
+    # state before the new duration plan is computed. The plan must still be
+    # available later in this same decision cycle.
+    service._firebase.configs["soil-001"]["season"] = {
+        "status": "ACTIVE",
+        "active_season_id": "tomato-season",
+        "active_season_ids": {
+            "tomato-season": True,
+            "pepper-season": True,
+        },
+    }
+    service._last_zone_ai_update = 0.0
+    after_crop_change = service._update_multi_zone_decisions(
+        readings=readings,
+        global_commands=commands,
+    )
+    assert after_crop_change is not None
+    assert "zone-001" in service._watering_duration_plans_by_zone
+    assert service._zone_ai_season_ids["zone-001"] == (
+        "pepper-season|tomato-season"
+    )
 
     # A newly configured hardware zone remains available for telemetry, but
     # must not enter irrigation/AI decisions until its season is started.

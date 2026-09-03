@@ -7,10 +7,14 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.alidogukan.avora.firebase.FirebaseRepository;
+import com.alidogukan.avora.models.DeviceNetworkStatus;
 import com.alidogukan.avora.models.DeviceInfoSnapshot;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.Health;
+import com.alidogukan.avora.models.NetworkConfigurationRequest;
+import com.alidogukan.avora.models.NetworkConfigurationResult;
 import com.alidogukan.avora.models.Status;
+import com.google.android.gms.tasks.Task;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -24,10 +28,11 @@ public final class DeviceInfoViewModel extends ViewModel {
     private static final long CONNECTION_FRESHNESS_MS = 180_000L;
     private final MediatorLiveData<DeviceInfoState> state = new MediatorLiveData<>();
     private final MutableLiveData<Boolean> readError = new MutableLiveData<>(false);
+    private final FirebaseRepository repository = new FirebaseRepository();
 
     public DeviceInfoViewModel() {
         LiveData<DeviceInfoSnapshot> source =
-                new FirebaseRepository().observeDeviceInfoSnapshot(error ->
+                repository.observeDeviceInfoSnapshot(error ->
                 readError.setValue(true));
         state.addSource(source, snapshot -> {
             readError.setValue(false);
@@ -41,6 +46,10 @@ public final class DeviceInfoViewModel extends ViewModel {
 
     public LiveData<Boolean> getReadError() {
         return readError;
+    }
+
+    public Task<Void> requestNetworkConfiguration(NetworkConfigurationRequest value) {
+        return repository.requestNetworkConfiguration(value);
     }
 
     static DeviceInfoState map(DeviceInfoSnapshot snapshot, long nowMillis) {
@@ -64,7 +73,22 @@ public final class DeviceInfoViewModel extends ViewModel {
             firmwareVersions.addAll(snapshot.getFirmwareVersions());
         }
         return new DeviceInfoState(connected, health, status, lastSeenMillis,
-                enabledZones, enabledSensors, physicalValves, firmwareVersions);
+                enabledZones, enabledSensors, physicalValves, firmwareVersions,
+                snapshot == null ? null : snapshot.getNetworkStatus(),
+                snapshot == null ? null : snapshot.getNetworkResult());
+    }
+
+    public static boolean representsAppliedNetworkConfiguration(
+            DeviceNetworkStatus current,
+            String expectedMode,
+            String expectedIp
+    ) {
+        if (current == null || !meaningful(expectedMode)
+                || !expectedMode.trim().equalsIgnoreCase(current.getMode())) {
+            return false;
+        }
+        return !meaningful(expectedIp)
+                || expectedIp.trim().equals(current.getIpAddress().trim());
     }
 
     private static long resolveLastSeenMillis(@Nullable Status status) {
@@ -98,10 +122,14 @@ public final class DeviceInfoViewModel extends ViewModel {
         public final int enabledSensors;
         public final int physicalValves;
         public final Set<String> firmwareVersions;
+        public final DeviceNetworkStatus networkStatus;
+        public final NetworkConfigurationResult networkResult;
 
         DeviceInfoState(boolean connected, Health health, Status status, long lastSeenMillis,
                         int enabledZones, int enabledSensors, int physicalValves,
-                        Set<String> firmwareVersions) {
+                        Set<String> firmwareVersions,
+                        DeviceNetworkStatus networkStatus,
+                        NetworkConfigurationResult networkResult) {
             this.connected = connected;
             this.health = health;
             this.status = status;
@@ -109,6 +137,8 @@ public final class DeviceInfoViewModel extends ViewModel {
             this.enabledZones = enabledZones;
             this.enabledSensors = enabledSensors;
             this.physicalValves = physicalValves;
+            this.networkStatus = networkStatus;
+            this.networkResult = networkResult;
             this.firmwareVersions = Collections.unmodifiableSet(
                     new LinkedHashSet<>(firmwareVersions));
         }

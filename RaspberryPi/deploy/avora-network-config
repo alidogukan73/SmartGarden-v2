@@ -1,0 +1,291 @@
+#!/usr/bin/env python3
+"""Root-owned, narrowly scoped NetworkManager helper for AVORA."""
+
+from __future__ import annotations
+
+import argparse
+import ipaddress
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+
+STATE_DIR = Path("/var/lib/avora/network")
+HELPER_PATH = "/usr/local/sbin/avora-network-config"
+ROLLBACK_SECONDS = 90
+REQUEST_PATTERN = re.compile(r"[0-9a-f]{8}-[0-9a-f-]{27,40}")
+INTERFACE_PATTERN = re.compile(r"[a-zA-Z0-9_.:-]{1,32}")
+
+
+def run(arguments: list[str], *, check: bool = True) -> str:
+    completed = subprocess.run(
+        arguments,
+        check=check,
+        capture_output=True,
+        text=True,
+        timeout=35,
+    )
+    return str(completed.stdout or "").strip()
+
+
+def request_id(value: str) -> str:
+    normalized = str(value or "").strip().lower()
+    if not REQUEST_PATTERN.fullmatch(normalized):
+        raise ValueError("Invalid request identifier")
+    return normalized
+
+
+def interface_name(value: str) -> str:
+    normalized = str(value or "").strip()
+    if normalized == "lo" or not INTERFACE_PATTERN.fullmatch(normalized):
+        raise ValueError("Invalid network interface")
+    return normalized
+
+
+def ipv4(value: str, label: str) -> str:
+    try:
+        address = ipaddress.IPv4Address(str(value or "").strip())
+    except ipaddress.AddressValueError as exc:
+        raise ValueError(f"Invalid {label}") from exc
+    if address.is_loopback or address.is_link_local or address.is_multicast \
+            or address.is_unspecified:
+        raise ValueError(f"Reserved {label}")
+    return str(address)
+
+
+def active_connection(interface: str) -> str:
+    connection = run(
+        ["nmcli", "-g", "GENERAL.CONNECTION", "device", "show", interface]
+    )
+    if not connection or connection == "--":
+        raise RuntimeError("No active NetworkManager profile for interface")
+    return connection
+
+
+def profile_value(connection: str, field: str) -> str:
+    return run(["nmcli", "-g", field, "connection", "show", connection])
+
+
+def snapshot_path(identifier: str) -> Path:
+    return STATE_DIR / f"{request_id(identifier)}.json"
+
+
+def write_snapshot(identifier: str, interface: str, connection: str) -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(STATE_DIR, 0o700)
+    state = {
+        "request_id": identifier,
+        "interface": interface,
+        "connection": connection,
+        "method": profile_value(connection, "ipv4.method"),
+        "addresses": profile_value(connection, "ipv4.addresses"),
+        "gateway": profile_value(connection, "ipv4.gateway"),
+        "dns": profile_value(connection, "ipv4.dns"),
+        "ignore_auto_dns": profile_value(connection, "ipv4.ignore-auto-dns"),
+    }
+    descriptor, temporary = tempfile.mkstemp(prefix="network-", dir=STATE_DIR)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(state, handle, ensure_ascii=True)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temporary, 0o600)
+        os.replace(temporary, snapshot_path(identifier))
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def modify_profile(
+    connection: str,
+    *,
+    method: str,
+    addresses: str,
+    gateway: str,
+    dns: str,
+    ignore_auto_dns: str,
+) -> None:
+    run(
+        [
+            "nmcli", "connection", "modify", connection,
+            "ipv4.method", method,
+            "ipv4.addresses", addresses,
+            "ipv4.gateway", gateway,
+            "ipv4.dns", dns,
+            "ipv4.ignore-auto-dns", ignore_auto_dns,
+        ]
+    )
+
+
+def unit_name(identifier: str) -> str:
+    return f"avora-network-rollback-{request_id(identifier)}"
+
+
+def schedule_rollback(identifier: str) -> None:
+    unit = unit_name(identifier)
+    run(
+        [
+            "systemd-run",
+            f"--unit={unit}",
+            f"--on-active={ROLLBACK_SECONDS}s",
+            "--property=Type=oneshot",
+            HELPER_PATH,
+            "rollback",
+            "--request-id",
+            identifier,
+        ]
+    )
+
+
+def cancel_rollback(identifier: str) -> None:
+    unit = unit_name(identifier)
+    subprocess.run(
+        ["systemctl", "stop", f"{unit}.timer"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    subprocess.run(
+        ["systemctl", "reset-failed", f"{unit}.service"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+
+def refresh_network_dependents() -> None:
+    """Restore Tailscale-managed DNS after the underlying route changes."""
+    active = subprocess.run(
+        ["systemctl", "is-active", "--quiet", "tailscaled.service"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if active.returncode == 0:
+        run(["systemctl", "restart", "tailscaled.service"])
+
+
+def apply_configuration(arguments) -> None:
+    identifier = request_id(arguments.request_id)
+    interface = interface_name(arguments.interface)
+    connection = active_connection(interface)
+    write_snapshot(identifier, interface, connection)
+    schedule_rollback(identifier)
+    try:
+        if arguments.mode == "dhcp":
+            modify_profile(
+                connection,
+                method="auto",
+                addresses="",
+                gateway="",
+                dns="",
+                ignore_auto_dns="no",
+            )
+        else:
+            address = ipv4(arguments.address, "IP address")
+            gateway = ipv4(arguments.gateway, "gateway")
+            primary_dns = ipv4(arguments.primary_dns, "primary DNS")
+            secondary_dns = (
+                ipv4(arguments.secondary_dns, "secondary DNS")
+                if arguments.secondary_dns else ""
+            )
+            prefix = int(arguments.prefix)
+            if prefix < 1 or prefix > 30:
+                raise ValueError("Invalid network prefix")
+            network = ipaddress.IPv4Network(f"{address}/{prefix}", strict=False)
+            address_value = ipaddress.IPv4Address(address)
+            gateway_value = ipaddress.IPv4Address(gateway)
+            unusable = {network.network_address, network.broadcast_address}
+            if (address_value not in network or gateway_value not in network
+                    or address_value in unusable or gateway_value in unusable):
+                raise ValueError("Address and gateway must be usable in the same subnet")
+            dns = ",".join(value for value in (primary_dns, secondary_dns) if value)
+            modify_profile(
+                connection,
+                method="manual",
+                addresses=f"{address}/{prefix}",
+                gateway=gateway,
+                dns=dns,
+                ignore_auto_dns="yes",
+            )
+        run(["nmcli", "connection", "up", connection, "ifname", interface])
+        refresh_network_dependents()
+    except Exception:
+        rollback_configuration(identifier)
+        raise
+
+
+def rollback_configuration(identifier: str) -> None:
+    path = snapshot_path(identifier)
+    if not path.is_file():
+        return
+    with path.open("r", encoding="utf-8") as handle:
+        state = json.load(handle)
+    connection = str(state.get("connection", ""))
+    interface = interface_name(str(state.get("interface", "")))
+    if not connection:
+        raise RuntimeError("Network rollback profile is missing")
+    modify_profile(
+        connection,
+        method=str(state.get("method", "auto")) or "auto",
+        addresses=str(state.get("addresses", "")),
+        gateway=str(state.get("gateway", "")),
+        dns=str(state.get("dns", "")),
+        ignore_auto_dns=str(state.get("ignore_auto_dns", "no")) or "no",
+    )
+    run(["nmcli", "connection", "up", connection, "ifname", interface])
+    refresh_network_dependents()
+    path.unlink(missing_ok=True)
+
+
+def confirm_configuration(identifier: str) -> None:
+    identifier = request_id(identifier)
+    cancel_rollback(identifier)
+    snapshot_path(identifier).unlink(missing_ok=True)
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(prog="avora-network-config")
+    subcommands = result.add_subparsers(dest="command", required=True)
+    apply_parser = subcommands.add_parser("apply")
+    apply_parser.add_argument("--request-id", required=True)
+    apply_parser.add_argument("--interface", required=True)
+    apply_parser.add_argument("--mode", choices=("dhcp", "static"), required=True)
+    apply_parser.add_argument("--address", default="")
+    apply_parser.add_argument("--prefix", type=int, default=24)
+    apply_parser.add_argument("--gateway", default="")
+    apply_parser.add_argument("--primary-dns", default="")
+    apply_parser.add_argument("--secondary-dns", default="")
+    for command in ("rollback", "confirm"):
+        command_parser = subcommands.add_parser(command)
+        command_parser.add_argument("--request-id", required=True)
+    return result
+
+
+def main() -> int:
+    if getattr(os, "geteuid", lambda: 1)() != 0:
+        print("This helper must run as root.", file=sys.stderr)
+        return 77
+    arguments = parser().parse_args()
+    try:
+        if arguments.command == "apply":
+            apply_configuration(arguments)
+        elif arguments.command == "rollback":
+            rollback_configuration(arguments.request_id)
+        else:
+            confirm_configuration(arguments.request_id)
+        return 0
+    except Exception as exc:
+        print(str(exc)[:500], file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

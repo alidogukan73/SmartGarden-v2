@@ -2,9 +2,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="season_cancel">İptal</string>
     <string name="season_management_title">Sezon Yönetimi</string>
-    <string name="season_management_subtitle">Her bölgenin sezonunu güvenle başlatın, kapatın ve arşivleyin</string>
+    <string name="season_management_subtitle">Her fiziksel bölgede bir veya daha fazla bitki sezonunu yönetin</string>
     <string name="season_management_info_title">Kayıtlarınız korunur</string>
-    <string name="season_management_info_body">Yeni sezon yalnız bölgenin dönemsel planını sıfırlar. Eski sulama, gübreleme, günlük, fotoğraf ve Bitki Asistanı kayıtları sezon arşivinde kalır.</string>
+    <string name="season_management_info_body">Aynı fiziksel bölgedeki bitkiler sensör ve vanayı paylaşır; her bitkinin sezonu ve arşivi ayrı tutulur. Sulama yalnız uyumlu nem aralığı bulunan bitkiler için ortak çalışır.</string>
     <string name="season_management_zones_title">Etkin bölgeler ve sezonlar</string>
     <string name="season_management_loading">Sezon bilgileri hazırlanıyor…</string>
     <string name="season_management_no_zones">Henüz yönetilecek bir bahçe bölgesi yok.</string>
@@ -24,6 +24,11 @@
     <string name="season_label_fallback">Sezon</string>
     <string name="season_date_unknown">Tarih bilinmiyor</string>
     <string name="season_active_summary">%1$s · Başlangıç: %2$s</string>
+    <string name="season_active_crop_summary">%1$s · Başlangıç: %2$s</string>
+    <plurals name="season_active_crop_count">
+        <item quantity="one">%1$d aktif bitki sezonu · Sensör ve vana ortaktır</item>
+        <item quantity="other">%1$d aktif bitki sezonu · Sensör ve vana ortaktır</item>
+    </plurals>
     <string name="season_closed_summary">%1$s · Kapanış: %2$s</string>
     <string name="season_history_empty">Henüz tamamlanmış sezon yok.</string>
     <string name="season_result_not_entered">Sonuç notu girilmedi</string>
@@ -33,17 +38,20 @@
     </plurals>
     <string name="season_prepare_action">Sezon hazırlanıyor…</string>
     <string name="season_start_action">Yeni sezon başlat</string>
+    <string name="season_add_crop_action">Aynı bölgeye bitki sezonu ekle</string>
     <string name="season_close_action">Sezonu kapat</string>
+    <string name="season_close_short_action">Kapat</string>
     <string name="season_start_dialog_title">%1$s · Yeni sezon</string>
-    <string name="season_start_dialog_message">Eski sezon kayıtları değişmez. Yeni kayıtlar yeni sezon kimliğiyle tutulur.</string>
+    <string name="season_start_dialog_message">Bu bitki aynı fiziksel bölgedeki sensör ve vanayı paylaşır; kendi sezon kimliği ve arşivi ayrı tutulur.</string>
     <string name="season_start_planting_date_hint">Dikim veya fide şaşırtma tarihi (gg-aa-yyyy)</string>
     <string name="season_start_label_hint">Sezon adı</string>
     <string name="season_default_label">%1$s Sezonu</string>
     <string name="season_invalid_date" tools:ignore="TypographyDashes">Tarihi gün-ay-yıl biçiminde girin. Örnek: 30-07-2026</string>
-    <string name="season_started_success">Yeni sezon güvenle başlatıldı.</string>
+    <string name="season_started_success">Bitki sezonu güvenle başlatıldı.</string>
     <string name="season_start_failed">Yeni sezon başlatılamadı.</string>
+    <string name="season_shared_irrigation_incompatible">Bu bitkinin ideal nem aralığı bölgedeki aktif bitkilerle kesişmiyor. Aynı vana ile güvenli ortak sulama yapılamaz.</string>
     <string name="season_close_dialog_title">%1$s · Sezon kapanışı</string>
-    <string name="season_close_dialog_message">Sulama ve vanalar kapalı olmalıdır. Kapanıştan sonra bu bölgeye yeni kayıt eklenmez; yeni sezonu ayrıca başlatırsınız.</string>
+    <string name="season_close_dialog_message">Sulama ve vana kapalı olmalıdır. Yalnız bu bitkinin sezonu kapanır; bölgedeki diğer aktif bitkiler çalışmaya devam eder.</string>
     <string name="season_harvest_amount_hint">Yaklaşık hasat miktarı (ör. 18 kg)</string>
     <string name="season_yield_note_hint">Verim değerlendirmesi</string>
     <string name="season_issues_hint">Sezon boyunca görülen sorunlar</string>

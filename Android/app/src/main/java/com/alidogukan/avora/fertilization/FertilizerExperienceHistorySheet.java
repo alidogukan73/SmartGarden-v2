@@ -48,7 +48,7 @@ public final class FertilizerExperienceHistorySheet {
         TextView subtitle = root.findViewById(R.id.txtExperienceHistorySubtitle);
         subtitle.setText(context.getString(
                 R.string.fertilizer_experience_history_subtitle,
-                safe(zone.getName()),
+                com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone),
                 experience.getProductName()
         ));
 

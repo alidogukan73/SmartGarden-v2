@@ -82,6 +82,12 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
     public List<GardenZone> activeZones(List<GardenZone> values) {
         return ZoneCapacityPolicy.activeZones(values);
     }
+    public List<GardenZone> inactiveArchiveZones(
+            List<GardenZone> values,
+            List<GardenSeason> allSeasons
+    ) {
+        return archiveRepository.inactiveArchiveZones(values, allSeasons);
+    }
     public boolean isInactiveArchiveZone(GardenZone zone) {
         return zone != null
                 && ZoneCapacityPolicy.isValidZoneId(zone.getZone_id())
@@ -173,28 +179,39 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
                 new SeasonStartConfiguration(cropName, plantType, emoji));
     }
 
-    public Task<Boolean> canCancelNewSeason(String zoneId) {
-        return seasonRepository.canCancelNewSeason(zoneId);
+    public Task<Void> startSeason(
+            GardenZone zone, String plantingDate, String growthStage, String label,
+            String cropName, String plantType, String emoji,
+            int idealMoistureMin, int idealMoistureMax
+    ) {
+        return startSeason(zone, plantingDate, growthStage, label,
+                new SeasonStartConfiguration(cropName, plantType, emoji,
+                        idealMoistureMin, idealMoistureMax));
     }
 
-    public Task<Void> cancelNewSeason(String zoneId) {
-        return seasonRepository.cancelNewSeason(zoneId);
+    public Task<Boolean> canCancelNewSeason(String zoneId, String seasonId) {
+        return seasonRepository.canCancelNewSeason(zoneId, seasonId);
+    }
+
+    public Task<Void> cancelNewSeason(String zoneId, String seasonId) {
+        return seasonRepository.cancelNewSeason(zoneId, seasonId);
     }
 
     public Task<Void> closeSeason(
             GardenZone zone,
-            ZoneSeasonState state,
+            GardenSeason season,
             SeasonOutcome outcome
     ) {
-        Task<Void> task = seasonRepository.closeSeason(zone.getZone_id(), outcome);
+        Task<Void> task = seasonRepository.closeSeason(
+                zone.getZone_id(), season.getSeason_id(), outcome);
         task.addOnSuccessListener(ignored -> {
             outcomeStore.addForSeason(outcome);
             GardenEvent event = eventStore.addSystemForSeason(
                     zone.getZone_id(),
-                    state.getActive_season_id(),
+                    season.getSeason_id(),
                     getApplication().getString(R.string.season_closed_event_title),
                     closeEventNote(outcome),
-                    "season_closed:" + state.getActive_season_id()
+                    "season_closed:" + season.getSeason_id()
             );
             firebaseRepository.saveGardenEvent(event);
         });
@@ -215,8 +232,8 @@ public final class SeasonManagementViewModel extends AndroidViewModel {
         return archiveRepository.completed(history, requireRecordedActivity);
     }
 
-    public boolean hasRecordedArchive(String zoneId, List<GardenSeason> allSeasons) {
-        return archiveRepository.hasRecorded(zoneId, allSeasons);
+    public boolean hasRecordedArchive(GardenZone zone, List<GardenSeason> allSeasons) {
+        return archiveRepository.hasRecorded(zone, allSeasons);
     }
 
     private String closeEventNote(SeasonOutcome outcome) {

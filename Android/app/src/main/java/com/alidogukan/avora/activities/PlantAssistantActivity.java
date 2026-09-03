@@ -21,11 +21,13 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
 import com.alidogukan.avora.photos.GardenPhotoCapture;
 import com.alidogukan.avora.plantassistant.PlantAssistantResult;
 import com.alidogukan.avora.plantassistant.PlantGrowthAssessment;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.PlantAssistantViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -45,7 +47,9 @@ import org.json.JSONObject;
 public class PlantAssistantActivity extends AppCompatActivity {
     private static final String LOG_TAG = "AVORA-PlantAssistant";
     private PlantAssistantViewModel viewModel;
-    private final Map<String, GardenZone> zones = new HashMap<>();
+    private final Map<String, PlantSelection> plants = new HashMap<>();
+    private final List<GardenZone> latestZones = new ArrayList<>();
+    private final List<GardenSeason> latestSeasons = new ArrayList<>();
 
     private MaterialAutoCompleteTextView zoneDropdown;
     private MaterialCardView resultCard;
@@ -57,6 +61,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private TextInputEditText generalNote, otherNote;
     private CheckBox growthStatus, yellowing, drying, spot, wilt, pest, flowerDrop, other;
     private String requestedZoneId = "";
+    private String requestedSeasonId = "";
     private Uri selectedPhotoUri;
     private Bitmap selectedPhotoBitmap;
     private WeatherForecast currentWeather;
@@ -106,9 +111,19 @@ public class PlantAssistantActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(PlantAssistantViewModel.class);
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.ASSISTANT);
         requestedZoneId = getIntent().getStringExtra("zone_id");
+        requestedSeasonId = getIntent().getStringExtra("season_id");
         bindViews();
         bindActions();
-        viewModel.getZones().observe(this, this::renderZones);
+        viewModel.getZones().observe(this, items -> {
+            latestZones.clear();
+            if (items != null) latestZones.addAll(viewModel.activeZones(items));
+            renderPlantSelections();
+        });
+        viewModel.getSeasons().observe(this, items -> {
+            latestSeasons.clear();
+            if (items != null) latestSeasons.addAll(items);
+            renderPlantSelections();
+        });
         viewModel.getWeather().observe(this, weather -> {
             currentWeather = weather;
             renderLiveData(selectedZone());
@@ -175,6 +190,11 @@ public class PlantAssistantActivity extends AppCompatActivity {
                                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
                     } else {
                         Intent intent = new Intent(this, GardenPhotoGalleryActivity.class);
+                        PlantSelection selected = selectedPlant();
+                        if (selected != null) {
+                            intent.putExtra(GardenPhotoGalleryActivity.EXTRA_ZONE_ID, selected.zone.getZone_id());
+                            intent.putExtra(GardenPhotoGalleryActivity.EXTRA_SEASON_ID, selected.seasonId());
+                        }
                         intent.putExtra(GardenPhotoGalleryActivity.EXTRA_PICK_MODE, true);
                         journalPhotoPicker.launch(intent);
                     }
@@ -198,15 +218,36 @@ public class PlantAssistantActivity extends AppCompatActivity {
         capturedCameraPhoto = null;
     }
 
-    private void renderZones(List<GardenZone> items) {
-        zones.clear();
+    private void renderPlantSelections() {
+        plants.clear();
         List<String> labels = new ArrayList<>();
-        GardenZone requested = null;
-        for (GardenZone zone : viewModel.activeZones(items)) {
-            String label = labelFor(zone);
-            labels.add(label);
-            zones.put(label, zone);
-            if (zone.getZone_id().equals(requestedZoneId)) requested = zone;
+        PlantSelection requested = null;
+        for (GardenZone zone : latestZones) {
+            List<GardenSeason> active = SeasonDisplayIdentity.activeSeasons(
+                    zone, latestSeasons);
+            if (active.isEmpty()) active.add(null);
+            for (GardenSeason season : active) {
+                PlantSelection selection = new PlantSelection(zone, season, "");
+                String label = labelFor(selection);
+                if (plants.containsKey(label)) {
+                    long started = season == null ? 0L : season.getStarted_at_epoch();
+                    label += " · " + (started <= 0L ? selection.seasonId()
+                            : DateFormat.getDateInstance(DateFormat.SHORT)
+                            .format(new Date(started * 1000L)));
+                }
+                selection = new PlantSelection(zone, season, label);
+                labels.add(label);
+                plants.put(label, selection);
+                boolean zoneRequested = zone.getZone_id().equals(requestedZoneId);
+                boolean seasonRequested = requestedSeasonId != null
+                        && !requestedSeasonId.isBlank()
+                        && requestedSeasonId.equals(selection.seasonId());
+                if (zoneRequested && (seasonRequested
+                        || ((requestedSeasonId == null || requestedSeasonId.isBlank())
+                        && requested == null))) {
+                    requested = selection;
+                }
+            }
         }
         zoneDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, labels));
         zoneDropdown.setHint(labels.isEmpty()
@@ -217,13 +258,13 @@ public class PlantAssistantActivity extends AppCompatActivity {
             renderLiveData(selectedZone());
         });
         if (requested != null) {
-            zoneDropdown.setText(labelFor(requested), false);
-            renderLiveData(requested);
+            zoneDropdown.setText(requested.label, false);
+            renderLiveData(requested.zone);
         } else if (labels.isEmpty()) {
             zoneDropdown.setText("", false);
         } else if (selectedZone() == null) {
             zoneDropdown.setText(labels.get(0), false);
-            renderLiveData(zones.get(labels.get(0)));
+            renderLiveData(plants.get(labels.get(0)).zone);
         }
     }
 
@@ -232,7 +273,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         List<String> symptoms = selectedSymptoms();
         boolean growthStatusRequested = growthStatus.isChecked();
         if (zone == null) {
-            toast(getString(zones.isEmpty()
+            toast(getString(plants.isEmpty()
                     ? R.string.runtime_no_active_season_zones
                     : R.string.runtime_select_zone_first));
             return;
@@ -286,7 +327,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
                                        boolean growthStatusRequested) {
         toast(getString(R.string.runtime_visual_ai_preparing));
         viewModel.analyzeVisionAsync(selectedPhotoBitmap, selectedPhotoUri,
-                zone, symptoms, note, currentWeather,
+                zone, selectedPlantName(), symptoms, note, currentWeather,
                 growthStatusRequested,
                 visual -> runOnUiThread(() -> renderVisionResult(visual, growthStatusRequested)),
                 error -> runOnUiThread(() -> renderVisionFailure(error)));
@@ -370,7 +411,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
             if (score >= 0 && score <= 100) {
                 GardenZone zone = selectedZone();
                 growth = viewModel.evaluateGrowth(
-                        zone == null ? "" : zone.getZone_id(), archivedPhotoId,
+                        zone == null ? "" : zone.getZone_id(), selectedSeasonId(), archivedPhotoId,
                         score, confidence, visual.optString("growth_stage"),
                         viewModel.list(visual.optJSONArray("growth_signals")));
                 renderGrowthSummary(growth);
@@ -426,7 +467,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 + (note.isEmpty() ? "" : " · " + note);
         Uri uri = selectedPhotoUri;
         Bitmap bitmap = selectedPhotoBitmap;
-        viewModel.archivePhotoAsync(uri, bitmap, zone.getZone_id(), archiveNote,
+        viewModel.archivePhotoAsync(uri, bitmap, zone.getZone_id(), selectedSeasonId(), archiveNote,
                 saved -> runOnUiThread(() -> {
                     if (saved != null) {
                         archivedPhotoId = saved.getId();
@@ -446,7 +487,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         if (!hasPhoto()) return;
         GardenZone zone = selectedZone();
         pendingAnalysis = new AnalysisSnapshot(analysisTitle, analysisMeta, analysisContext,
-                analysisAdvice, zone == null ? "" : zone.getZone_id(), analysisGoal,
+                analysisAdvice, zone == null ? "" : zone.getZone_id(), selectedSeasonId(), analysisGoal,
                 confidence, growth);
         applyPendingAnalysis();
     }
@@ -455,7 +496,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
         if (awaitingVisionResult || pendingAnalysis == null || archivedPhotoId.isBlank()) return;
         AnalysisSnapshot snapshot = pendingAnalysis;
         pendingAnalysis = null;
-        viewModel.finalizeAnalysisAsync(archivedPhotoId, snapshot.zoneId, snapshot.title,
+        viewModel.finalizeAnalysisAsync(archivedPhotoId, snapshot.zoneId, snapshot.seasonId, snapshot.title,
                 snapshot.meta, snapshot.context, snapshot.advice, snapshot.analysisGoal,
                 snapshot.confidence, snapshot.growth,
                 error -> runOnUiThread(() -> {
@@ -465,18 +506,19 @@ public class PlantAssistantActivity extends AppCompatActivity {
     }
 
     private static final class AnalysisSnapshot {
-        final String title, meta, context, advice, zoneId, analysisGoal;
+        final String title, meta, context, advice, zoneId, seasonId, analysisGoal;
         final int confidence;
         final PlantGrowthAssessment growth;
 
         AnalysisSnapshot(String title, String meta, String context, String advice,
-                         String zoneId, String analysisGoal, int confidence,
+                         String zoneId, String seasonId, String analysisGoal, int confidence,
                          PlantGrowthAssessment growth) {
             this.title = title;
             this.meta = meta;
             this.context = context;
             this.advice = advice;
             this.zoneId = zoneId;
+            this.seasonId = seasonId;
             this.analysisGoal = analysisGoal;
             this.confidence = confidence;
             this.growth = growth;
@@ -486,14 +528,15 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private void openGrowthHistory() {
         GardenZone zone = selectedZone();
         if (zone == null) {
-            toast(getString(zones.isEmpty()
+            toast(getString(plants.isEmpty()
                     ? R.string.runtime_no_active_season_zones
                     : R.string.runtime_select_zone_first));
             return;
         }
         Intent intent = new Intent(this, PlantGrowthTrackingActivity.class);
         intent.putExtra(PlantGrowthTrackingActivity.EXTRA_ZONE_ID, zone.getZone_id());
-        intent.putExtra(PlantGrowthTrackingActivity.EXTRA_ZONE_LABEL, labelFor(zone));
+        intent.putExtra(PlantGrowthTrackingActivity.EXTRA_ZONE_LABEL, labelFor(selectedPlant()));
+        intent.putExtra(PlantGrowthTrackingActivity.EXTRA_SEASON_ID, selectedSeasonId());
         startActivity(intent);
     }
 
@@ -540,9 +583,26 @@ public class PlantAssistantActivity extends AppCompatActivity {
                 .format(new Date(epoch * 1000L));
     }
 
-    private GardenZone selectedZone() { return zones.get(String.valueOf(zoneDropdown.getText())); }
+    private PlantSelection selectedPlant() {
+        return plants.get(String.valueOf(zoneDropdown.getText()));
+    }
+    private GardenZone selectedZone() {
+        PlantSelection selected = selectedPlant();
+        return selected == null ? null : selected.zone;
+    }
+    private String selectedSeasonId() {
+        PlantSelection selected = selectedPlant();
+        return selected == null ? "" : selected.seasonId();
+    }
+    private String selectedPlantName() {
+        PlantSelection selected = selectedPlant();
+        return selected == null ? "" : SeasonDisplayIdentity.name(selected.season, selected.zone);
+    }
     private boolean hasPhoto() { return selectedPhotoUri != null || selectedPhotoBitmap != null; }
-    private String labelFor(GardenZone zone) { return (zone.getEmoji() == null ? getString(R.string.symbol_plant) : zone.getEmoji()) + " " + zone.getName(); }
+    private String labelFor(PlantSelection plant) {
+        return plant == null ? ""
+                : SeasonDisplayIdentity.stackedCropAreaLabel(plant.season, plant.zone);
+    }
     private String text(TextInputEditText input) { return input.getText() == null ? "" : input.getText().toString().trim(); }
     private void toast(String message) { Toast.makeText(this, message, Toast.LENGTH_SHORT).show(); }
     private String number(Double value, String suffix) { return value == null ? "—" : Math.round(value) + suffix; }
@@ -568,6 +628,7 @@ public class PlantAssistantActivity extends AppCompatActivity {
     private void showPhoto(Bitmap bitmap) {
         selectedPhotoArchived = false;
         archivedPhotoId = "";
+
         pendingAnalysis = null;
         awaitingVisionResult = false;
         selectedPhotoBitmap = bitmap;
@@ -576,4 +637,21 @@ public class PlantAssistantActivity extends AppCompatActivity {
         photoPreview.setVisibility(View.VISIBLE);
         photoHintLayout.setVisibility(View.GONE);
     }
+    private static final class PlantSelection {
+        final GardenZone zone;
+        final GardenSeason season;
+        final String label;
+
+        PlantSelection(GardenZone zone, GardenSeason season, String label) {
+            this.zone = zone;
+            this.season = season;
+            this.label = label == null ? "" : label;
+        }
+
+        String seasonId() {
+            return season == null || season.getSeason_id() == null
+                    ? "" : season.getSeason_id();
+        }
+    }
+
 }

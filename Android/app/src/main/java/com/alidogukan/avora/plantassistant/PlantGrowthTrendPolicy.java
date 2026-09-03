@@ -17,9 +17,15 @@ public final class PlantGrowthTrendPolicy {
 
     public static Result compare(List<GardenPhoto> records, String zoneId,
                                  String excludedPhotoId, int currentScore) {
+        return compare(records, zoneId, "", excludedPhotoId, currentScore);
+    }
+
+    public static Result compare(List<GardenPhoto> records, String zoneId,
+                                 String seasonId, String excludedPhotoId,
+                                 int currentScore) {
         GardenPhoto previous = newestPrevious(
                 records == null ? Collections.emptyList() : records,
-                safe(zoneId), safe(excludedPhotoId));
+                safe(zoneId), safe(seasonId), safe(excludedPhotoId));
         if (previous == null) return new Result(FIRST_RECORD, 0, 0L);
         int delta = currentScore - previous.getGrowth_score();
         String trend = delta >= MEANINGFUL_CHANGE
@@ -28,7 +34,7 @@ public final class PlantGrowthTrendPolicy {
         return new Result(trend, delta, previous.getCaptured_at_epoch());
     }
 
-    private static GardenPhoto newestPrevious(List<GardenPhoto> records, String zoneId,
+    private static GardenPhoto newestPrevious(List<GardenPhoto> records, String zoneId, String seasonId,
                                                String excludedPhotoId) {
         GardenPhoto newest = null;
         for (GardenPhoto photo : records) {
@@ -37,6 +43,7 @@ public final class PlantGrowthTrendPolicy {
                     || !zoneId.equals(safe(photo.getZone_id()))
                     || excludedPhotoId.equals(safe(photo.getId()))
                     || photo.getGrowth_score() < 0
+                    || (!seasonId.isEmpty() && !seasonId.equals(safe(photo.getSeason_id())))
                     || photo.getGrowth_score() > 100) {
                 continue;
             }

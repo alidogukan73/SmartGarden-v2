@@ -71,6 +71,35 @@ class FakeFirebase:
         self.acknowledgements.append(kwargs)
 
 
+class FakeZoneStateReference:
+    def __init__(
+        self,
+        zones: dict[str, object],
+        *,
+        root: "FakeZoneStateReference | None" = None,
+        path: tuple[str, ...] = (),
+    ) -> None:
+        self.zones = zones
+        self.root = root or self
+        self.path = path
+        self.updated: dict[str, object] | None = None
+
+    def child(self, name: str) -> "FakeZoneStateReference":
+        return FakeZoneStateReference(
+            self.zones,
+            root=self.root,
+            path=(*self.path, name),
+        )
+
+    def get(self):
+        if self.path == ("zones",):
+            return self.zones
+        return None
+
+    def update(self, values: dict[str, object]) -> None:
+        self.root.updated = values
+
+
 class FakeReference:
     def __init__(self) -> None:
         self.path: list[str] = []
@@ -177,10 +206,46 @@ def verify_restart_clears_stale_test_state() -> None:
     assert reference.updated["result"] == "SERVICE_RESTARTED"
 
 
+def verify_restart_clears_stale_zone_watering_states() -> None:
+    reference = FakeZoneStateReference(
+        {
+            "zone-001": {"zone_id": "zone-001"},
+            "zone-002": {"zone_id": "zone-002"},
+            "invalid": "ignored",
+        },
+    )
+    service = FirebaseService.__new__(FirebaseService)
+    service._device_ref = lambda: reference
+
+    service.reset_all_zone_watering_states()
+
+    assert reference.updated is not None
+    assert (
+        reference.updated[
+            "zones/zone-001/irrigation_status/watering_active"
+        ]
+        is False
+    )
+    assert (
+        reference.updated[
+            "zones/zone-002/irrigation_status/watering_active"
+        ]
+        is False
+    )
+    assert (
+        reference.updated[
+            "zones/zone-001/irrigation_status/selected_for_watering"
+        ]
+        is False
+    )
+    assert not any("invalid" in path for path in reference.updated)
+
+
 def main() -> None:
     verify_zone_test_does_not_block_cancellation()
     verify_active_acknowledgement_preserves_cancel_request()
     verify_restart_clears_stale_test_state()
+    verify_restart_clears_stale_zone_watering_states()
     print("[PASS] Zone test cancellation remains immediate and race-safe.")
 
 

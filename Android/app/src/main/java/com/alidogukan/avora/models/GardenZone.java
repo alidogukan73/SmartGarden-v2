@@ -5,6 +5,13 @@ import com.google.firebase.database.IgnoreExtraProperties;
 public class GardenZone {
 
     private String zone_id;
+    private String area_id;
+    private String area_name;
+    private String location_name;
+    private String area_icon;
+    private String area_color;
+    private boolean low_moisture_alert_enabled = true;
+    private boolean watering_complete_alert_enabled = true;
     private String name;
     private String plant_type;
     private String emoji;
@@ -69,6 +76,62 @@ public class GardenZone {
 
     public void setZone_id(String zoneId) {
         this.zone_id = zoneId;
+    }
+
+    public String getArea_id() {
+        return area_id;
+    }
+
+    public void setArea_id(String areaId) {
+        this.area_id = areaId;
+    }
+
+    public String getArea_name() {
+        return area_name;
+    }
+
+    public void setArea_name(String areaName) {
+        this.area_name = areaName;
+    }
+
+    public String getLocation_name() {
+        return location_name;
+    }
+
+    public void setLocation_name(String locationName) {
+        this.location_name = locationName;
+    }
+
+    public String getArea_icon() {
+        return area_icon;
+    }
+
+    public void setArea_icon(String areaIcon) {
+        this.area_icon = areaIcon;
+    }
+
+    public String getArea_color() {
+        return area_color;
+    }
+
+    public void setArea_color(String areaColor) {
+        this.area_color = areaColor;
+    }
+
+    public boolean isLow_moisture_alert_enabled() {
+        return low_moisture_alert_enabled;
+    }
+
+    public void setLow_moisture_alert_enabled(boolean enabled) {
+        low_moisture_alert_enabled = enabled;
+    }
+
+    public boolean isWatering_complete_alert_enabled() {
+        return watering_complete_alert_enabled;
+    }
+
+    public void setWatering_complete_alert_enabled(boolean enabled) {
+        watering_complete_alert_enabled = enabled;
     }
 
     public String getName() {

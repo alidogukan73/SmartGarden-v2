@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="season_delete_empty_action">Sil</string>
+    <string name="season_delete_empty_dialog_title">%1$s sezonunu sil</string>
+    <string name="season_delete_empty_dialog_message">Bu sezonda henüz sulama, gübreleme, günlük, fotoğraf veya analiz kaydı yok. Yalnızca bu işlem görmemiş sezon silinecek. Devam edilsin mi?</string>
+    <string name="season_delete_empty_confirm">Sezonu sil</string>
+    <string name="season_delete_empty_success">İşlem görmemiş sezon silindi.</string>
+    <string name="season_delete_empty_failed">Sezon silinemedi.</string>
+</resources>

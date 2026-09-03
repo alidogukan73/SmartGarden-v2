@@ -67,13 +67,13 @@ public class SeasonScopeTest {
     }
 
     @Test
-    public void seasonCancellationStopsAfterWorkOrStageChange() {
+    public void seasonDeletionDependsOnRecordedWorkRatherThanSelectedStage() {
         ZoneSeasonState active = season("zone-001-2026-100", false, 100L, 0L);
         ZoneSeasonState legacy = season("zone-001-2026-90", true, 90L, 0L);
         ZoneSeasonState closed = season("zone-001-2026-80", false, 80L, 120L);
         closed.setStatus(SeasonStatus.CLOSED);
 
-        assertFalse(SeasonScope.canCancelNewSeason(active, "SEEDLING", false, false));
+        assertTrue(SeasonScope.canCancelNewSeason(active, "SEEDLING", false, false));
         assertFalse(SeasonScope.canCancelNewSeason(active, "SOIL_PREPARATION", true, false));
         assertFalse(SeasonScope.canCancelNewSeason(active, "SOIL_PREPARATION", false, true));
         assertFalse(SeasonScope.canCancelNewSeason(legacy, "SOIL_PREPARATION", false, false));
@@ -131,6 +131,25 @@ public class SeasonScopeTest {
     }
 
     @Test
+    public void automaticLegacyRepairTouchesOnlyEmptyUntouchedCandidates() {
+        assertEquals(
+                SeasonScope.AutoStartedRepairAction.DELETE_EMPTY,
+                SeasonScope.autoStartedRepairAction(true, false, true, false));
+        assertEquals(
+                SeasonScope.AutoStartedRepairAction.NONE,
+                SeasonScope.autoStartedRepairAction(true, true, true, false));
+        assertEquals(
+                SeasonScope.AutoStartedRepairAction.NONE,
+                SeasonScope.autoStartedRepairAction(true, false, false, false));
+        assertEquals(
+                SeasonScope.AutoStartedRepairAction.NONE,
+                SeasonScope.autoStartedRepairAction(false, false, true, false));
+        assertEquals(
+                SeasonScope.AutoStartedRepairAction.NONE,
+                SeasonScope.autoStartedRepairAction(true, false, true, true));
+    }
+
+    @Test
     public void emptyAutomaticLegacyClosureIsNotARealArchive() {
         GardenSeason automatic = completedSeason(true);
 
@@ -165,6 +184,8 @@ public class SeasonScopeTest {
         GardenSeason current = activeSeason("zone-006-2026-200");
         GardenSeason orphan = activeSeason("zone-006-2026-100");
 
+        assertTrue(SeasonScope.isCurrentActiveSeason(current, active));
+        assertFalse(SeasonScope.isCurrentActiveSeason(orphan, active));
         assertTrue(SeasonScope.isVisibleSeason(current, active));
         assertFalse(SeasonScope.isVisibleSeason(orphan, active));
 

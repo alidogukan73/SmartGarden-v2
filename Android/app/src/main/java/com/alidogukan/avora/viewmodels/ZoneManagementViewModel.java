@@ -10,8 +10,10 @@ import com.alidogukan.avora.firebase.FirebaseRepository;
 import com.alidogukan.avora.crop.CropCatalog;
 import com.alidogukan.avora.models.CropCatalogItem;
 import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.season.ZoneAreaIdentity;
 import com.alidogukan.avora.zones.ZoneLocalDataRepository;
 import com.alidogukan.avora.zones.ZoneCapacityPolicy;
+import com.alidogukan.avora.zones.PhysicalZoneIdentity;
 import com.google.android.gms.tasks.Task;
 
 import java.util.List;
@@ -67,7 +69,21 @@ public final class ZoneManagementViewModel extends AndroidViewModel {
                                       boolean irrigationEnabled) {
         GardenZone zone = new GardenZone();
         zone.setZone_id(ZoneCapacityPolicy.zoneId(slot));
-        zone.setName(enteredName.isEmpty() ? crop.getName() : enteredName);
+        zone.setArea_id(existing == null || ZoneCapacityPolicy.isInactive(existing)
+                ? ZoneAreaIdentity.newAreaId()
+                : ZoneAreaIdentity.effective(existing));
+        zone.setArea_name(enteredName.isEmpty()
+                ? PhysicalZoneIdentity.defaultName(slot) : enteredName.trim());
+        zone.setLocation_name(existing == null ? "" : existing.getLocation_name());
+        zone.setArea_icon(existing == null
+                ? PhysicalZoneIdentity.DEFAULT_ICON : PhysicalZoneIdentity.icon(existing));
+        zone.setArea_color(existing == null
+                ? PhysicalZoneIdentity.DEFAULT_COLOR : PhysicalZoneIdentity.color(existing));
+        zone.setLow_moisture_alert_enabled(existing == null
+                || existing.isLow_moisture_alert_enabled());
+        zone.setWatering_complete_alert_enabled(existing == null
+                || existing.isWatering_complete_alert_enabled());
+        zone.setName(crop.getName());
         zone.setPlant_type(crop.getPlant_type());
         zone.setEmoji(crop.getEmoji());
         zone.setSensor_id(sensorId);
@@ -108,7 +124,7 @@ public final class ZoneManagementViewModel extends AndroidViewModel {
     public Task<Boolean> deactivateZone(GardenZone zone) {
         String zoneId = zone == null || zone.getZone_id() == null
                 ? "" : zone.getZone_id().trim();
-        boolean hasLocalHistory = localData.hasMeaningfulHistory(zoneId);
+        boolean hasLocalHistory = localData.hasMeaningfulHistory(zone);
         Task<Boolean> task = repository.deactivateGardenZone(zoneId, hasLocalHistory);
         task.addOnSuccessListener(deleted -> {
             if (Boolean.TRUE.equals(deleted)) {

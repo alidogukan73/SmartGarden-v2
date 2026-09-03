@@ -35,7 +35,7 @@ public final class FertilizerDecisionEngine {
                                            long now,
                                            boolean preferOrganicInputs) {
         FertilizationProfile profile = zone.getFertilization();
-        String title = safe(zone.getEmoji(), "\uD83C\uDF31") + " " + safe(zone.getName(), "Bölge");
+        String title = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         String normalizedStage = profile == null
                 ? "NOT_SET"
                 : FertilizerStagePolicy.normalize(profile.getGrowth_stage());

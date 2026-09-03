@@ -17,11 +17,13 @@ class PendingWateringMeasurement:
     record: WateringRecord
 
     def to_payload(self) -> dict:
+        record_payload = asdict(self.record)
+        record_payload["season_ids"] = list(self.record.season_ids)
         return {
             "pending_key": self.pending_key,
             "finalize_after_epoch": self.finalize_after_epoch,
             "result": asdict(self.result),
-            "record": asdict(self.record),
+            "record": record_payload,
         }
 
     @classmethod
@@ -62,6 +64,10 @@ class PendingWateringMeasurement:
                 zone_id=str(record_data.get("zone_id", "")),
                 sensor_id=str(record_data.get("sensor_id", "")),
                 season_id=str(record_data.get("season_id", "")),
+                season_ids=tuple(
+                    str(value).strip() for value in record_data.get("season_ids", [])
+                    if str(value).strip()
+                ),
             )
             pending_key = str(
                 payload.get("pending_key") or record.firebase_key

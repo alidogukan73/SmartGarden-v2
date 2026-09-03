@@ -1,8 +1,9 @@
 //
-// AVORA Wireless Soil Sensors v2.1.2
+// AVORA Wireless Soil Sensors v2.2.0
 // Two ADS1115 modules, up to eight capacitive soil sensors.
 //
 #include <WiFi.h>
+#include <ESPmDNS.h>
 #include <Wire.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,6 +24,7 @@ constexpr uint16_t FILTER_SAMPLE_DELAY_MS = 50;
 constexpr uint16_t I2C_TIMEOUT_MS = 100;
 constexpr unsigned long ADS_READ_TIMEOUT_MS = 100;
 constexpr unsigned long ADS_RETRY_INTERVAL_MS = 30000;
+constexpr unsigned long MQTT_DISCOVERY_RETRY_MS = 10000;
 constexpr uint16_t ADS_SINGLE_ENDED_MUX[] = {
     ADS1X15_REG_CONFIG_MUX_SINGLE_0,
     ADS1X15_REG_CONFIG_MUX_SINGLE_1,
@@ -30,8 +32,11 @@ constexpr uint16_t ADS_SINGLE_ENDED_MUX[] = {
     ADS1X15_REG_CONFIG_MUX_SINGLE_3,
 };
 
-const char* MQTT_BROKER = "192.168.1.99";
-const char* FIRMWARE_VERSION = "2.1.2";
+const char* MQTT_FALLBACK_BROKER = "192.168.1.99";
+const char* MQTT_SERVICE = "mqtt";
+const char* MQTT_PROTOCOL = "tcp";
+const char* AVORA_DEVICE_ID = "avora-001";
+const char* FIRMWARE_VERSION = "2.2.0";
 const char* SENSOR_CONFIG_TOPIC_FILTER =
         "avora/config/esp32/sensors/#";
 const char* CALIBRATION_CONFIG_TOPIC_FILTER =
@@ -49,6 +54,11 @@ PubSubClient mqttClient(wifiClient);
 bool adsAvailable[] = {false, false};
 unsigned long lastAdsRetryMillis[] = {0, 0};
 unsigned long lastPublishMillis = 0;
+unsigned long lastMqttDiscoveryMillis = 0;
+bool mdnsStarted = false;
+bool mqttServerConfigured = false;
+IPAddress activeMqttBroker;
+uint16_t activeMqttPort = MQTT_PORT;
 
 struct SensorConfig {
     const char* id;
@@ -269,10 +279,109 @@ bool readFilteredRaw(const SensorConfig& sensor, int16_t& filteredRaw) {
     return true;
 }
 
+bool hasUsableAddress(const IPAddress& address) {
+    return address[0] != 0 || address[1] != 0
+            || address[2] != 0 || address[3] != 0;
+}
+
+void configureMqttServer(
+        const IPAddress& address,
+        uint16_t port,
+        const char* source
+) {
+    if (!hasUsableAddress(address) || port == 0) {
+        return;
+    }
+    if (mqttServerConfigured
+            && activeMqttBroker == address
+            && activeMqttPort == port) {
+        return;
+    }
+
+    activeMqttBroker = address;
+    activeMqttPort = port;
+    mqttClient.setServer(activeMqttBroker, activeMqttPort);
+    mqttServerConfigured = true;
+
+    Serial.print("MQTT sunucusu ");
+    Serial.print(source);
+    Serial.print(" ile ayarlandi: ");
+    Serial.print(activeMqttBroker);
+    Serial.print(":");
+    Serial.println(activeMqttPort);
+}
+
+void configureFallbackMqttServer() {
+    IPAddress fallbackAddress;
+    if (!fallbackAddress.fromString(MQTT_FALLBACK_BROKER)) {
+        Serial.println("HATA: MQTT geri donus adresi gecersiz.");
+        return;
+    }
+    configureMqttServer(fallbackAddress, MQTT_PORT, "geri donus adresi");
+}
+
+bool startMdns() {
+    if (mdnsStarted) {
+        return true;
+    }
+
+    String hostname = "avora-sensors-" +
+            String(static_cast<uint32_t>(ESP.getEfuseMac()), HEX);
+    if (!MDNS.begin(hostname.c_str())) {
+        Serial.println("HATA: mDNS istemcisi baslatilamadi.");
+        return false;
+    }
+    mdnsStarted = true;
+    Serial.print("mDNS istemcisi baslatildi: ");
+    Serial.print(hostname);
+    Serial.println(".local");
+    return true;
+}
+
+bool discoverMqttServer() {
+    if (!startMdns()) {
+        return false;
+    }
+
+    Serial.println("AVORA MQTT sunucusu mDNS ile araniyor...");
+    int serviceCount = MDNS.queryService(MQTT_SERVICE, MQTT_PROTOCOL);
+    for (int index = 0; index < serviceCount; index++) {
+        if (!MDNS.hasTxt(index, "device")
+                || MDNS.txt(index, "device") != AVORA_DEVICE_ID) {
+            continue;
+        }
+
+        IPAddress address = MDNS.address(index);
+        uint16_t port = MDNS.port(index);
+        if (!hasUsableAddress(address) || port == 0) {
+            continue;
+        }
+
+        configureMqttServer(address, port, "mDNS kesfi");
+        return true;
+    }
+
+    Serial.println("AVORA MQTT mDNS ilani bulunamadi.");
+    return false;
+}
+
+void refreshMqttServer() {
+    lastMqttDiscoveryMillis = millis();
+    if (!discoverMqttServer() && !mqttServerConfigured) {
+        configureFallbackMqttServer();
+    }
+}
+
 void connectToWiFi() {
     if (WiFi.status() == WL_CONNECTED) {
         return;
     }
+
+    if (mdnsStarted) {
+        MDNS.end();
+        mdnsStarted = false;
+    }
+    lastMqttDiscoveryMillis = 0;
 
     Serial.print("Wi-Fi baglantisi kuruluyor");
     WiFi.mode(WIFI_STA);
@@ -290,6 +399,21 @@ void connectToWiFi() {
 
 void connectToMqtt() {
     while (!mqttClient.connected()) {
+        if (WiFi.status() != WL_CONNECTED) {
+            return;
+        }
+
+        unsigned long now = millis();
+        if (!mqttServerConfigured
+                || lastMqttDiscoveryMillis == 0
+                || now - lastMqttDiscoveryMillis >= MQTT_DISCOVERY_RETRY_MS) {
+            refreshMqttServer();
+        }
+        if (!mqttServerConfigured) {
+            delay(1000);
+            continue;
+        }
+
         String clientId =
                 "avora-esp32-" +
                 String(static_cast<uint32_t>(ESP.getEfuseMac()), HEX);
@@ -418,7 +542,7 @@ void setup() {
     Wire.setTimeOut(I2C_TIMEOUT_MS);
     initializeAds();
     connectToWiFi();
-    mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+    refreshMqttServer();
     mqttClient.setCallback(onMqttMessage);
     connectToMqtt();
 }

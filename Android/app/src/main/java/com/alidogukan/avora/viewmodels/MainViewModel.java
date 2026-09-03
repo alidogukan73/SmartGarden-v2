@@ -15,6 +15,7 @@ import com.alidogukan.avora.models.AIExplanation;
 import com.alidogukan.avora.models.AdaptiveRecommendation;
 import com.alidogukan.avora.models.Command;
 import com.alidogukan.avora.models.GardenAISummary;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.MoisturePrediction;
 import com.alidogukan.avora.models.PredictionAccuracy;
@@ -25,6 +26,7 @@ import com.alidogukan.avora.models.Status;
 import com.alidogukan.avora.models.UnifiedConfidence;
 import com.alidogukan.avora.models.WateringHistory;
 import com.alidogukan.avora.models.WeatherForecast;
+import com.alidogukan.avora.models.ZoneIrrigationStatus;
 import com.alidogukan.avora.health.GardenHealthCalculator;
 import com.alidogukan.avora.health.GardenHealthSummary;
 import com.alidogukan.avora.health.GardenHealthZoneResult;
@@ -34,6 +36,7 @@ import com.alidogukan.avora.notifications.NotificationPermissionPromptStore;
 import com.alidogukan.avora.notifications.NotificationSignalCoordinator;
 import com.alidogukan.avora.plantassistant.PlantAssistantHomeRecommendation;
 import com.alidogukan.avora.plantassistant.PlantAssistantRecommendationStore;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.season.SeasonScope;
 
 import java.util.List;
@@ -60,6 +63,7 @@ public class MainViewModel extends AndroidViewModel {
     private final LiveData<UnifiedConfidence> unifiedConfidence;
     private final LiveData<SoilLearningProfile> soilLearningProfile;
     private final LiveData<List<GardenZone>> gardenZones;
+    private final LiveData<List<GardenSeason>> gardenSeasons;
     private final LiveData<GardenAISummary> gardenAISummary;
     private final LiveData<WeatherForecast> weatherForecast;
     private final LiveData<List<WateringHistory>> wateringHistory;
@@ -86,6 +90,7 @@ public class MainViewModel extends AndroidViewModel {
         unifiedConfidence = repository.observeUnifiedConfidence();
         soilLearningProfile = repository.observeSoilLearningProfile();
         gardenZones = repository.observeGardenZones();
+        gardenSeasons = new SeasonRepository().observeAllSeasons();
         gardenAISummary = repository.observeGardenAISummary();
         weatherForecast = repository.observeWeatherForecast();
         wateringHistory = repository.observeWateringHistory();
@@ -114,6 +119,7 @@ public class MainViewModel extends AndroidViewModel {
         return soilLearningProfile;
     }
     public LiveData<List<GardenZone>> getGardenZones() { return gardenZones; }
+    public LiveData<List<GardenSeason>> getGardenSeasons() { return gardenSeasons; }
     public LiveData<GardenAISummary> getGardenAISummary() { return gardenAISummary; }
     public LiveData<WeatherForecast> getWeatherForecast() { return weatherForecast; }
     public LiveData<List<WateringHistory>> getWateringHistory() { return wateringHistory; }
@@ -178,6 +184,25 @@ public class MainViewModel extends AndroidViewModel {
         return status != null && !NotificationPolicy.isDeviceOffline(status.isOnline(),
                 status.getLastSeenEpoch(), nowEpoch,
                 NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS);
+    }
+
+    public boolean isConfirmedWateringState(
+            GardenZone zone,
+            Status status,
+            long nowEpoch
+    ) {
+        ZoneIrrigationStatus irrigation = zone == null
+                ? null
+                : zone.getIrrigation_status();
+        return irrigation != null && NotificationPolicy.isConfirmedWateringState(
+                irrigation.isWatering_active(),
+                zone.getValve_id(),
+                status != null && status.isValveOpen(),
+                status == null ? "" : status.getActiveValveId(),
+                status == null ? 0L : status.getLastSeenEpoch(),
+                nowEpoch,
+                NotificationPolicy.DEVICE_HEARTBEAT_MAX_AGE_SECONDS
+        );
     }
 
     public GardenHealthSummary gardenHealth(List<GardenZone> zones, long nowEpoch) {

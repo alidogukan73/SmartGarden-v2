@@ -67,7 +67,7 @@ public final class SelectedZoneSummaryRenderer {
                 zone.getEmoji(),
                 context.getString(R.string.symbol_plant)
         );
-        String name = formatter.safeText(zone.getName(), zone.getZone_id());
+        String name = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         String sensorId = formatter.safeText(
                 zone.getSensor_id(),
                 context.getString(R.string.ai_value_unavailable)

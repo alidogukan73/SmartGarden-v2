@@ -1,0 +1,8 @@
+# Raspberry Pi sudo 1.9.10+ treats argument patterns beginning with ^ and
+# ending with $ as POSIX regular expressions.  Only AVORA's fixed argument
+# order, two physical interfaces and validated value character sets are allowed.
+Cmnd_Alias AVORA_NETWORK = /usr/local/sbin/avora-network-config ^apply --request-id [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} --interface (wlan0|eth0) --mode dhcp$, \
+    /usr/local/sbin/avora-network-config ^apply --request-id [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} --interface (wlan0|eth0) --mode static --address [0-9.]+ --prefix ([1-9]|[12][0-9]|30) --gateway [0-9.]+ --primary-dns [0-9.]+( --secondary-dns [0-9.]+)?$, \
+    /usr/local/sbin/avora-network-config ^rollback --request-id [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$, \
+    /usr/local/sbin/avora-network-config ^confirm --request-id [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+ali ALL=(root) NOPASSWD: AVORA_NETWORK

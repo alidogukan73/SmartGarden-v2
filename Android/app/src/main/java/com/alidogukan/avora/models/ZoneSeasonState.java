@@ -2,10 +2,14 @@ package com.alidogukan.avora.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /** Current season pointer stored below one zone. */
 @IgnoreExtraProperties
 public class ZoneSeasonState {
     private String active_season_id = "";
+    private Map<String, Boolean> active_season_ids = new LinkedHashMap<>();
     private String status = "";
     private String label = "";
     private long started_at_epoch;
@@ -17,6 +21,15 @@ public class ZoneSeasonState {
 
     public String getActive_season_id() { return active_season_id; }
     public void setActive_season_id(String value) { active_season_id = safe(value); }
+    public Map<String, Boolean> getActive_season_ids() { return active_season_ids; }
+    public void setActive_season_ids(Map<String, Boolean> value) {
+        active_season_ids = value == null ? new LinkedHashMap<>() : new LinkedHashMap<>(value);
+    }
+    public boolean isSeasonActive(String seasonId) {
+        String id = safe(seasonId);
+        if (active_season_ids != null && !active_season_ids.isEmpty()) return Boolean.TRUE.equals(active_season_ids.get(id));
+        return !id.isBlank() && id.equals(active_season_id) && SeasonStatus.isActive(status);
+    }
     public String getStatus() { return status; }
     public void setStatus(String value) { status = safe(value); }
     public String getLabel() { return label; }
@@ -31,7 +44,13 @@ public class ZoneSeasonState {
     public void setUpdated_at_epoch(long value) { updated_at_epoch = Math.max(0L, value); }
 
     public boolean isActive() {
-        return SeasonStatus.isActive(status) && !active_season_id.isBlank();
+        if (!SeasonStatus.isActive(status)) return false;
+        if (!active_season_id.isBlank()) return true;
+        if (active_season_ids == null) return false;
+        for (Boolean active : active_season_ids.values()) {
+            if (Boolean.TRUE.equals(active)) return true;
+        }
+        return false;
     }
 
     private static String safe(String value) { return value == null ? "" : value; }

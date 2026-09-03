@@ -47,3 +47,17 @@ class CommandState:
     irrigation_assistant_reset_request_id: str = ""
     irrigation_assistant_reset_zone_id: str = ""
     irrigation_assistant_reset_requested_at_ms: int = 0
+
+    # One-shot, validated Raspberry Pi IPv4 configuration request.
+    network_configuration_requested: bool = False
+    network_configuration_request_id: str = ""
+    network_configuration_interface: str = ""
+    network_configuration_mode: str = ""
+    network_configuration_ip_address: str = ""
+    network_configuration_prefix_length: int = 24
+    network_configuration_gateway: str = ""
+    network_configuration_primary_dns: str = ""
+    network_configuration_secondary_dns: str = ""
+    network_configuration_requested_at_ms: int = 0
+    network_configuration_expires_at_ms: int = 0
+    network_configuration_source: str = ""

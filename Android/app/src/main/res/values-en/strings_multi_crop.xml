@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_zone_crops_sensor_subtitle">%1$s · Sensor %2$s</string>
+    <string name="runtime_crops_hardware_detail">%1$s · %2$s</string>
+    <string name="zone_management_open_crop_seasons">Add crop / season</string>
+    <string name="zone_management_add_crop_to_active">Add crop to active area</string>
+    <string name="zone_management_multi_crop_channel_hint">Only unused hardware channels are shown here. To add a second crop to an active area such as Zone 1, use “Add crop to active area”.</string>
+    <string name="season_shared_operations_message">This crop shares the physical area sensor, valve, watering and fertilization. Shared work is recorded in every active crop season while each archive stays separate.</string>
+</resources>

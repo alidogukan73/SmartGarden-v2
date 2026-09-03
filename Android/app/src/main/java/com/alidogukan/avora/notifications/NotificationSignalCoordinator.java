@@ -362,7 +362,7 @@ public final class NotificationSignalCoordinator {
             String stableSource =
                     incidentId == null || incidentId.isBlank()
                             ? "device-error:" + errorKind + ":legacy"
-                            : "device-error:" + errorKind + ":incident:" + incidentId;
+                            : "device-error:incident:" + incidentId;
 
             notifications.publishIncident(
                     "device_error",
@@ -466,6 +466,7 @@ public final class NotificationSignalCoordinator {
      * assistant but deliberately do not become phone notifications.
      */
     public static void evaluateIrrigationAi(Context context, List<GardenZone> zones) {
+        evaluateLowMoisture(context, zones);
         context = AvoraLanguageManager.localizedContext(context);
         NotificationSettingsStore settings = new NotificationSettingsStore(context);
         if (zones == null || !settings.isCategoryEnabled("irrigation")
@@ -499,7 +500,7 @@ public final class NotificationSignalCoordinator {
                 }
                 if (preferences.getBoolean(stateKey, false)) continue;
 
-                String zoneName = safe(zone.getName(), zoneId);
+                String zoneName = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
                 String detail = firstNonBlank(
                         decision.getDecisionMessage(),
                         decision.getPrimaryReason(),
@@ -518,6 +519,48 @@ public final class NotificationSignalCoordinator {
                 editor.putBoolean(stateKey, true);
             }
             editor.apply();
+        }
+    }
+
+    public static void evaluateLowMoisture(Context context, List<GardenZone> zones) {
+        context = AvoraLanguageManager.localizedContext(context);
+        NotificationSettingsStore settings = new NotificationSettingsStore(context);
+        if (zones == null || !settings.isCategoryEnabled("irrigation")
+                || !settings.isReminderEnabled("irrigation")) return;
+
+        long nowEpoch = System.currentTimeMillis() / 1000L;
+        GardenNotificationManager notifications = new GardenNotificationManager(context);
+        for (GardenZone zone : zones) {
+            if (zone == null || zone.getSeason() == null) continue;
+            boolean actionable = NotificationPolicy.shouldNotifyLowMoisture(
+                    zone.isEnabled(),
+                    zone.getSeason().isActive(),
+                    zone.getSeason().getActive_season_id(),
+                    zone.isSensor_enabled(),
+                    zone.isLow_moisture_alert_enabled(),
+                    zone.getMoisture(),
+                    zone.getMoisture_limit(),
+                    zone.getUpdated_at_epoch(),
+                    nowEpoch,
+                    20L * 60L);
+            String zoneId = safe(zone.getZone_id(), safe(zone.getSensor_id(), "unknown"));
+            String incidentKey = "zone_low_moisture:" + zoneId;
+            if (!actionable) {
+                notifications.resetIncident(incidentKey);
+                continue;
+            }
+
+            String zoneName = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
+            notifications.publishIncident(
+                    incidentKey,
+                    "IRRIGATION",
+                    "HIGH",
+                    zoneId,
+                    context.getString(R.string.notification_low_moisture_title, zoneName),
+                    context.getString(R.string.notification_low_moisture_description,
+                            zone.getMoisture(), zone.getMoisture_limit()),
+                    "low-moisture:" + zoneId
+            );
         }
     }
 
@@ -553,13 +596,15 @@ public final class NotificationSignalCoordinator {
         for (WateringHistory record : records) {
             if (record == null) continue;
             if (!recordBelongsToCurrentSeason(record, zones)) continue;
+            GardenZone targetZone = findZone(record.getZoneId(), zones);
+            if (targetZone == null) continue;
             long completedAt = parseTime(record.getFinishedAt());
             if (completedAt <= 0L || now < completedAt
                     || now - completedAt > 20L * 60L * 1000L) continue;
             String id = record.getRecordId() == null || record.getRecordId().isBlank()
                     ? record.getFinishedAt() : record.getRecordId();
             String zoneId = record.getZoneId() == null ? "" : record.getZoneId();
-            if (record.isCompleted()) {
+            if (record.isCompleted() && targetZone.isWatering_complete_alert_enabled()) {
                 notifications.publishOnce("IRRIGATION", "NORMAL", zoneId,
                         context.getString(R.string.notification_watering_completed_title),
                         context.getString(R.string.notification_watering_completed_description,
@@ -600,6 +645,15 @@ public final class NotificationSignalCoordinator {
                     record.getSeasonId());
         }
         return false;
+    }
+
+    private static GardenZone findZone(String zoneId, List<GardenZone> zones) {
+        String targetId = zoneId == null ? "" : zoneId.trim();
+        for (GardenZone zone : zones) {
+            if (zone != null && zone.getZone_id() != null
+                    && targetId.equals(zone.getZone_id().trim())) return zone;
+        }
+        return null;
     }
 
     private static long parseTime(String raw) {

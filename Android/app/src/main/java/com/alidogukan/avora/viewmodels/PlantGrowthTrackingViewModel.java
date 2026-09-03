@@ -26,10 +26,20 @@ public final class PlantGrowthTrackingViewModel extends AndroidViewModel {
         photoMetadata = repository.observeGardenPhotoMetadata();
         localPhotos = new LocalGardenPhotoStore(application);
     }
+    public List<GardenPhoto> recordsForZone(List<GardenPhoto> cloud, String zoneId,
+                                            String seasonId) {
+        return recordsForScope(cloud, zoneId, seasonId);
+    }
+
 
     public LiveData<List<GardenPhoto>> getPhotoMetadata() { return photoMetadata; }
-
     public List<GardenPhoto> recordsForZone(List<GardenPhoto> cloud, String zoneId) {
+        return recordsForScope(cloud, zoneId, "");
+    }
+
+
+    private List<GardenPhoto> recordsForScope(List<GardenPhoto> cloud, String zoneId,
+                                              String seasonId) {
         Map<String, GardenPhoto> combined = new LinkedHashMap<>();
         if (cloud != null) {
             for (GardenPhoto photo : cloud) {
@@ -49,6 +59,8 @@ public final class PlantGrowthTrackingViewModel extends AndroidViewModel {
         List<GardenPhoto> records = new ArrayList<>();
         for (GardenPhoto photo : combined.values()) {
             if ("growth_status".equals(photo.getAnalysis_goal())
+                    && (safe(seasonId).isEmpty()
+                    || safe(seasonId).equals(safe(photo.getSeason_id())))
                     && safe(zoneId).equals(safe(photo.getZone_id()))
                     && photo.getGrowth_score() >= 0
                     && photo.getGrowth_score() <= 100) {

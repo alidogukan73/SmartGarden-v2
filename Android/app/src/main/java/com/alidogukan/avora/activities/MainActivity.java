@@ -33,6 +33,7 @@ import com.alidogukan.avora.R;
 import com.alidogukan.avora.adapters.HomeZonePagerAdapter;
 import com.alidogukan.avora.models.Status;
 import com.alidogukan.avora.models.WateringHistory;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.FertilizationProfile;
 import com.alidogukan.avora.models.ZoneIrrigationStatus;
@@ -53,6 +54,7 @@ import android.os.Looper;
 
 import java.util.List;
 import java.text.SimpleDateFormat;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import java.util.Date;
 import java.util.Locale;
 import java.util.ArrayList;
@@ -110,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
     private HomeZonePagerAdapter homeZonePagerAdapter;
     private boolean homeZonePagerPositioned = false;
     private List<GardenZone> latestZones;
+    private List<GardenSeason> latestSeasons = new ArrayList<>();
     private List<WateringHistory> latestWateringHistory = new ArrayList<>();
     private boolean authenticatedAppInitialized;
     private WeatherForecast latestWeather;
@@ -369,6 +372,12 @@ public class MainActivity extends AppCompatActivity {
                 this::renderGardenZones
         );
 
+        viewModel.getGardenSeasons().observe(this, values -> {
+            latestSeasons = values == null ? new ArrayList<>() : values;
+            if (homeZonePagerAdapter != null) homeZonePagerAdapter.submitSeasons(latestSeasons);
+            if (latestZones != null) renderGardenZones(latestZones);
+        });
+
 
         viewModel.getWeatherForecast().observe(this, this::renderHomeWeather);
         viewModel.getWateringHistory().observe(this, values -> {
@@ -552,6 +561,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         latestStatus = status;
+        if (homeZonePagerAdapter != null) {
+            homeZonePagerAdapter.submitStatus(status);
+        }
         renderEffectiveOnlineStatus();
     }
 
@@ -655,7 +667,8 @@ public class MainActivity extends AppCompatActivity {
 
             ZoneIrrigationStatus irrigation = zone.getIrrigation_status();
             if (irrigation != null) {
-                if (irrigation.isWatering_active()) {
+                if (viewModel.isConfirmedWateringState(zone, latestStatus,
+                        System.currentTimeMillis() / 1000L)) {
                     active = zone;
                 }
                 if (irrigation.isCooldown_active()) {
@@ -777,10 +790,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String safeZoneName(GardenZone zone) {
-        if (zone == null || zone.getName() == null || zone.getName().trim().isEmpty()) {
+        String name = SeasonDisplayIdentity.operationalName(zone, latestSeasons);
+        if (name.isBlank()) {
             return getString(R.string.home_plan_zone_fallback);
         }
-        return zone.getName().trim();
+        return name;
     }
     private void initializeHomeZonePager() {
         homeZonePagerAdapter = new HomeZonePagerAdapter(
@@ -865,10 +879,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String displayZoneName(GardenZone zone) {
-        if (zone == null || zone.getName() == null || zone.getName().trim().isEmpty()) {
+        String name = SeasonDisplayIdentity.operationalName(zone, latestSeasons);
+        if (name.isBlank()) {
             return getString(R.string.zone_fallback_name);
         }
-        return zone.getName().trim();
+        return name;
     }
 
     private boolean isZoneConnected(GardenZone zone) {
@@ -887,6 +902,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (txtOnline == null || cardOnlineStatus == null) {
             return;
+        }
+        if (homeZonePagerAdapter != null) {
+            homeZonePagerAdapter.submitStatus(latestStatus);
         }
 
         ConnectionState state = getConnectionState();

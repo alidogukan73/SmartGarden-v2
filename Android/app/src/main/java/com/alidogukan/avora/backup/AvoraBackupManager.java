@@ -36,12 +36,14 @@ public final class AvoraBackupManager {
     public static final int SCHEMA_VERSION = 1;
 
     private static final Set<String> ZONE_FIELDS = new LinkedHashSet<>(Arrays.asList(
-            "zone_id", "name", "plant_type", "emoji", "sensor_id", "sensor_enabled",
+            "zone_id", "area_id", "area_name", "location_name", "area_icon", "area_color",
+            "low_moisture_alert_enabled", "watering_complete_alert_enabled",
+            "name", "plant_type", "emoji", "sensor_id", "sensor_enabled",
             "sensor_calibration_dry_raw", "sensor_calibration_wet_raw",
             "sensor_config_updated_at_epoch", "valve_id", "valve_type", "valve_mode",
             "valve_mode_updated_at_epoch", "valve_gpio_bcm", "valve_gpio_physical_pin",
             "enabled", "irrigation_enabled", "order", "moisture_limit", "pump_duration",
-            "cooldown_seconds", "restart_delta", "fertilization",
+            "cooldown_seconds", "restart_delta", "season", "fertilization",
             "lifecycle_status", "created_at_epoch", "archived_at_epoch",
             "previous_sensor_id", "previous_valve_id"
     ));

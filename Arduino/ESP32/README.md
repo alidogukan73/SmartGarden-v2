@@ -23,6 +23,22 @@ Hedef donanım yapısı:
 İkinci ADS1115 henüz bağlı değilken ilk dört sensör çalışmaya devam etmeli;
 kalan dört kanal bağlantı bekliyor olarak ele alınmalıdır.
 
+## MQTT sunucusunu otomatik bulma
+
+ESP32, Raspberry Pi'nin `_mqtt._tcp` mDNS ilanını tarar ve yalnızca
+`device=avora-001` TXT kaydını taşıyan hizmete bağlanır. Böylece Raspberry Pi
+statik veya dinamik IP kullansa da sensörlerin MQTT hedefi otomatik güncellenir.
+
+Raspberry tarafında ilanı kurmak için:
+
+```bash
+cd /home/ali/AVORA/RaspberryPi
+sudo ./deploy/install-mqtt-discovery.sh
+```
+
+mDNS ilanı bulunamazsa firmware geçici olarak `192.168.1.99:1883` adresini
+geri dönüş hedefi olarak dener ve her 10 saniyede keşfi tekrarlar.
+
 ## Sensörü uzaktan açma / kapatma
 
 ESP32, aşağıdaki MQTT konusundaki kalıcı (retained) ayarları dinler:

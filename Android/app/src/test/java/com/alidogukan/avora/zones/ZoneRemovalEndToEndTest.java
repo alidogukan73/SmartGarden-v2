@@ -42,6 +42,23 @@ public class ZoneRemovalEndToEndTest {
     }
 
     @Test
+    public void activeManifestStopsRemovalEvenIfZoneStateLooksClosed() {
+        IllegalStateException error = assertThrows(
+                IllegalStateException.class,
+                () -> ZoneCapacityPolicy.decideDeactivation(
+                        true,
+                        "CLOSED",
+                        "",
+                        true,
+                        false,
+                        false,
+                        false));
+        assertEquals(
+                ZoneCapacityPolicy.ERROR_ACTIVE_SEASON,
+                error.getMessage());
+    }
+
+    @Test
     public void wateringAndMissingZoneAreRejected() {
         IllegalStateException watering = assertThrows(
                 IllegalStateException.class,

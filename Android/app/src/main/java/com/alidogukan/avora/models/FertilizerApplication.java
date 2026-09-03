@@ -1,5 +1,7 @@
 package com.alidogukan.avora.models;
 import com.google.firebase.database.IgnoreExtraProperties;
+import java.util.ArrayList;
+import java.util.List;
 
 @IgnoreExtraProperties
 public class FertilizerApplication {
@@ -7,6 +9,7 @@ public class FertilizerApplication {
     private String application_id;
     private String zone_id;
     private String season_id;
+    private List<String> season_ids = new ArrayList<>();
     private String zone_name;
     private String product_id;
     private String product_name;
@@ -42,6 +45,22 @@ public class FertilizerApplication {
     public void setZone_id(String value) { zone_id = value; }
     public String getSeason_id() { return season_id; }
     public void setSeason_id(String value) { season_id = value; }
+    public List<String> getSeason_ids() { return new ArrayList<>(season_ids); }
+    public void setSeason_ids(List<String> value) {
+        season_ids = value == null ? new ArrayList<>() : new ArrayList<>(value);
+    }
+    public boolean hasExplicitSeasonMembership() { return !season_ids.isEmpty(); }
+    public boolean belongsToSeason(String seasonId) {
+        String expected = seasonId == null ? "" : seasonId.trim();
+        if (expected.isEmpty()) return false;
+        if (!season_ids.isEmpty()) {
+            for (String value : season_ids) {
+                if (expected.equals(value == null ? "" : value.trim())) return true;
+            }
+            return false;
+        }
+        return expected.equals(season_id == null ? "" : season_id.trim());
+    }
     public String getZone_name() { return zone_name; }
     public void setZone_name(String value) { zone_name = value; }
     public String getProduct_id() { return product_id; }

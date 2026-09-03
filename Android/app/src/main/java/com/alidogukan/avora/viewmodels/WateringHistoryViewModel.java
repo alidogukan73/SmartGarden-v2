@@ -9,9 +9,11 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.alidogukan.avora.R;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.firebase.FirebaseRepository;
 import com.alidogukan.avora.language.AvoraLanguageManager;
 import com.alidogukan.avora.models.WateringHistory;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.models.GardenZone;
 
 import java.util.Collections;
@@ -25,12 +27,14 @@ public class WateringHistoryViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(true);
     private final MutableLiveData<String> error = new MutableLiveData<>();
     private final LiveData<List<GardenZone>> zones;
+    private final LiveData<List<GardenSeason>> seasons;
 
     public WateringHistoryViewModel(@NonNull Application application) {
         super(application);
         history.setValue(Collections.emptyList());
         FirebaseRepository repository = new FirebaseRepository();
         zones = repository.observeGardenZones();
+        seasons = new SeasonRepository().observeAllSeasons();
         LiveData<List<WateringHistory>> source =
                 repository.observeRecentWateringHistory(HISTORY_LIMIT, databaseError -> {
                     loading.setValue(false);
@@ -49,4 +53,5 @@ public class WateringHistoryViewModel extends AndroidViewModel {
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
     public LiveData<List<GardenZone>> getZones() { return zones; }
+    public LiveData<List<GardenSeason>> getSeasons() { return seasons; }
 }

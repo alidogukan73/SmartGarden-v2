@@ -15,14 +15,26 @@ public final class ZoneOperationSafetyPolicyTest {
     }
 
     @Test
-    public void targetZoneActivityStillBlocksRemovalAndSeasonCancellation() {
-        assertTrue(ZoneOperationSafetyPolicy.isTargetBusy(
+    public void staleWateringFlagDoesNotBlockWhenHardwareAndQueueAreIdle() {
+        assertFalse(ZoneOperationSafetyPolicy.isTargetBusy(
                 "zone-003", "valve-003",
                 true, false, 0L, false,
                 false, "", ""));
+    }
+
+    @Test
+    public void targetZoneQueueOrHardwareStillBlocksRemovalAndSeasonCancellation() {
         assertTrue(ZoneOperationSafetyPolicy.isTargetBusy(
                 "zone-003", "valve-003",
                 false, false, 0L, true,
+                false, "", ""));
+        assertTrue(ZoneOperationSafetyPolicy.isTargetBusy(
+                "zone-003", "valve-003",
+                false, true, 0L, false,
+                false, "", ""));
+        assertTrue(ZoneOperationSafetyPolicy.isTargetBusy(
+                "zone-003", "valve-003",
+                false, false, 1L, false,
                 false, "", ""));
         assertTrue(ZoneOperationSafetyPolicy.isTargetBusy(
                 "zone-003", "valve-003",

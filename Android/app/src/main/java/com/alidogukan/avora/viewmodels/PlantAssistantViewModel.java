@@ -14,6 +14,7 @@ import com.alidogukan.avora.R;
 import com.alidogukan.avora.journal.LocalGardenEventStore;
 import com.alidogukan.avora.models.GardenEvent;
 import com.alidogukan.avora.models.GardenPhoto;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
 import com.alidogukan.avora.notifications.GardenNotificationManager;
@@ -25,6 +26,7 @@ import com.alidogukan.avora.plantassistant.PlantAssistantVisionClient;
 import com.alidogukan.avora.plantassistant.PlantFollowUpStore;
 import com.alidogukan.avora.plantassistant.PlantGrowthAssessment;
 import com.alidogukan.avora.plantassistant.PlantGrowthTrendPolicy;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.season.SeasonScope;
 
 import org.json.JSONArray;
@@ -47,6 +49,8 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     private final LocalGardenEventStore events;
     private final GardenNotificationManager notifications;
     private final LiveData<List<GardenZone>> zones = repository.observeGardenZones();
+    private final LiveData<List<GardenSeason>> seasons =
+            new SeasonRepository().observeAllSeasons();
     private final LiveData<WeatherForecast> weather = repository.observeWeatherForecast();
     private final LiveData<List<GardenPhoto>> photoMetadata =
             repository.observeGardenPhotoMetadata();
@@ -61,6 +65,7 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<GardenZone>> getZones() { return zones; }
+    public LiveData<List<GardenSeason>> getSeasons() { return seasons; }
     public LiveData<WeatherForecast> getWeather() { return weather; }
     public LiveData<List<GardenPhoto>> getPhotoMetadata() { return photoMetadata; }
 
@@ -86,7 +91,7 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     }
 
     public void analyzeVisionAsync(Bitmap bitmap, Uri photoUri,
-                                   GardenZone zone, List<String> symptoms,
+                                   GardenZone zone, String plantName, List<String> symptoms,
                                    String note, WeatherForecast forecast,
                                    boolean growthStatusRequested,
                                    Consumer<JSONObject> success, Consumer<Throwable> failure) {
@@ -94,7 +99,8 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
             try {
                 Bitmap image = resolvePhoto(bitmap, photoUri);
                 JSONObject payload = new JSONObject();
-                payload.put("plant", zone.getName());
+                payload.put("plant", plantName == null || plantName.isBlank()
+                        ? zone.getName() : plantName);
                 payload.put("zone", zone.getZone_id());
                 payload.put("moisture", zone.getMoisture());
                 payload.put("moisture_limit", zone.getMoisture_limit());
@@ -130,31 +136,37 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
     public String list(JSONArray values) { return PlantAssistantVisionClient.list(values); }
 
     public GardenPhoto archivePhoto(Uri uri, Bitmap bitmap, String zoneId,
-                                    String note) throws Exception {
-        if (uri != null) return photos.save(uri, zoneId, note, "plant_assistant");
-        if (bitmap != null) return photos.save(bitmap, zoneId, note, "plant_assistant");
-        return null;
+                                    String seasonId, String note) throws Exception {
+        GardenPhoto photo = uri != null
+                ? photos.save(uri, zoneId, note, "plant_assistant")
+                : bitmap != null
+                ? photos.save(bitmap, zoneId, note, "plant_assistant") : null;
+        if (photo != null && seasonId != null && !seasonId.isBlank()) {
+            photo.setSeason_id(seasonId);
+            photos.updateSeasonId(photo.getId(), seasonId);
+        }
+        return photo;
     }
 
-    public void archivePhotoAsync(Uri uri, Bitmap bitmap, String zoneId, String note,
+    public void archivePhotoAsync(Uri uri, Bitmap bitmap, String zoneId, String seasonId, String note,
                                   Consumer<GardenPhoto> success,
                                   Consumer<Throwable> failure) {
         executor.execute(() -> {
             try {
-                success.accept(archivePhoto(uri, bitmap, zoneId, note));
+                success.accept(archivePhoto(uri, bitmap, zoneId, seasonId, note));
             } catch (Exception error) {
                 failure.accept(error);
             }
         });
     }
 
-    public void finalizeAnalysisAsync(String photoId, String zoneId, String title,
+    public void finalizeAnalysisAsync(String photoId, String zoneId, String seasonId, String title,
                                       String meta, String context, String advice,
                                       String analysisGoal, int confidence,
                                       PlantGrowthAssessment growth,
                                       Consumer<Throwable> syncFailure) {
         executor.execute(() -> {
-            FollowUpResult followUp = registerFollowUp(zoneId, photoId, title);
+            FollowUpResult followUp = registerFollowUp(zoneId, seasonId, photoId, title);
             String contextText = context;
             if ("SCHEDULED".equals(followUp.type)
                     || "SCHEDULED_EXISTING".equals(followUp.type)) {
@@ -172,11 +184,11 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                     R.string.notification_plant_analysis_saved_description),
                     "plant_analysis:" + photoId);
             if ("SCHEDULED".equals(followUp.type)) {
-                addFollowUpEvent(zoneId, "Takip fotoğrafı önerisi",
+                addFollowUpEvent(zoneId, seasonId, "Takip fotoğrafı önerisi",
                         "Bitki Asistanı analizinden 3 gün sonra aynı bölgeden yeni fotoğraf ekleyin.",
                         "follow_up_" + photoId);
             } else if ("COMPLETED".equals(followUp.type)) {
-                addFollowUpEvent(zoneId, "Takip değerlendirmesi",
+                addFollowUpEvent(zoneId, seasonId, "Takip değerlendirmesi",
                         "Yeni analiz, önceki Bitki Asistanı analiziyle karşılaştırılmak üzere kaydedildi.",
                         "follow_up_" + photoId);
                 publish("NORMAL", zoneId, getApplication().getString(
@@ -188,8 +200,9 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
         });
     }
 
-    public FollowUpResult registerFollowUp(String zoneId, String photoId, String title) {
-        PlantFollowUpStore.Result value = followUps.registerAnalysis(zoneId, photoId, title);
+    public FollowUpResult registerFollowUp(String zoneId, String seasonId,
+                                           String photoId, String title) {
+        PlantFollowUpStore.Result value = followUps.registerAnalysis(zoneId, seasonId, photoId, title);
         return new FollowUpResult(value.type, value.previousTitle);
     }
 
@@ -206,11 +219,11 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                 value.getPreviousCapturedAtEpoch());
     }
 
-    public PlantGrowthAssessment evaluateGrowth(String zoneId, String photoId,
+    public PlantGrowthAssessment evaluateGrowth(String zoneId, String seasonId, String photoId,
                                                  int score, int confidence,
                                                  String stage, String signals) {
         PlantGrowthTrendPolicy.Result comparison = PlantGrowthTrendPolicy.compare(
-                combinedPhotoMetadata(), zoneId, photoId, score);
+                combinedPhotoMetadata(), zoneId, seasonId, photoId, score);
         return new PlantGrowthAssessment(score, confidence, stage, comparison.trend,
                 comparison.scoreDelta, signals, comparison.previousCapturedAtEpoch);
     }
@@ -245,8 +258,13 @@ public final class PlantAssistantViewModel extends AndroidViewModel {
                 title, description, sourceKey);
     }
 
-    public void addFollowUpEvent(String zoneId, String type, String note, String sourceKey) {
+    public void addFollowUpEvent(String zoneId, String seasonId,
+                                 String type, String note, String sourceKey) {
         GardenEvent event = events.addAutomaticOncePerDay(zoneId, type, note, sourceKey);
+        if (event != null && seasonId != null && !seasonId.isBlank()) {
+            event.setSeason_id(seasonId);
+            events.replaceSeasonId(event.getId(), seasonId);
+        }
         if (event != null) repository.saveGardenEvent(event);
     }
 

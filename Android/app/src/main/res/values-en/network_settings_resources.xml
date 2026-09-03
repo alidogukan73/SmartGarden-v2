@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_settings_section">Network Settings</string>
+    <string name="network_settings_waiting">Waiting for network information from Raspberry Pi.</string>
+    <string name="network_settings_supported">You can change the active connection’s IPv4 settings here.</string>
+    <string name="network_settings_unsupported">The secure network configuration helper is not enabled on this Raspberry Pi yet.</string>
+    <string name="network_settings_offline">Raspberry Pi must have a current connection before network settings can change.</string>
+    <string name="network_settings_interface">Active connection</string>
+    <string name="network_settings_ip_configuration">IP configuration</string>
+    <string name="network_settings_dynamic">Dynamic</string>
+    <string name="network_settings_static">Static</string>
+    <string name="network_settings_ip_address">IP address</string>
+    <string name="network_settings_subnet">Subnet mask</string>
+    <string name="network_settings_gateway">Gateway</string>
+    <string name="network_settings_primary_dns">Primary DNS</string>
+    <string name="network_settings_secondary_dns">Secondary DNS (optional)</string>
+    <string name="network_settings_tailscale_value">Tailscale address: %1$s</string>
+    <string name="network_settings_tailscale_waiting">Tailscale address: Waiting</string>
+    <string name="network_settings_safety_note">If a setting breaks connectivity, Raspberry Pi restores the previous network configuration within 90 seconds.</string>
+    <string name="network_settings_apply">Save and apply</string>
+    <string name="network_settings_confirm_title">Change network settings?</string>
+    <string name="network_settings_confirm_static">Raspberry Pi will switch to the static IP address %1$s. Connectivity may be interrupted briefly.</string>
+    <string name="network_settings_confirm_dhcp">Raspberry Pi will switch to dynamic IP addressing. Connectivity may be interrupted briefly.</string>
+    <string name="network_settings_confirm_action">Apply</string>
+    <string name="network_settings_request_sent">Network settings were sent to Raspberry Pi.</string>
+    <string name="network_settings_request_failed">Network settings could not be sent. Check your connection.</string>
+    <string name="network_settings_status_pending">The change is waiting for Raspberry Pi.</string>
+    <string name="network_settings_status_validating">Network values are being validated.</string>
+    <string name="network_settings_status_applying">The new network configuration is being applied.</string>
+    <string name="network_settings_status_verifying">Connectivity is being verified. The device may appear offline briefly.</string>
+    <string name="network_settings_status_success">Network settings were applied successfully.</string>
+    <string name="network_settings_status_rolled_back">The new connection failed; the previous network settings were restored.</string>
+    <string name="network_settings_status_busy">Network settings cannot change while watering or a valve test is active.</string>
+    <string name="network_settings_status_failed">Network settings could not be applied.</string>
+    <string name="network_settings_error_ip_required">Enter an IP address.</string>
+    <string name="network_settings_error_ip_invalid">Enter a valid IPv4 address.</string>
+    <string name="network_settings_error_subnet">Enter a valid contiguous subnet mask.</string>
+    <string name="network_settings_error_gateway_required">Enter the gateway.</string>
+    <string name="network_settings_error_gateway">Enter a valid gateway.</string>
+    <string name="network_settings_error_gateway_subnet">The IP address and gateway must be in the same subnet.</string>
+    <string name="network_settings_error_dns_required">Enter a primary DNS server for Firebase recovery.</string>
+    <string name="network_settings_error_dns">Enter valid DNS addresses.</string>
+</resources>

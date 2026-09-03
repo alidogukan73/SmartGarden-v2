@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zone_editor_brand">🌿 AVORA</string>
+    <string name="zone_editor_title">Yeni Bölge Oluştur</string>
+    <string name="zone_editor_subtitle">Bahçenizdeki alanı tanımlayın ve akıllı sulamayı ayarlayın</string>
+    <string name="zone_editor_edit_title">Bölgeyi Düzenle</string>
+    <string name="zone_editor_edit_subtitle">Bölge görünümünü, bağlantılarını ve sulama ayarlarını güncelleyin</string>
+    <string name="zone_editor_update">Değişiklikleri Kaydet</string>
+    <string name="zone_editor_zone_not_found">Düzenlenecek bölge bulunamadı.</string>
+    <string name="zone_editor_preview">Önizleme</string>
+    <string name="zone_editor_preview_ready">Hazır</string>
+    <string name="zone_editor_preview_moisture">Toprak nemi</string>
+    <string name="zone_editor_preview_threshold">%%%1$d eşik</string>
+    <string name="zone_editor_preview_watering">Sulama durumu</string>
+    <string name="zone_editor_watering_auto">Otomatik</string>
+    <string name="zone_editor_watering_off">Kapalı</string>
+    <string name="zone_editor_hardware_pending">Donanım bekliyor</string>
+    <string name="zone_editor_section_info">1. Bölge Bilgileri</string>
+    <string name="zone_editor_section_appearance">2. Görünüm</string>
+    <string name="zone_editor_section_connections">3. Bağlantılar</string>
+    <string name="zone_editor_section_irrigation">4. Sulama Ayarları</string>
+    <string name="zone_editor_section_notifications">5. Bildirimler</string>
+    <string name="zone_editor_zone">Bölge</string>
+    <string name="zone_editor_area_name">Bölge adı</string>
+    <string name="zone_editor_location">Konum</string>
+    <string name="zone_editor_crop">Bitki türü</string>
+    <string name="zone_editor_icon">İkon</string>
+    <string name="zone_editor_color">Renk</string>
+    <string name="zone_editor_valve">Bağlı vana</string>
+    <string name="zone_editor_sensor">Nem sensörü</string>
+    <string name="zone_editor_auto_irrigation">Otomatik sulama</string>
+    <string name="zone_editor_watering_method">Sulama yöntemi</string>
+    <string name="zone_editor_threshold_based">Nem eşiğine göre</string>
+    <string name="zone_editor_moisture_threshold">Nem eşiği</string>
+    <string name="zone_editor_low_moisture_alert">Düşük nem uyarısı</string>
+    <string name="zone_editor_watering_complete_alert">Sulama tamamlandı bildirimi</string>
+    <string name="zone_editor_save">Bölgeyi Kaydet</string>
+    <string name="zone_editor_cancel">İptal</string>
+    <string name="zone_editor_name_required">Bölge adını yazın.</string>
+    <string name="zone_editor_hardware_required">Otomatik sulama için nem sensörü ve vana seçin.</string>
+    <string name="zone_editor_slot_unavailable">Seçtiğiniz bölge artık kullanılamıyor. Başka bir bölge seçin.</string>
+    <string name="zone_editor_not_ready">Bölge seçenekleri hazırlanıyor. Lütfen kısa bir süre bekleyin.</string>
+    <string name="zone_editor_save_failed">Bölge kaydedilemedi: %1$s</string>
+    <string name="zone_editor_location_back">Arka bahçe</string>
+    <string name="zone_editor_location_front">Ön bahçe</string>
+    <string name="zone_editor_location_greenhouse">Sera</string>
+    <string name="zone_editor_location_balcony">Balkon</string>
+    <string name="zone_editor_location_terrace">Teras</string>
+    <string name="notification_low_moisture_title">%1$s nemi düşük</string>
+    <string name="notification_low_moisture_description">Toprak nemi %%%1$d, sulama eşiği %%%2$d.</string>
+    <string-array name="zone_editor_locations">
+        <item>@string/zone_editor_location_back</item>
+        <item>@string/zone_editor_location_front</item>
+        <item>@string/zone_editor_location_greenhouse</item>
+        <item>@string/zone_editor_location_balcony</item>
+        <item>@string/zone_editor_location_terrace</item>
+    </string-array>
+</resources>

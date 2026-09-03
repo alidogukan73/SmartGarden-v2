@@ -314,7 +314,7 @@ public class SettingsHubActivity extends AppCompatActivity {
             case "device":
                 return new QuickAction(R.drawable.ic_device_health_24,
                         R.string.settings_quick_device,
-                        () -> open(DeviceHealthActivity.class));
+                        () -> open(DeviceInfoActivity.class));
             case "about":
                 return new QuickAction(R.drawable.ic_info_outline_20,
                         R.string.settings_quick_about,

@@ -25,8 +25,10 @@ import com.alidogukan.avora.fertilization.FertilizerExperiencePresenter;
 import com.alidogukan.avora.fertilization.FertilizationScheduleView;
 import com.alidogukan.avora.models.FertilizerRecommendation;
 import com.alidogukan.avora.models.FertilizerStageGuide;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.viewmodels.FertilizationZoneDetailViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -116,6 +118,7 @@ public class FertilizationZoneDetailActivity
     private String zonePlantType = "";
     private String zoneName = "";
     private GardenZone currentZone;
+    private List<GardenSeason> currentSeasons = new ArrayList<>();
     private WeatherForecast currentWeather;
     private List<FertilizerApplication> currentHistory = new ArrayList<>();
     private FertilizerAdvice currentFertilizerAdvice;
@@ -179,6 +182,10 @@ public class FertilizationZoneDetailActivity
                 this,
                 this::renderZone
         );
+        viewModel.getSeasons().observe(this, seasons -> {
+            currentSeasons = seasons == null ? new ArrayList<>() : seasons;
+            if (currentZone != null) renderZoneIdentity(currentZone);
+        });
         viewModel.getHistory().observe(this, history -> {
             currentHistory = history == null ? new ArrayList<>() : history;
             renderZoneAiAdvice();
@@ -387,16 +394,8 @@ public class FertilizationZoneDetailActivity
             return;
         }
 
-        ((TextView) findViewById(R.id.txtTitle)).setText(
-                getString(
-                        R.string.runtime_icon_label,
-                        zone.getEmoji() == null
-                                ? getString(R.string.symbol_plant)
-                                : zone.getEmoji(),
-                        zone.getName())
-        );
+        renderZoneIdentity(zone);
         zonePlantType = safe(zone.getPlant_type());
-        zoneName = safe(zone.getName());
         currentZone = zone;
 
         FertilizationProfile profile = zone.getFertilization();
@@ -441,6 +440,12 @@ public class FertilizationZoneDetailActivity
         updateRecordButton();
         updateAdvanceStageButton();
         renderZoneAiAdvice();
+    }
+
+    private void renderZoneIdentity(GardenZone zone) {
+        zoneName = SeasonDisplayIdentity.operationalName(zone, currentSeasons);
+        ((TextView) findViewById(R.id.txtTitle)).setText(
+                SeasonDisplayIdentity.operationalLabel(zone, currentSeasons));
     }
 
     private void renderWaterAnalysis(FertilizationProfile profile) {

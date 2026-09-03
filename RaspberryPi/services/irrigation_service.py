@@ -20,6 +20,10 @@ from core.config import (
 from core.firebase_service import FirebaseService
 from core.logger import AppLogger
 from core.system_monitor import SystemMonitor
+from core.network_configuration import (
+    NetworkConfigurationRequest,
+    NetworkConfigurationService,
+)
 from services.feedback_email_service import FeedbackEmailService
 from services.weather_service import WeatherService
 
@@ -86,6 +90,7 @@ class IrrigationService:
         self._relay = RelayController()
         self._valves = ValveController()
         self._firebase = FirebaseService()
+        self._network_configuration = NetworkConfigurationService()
         self._feedback_email = FeedbackEmailService(
             self._firebase,
         )
@@ -173,6 +178,7 @@ class IrrigationService:
         self._active_zone_test_mode = ""
         self._active_zone_test_deadline = 0.0
         self._last_irrigation_assistant_reset_request_id = ""
+        self._last_network_configuration_request_id = ""
         self._last_zone_config_signatures = {}
         self._pending_watering_measurements: list[
             PendingWateringMeasurement
@@ -197,6 +203,7 @@ class IrrigationService:
             None,
             False,
         )
+        self._firebase.reset_all_zone_watering_states()
         self._firebase.reset_zone_test_after_restart()
 
         self._restore_zone_cooldowns()
@@ -220,6 +227,7 @@ class IrrigationService:
         self._firebase.update_health_status(
             health,
         )        
+        self._publish_network_status()
 
         self._last_status_update = time.monotonic()
         self._last_health_update = time.monotonic()
@@ -359,6 +367,7 @@ class IrrigationService:
             self._firebase.update_health_status(
                 health,
             )
+            self._publish_network_status()
 
             self._last_health_update = current_time
 
@@ -595,6 +604,62 @@ class IrrigationService:
             return ""
         return season_id
 
+    @staticmethod
+    def _active_zone_season_scope_key(zone: dict) -> str:
+        """Return one deterministic key for all crops sharing a zone."""
+
+        if not isinstance(zone, dict):
+            return ""
+        season = zone.get("season")
+        if not isinstance(season, dict):
+            return ""
+        status = str(season.get("status", "")).strip().upper()
+        if status and status != "ACTIVE":
+            return ""
+
+        season_ids: set[str] = set()
+        primary = str(season.get("active_season_id", "")).strip()
+        if primary:
+            season_ids.add(primary)
+
+        active = season.get("active_season_ids")
+        if isinstance(active, dict):
+            for key, enabled in active.items():
+                value = str(key or "").strip()
+                if enabled and value:
+                    season_ids.add(value)
+        elif isinstance(active, (list, tuple)):
+            for item in active:
+                value = str(item or "").strip()
+                if value:
+                    season_ids.add(value)
+
+        return "|".join(sorted(season_ids))
+
+    def _synchronize_zone_ai_season_scopes(self, configs: dict) -> None:
+        """Reset stale AI state before the current decision plans are built."""
+
+        for sensor_id, zone in configs.items():
+            if not isinstance(zone, dict):
+                continue
+            zone_id = str(zone.get("zone_id", "")).strip()
+            if not zone_id:
+                continue
+            active_scope = self._active_zone_season_scope_key(zone)
+            known_scope = self._zone_ai_season_ids.get(zone_id)
+            if known_scope is None:
+                self._zone_ai_season_ids[zone_id] = active_scope
+                continue
+            if known_scope == active_scope:
+                continue
+            self._reset_transient_zone_ai_for_season(
+                zone_id=zone_id,
+                sensor_id=str(sensor_id),
+                previous_season_id=known_scope,
+                active_season_id=active_scope,
+            )
+            self._zone_ai_season_ids[zone_id] = active_scope
+
     def _reset_transient_zone_ai_for_season(
         self,
         *,
@@ -651,15 +716,6 @@ class IrrigationService:
         watering_recommended = 0
         warnings = 0
 
-        zone_ai_season_ids = getattr(
-            self,
-            "_zone_ai_season_ids",
-            None,
-        )
-        if zone_ai_season_ids is None:
-            zone_ai_season_ids = {}
-            self._zone_ai_season_ids = zone_ai_season_ids
-
         for result in results:
             candidate = result.candidate
             zone_id = candidate.zone_id
@@ -669,19 +725,6 @@ class IrrigationService:
 
             if reading is None or not isinstance(zone, dict):
                 continue
-
-            active_season_id = self._active_zone_season_id(zone)
-            known_season_id = zone_ai_season_ids.get(zone_id)
-            if known_season_id is None:
-                zone_ai_season_ids[zone_id] = active_season_id
-            elif known_season_id != active_season_id:
-                self._reset_transient_zone_ai_for_season(
-                    zone_id=zone_id,
-                    sensor_id=sensor_id,
-                    previous_season_id=known_season_id,
-                    active_season_id=active_season_id,
-                )
-                zone_ai_season_ids[zone_id] = active_season_id
 
             commands, _, _, _ = self._effective_zone_commands(
                 global_commands,
@@ -1189,6 +1232,117 @@ class IrrigationService:
         lines.append(weather_note)
         return replace(explanation, reason_lines=tuple(lines))
 
+    def _publish_network_status(self) -> None:
+        try:
+            self._firebase.update_network_status(
+                self._network_configuration.read_status()
+            )
+        except Exception as exc:
+            self._logger.warning(
+                "Network status could not be published: %s",
+                exc,
+            )
+
+    def _process_network_configuration_command(self, commands) -> bool:
+        """Consume and execute one network request while every actuator is idle."""
+        if not commands.network_configuration_requested:
+            return False
+        identifier = commands.network_configuration_request_id.strip().lower()
+        if not identifier or identifier == self._last_network_configuration_request_id:
+            return False
+        self._last_network_configuration_request_id = identifier
+
+        try:
+            self._firebase.acknowledge_network_configuration_request(identifier)
+        except Exception as exc:
+            self._logger.warning(
+                "Network request could not be acknowledged; no change applied: %s",
+                exc,
+            )
+            return True
+
+        now_ms = int(time.time() * 1000)
+        stale = (
+            commands.network_configuration_source != "android"
+            or commands.network_configuration_requested_at_ms <= 0
+            or commands.network_configuration_requested_at_ms > now_ms + 10_000
+            or now_ms - commands.network_configuration_requested_at_ms > 180_000
+            or commands.network_configuration_expires_at_ms < now_ms
+        )
+        if stale:
+            self._firebase.update_network_configuration_result(
+                request_id=identifier,
+                status="STALE_COMMAND",
+                message="Expired or invalid network request.",
+            )
+            return True
+
+        if (
+            self._relay.is_on
+            or self._zone_executor.active_zone_id is not None
+            or bool(self._active_zone_test_request_id)
+        ):
+            self._firebase.update_network_configuration_result(
+                request_id=identifier,
+                status="WATERING_ACTIVE",
+                message="Watering or valve test is active.",
+            )
+            return True
+
+        request = NetworkConfigurationRequest(
+            request_id=identifier,
+            interface=commands.network_configuration_interface,
+            mode=commands.network_configuration_mode,
+            ip_address=commands.network_configuration_ip_address,
+            prefix_length=commands.network_configuration_prefix_length,
+            gateway=commands.network_configuration_gateway,
+            primary_dns=commands.network_configuration_primary_dns,
+            secondary_dns=commands.network_configuration_secondary_dns,
+        )
+
+        def publish_stage(status: str, message: str) -> None:
+            try:
+                self._firebase.update_network_configuration_result(
+                    request_id=identifier,
+                    status=status,
+                    message=message,
+                )
+            except Exception as exc:
+                self._logger.debug(
+                    "Network progress could not be published during reconnect: %s",
+                    exc,
+                )
+
+        try:
+            outcome = self._network_configuration.apply(request, publish_stage)
+            network_status = self._network_configuration.read_status()
+            self._firebase.publish_network_configuration_completion(
+                request_id=identifier,
+                status=outcome.status,
+                message=outcome.message,
+                applied_ip=outcome.applied_ip,
+                network_status=network_status,
+            )
+            self._logger.info(
+                "Network configuration finished. request_id=%s status=%s",
+                identifier,
+                outcome.status,
+            )
+        except Exception as exc:
+            self._logger.exception(
+                "Network configuration failed safely: %s",
+                exc,
+            )
+            try:
+                self._firebase.update_network_configuration_result(
+                    request_id=identifier,
+                    status="FAILED",
+                    message=str(exc)[:300],
+                )
+            except Exception:
+                pass
+        return True
+
     def update(self) -> None:
         """
         Execute one irrigation cycle.
@@ -1208,6 +1362,9 @@ class IrrigationService:
             # connection outage.
             self._update_status_if_needed()
             self._update_health_if_needed()
+
+            if self._process_network_configuration_command(commands):
+                return
 
             if self._sensor.is_waiting_for_first_reading():
                 # A fresh service starts with every actuator closed. Do not
@@ -1400,8 +1557,8 @@ class IrrigationService:
                             duration_plan.adaptive_watering_count,
                         )
 
-                    season_allowed, active_season_id = (
-                        self._firebase.verify_zone_season_before_watering(
+                    season_allowed, active_season_ids = (
+                        self._firebase.verify_zone_seasons_before_watering(
                             selected_candidate.zone_id
                         )
                     )
@@ -1541,7 +1698,10 @@ class IrrigationService:
                         firmware=AppConfig.VERSION,
                         zone_id=selected_candidate.zone_id,
                         sensor_id=selected_candidate.sensor_id,
-                        season_id=active_season_id,
+                        season_id=(
+                            active_season_ids[0] if active_season_ids else ""
+                        ),
+                        season_ids=active_season_ids,
                     )
 
                     if (
@@ -2064,6 +2224,7 @@ class IrrigationService:
         self._irrigation_time_plans_by_zone = {}
         self._watering_duration_plans_by_zone = {}
         self._adaptive_recommendations_by_zone = {}
+        self._synchronize_zone_ai_season_scopes(configs)
 
         for sensor_id, reading in readings.items():
             zone = configs.get(sensor_id)
@@ -2917,6 +3078,18 @@ class IrrigationService:
         except Exception as exc:
             self._logger.exception(
                 "Feedback email service cleanup failed: %s",
+                exc,
+            )
+
+        try:
+            self._firebase.update_active_zone_valve(
+                None,
+                False,
+            )
+            self._firebase.reset_all_zone_watering_states()
+        except Exception as exc:
+            self._logger.exception(
+                "Firebase watering state cleanup failed: %s",
                 exc,
             )
 

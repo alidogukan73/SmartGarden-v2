@@ -6,7 +6,7 @@
     <string name="zone_management_capacity" tools:ignore="PluralsCandidate">%1$d / %2$d bölge kullanımda</string>
     <string name="zone_management_info">Sistem en fazla 8 bölgeyi destekler. Her etkin bölgede sensör ve vana yalnız bir kez kullanılabilir. Donanımı eksik bölge izlenebilir ancak otomatik sulama yapmaz.</string>
     <string name="zone_management_add">Bölge ekle</string>
-    <string name="zone_management_open_catalog">Ürün kataloğu</string>
+    <string name="zone_management_open_seasons">Sezonlara git</string>
     <string name="zone_management_regions_heading">Etkin bölgeler</string>
     <string name="zone_management_capacity_full">8 bölgenin tamamı kullanımda. Yeni bölge eklemek için önce bir bölgeyi kullanımdan kaldırın.</string>
     <string name="zone_management_empty_slot_title">Bölge %1$d · Boş yuva</string>

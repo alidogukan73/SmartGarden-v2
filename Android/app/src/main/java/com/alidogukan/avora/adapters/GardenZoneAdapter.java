@@ -213,7 +213,15 @@ public class GardenZoneAdapter
             return false;
         }
         return Objects.equals(previous.getName(), updated.getName())
+                && Objects.equals(previous.getArea_name(), updated.getArea_name())
+                && Objects.equals(previous.getLocation_name(), updated.getLocation_name())
+                && Objects.equals(previous.getArea_icon(), updated.getArea_icon())
+                && Objects.equals(previous.getArea_color(), updated.getArea_color())
                 && Objects.equals(previous.getEmoji(), updated.getEmoji())
+                && previous.isLow_moisture_alert_enabled()
+                    == updated.isLow_moisture_alert_enabled()
+                && previous.isWatering_complete_alert_enabled()
+                    == updated.isWatering_complete_alert_enabled()
                 && Objects.equals(previous.getSensor_id(), updated.getSensor_id())
                 && previous.isSensor_enabled() == updated.isSensor_enabled()
                 && previous.isIrrigation_enabled() == updated.isIrrigation_enabled()
@@ -319,14 +327,8 @@ public class GardenZoneAdapter
         }
 
         void bind(GardenZone zone) {
-            String emoji =
-                    zone.getEmoji() == null
-                            ? "🌱"
-                            : zone.getEmoji();
-            String zoneName =
-                    zone.getName() == null
-                            ? itemView.getContext().getString(R.string.runtime_zone_unnamed)
-                            : zone.getName();
+            String emoji = com.alidogukan.avora.zones.PhysicalZoneIdentity.icon(zone);
+            String zoneName = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
             String sensor =
                     zone.getSensor_id() == null
                             ? itemView.getContext().getString(R.string.runtime_sensor_unassigned)

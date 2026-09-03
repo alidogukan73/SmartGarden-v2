@@ -73,6 +73,22 @@ public class PlantGrowthTrendPolicyTest {
         assertEquals(300L, result.previousCapturedAtEpoch);
     }
 
+    @Test
+    public void comparisonDoesNotMixCropsSharingOnePhysicalZone() {
+        GardenPhoto tomato = growth("tomato", "zone-001", 90, 300L);
+        tomato.setSeason_id("tomato-season");
+        GardenPhoto pepper = growth("pepper", "zone-001", 60, 200L);
+        pepper.setSeason_id("pepper-season");
+
+        PlantGrowthTrendPolicy.Result result = PlantGrowthTrendPolicy.compare(
+                Arrays.asList(tomato, pepper),
+                "zone-001", "pepper-season", "new", 64);
+
+        assertEquals(PlantGrowthTrendPolicy.STABLE, result.trend);
+        assertEquals(4, result.scoreDelta);
+        assertEquals(200L, result.previousCapturedAtEpoch);
+    }
+
     private static GardenPhoto growth(String id, String zoneId, int score, long epoch) {
         GardenPhoto photo = new GardenPhoto();
         photo.setId(id);

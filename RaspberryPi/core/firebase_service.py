@@ -135,6 +135,7 @@ class FirebaseService:
                 credential,
                 {
                     "databaseURL": FirebaseConfig.DATABASE_URL,
+                    "httpTimeout": FirebaseConfig.HTTP_TIMEOUT_SECONDS,
                 },
             )
 
@@ -196,6 +197,9 @@ class FirebaseService:
 
                 # One-shot selected-zone assistant reset command.
                 "irrigation_assistant_reset": {
+                    "requested": False,
+                },
+                "network_configuration": {
                     "requested": False,
                 },
                 "restart_device": False,
@@ -417,6 +421,29 @@ class FirebaseService:
                     ),
                 },
             )
+
+    def reset_all_zone_watering_states(self) -> None:
+        """Clear stale per-zone watering flags after startup or safe shutdown."""
+
+        zones = self._device_ref().child("zones").get()
+        if not isinstance(zones, dict):
+            return
+
+        updated_at = datetime.now().isoformat()
+        updates: dict[str, object] = {}
+        for zone_key, value in zones.items():
+            if not isinstance(value, dict):
+                continue
+            normalized_key = str(zone_key or "").strip()
+            if not normalized_key:
+                continue
+            prefix = f"zones/{normalized_key}/irrigation_status/"
+            updates[prefix + "watering_active"] = False
+            updates[prefix + "selected_for_watering"] = False
+            updates[prefix + "updated_at"] = updated_at
+
+        if updates:
+            self._device_ref().update(updates)
 
     def update_health_status(
         self,
@@ -854,6 +881,31 @@ class FirebaseService:
         }
 
     @staticmethod
+    def _active_season_ids_from_zone(zone: object) -> tuple[str, ...]:
+        """Return every active crop season, keeping the primary id first."""
+        if not isinstance(zone, dict):
+            return ()
+        season = zone.get("season")
+        if not isinstance(season, dict):
+            return ()
+        values: list[str] = []
+        primary = str(season.get("active_season_id", "")).strip()
+        if primary:
+            values.append(primary)
+        active = season.get("active_season_ids")
+        if isinstance(active, dict):
+            for key, enabled in active.items():
+                value = str(key).strip()
+                if enabled and value:
+                    values.append(value)
+        elif isinstance(active, (list, tuple)):
+            for item in active:
+                value = str(item).strip()
+                if value:
+                    values.append(value)
+        return tuple(dict.fromkeys(values))
+
+    @staticmethod
     def _season_scope_from_zone(zone: object) -> tuple[bool, str, bool]:
         """Return (watering_allowed, active_season_id, includes_legacy)."""
         if not isinstance(zone, dict):
@@ -864,9 +916,8 @@ class FirebaseService:
             # management continue inside their one-time legacy season.
             return True, "", True
         status = str(season.get("status", "")).strip().upper()
-        season_id = str(
-            season.get("active_season_id", "")
-        ).strip()
+        active_season_ids = FirebaseService._active_season_ids_from_zone(zone)
+        season_id = active_season_ids[0] if active_season_ids else ""
         includes_legacy = bool(
             season.get("include_legacy_records", False)
         )
@@ -896,16 +947,52 @@ class FirebaseService:
             ).get()
         return self._season_scope_from_zone(zone)
 
+    def get_zone_active_season_ids(
+        self,
+        zone_id: str,
+        *,
+        fresh: bool = False,
+    ) -> tuple[str, ...]:
+        """Read every crop season currently sharing one physical zone."""
+        normalized_zone_id = str(zone_id or "").strip()
+        if not normalized_zone_id:
+            return ()
+        zone = None
+        if not fresh:
+            for cached in self._zone_config_by_sensor_id.values():
+                if str(cached.get("zone_id", "")).strip() == normalized_zone_id:
+                    zone = cached
+                    break
+        if zone is None:
+            zone = self._device_ref().child(
+                f"zones/{normalized_zone_id}"
+            ).get()
+        return self._active_season_ids_from_zone(zone)
+
+    def verify_zone_seasons_before_watering(
+        self,
+        zone_id: str,
+    ) -> tuple[bool, tuple[str, ...]]:
+        """Use one fresh server read before opening a shared physical valve."""
+        normalized_zone_id = str(zone_id or "").strip()
+        if not normalized_zone_id:
+            return True, ()
+        zone = self._device_ref().child(
+            f"zones/{normalized_zone_id}"
+        ).get()
+        allowed, primary, _ = self._season_scope_from_zone(zone)
+        season_ids = self._active_season_ids_from_zone(zone)
+        if not season_ids and primary:
+            season_ids = (primary,)
+        return allowed, season_ids
+
     def verify_zone_season_before_watering(
         self,
         zone_id: str,
     ) -> tuple[bool, str]:
-        """Use a fresh server read immediately before opening a valve."""
-        allowed, season_id, _ = self.get_zone_season_scope(
-            zone_id,
-            fresh=True,
-        )
-        return allowed, season_id
+        """Backward-compatible primary-season view for older callers."""
+        allowed, season_ids = self.verify_zone_seasons_before_watering(zone_id)
+        return allowed, season_ids[0] if season_ids else ""
 
     def get_physical_valve_ids(self) -> set[str]:
         """Return only zones explicitly approved for real valve control."""
@@ -1272,11 +1359,15 @@ class FirebaseService:
                 statistics.moisture_delta,
         }
 
+        active_season_ids = tuple(record.season_ids)
+        if not active_season_ids:
+            active_season_ids = self.get_zone_active_season_ids(record.zone_id)
+        primary_season_id = record.season_id or (
+            active_season_ids[0] if active_season_ids else ""
+        )
         history_data = {
-            "season_id": (
-                record.season_id
-                or self.get_zone_season_scope(record.zone_id)[1]
-            ),
+            "season_id": primary_season_id,
+            "season_ids": list(active_season_ids),
 
             "started_at":
                 record.started_at,
@@ -1702,6 +1793,10 @@ class FirebaseService:
                             "",
                         ),
                     ),
+                    season_ids=tuple(
+                        str(value).strip() for value in item.get("season_ids", [])
+                        if str(value).strip()
+                    ),
                 )
 
                 if (
@@ -1717,16 +1812,22 @@ class FirebaseService:
                     continue
 
                 if zone_id:
-                    _, active_season_id, includes_legacy = (
+                    _, _, includes_legacy = (
                         self.get_zone_season_scope(zone_id)
                     )
-                    if active_season_id:
-                        if record.season_id:
-                            if record.season_id != active_season_id:
+                    active_season_ids = set(
+                        self.get_zone_active_season_ids(zone_id)
+                    )
+                    record_season_ids = set(record.season_ids)
+                    if record.season_id:
+                        record_season_ids.add(record.season_id)
+                    if active_season_ids:
+                        if record_season_ids:
+                            if active_season_ids.isdisjoint(record_season_ids):
                                 continue
                         elif not includes_legacy:
                             continue
-                    elif record.season_id:
+                    elif record_season_ids:
                         # A deliberately closed season must not train a new
                         # active model until the user starts another season.
                         continue
@@ -1897,6 +1998,13 @@ class FirebaseService:
         if not isinstance(zone_test, dict):
             zone_test = {}
 
+        network_configuration = commands.get(
+            "network_configuration",
+            {},
+        )
+        if not isinstance(network_configuration, dict):
+            network_configuration = {}
+
         return CommandState(
             auto_mode=self._boolean_command(
                 commands=commands,
@@ -1993,6 +2101,48 @@ class FirebaseService:
             ),
             irrigation_assistant_reset_requested_at_ms=int(
                 assistant_reset.get("requested_at", 0) or 0
+            ),
+            network_configuration_requested=self._boolean_command(
+                commands=network_configuration,
+                field="requested",
+                default=False,
+            ),
+            network_configuration_request_id=str(
+                network_configuration.get("request_id", "")
+            ),
+            network_configuration_interface=str(
+                network_configuration.get("interface", "")
+            ),
+            network_configuration_mode=str(
+                network_configuration.get("mode", "")
+            ),
+            network_configuration_ip_address=str(
+                network_configuration.get("ip_address", "")
+            ),
+            network_configuration_prefix_length=self._bounded_command_int(
+                commands=network_configuration,
+                field="prefix_length",
+                default=24,
+                minimum=1,
+                maximum=30,
+            ),
+            network_configuration_gateway=str(
+                network_configuration.get("gateway", "")
+            ),
+            network_configuration_primary_dns=str(
+                network_configuration.get("primary_dns", "")
+            ),
+            network_configuration_secondary_dns=str(
+                network_configuration.get("secondary_dns", "")
+            ),
+            network_configuration_requested_at_ms=int(
+                network_configuration.get("requested_at", 0) or 0
+            ),
+            network_configuration_expires_at_ms=int(
+                network_configuration.get("expires_at", 0) or 0
+            ),
+            network_configuration_source=str(
+                network_configuration.get("source", "")
             ),
         )
 
@@ -2366,6 +2516,90 @@ class FirebaseService:
         self._logger.info(
             "Command synchronization stopped.",
         )
+
+    def update_network_status(self, status: dict) -> None:
+        """Publish the active IPv4 profile separately from general health."""
+        payload = dict(status) if isinstance(status, dict) else {}
+        payload["updated_at_epoch"] = int(time.time())
+        self._device_ref().child("network/status").set(payload)
+
+    def acknowledge_network_configuration_request(self, request_id: str) -> None:
+        """Consume a matching request before the active interface is changed."""
+        command_ref = self._device_ref().child("commands/network_configuration")
+
+        def consume(current):
+            value = dict(current) if isinstance(current, dict) else {}
+            if str(value.get("request_id", "")) != str(request_id):
+                return value
+            value["requested"] = False
+            value["acknowledged_at"] = int(time.time() * 1000)
+            return value
+
+        command_ref.transaction(consume)
+
+    def update_network_configuration_result(
+        self,
+        *,
+        request_id: str,
+        status: str,
+        message: str = "",
+        applied_ip: str = "",
+    ) -> None:
+        """Publish bounded progress for the Android device-information screen."""
+        self._device_ref().child("network/configuration_result").set(
+            {
+                "request_id": str(request_id),
+                "status": str(status)[:40],
+                "message": str(message)[:300],
+                "applied_ip": str(applied_ip)[:45],
+                "updated_at_epoch": int(time.time()),
+            }
+        )
+
+    def publish_network_configuration_completion(
+        self,
+        *,
+        request_id: str,
+        status: str,
+        message: str = "",
+        applied_ip: str = "",
+        network_status: dict | None = None,
+    ) -> None:
+        """Publish the final result and active network through a fresh HTTP session."""
+        now = int(time.time())
+        current_network = (
+            dict(network_status)
+            if isinstance(network_status, dict)
+            else {}
+        )
+        current_network["updated_at_epoch"] = now
+        completion = {
+            "configuration_result": {
+                "request_id": str(request_id),
+                "status": str(status)[:40],
+                "message": str(message)[:300],
+                "applied_ip": str(applied_ip)[:45],
+                "updated_at_epoch": now,
+            },
+            "status": current_network,
+        }
+
+        primary_app = firebase_admin.get_app()
+        temporary_app = firebase_admin.initialize_app(
+            primary_app.credential,
+            {
+                "databaseURL": FirebaseConfig.DATABASE_URL,
+                "httpTimeout": FirebaseConfig.HTTP_TIMEOUT_SECONDS,
+            },
+            name=f"avora-network-publish-{uuid.uuid4().hex}",
+        )
+        try:
+            db.reference(
+                f"devices/{AppConfig.DEVICE_ID}/network",
+                app=temporary_app,
+            ).update(completion)
+        finally:
+            firebase_admin.delete_app(temporary_app)
 
     def update_irrigation_decision(
         self,

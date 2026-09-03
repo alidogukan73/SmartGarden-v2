@@ -10,15 +10,29 @@ public final class SeasonStartConfiguration {
     private final String cropName;
     private final String plantType;
     private final String emoji;
+    private final int idealMoistureMin;
+    private final int idealMoistureMax;
 
     public SeasonStartConfiguration(
             String cropName,
             String plantType,
             String emoji
     ) {
+        this(cropName, plantType, emoji, 0, 100);
+    }
+
+    public SeasonStartConfiguration(
+            String cropName,
+            String plantType,
+            String emoji,
+            int idealMoistureMin,
+            int idealMoistureMax
+    ) {
         this.cropName = safe(cropName).trim();
         this.plantType = safe(plantType).trim();
         this.emoji = safe(emoji).trim().isEmpty() ? "🌱" : safe(emoji).trim();
+        this.idealMoistureMin = clamp(idealMoistureMin);
+        this.idealMoistureMax = clamp(idealMoistureMax);
     }
 
     public static SeasonStartConfiguration fromZone(GardenZone zone) {
@@ -68,9 +82,12 @@ public final class SeasonStartConfiguration {
     public String getCropName() { return cropName; }
     public String getPlantType() { return plantType; }
     public String getEmoji() { return emoji; }
+    public int getIdealMoistureMin() { return idealMoistureMin; }
+    public int getIdealMoistureMax() { return idealMoistureMax; }
 
     public boolean isValid() {
-        return !cropName.isEmpty() && !plantType.isEmpty();
+        return !cropName.isEmpty() && !plantType.isEmpty()
+                && idealMoistureMin <= idealMoistureMax;
     }
 
     private static String normalizedCropName(String cropName) {
@@ -81,4 +98,5 @@ public final class SeasonStartConfiguration {
     }
 
     private static String safe(String value) { return value == null ? "" : value; }
+    private static int clamp(int value) { return Math.max(0, Math.min(100, value)); }
 }

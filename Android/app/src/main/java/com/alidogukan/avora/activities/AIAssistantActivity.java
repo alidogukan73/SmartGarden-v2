@@ -2439,7 +2439,7 @@ public class AIAssistantActivity extends AppCompatActivity {
 
         GardenZone zone = predictionZones.get(selectedPredictionZoneIndex);
         String emoji = assistantFormatter.safeText(zone.getEmoji(), getString(R.string.symbol_plant));
-        String name = assistantFormatter.safeText(zone.getName(), zone.getZone_id());
+        String name = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
         txtMoisturePredictionTitle.setText(getString(
                 R.string.ai_moisture_prediction_zone_title,
                 emoji,

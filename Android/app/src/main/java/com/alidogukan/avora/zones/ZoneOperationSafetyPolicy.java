@@ -15,10 +15,14 @@ public final class ZoneOperationSafetyPolicy {
             String activeZoneId,
             String activeValveId
     ) {
-        if (targetWateringActive || targetSelectedForWatering
-                || targetQueuePosition > 0L || targetHasPendingWatering) {
+        if (targetSelectedForWatering
+                || targetQueuePosition > 0L
+                || targetHasPendingWatering) {
             return true;
         }
+        // watering_active can survive a Raspberry Pi restart even though the
+        // relay, valve and command are already off. Treat it as corroborating
+        // UI state only; real hardware activity remains fail-safe below.
         if (!hardwareBusy) return false;
 
         String expectedZone = safe(targetZoneId);

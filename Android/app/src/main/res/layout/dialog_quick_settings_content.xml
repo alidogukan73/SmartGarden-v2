@@ -18,7 +18,7 @@
         android:textSize="12sp"
         android:textStyle="bold" />
 
-    <ScrollView
+    <com.alidogukan.avora.views.QuickSettingsScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
@@ -32,6 +32,6 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp" />
 
-    </ScrollView>
+    </com.alidogukan.avora.views.QuickSettingsScrollView>
 
 </LinearLayout>

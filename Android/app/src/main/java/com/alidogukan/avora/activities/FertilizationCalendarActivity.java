@@ -17,12 +17,14 @@ import com.alidogukan.avora.R;
 import com.alidogukan.avora.models.FertilizationProfile;
 import com.alidogukan.avora.models.FertilizerProduct;
 import com.alidogukan.avora.models.FertilizerApplication;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WeatherForecast;
 import com.alidogukan.avora.fertilization.FertilizerAdvice;
 import com.alidogukan.avora.fertilization.FertilizerMixResult;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.FertilizationCalendarViewModel;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -39,6 +41,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
 
     private LinearLayout layoutTodayAdvice;
     private List<GardenZone> currentZones = new ArrayList<>();
+    private List<GardenSeason> currentSeasons = new ArrayList<>();
     private List<FertilizerProduct> currentProducts =
             new ArrayList<>();
     private List<FertilizerApplication> currentHistory =
@@ -81,6 +84,10 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
                 FertilizationCalendarViewModel.class
         );
         viewModel.getZones().observe(this, this::renderZones);
+        viewModel.getSeasons().observe(this, seasons -> {
+            currentSeasons = seasons == null ? new ArrayList<>() : seasons;
+            renderTodayAdvice();
+        });
         viewModel.getProducts().observe(this, products -> {
             currentProducts = products == null
                     ? new ArrayList<>()
@@ -206,8 +213,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         String[] names = new String[eligible.size()];
         boolean[] checked = new boolean[eligible.size()];
         for (int index = 0; index < eligible.size(); index++) {
-            names[index] = safe(eligible.get(index).getEmoji()) + " "
-                    + safe(eligible.get(index).getName());
+            names[index] = zoneLabel(eligible.get(index));
         }
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.fertilizer_mix_select_zones)
@@ -311,7 +317,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             }
             GardenZone zone = zones.get(index);
             FertilizationProfile profile = zone.getFertilization();
-            String zoneName = safe(zone.getName());
+            String zoneName = zoneName(zone);
             FertilizationCalendarViewModel.Dose firstDose =
                     viewModel.calculateDose(first, profile);
             FertilizationCalendarViewModel.Dose secondDose =
@@ -440,7 +446,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
     ) {
         return new FertilizationCalendarViewModel.BulkFertilizerApplication(
                 zone.getZone_id(),
-                safe(zone.getName()),
+                zoneName(zone),
                 dose.getAmount(),
                 profile.getArea_m2(),
                 profile.getTank_liters(),
@@ -667,8 +673,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         String[] names = new String[eligible.size()];
         boolean[] checked = new boolean[eligible.size()];
         for (int index = 0; index < eligible.size(); index++) {
-            names[index] = safe(eligible.get(index).getEmoji()) + " "
-                    + safe(eligible.get(index).getName());
+            names[index] = zoneLabel(eligible.get(index));
         }
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.fertilizer_bulk_select_zones)
@@ -740,7 +745,7 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             }
             GardenZone zone = zones.get(index);
             FertilizationProfile profile = zone.getFertilization();
-            String zoneName = safe(zone.getName());
+            String zoneName = zoneName(zone);
             FertilizationCalendarViewModel.Dose dose =
                     viewModel.calculateDose(product, profile);
             if (profile == null || !profile.isEnabled() || !dose.isSupported()) {
@@ -915,7 +920,8 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
             card.setOnClickListener(view -> openZoneDetails(zone));
             card.setClickable(true);
             card.setFocusable(true);
-            ((TextView) card.findViewById(R.id.txtTodayAdviceZone)).setText(advice.getZoneTitle());
+            ((TextView) card.findViewById(R.id.txtTodayAdviceZone))
+                    .setText(zoneLabel(zone));
             long waitDays = summaryWaitDays(zone, advice);
             boolean waiting = waitDays > 0L;
             TextView status = card.findViewById(R.id.txtTodayAdviceStatus);
@@ -995,6 +1001,14 @@ public class FertilizationCalendarActivity extends AppCompatActivity {
         intent.putExtra(FertilizationZoneDetailActivity.EXTRA_ZONE_ID,
                 zone.getZone_id());
         startActivity(intent);
+    }
+
+    private String zoneName(GardenZone zone) {
+        return SeasonDisplayIdentity.operationalName(zone, currentSeasons);
+    }
+
+    private String zoneLabel(GardenZone zone) {
+        return SeasonDisplayIdentity.operationalLabel(zone, currentSeasons);
     }
 
     private String safe(String value) {

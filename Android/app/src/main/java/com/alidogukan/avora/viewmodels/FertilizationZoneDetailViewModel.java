@@ -19,9 +19,11 @@ import com.alidogukan.avora.fertilization.FertilizerStagePolicy;
 import com.alidogukan.avora.fertilization.OrganicFertilizerAiAdvisor;
 import com.alidogukan.avora.models.FertilizerApplication;
 import com.alidogukan.avora.models.FertilizerProduct;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.FertilizerRecommendation;
 import com.alidogukan.avora.models.FertilizerStageGuide;
 import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.season.SeasonRepository;
 import com.alidogukan.avora.models.WeatherForecast;
 import com.google.android.gms.tasks.Task;
 
@@ -40,6 +42,8 @@ public final class FertilizationZoneDetailViewModel extends AndroidViewModel {
     private final LiveData<List<FertilizerStageGuide>> stageGuides =
             repository.observeStageGuides();
     private final LiveData<List<FertilizerApplication>> history = repository.observeHistory();
+    private final LiveData<List<GardenSeason>> seasons =
+            new SeasonRepository().observeAllSeasons();
     private final LiveData<WeatherForecast> weather = repository.observeWeather();
 
     public FertilizationZoneDetailViewModel(@NonNull Application application) {
@@ -61,6 +65,7 @@ public final class FertilizationZoneDetailViewModel extends AndroidViewModel {
     public LiveData<List<FertilizerApplication>> getHistory() { return history; }
     public LiveData<WeatherForecast> getWeather() { return weather; }
     public boolean preferOrganicInputs() { return preferences.preferOrganicInputs(); }
+    public LiveData<List<GardenSeason>> getSeasons() { return seasons; }
 
     public FertilizerAdvice advise(GardenZone zone, List<FertilizerProduct> products,
                                    WeatherForecast weather,

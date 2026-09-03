@@ -33,6 +33,8 @@ import java.util.Set;
 public class GardenPhotoGalleryActivity extends AppCompatActivity {
     public static final String EXTRA_PICK_MODE = "pick_mode";
     public static final String EXTRA_SELECTED_PHOTO_PATH = "selected_photo_path";
+    public static final String EXTRA_ZONE_ID = "zone_id";
+    public static final String EXTRA_SEASON_ID = "season_id";
     public static final String EXTRA_SELECTED_PHOTO_ID = "selected_photo_id";
 
     private GardenPhotoGalleryViewModel viewModel;
@@ -45,6 +47,8 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     private MaterialButton selectAll;
     private MaterialButton deleteSelected;
     private boolean pickMode;
+    private String filterZoneId = "";
+    private String filterSeasonId = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,6 +57,8 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
         pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
         viewModel = new ViewModelProvider(this).get(GardenPhotoGalleryViewModel.class);
         bindViews();
+        filterZoneId = safe(getIntent().getStringExtra(EXTRA_ZONE_ID));
+        filterSeasonId = safe(getIntent().getStringExtra(EXTRA_SEASON_ID));
         findViewById(R.id.btnGalleryBack).setOnClickListener(view -> closeGallery());
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -87,7 +93,13 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
 
     private void reload() {
         photos.clear();
-        photos.addAll(viewModel.load());
+        for (GardenPhoto photo : viewModel.load()) {
+            if (pickMode && !filterZoneId.isEmpty()
+                    && !filterZoneId.equals(safe(photo.getZone_id()))) continue;
+            if (pickMode && !filterSeasonId.isEmpty()
+                    && !filterSeasonId.equals(safe(photo.getSeason_id()))) continue;
+            photos.add(photo);
+        }
         selectedIds.retainAll(idsOf(photos));
         render();
     }
@@ -195,4 +207,8 @@ public class GardenPhotoGalleryActivity extends AppCompatActivity {
     private void closeGallery() {
         finish();
     }
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
 }

@@ -28,6 +28,8 @@ class FirebaseConfig:
 
     CREDENTIALS_FILE = "firebase_key.json"
 
+    HTTP_TIMEOUT_SECONDS = 10
+
     STATUS_UPDATE_INTERVAL_SECONDS = 10
 
     COMMAND_SYNC_INTERVAL_SECONDS = 0.5

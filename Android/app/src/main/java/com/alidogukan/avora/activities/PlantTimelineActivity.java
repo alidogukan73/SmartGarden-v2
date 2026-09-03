@@ -131,15 +131,11 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private void render() {
         addAutomaticSignals();
         GardenSeason selected = selectedSeason();
-        String name;
-        if (selected != null && selected.getZone_name() != null
-                && !selected.getZone_name().isBlank()) {
-            name = selected.getZone_name().trim();
-        } else {
-            name = zone == null || zone.getName() == null || zone.getName().isBlank() ? getString(R.string.runtime_plant_default) : zone.getName();
-        }
-        title.setText(getString(R.string.runtime_timeline_named_title, name));
-        String seasonHeader = seasonHeader(name, selected);
+        String cropName = SeasonDisplayIdentity.name(selected, zone);
+        if (cropName.isBlank()) cropName = getString(R.string.runtime_plant_default);
+        String areaName = SeasonDisplayIdentity.areaName(selected, zone);
+        title.setText(getString(R.string.runtime_timeline_named_title, cropName));
+        String seasonHeader = seasonHeader(areaName, selected);
         season.setText(seasonHeader);
         season.setContentDescription(getString(
                 R.string.runtime_timeline_season_selector_description, seasonHeader));
@@ -406,7 +402,7 @@ public class PlantTimelineActivity extends AppCompatActivity {
         intent.putExtra("icon", item.icon(this));
         intent.putExtra("time", item.time());
         intent.putExtra("zone_id", zoneId);
-        intent.putExtra("season_id", item.seasonId());
+        intent.putExtra("season_id", item.seasonIdFor(selectedSeasonId));
         intent.putExtra("season_read_only",
                 selected != null && SeasonStatus.isClosed(selected.getStatus()));
         if (item.event != null && "MANUAL".equals(item.event.getSource())) {
@@ -425,9 +421,13 @@ public class PlantTimelineActivity extends AppCompatActivity {
         PopupMenu menu = new PopupMenu(this, season);
         if (!seasons.isEmpty()) {
             for (GardenSeason value : seasons) {
-                String label = value.getLabel().isBlank()
+                String seasonLabel = value.getLabel().isBlank()
                         ? yearOf(value.getStarted_at_epoch()) + " Sezonu"
                         : value.getLabel();
+                String crop = SeasonDisplayIdentity.emoji(value, zone)
+                        + " "
+                        + SeasonDisplayIdentity.name(value, zone);
+                String label = crop.trim() + " · " + seasonLabel;
                 menu.getMenu().add(label).setIntent(
                         new Intent().putExtra("season_id", value.getSeason_id())
                 );
@@ -490,6 +490,8 @@ public class PlantTimelineActivity extends AppCompatActivity {
     }
 
     private GardenSeason activeSeason() {
+        GardenSeason selected = selectedSeason();
+        if (selected != null && SeasonStatus.isActive(selected.getStatus())) return selected;
         for (GardenSeason value : seasons) {
             if (SeasonStatus.isActive(value.getStatus())) return value;
         }
@@ -516,6 +518,14 @@ public class PlantTimelineActivity extends AppCompatActivity {
     private boolean recordBelongsToSelectedSeason(TimelineItem item) {
         GardenSeason selected = selectedSeason();
         if (selected == null) return yearOf(item.time()) == selectedYear;
+        if (item.fertilizer != null
+                && item.fertilizer.belongsToSeason(selected.getSeason_id())) {
+            return true;
+        }
+        if (item.watering != null
+                && item.watering.getSeasonIds().contains(selected.getSeason_id())) {
+            return true;
+        }
         return viewModel.belongsToSeason(item.seasonId(), item.time(), selected);
     }
     private void showNewRecordTypes() {
@@ -588,6 +598,11 @@ public class PlantTimelineActivity extends AppCompatActivity {
         static TimelineItem event(GardenEvent v) { return new TimelineItem(v, null, null, null); } static TimelineItem photo(GardenPhoto v) { return new TimelineItem(null, v, null, null); } static TimelineItem fertilizer(FertilizerApplication v) { return new TimelineItem(null, null, v, null); } static TimelineItem watering(WateringHistory v) { return new TimelineItem(null, null, null, v); }
         long time() { if (event != null) return event.getOccurred_at_epoch(); if (photo != null) return photo.getCaptured_at_epoch(); if (fertilizer != null) return fertilizer.getApplied_at_epoch(); return parseTime(watering.getFinishedAt()); }
         String seasonId() { if (event != null) return event.getSeason_id(); if (photo != null) return photo.getSeason_id(); if (fertilizer != null) return fertilizer.getSeason_id(); return watering.getSeasonId(); }
+        String seasonIdFor(String selectedSeasonId) {
+            if (fertilizer != null && fertilizer.belongsToSeason(selectedSeasonId)) return selectedSeasonId;
+            if (watering != null && watering.getSeasonIds().contains(selectedSeasonId)) return selectedSeasonId;
+            return seasonId();
+        }
         String title(android.content.Context context) {
             if (fertilizer != null) return context.getString(R.string.notification_category_fertilization);
             if (watering != null) return context.getString(R.string.notification_category_irrigation);

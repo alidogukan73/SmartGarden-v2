@@ -303,7 +303,7 @@ public class SensorPointsActivity extends AppCompatActivity {
                         zone.getEmoji() == null
                                 ? getString(R.string.symbol_plant)
                                 : zone.getEmoji(),
-                        zone.getName(),
+                        com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone),
                         getString(
                                 R.string.queue_zone_detail,
                                 zone.getMoisture(),

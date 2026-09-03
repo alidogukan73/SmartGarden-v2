@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_settings_section">Ağ Ayarları</string>
+    <string name="network_settings_waiting">Raspberry Pi’den ağ bilgisi bekleniyor.</string>
+    <string name="network_settings_supported">Etkin bağlantının IPv4 ayarlarını buradan değiştirebilirsiniz.</string>
+    <string name="network_settings_unsupported">Bu Raspberry Pi’de güvenli ağ yapılandırma yardımcısı henüz etkin değil.</string>
+    <string name="network_settings_offline">Ağ ayarını değiştirmek için Raspberry Pi bağlantısının güncel olması gerekir.</string>
+    <string name="network_settings_interface">Etkin bağlantı</string>
+    <string name="network_settings_ip_configuration">IP yapılandırması</string>
+    <string name="network_settings_dynamic">Dinamik</string>
+    <string name="network_settings_static">Statik</string>
+    <string name="network_settings_ip_address">IP adresi</string>
+    <string name="network_settings_subnet">Alt ağ maskesi</string>
+    <string name="network_settings_gateway">Ağ geçidi</string>
+    <string name="network_settings_primary_dns">Birincil DNS</string>
+    <string name="network_settings_secondary_dns">İkincil DNS (isteğe bağlı)</string>
+    <string name="network_settings_tailscale_value">Tailscale adresi: %1$s</string>
+    <string name="network_settings_tailscale_waiting">Tailscale adresi: Bekleniyor</string>
+    <string name="network_settings_safety_note">Yanlış bir ayar bağlantıyı keserse Raspberry Pi 90 saniye içinde önceki ayara döner.</string>
+    <string name="network_settings_apply">Kaydet ve uygula</string>
+    <string name="network_settings_confirm_title">Ağ ayarı değiştirilsin mi?</string>
+    <string name="network_settings_confirm_static">Raspberry Pi %1$s statik IP adresine geçirilecek. Bağlantı kısa süre kesilebilir.</string>
+    <string name="network_settings_confirm_dhcp">Raspberry Pi dinamik IP kullanımına geçirilecek. Bağlantı kısa süre kesilebilir.</string>
+    <string name="network_settings_confirm_action">Uygula</string>
+    <string name="network_settings_request_sent">Ağ ayarı Raspberry Pi’ye gönderildi.</string>
+    <string name="network_settings_request_failed">Ağ ayarı gönderilemedi. Bağlantınızı kontrol edin.</string>
+    <string name="network_settings_status_pending">Değişiklik Raspberry Pi tarafından bekleniyor.</string>
+    <string name="network_settings_status_validating">Ağ bilgileri doğrulanıyor.</string>
+    <string name="network_settings_status_applying">Yeni ağ ayarı uygulanıyor.</string>
+    <string name="network_settings_status_verifying">Bağlantı doğrulanıyor. Kısa süre çevrimdışı görünebilir.</string>
+    <string name="network_settings_status_success">Ağ ayarı başarıyla uygulandı.</string>
+    <string name="network_settings_status_rolled_back">Yeni bağlantı kurulamadı; önceki ağ ayarına dönüldü.</string>
+    <string name="network_settings_status_busy">Sulama veya vana testi sürerken ağ ayarı değiştirilemez.</string>
+    <string name="network_settings_status_failed">Ağ ayarı uygulanamadı.</string>
+    <string name="network_settings_error_ip_required">IP adresini girin.</string>
+    <string name="network_settings_error_ip_invalid">Geçerli bir IPv4 adresi girin.</string>
+    <string name="network_settings_error_subnet">Geçerli ve kesintisiz bir alt ağ maskesi girin.</string>
+    <string name="network_settings_error_gateway_required">Ağ geçidini girin.</string>
+    <string name="network_settings_error_gateway">Geçerli bir ağ geçidi girin.</string>
+    <string name="network_settings_error_gateway_subnet">IP adresi ile ağ geçidi aynı alt ağda olmalıdır.</string>
+    <string name="network_settings_error_dns_required">Firebase bağlantısı için birincil DNS girin.</string>
+    <string name="network_settings_error_dns">Geçerli DNS adresleri girin.</string>
+</resources>

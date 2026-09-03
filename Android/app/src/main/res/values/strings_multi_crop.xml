@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_zone_crops_sensor_subtitle">%1$s · Sensör %2$s</string>
+    <string name="runtime_crops_hardware_detail">%1$s · %2$s</string>
+    <string name="zone_management_open_crop_seasons">Bitki / sezon ekle</string>
+    <string name="zone_management_add_crop_to_active">Aktif bölgeye bitki ekle</string>
+    <string name="zone_management_multi_crop_channel_hint">Burada yalnız boş donanım kanalları gösterilir. 1. Bölge gibi etkin bir alana ikinci bitki eklemek için “Aktif bölgeye bitki ekle”yi kullanın.</string>
+    <string name="season_shared_operations_message">Bu bitki aynı fiziksel bölgedeki sensörü, vanayı, sulamayı ve gübrelemeyi paylaşır. Ortak işlemler her aktif bitkinin sezonuna yazılır ve arşivleri ayrı tutulur.</string>
+</resources>

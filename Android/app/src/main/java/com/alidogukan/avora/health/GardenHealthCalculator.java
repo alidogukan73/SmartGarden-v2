@@ -112,6 +112,6 @@ public final class GardenHealthCalculator {
     }
 
     private static String safeName(GardenZone zone) {
-        return zone.getName() == null || zone.getName().isBlank() ? "Bölge" : zone.getName();
+        return com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
     }
 }

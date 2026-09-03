@@ -121,6 +121,50 @@ test("only the claimed device owner can read or write the device", async () => {
   );
 });
 
+test("owner can submit only a bounded one-shot network configuration", async () => {
+  const owner = authenticatedDatabase(OWNER_UID);
+  const otherUser = unclaimedDatabase(OTHER_UID);
+  const path = `devices/${DEVICE_ID}/commands/network_configuration`;
+  const valid = {
+    requested: true,
+    request_id: "123e4567-e89b-12d3-a456-426614174010",
+    interface: "wlan0",
+    mode: "STATIC",
+    ip_address: "192.168.1.50",
+    prefix_length: 24,
+    gateway: "192.168.1.1",
+    primary_dns: "1.1.1.1",
+    secondary_dns: "8.8.8.8",
+    requested_at: Date.now(),
+    expires_at: Date.now() + 180000,
+    source: "android",
+  };
+
+  await assertSucceeds(set(ref(owner, path), valid));
+  await assertFails(set(ref(otherUser, path), valid));
+
+  await assertFails(set(ref(owner, path), {
+    ...valid,
+    request_id: "not-a-uuid",
+  }));
+  await assertFails(set(ref(owner, path), {
+    ...valid,
+    interface: "wlan0;shutdown",
+  }));
+  await assertFails(set(ref(owner, path), {
+    ...valid,
+    mode: "SHELL",
+  }));
+  await assertFails(set(ref(owner, path), {
+    ...valid,
+    expires_at: Date.now() + 900000,
+  }));
+  await assertFails(set(ref(owner, path), {
+    ...valid,
+    arbitrary_command: "shutdown -h now",
+  }));
+});
+
 test("owner can create only a bounded feedback schema", async () => {
   const owner = authenticatedDatabase(OWNER_UID);
   const validId = "123e4567-e89b-12d3-a456-426614174000";

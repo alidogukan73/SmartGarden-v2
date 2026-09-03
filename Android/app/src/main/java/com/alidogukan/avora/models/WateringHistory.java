@@ -1,6 +1,9 @@
 package com.alidogukan.avora.models;
 
 import com.google.firebase.database.PropertyName;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class WateringHistory {
 
@@ -27,6 +30,7 @@ public class WateringHistory {
     private String zoneId;
     private String sensorId;
     private String seasonId;
+    private List<String> seasonIds;
 
     /**
      * Firebase Realtime Database için boş constructor zorunludur.
@@ -41,6 +45,7 @@ public class WateringHistory {
         zoneId = "";
         sensorId = "";
         seasonId = "";
+        seasonIds = new ArrayList<>();
     }
 
     /**
@@ -213,5 +218,15 @@ public class WateringHistory {
     @PropertyName("season_id")
     public void setSeasonId(String seasonId) {
         this.seasonId = seasonId;
+    }
+
+    @PropertyName("season_ids")
+    public List<String> getSeasonIds() {
+        return seasonIds;
+    }
+
+    @PropertyName("season_ids")
+    public void setSeasonIds(List<String> seasonIds) {
+        this.seasonIds = seasonIds == null ? new ArrayList<>() : new ArrayList<>(seasonIds);
     }
 }

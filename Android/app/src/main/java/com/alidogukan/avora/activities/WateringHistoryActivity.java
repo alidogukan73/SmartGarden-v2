@@ -17,7 +17,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.adapters.WateringHistoryAdapter;
+import com.alidogukan.avora.models.GardenSeason;
+import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.WateringHistory;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.viewmodels.WateringHistoryViewModel;
 import com.alidogukan.avora.zones.ZoneChipRenderer;
 import com.google.android.material.button.MaterialButton;
@@ -45,6 +48,8 @@ public class WateringHistoryActivity extends AppCompatActivity {
     private List<WateringHistory> allHistory =
             Collections.emptyList();
     private String selectedZoneId = "";
+    private List<GardenZone> latestZones = Collections.emptyList();
+    private List<GardenSeason> latestSeasons = Collections.emptyList();
 
 
     @Override
@@ -287,33 +292,41 @@ public class WateringHistoryActivity extends AppCompatActivity {
         );
 
         viewModel.getZones().observe(this, zones -> {
-            adapter.setZoneLabels(zoneLabels(zones));
-            ZoneChipRenderer.render(
-                    this,
-                    chipGroupZones,
-                    zones,
-                    selectedZoneId,
-                    R.string.history_zone_all,
-                    zoneId -> {
-                        selectedZoneId = zoneId;
-                        applyZoneFilter();
-                    }
-            );
+            latestZones = zones == null ? Collections.emptyList() : zones;
+            renderZoneFilters();
+        });
+        viewModel.getSeasons().observe(this, seasons -> {
+            latestSeasons = seasons == null ? Collections.emptyList() : seasons;
+            renderZoneFilters();
         });
     }
 
+    private void renderZoneFilters() {
+        if (adapter == null || chipGroupZones == null) return;
+        adapter.setZoneLabels(zoneLabels(latestZones));
+        ZoneChipRenderer.render(
+                this,
+                chipGroupZones,
+                latestZones,
+                selectedZoneId,
+                R.string.history_zone_all,
+                zoneLabels(latestZones),
+                zoneId -> {
+                    selectedZoneId = zoneId;
+                    applyZoneFilter();
+                }
+        );
+    }
+
     private java.util.Map<String, String> zoneLabels(
-            List<com.alidogukan.avora.models.GardenZone> zones
+            List<GardenZone> zones
     ) {
         java.util.Map<String, String> labels = new java.util.HashMap<>();
         if (zones == null) return labels;
         for (com.alidogukan.avora.models.GardenZone zone : zones) {
             if (zone == null || zone.getZone_id() == null) continue;
-            String name = zone.getName();
-            if (name == null || name.isBlank()) name = zone.getZone_id();
-            String emoji = zone.getEmoji();
-            labels.put(zone.getZone_id(),
-                    emoji == null || emoji.isBlank() ? name : emoji + " " + name);
+            labels.put(zone.getZone_id(), SeasonDisplayIdentity.operationalLabel(
+                    zone, latestSeasons));
         }
         return labels;
     }

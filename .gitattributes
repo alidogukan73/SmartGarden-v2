@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Raspberry Pi executables and privilege rules must retain Unix line endings.
+RaspberryPi/deploy/*.sh text eol=lf
+RaspberryPi/deploy/avora-network-config text eol=lf
+RaspberryPi/deploy/*.sudoers text eol=lf

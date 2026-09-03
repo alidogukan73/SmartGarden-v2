@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zone_editor_brand">🌿 AVORA</string>
+    <string name="zone_editor_title">Create New Area</string>
+    <string name="zone_editor_subtitle">Define the garden area and configure smart irrigation</string>
+    <string name="zone_editor_edit_title">Edit Area</string>
+    <string name="zone_editor_edit_subtitle">Update the area appearance, connections and irrigation settings</string>
+    <string name="zone_editor_update">Save Changes</string>
+    <string name="zone_editor_zone_not_found">The area to edit could not be found.</string>
+    <string name="zone_editor_preview">Preview</string>
+    <string name="zone_editor_preview_ready">Ready</string>
+    <string name="zone_editor_preview_moisture">Soil moisture</string>
+    <string name="zone_editor_preview_threshold">%1$d%% threshold</string>
+    <string name="zone_editor_preview_watering">Irrigation status</string>
+    <string name="zone_editor_watering_auto">Automatic</string>
+    <string name="zone_editor_watering_off">Off</string>
+    <string name="zone_editor_hardware_pending">Waiting for hardware</string>
+    <string name="zone_editor_section_info">1. Area Information</string>
+    <string name="zone_editor_section_appearance">2. Appearance</string>
+    <string name="zone_editor_section_connections">3. Connections</string>
+    <string name="zone_editor_section_irrigation">4. Irrigation Settings</string>
+    <string name="zone_editor_section_notifications">5. Notifications</string>
+    <string name="zone_editor_zone">Zone</string>
+    <string name="zone_editor_area_name">Area name</string>
+    <string name="zone_editor_location">Location</string>
+    <string name="zone_editor_crop">Crop</string>
+    <string name="zone_editor_icon">Icon</string>
+    <string name="zone_editor_color">Color</string>
+    <string name="zone_editor_valve">Connected valve</string>
+    <string name="zone_editor_sensor">Moisture sensor</string>
+    <string name="zone_editor_auto_irrigation">Automatic irrigation</string>
+    <string name="zone_editor_watering_method">Irrigation method</string>
+    <string name="zone_editor_threshold_based">Based on moisture threshold</string>
+    <string name="zone_editor_moisture_threshold">Moisture threshold</string>
+    <string name="zone_editor_low_moisture_alert">Low moisture alert</string>
+    <string name="zone_editor_watering_complete_alert">Watering completed notification</string>
+    <string name="zone_editor_save">Save Area</string>
+    <string name="zone_editor_cancel">Cancel</string>
+    <string name="zone_editor_name_required">Enter an area name.</string>
+    <string name="zone_editor_hardware_required">Select a moisture sensor and valve for automatic irrigation.</string>
+    <string name="zone_editor_slot_unavailable">The selected zone is no longer available. Select another zone.</string>
+    <string name="zone_editor_not_ready">Area options are being prepared. Please wait a moment.</string>
+    <string name="zone_editor_save_failed">Area could not be saved: %1$s</string>
+    <string name="zone_editor_location_back">Back garden</string>
+    <string name="zone_editor_location_front">Front garden</string>
+    <string name="zone_editor_location_greenhouse">Greenhouse</string>
+    <string name="zone_editor_location_balcony">Balcony</string>
+    <string name="zone_editor_location_terrace">Terrace</string>
+    <string name="notification_low_moisture_title">Low moisture in %1$s</string>
+    <string name="notification_low_moisture_description">Soil moisture is %1$d%%; irrigation threshold is %2$d%%.</string>
+    <string-array name="zone_editor_locations">
+        <item>@string/zone_editor_location_back</item>
+        <item>@string/zone_editor_location_front</item>
+        <item>@string/zone_editor_location_greenhouse</item>
+        <item>@string/zone_editor_location_balcony</item>
+        <item>@string/zone_editor_location_terrace</item>
+    </string-array>
+</resources>

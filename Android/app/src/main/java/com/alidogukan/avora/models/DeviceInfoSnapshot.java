@@ -12,14 +12,25 @@ public final class DeviceInfoSnapshot {
     private final Health health;
     private final List<GardenZone> zones;
     private final Set<String> firmwareVersions;
+    private final DeviceNetworkStatus networkStatus;
+    private final NetworkConfigurationResult networkResult;
 
     public DeviceInfoSnapshot(Status status, Health health, List<GardenZone> zones,
                               Set<String> firmwareVersions) {
+        this(status, health, zones, firmwareVersions, null, null);
+    }
+
+    public DeviceInfoSnapshot(Status status, Health health, List<GardenZone> zones,
+                              Set<String> firmwareVersions,
+                              DeviceNetworkStatus networkStatus,
+                              NetworkConfigurationResult networkResult) {
         this.status = status;
         this.health = health;
         this.zones = Collections.unmodifiableList(new ArrayList<>(zones));
         this.firmwareVersions = Collections.unmodifiableSet(
                 new LinkedHashSet<>(firmwareVersions));
+        this.networkStatus = networkStatus;
+        this.networkResult = networkResult;
     }
 
     public Status getStatus() {
@@ -36,5 +47,13 @@ public final class DeviceInfoSnapshot {
 
     public Set<String> getFirmwareVersions() {
         return firmwareVersions;
+    }
+
+    public DeviceNetworkStatus getNetworkStatus() {
+        return networkStatus;
+    }
+
+    public NetworkConfigurationResult getNetworkResult() {
+        return networkResult;
     }
 }

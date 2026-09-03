@@ -19,9 +19,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
+import com.alidogukan.avora.models.GardenSeason;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.models.FertilizationProfile;
 import com.alidogukan.avora.models.ZoneIrrigationStatus;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.PlantListViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -44,13 +46,14 @@ public class PlantListActivity extends AppCompatActivity {
     private static final int SORT_NAME = 4;
     private PlantListViewModel viewModel;
     private final List<GardenZone> latestZones = new ArrayList<>();
+    private final List<GardenSeason> latestSeasons = new ArrayList<>();
     private final Handler freshnessHandler = new Handler(Looper.getMainLooper());
     private final Runnable freshnessRefresh = new Runnable() {
         @Override
         public void run() {
             if (!latestZones.isEmpty()) {
                 // Connection freshness changes with time even when Firebase has no new event.
-                render(new ArrayList<>(latestZones));
+                render();
             }
             freshnessHandler.postDelayed(this, 15_000L);
         }
@@ -80,7 +83,12 @@ public class PlantListActivity extends AppCompatActivity {
         waiting = findViewById(R.id.txtPlantWaiting);
         sortMode = viewModel.getSortMode(SORT_SMART);
         findViewById(R.id.btnPlantSort).setOnClickListener(view -> showSortMenu());
-        viewModel.getZones().observe(this, this::render);
+        viewModel.getZones().observe(this, this::updateZones);
+        viewModel.getSeasons().observe(this, values -> {
+            latestSeasons.clear();
+            if (values != null) latestSeasons.addAll(values);
+            render();
+        });
     }
 
     /** Keeps all journal content below the status bar / camera cutout on every phone. */
@@ -92,15 +100,27 @@ public class PlantListActivity extends AppCompatActivity {
         });
     }
 
-    private void render(List<GardenZone> zones) {
-        // The refresh task can pass the same cached list back here; copy before clearing it.
-        List<GardenZone> incoming = zones == null ? new ArrayList<>() : new ArrayList<>(zones);
+    private void updateZones(List<GardenZone> zones) {
         latestZones.clear();
-        latestZones.addAll(viewModel.activeZones(incoming));
+        latestZones.addAll(viewModel.activeZones(
+                zones == null ? new ArrayList<>() : zones));
+        render();
+    }
+
+    private void render() {
         List<GardenZone> visibleZones = new ArrayList<>(latestZones);
         sortZones(visibleZones);
+        List<PlantEntry> visiblePlants = new ArrayList<>();
+        for (GardenZone zone : visibleZones) {
+            List<GardenSeason> active = SeasonDisplayIdentity.activeSeasons(
+                    zone, latestSeasons);
+            if (active.isEmpty()) visiblePlants.add(new PlantEntry(zone, null));
+            else for (GardenSeason season : active) {
+                visiblePlants.add(new PlantEntry(zone, season));
+            }
+        }
         list.removeAllViews();
-        boolean hasZones = !visibleZones.isEmpty();
+        boolean hasZones = !visiblePlants.isEmpty();
         empty.setVisibility(hasZones ? View.GONE : View.VISIBLE);
         if (!hasZones) {
             updateOverview(0, 0, 0, 0);
@@ -109,13 +129,14 @@ public class PlantListActivity extends AppCompatActivity {
         int healthyCount = 0;
         int attentionCount = 0;
         int waitingCount = 0;
-        for (GardenZone zone : visibleZones) {
+        for (PlantEntry plant : visiblePlants) {
+            GardenZone zone = plant.zone;
             if (!hasCurrentSensorData(zone)) waitingCount++;
             else if (zone.getMoisture() < zone.getMoisture_limit()) attentionCount++;
             else healthyCount++;
-            addZoneCard(zone);
+            addZoneCard(plant);
         }
-        updateOverview(visibleZones.size(), healthyCount, attentionCount, waitingCount);
+        updateOverview(visiblePlants.size(), healthyCount, attentionCount, waitingCount);
     }
 
     private void updateOverview(int count, int healthyCount, int attentionCount, int waitingCount) {
@@ -138,7 +159,7 @@ public class PlantListActivity extends AppCompatActivity {
                 .setSingleChoiceItems(choices, sortMode, (dialog, which) -> {
                     sortMode = which;
                     viewModel.setSortMode(sortMode);
-                    render(new ArrayList<>(latestZones));
+                    render();
                     dialog.dismiss();
                 })
                 .show();
@@ -205,7 +226,9 @@ public class PlantListActivity extends AppCompatActivity {
         return irrigation != null && (irrigation.isWatering_active() || irrigation.isSelected_for_watering());
     }
 
-    private void addZoneCard(GardenZone zone) {
+    private void addZoneCard(PlantEntry plant) {
+        GardenZone zone = plant.zone;
+        GardenSeason season = plant.season;
         MaterialCardView card = new MaterialCardView(this);
         card.setCardBackgroundColor(getColor(R.color.card));
         card.setRadius(dp(16));
@@ -220,7 +243,9 @@ public class PlantListActivity extends AppCompatActivity {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(12), dp(12), dp(10), dp(12));
 
-        TextView emoji = text(zone.getEmoji() == null || zone.getEmoji().isBlank() ? getString(R.string.symbol_plant) : zone.getEmoji(), 29, R.color.textPrimary);
+        String cropEmoji = SeasonDisplayIdentity.emoji(season, zone);
+        TextView emoji = text(cropEmoji.isBlank()
+                ? getString(R.string.symbol_plant) : cropEmoji, 29, R.color.textPrimary);
         emoji.setGravity(Gravity.CENTER);
         emoji.setBackground(roundDrawable(getColor(R.color.surfaceSoft), getColor(R.color.border), dp(12)));
         row.addView(emoji, new LinearLayout.LayoutParams(dp(54), dp(54)));
@@ -228,7 +253,9 @@ public class PlantListActivity extends AppCompatActivity {
         LinearLayout details = new LinearLayout(this);
         details.setOrientation(LinearLayout.VERTICAL);
         details.setPadding(dp(10), 0, 0, 0);
-        TextView title = text(safeName(zone), 16, R.color.textPrimary);
+        String cropAndArea = SeasonDisplayIdentity.cropAreaName(season, zone);
+        TextView title = text(cropAndArea.isBlank()
+                ? safeName(zone) : cropAndArea, 16, R.color.textPrimary);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         TextView status = text("●  " + status(zone), 12, statusColor(zone));
         TextView meta = text(getString(R.string.runtime_plant_moisture_meta, zone.getMoisture(), lastRecord(zone)), 11, R.color.textSecondary);
@@ -252,6 +279,9 @@ public class PlantListActivity extends AppCompatActivity {
         card.setOnClickListener(view -> {
             Intent intent = new Intent(this, PlantTimelineActivity.class);
             intent.putExtra("zone_id", zone.getZone_id());
+            if (season != null) {
+                intent.putExtra(PlantTimelineActivity.EXTRA_SEASON_ID, season.getSeason_id());
+            }
             startActivity(intent);
         });
         list.addView(card);
@@ -318,6 +348,16 @@ public class PlantListActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private static final class PlantEntry {
+        final GardenZone zone;
+        final GardenSeason season;
+
+        PlantEntry(GardenZone zone, GardenSeason season) {
+            this.zone = zone;
+            this.season = season;
+        }
     }
 
     @Override

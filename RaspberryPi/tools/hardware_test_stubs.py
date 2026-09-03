@@ -8,6 +8,55 @@ import types
 
 def install_hardware_import_stubs() -> None:
     try:
+        import firebase_admin  # noqa: F401
+    except ModuleNotFoundError:
+        firebase_admin = types.ModuleType("firebase_admin")
+        credentials = types.ModuleType("firebase_admin.credentials")
+        database = types.ModuleType("firebase_admin.db")
+        messaging = types.ModuleType("firebase_admin.messaging")
+        firebase_admin._apps = {}
+        firebase_admin.initialize_app = lambda *_args, **_kwargs: object()
+        credentials.Certificate = lambda *_args, **_kwargs: object()
+        database.reference = lambda *_args, **_kwargs: None
+        messaging.Notification = object
+        messaging.Message = object
+        messaging.AndroidConfig = object
+        messaging.AndroidNotification = object
+        messaging.send = lambda *_args, **_kwargs: "test-message"
+        firebase_admin.credentials = credentials
+        firebase_admin.db = database
+        firebase_admin.messaging = messaging
+        sys.modules["firebase_admin"] = firebase_admin
+        sys.modules["firebase_admin.credentials"] = credentials
+        sys.modules["firebase_admin.db"] = database
+        sys.modules["firebase_admin.messaging"] = messaging
+
+    try:
+        import paho.mqtt.client  # noqa: F401
+    except ModuleNotFoundError:
+        paho = types.ModuleType("paho")
+        mqtt_package = types.ModuleType("paho.mqtt")
+        mqtt_client = types.ModuleType("paho.mqtt.client")
+        mqtt_client.CallbackAPIVersion = types.SimpleNamespace(VERSION2=2)
+        mqtt_client.MQTTv311 = 4
+        mqtt_client.MQTT_ERR_SUCCESS = 0
+        mqtt_client.Client = object
+        paho.mqtt = mqtt_package
+        mqtt_package.client = mqtt_client
+        sys.modules["paho"] = paho
+        sys.modules["paho.mqtt"] = mqtt_package
+        sys.modules["paho.mqtt.client"] = mqtt_client
+
+    try:
+        import psutil  # noqa: F401
+    except ModuleNotFoundError:
+        psutil = types.ModuleType("psutil")
+        psutil.cpu_percent = lambda **_kwargs: 0.0
+        psutil.virtual_memory = lambda: types.SimpleNamespace(percent=0.0)
+        psutil.boot_time = lambda: 0.0
+        sys.modules["psutil"] = psutil
+
+    try:
         import RPi.GPIO  # noqa: F401
     except ModuleNotFoundError:
         rpi = types.ModuleType("RPi")

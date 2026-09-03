@@ -305,7 +305,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                                 physical
                                         ? R.string.zone_physical_test_start_message
                                         : R.string.zone_test_start_message,
-                                currentZone.getName(),
+                                com.alidogukan.avora.zones.PhysicalZoneIdentity.name(currentZone),
                                 formatPumpDuration(duration)
                         )
                 )
@@ -479,7 +479,7 @@ public class ZoneDetailActivity extends AppCompatActivity {
                         zone.getEmoji() == null
                                 ? getString(R.string.symbol_plant)
                                 : zone.getEmoji(),
-                        zone.getName())
+                        com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone))
         );
         subtitle.setText(
                 getString(

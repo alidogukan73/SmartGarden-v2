@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
@@ -19,12 +21,20 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.config.AppInfo;
+import com.alidogukan.avora.models.DeviceNetworkStatus;
 import com.alidogukan.avora.models.Health;
+import com.alidogukan.avora.models.NetworkConfigurationRequest;
+import com.alidogukan.avora.models.NetworkConfigurationResult;
+import com.alidogukan.avora.models.NetworkSettingsValidator;
 import com.alidogukan.avora.models.Status;
 import com.alidogukan.avora.ui.PrimaryBottomNavigation;
 import com.alidogukan.avora.viewmodels.DeviceInfoViewModel;
 import com.alidogukan.avora.viewmodels.DeviceInfoViewModel.DeviceInfoState;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,6 +52,37 @@ public class DeviceInfoActivity extends AppCompatActivity {
     private TextView zoneCount;
     private TextView sensorCount;
     private TextView physicalValveCount;
+    private TextView networkSupport;
+    private TextView networkInterface;
+    private TextView networkTailscale;
+    private TextView networkOperationStatus;
+    private MaterialButtonToggleGroup networkModeGroup;
+    private MaterialButton networkDhcp;
+    private MaterialButton networkStatic;
+    private MaterialButton applyNetwork;
+    private LinearLayout networkAddressFields;
+    private TextInputLayout networkIpLayout;
+    private TextInputLayout networkSubnetLayout;
+    private TextInputLayout networkGatewayLayout;
+    private TextInputLayout networkPrimaryDnsLayout;
+    private TextInputLayout networkSecondaryDnsLayout;
+    private EditText networkIp;
+    private EditText networkSubnet;
+    private EditText networkGateway;
+    private EditText networkPrimaryDns;
+    private EditText networkSecondaryDns;
+    private DeviceInfoViewModel viewModel;
+    private DeviceInfoState lastState;
+    private boolean bindingNetwork;
+    private boolean networkFieldsInitialized;
+    private boolean localNetworkRequestPending;
+    private String pendingNetworkRequestId = "";
+    private String pendingNetworkMode = "";
+    private String pendingNetworkIp = "";
+    private boolean awaitingNetworkStatusRefresh;
+    private String completedNetworkRequestId = "";
+    private String expectedNetworkMode = "";
+    private String expectedNetworkIp = "";
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
@@ -52,6 +93,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
         bindViews();
         configureToolbar();
         configureLinks();
+        configureNetworkEditor();
         PrimaryBottomNavigation.bind(this, PrimaryBottomNavigation.SETTINGS);
         observeDevice();
     }
@@ -74,6 +116,26 @@ public class DeviceInfoActivity extends AppCompatActivity {
         zoneCount = addValueRow(hardware, R.string.device_info_zone_count, false);
         sensorCount = addValueRow(hardware, R.string.device_info_sensor_count, true);
         physicalValveCount = addValueRow(hardware, R.string.device_info_valve_count, true);
+
+        networkSupport = findViewById(R.id.txtNetworkSupport);
+        networkInterface = findViewById(R.id.txtNetworkInterface);
+        networkTailscale = findViewById(R.id.txtNetworkTailscale);
+        networkOperationStatus = findViewById(R.id.txtNetworkOperationStatus);
+        networkModeGroup = findViewById(R.id.groupNetworkMode);
+        networkDhcp = findViewById(R.id.btnNetworkDhcp);
+        networkStatic = findViewById(R.id.btnNetworkStatic);
+        applyNetwork = findViewById(R.id.btnApplyNetworkSettings);
+        networkAddressFields = findViewById(R.id.layoutNetworkAddressFields);
+        networkIpLayout = findViewById(R.id.layoutNetworkIp);
+        networkSubnetLayout = findViewById(R.id.layoutNetworkSubnet);
+        networkGatewayLayout = findViewById(R.id.layoutNetworkGateway);
+        networkPrimaryDnsLayout = findViewById(R.id.layoutNetworkPrimaryDns);
+        networkSecondaryDnsLayout = findViewById(R.id.layoutNetworkSecondaryDns);
+        networkIp = findViewById(R.id.inputNetworkIp);
+        networkSubnet = findViewById(R.id.inputNetworkSubnet);
+        networkGateway = findViewById(R.id.inputNetworkGateway);
+        networkPrimaryDns = findViewById(R.id.inputNetworkPrimaryDns);
+        networkSecondaryDns = findViewById(R.id.inputNetworkSecondaryDns);
 
         deviceId.setText(AppInfo.DEVICE_ID);
         setWaitingValues();
@@ -134,9 +196,17 @@ public class DeviceInfoActivity extends AppCompatActivity {
         card.setOnClickListener(view -> action.run());
     }
 
+    private void configureNetworkEditor() {
+        setNetworkControlsEnabled(false);
+        networkModeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked || bindingNetwork) return;
+            renderNetworkMode();
+        });
+        applyNetwork.setOnClickListener(view -> prepareNetworkRequest());
+    }
+
     private void observeDevice() {
-        DeviceInfoViewModel viewModel =
-                new ViewModelProvider(this).get(DeviceInfoViewModel.class);
+        viewModel = new ViewModelProvider(this).get(DeviceInfoViewModel.class);
         viewModel.getReadError().observe(this, failed -> {
             if (!Boolean.TRUE.equals(failed)) return;
             connectionStatus.setText(R.string.device_info_status_offline);
@@ -152,12 +222,15 @@ public class DeviceInfoActivity extends AppCompatActivity {
         Status status = value.status;
         Health health = value.health;
         renderConnection(value.connected);
+        lastState = value;
 
         backendVersion.setText(firstMeaningful(
                 health == null ? null : health.getFirmware(),
                 status == null ? null : status.getVersion(),
                 getString(R.string.device_info_waiting)));
+        DeviceNetworkStatus currentNetwork = value.networkStatus;
         ipAddress.setText(firstMeaningful(
+                currentNetwork == null ? null : currentNetwork.getIpAddress(),
                 health == null ? null : health.getIpAddress(),
                 getString(R.string.device_info_unavailable)));
         lastConnection.setText(value.lastSeenMillis > 0L
@@ -174,6 +247,279 @@ public class DeviceInfoActivity extends AppCompatActivity {
         espFirmware.setText(value.firmwareVersions.isEmpty()
                 ? getString(R.string.device_info_sensor_firmware_waiting)
                 : String.join(" / ", value.firmwareVersions));
+        renderNetwork(value);
+    }
+
+    private void renderNetwork(DeviceInfoState value) {
+        DeviceNetworkStatus network = value.networkStatus;
+        NetworkConfigurationResult result = value.networkResult;
+        if (network == null) {
+            networkSupport.setText(value.connected
+                    ? R.string.network_settings_waiting
+                    : R.string.network_settings_offline);
+            networkSupport.setTextColor(ContextCompat.getColor(this,
+                    value.connected ? R.color.textSecondary : R.color.warning));
+            setNetworkControlsEnabled(false);
+            return;
+        }
+
+        String connection = firstMeaningful(network.getConnectionName(),
+                network.getInterfaceName(), getString(R.string.device_info_unavailable));
+        if (isMeaningful(network.getConnectionName())
+                && isMeaningful(network.getInterfaceName())) {
+            connection = network.getConnectionName() + " · " + network.getInterfaceName();
+        }
+        networkInterface.setText(connection);
+        networkTailscale.setText(getString(R.string.network_settings_tailscale_value,
+                firstMeaningful(network.getTailscaleIp(),
+                        getString(R.string.device_info_unavailable))));
+
+        boolean supported = network.isSupported();
+        networkSupport.setText(!value.connected
+                ? R.string.network_settings_offline
+                : supported ? R.string.network_settings_supported
+                : R.string.network_settings_unsupported);
+        networkSupport.setTextColor(ContextCompat.getColor(this,
+                value.connected && supported ? R.color.textSecondary : R.color.warning));
+
+        if (!networkFieldsInitialized) {
+            bindNetworkFields(network);
+            networkFieldsInitialized = true;
+        }
+
+        boolean hasLocalPendingRequest = localNetworkRequestPending
+                && isMeaningful(pendingNetworkRequestId);
+        boolean recentRemoteProgress = result != null && result.isInProgress()
+                && result.getUpdatedAtEpoch() > 0L
+                && Math.abs(System.currentTimeMillis() / 1000L
+                        - result.getUpdatedAtEpoch()) <= 120L;
+        if (result != null) {
+            boolean matchesLocalPendingRequest = hasLocalPendingRequest
+                    && pendingNetworkRequestId.equals(result.getRequestId());
+            if (!hasLocalPendingRequest || matchesLocalPendingRequest) {
+                renderNetworkResult(result);
+            }
+            if (matchesLocalPendingRequest && !result.isInProgress()
+                    && isMeaningful(result.getStatus())) {
+                if ("SUCCESS".equals(result.getStatus())) {
+                    awaitingNetworkStatusRefresh = true;
+                    completedNetworkRequestId = result.getRequestId();
+                    expectedNetworkMode = pendingNetworkMode;
+                    expectedNetworkIp = firstMeaningful(
+                            result.getAppliedIp(), pendingNetworkIp);
+                } else {
+                    bindNetworkFields(network);
+                    clearNetworkStatusRefresh();
+                }
+                localNetworkRequestPending = false;
+                pendingNetworkRequestId = "";
+                pendingNetworkMode = "";
+                pendingNetworkIp = "";
+            }
+            if (awaitingNetworkStatusRefresh
+                    && completedNetworkRequestId.equals(result.getRequestId())
+                    && DeviceInfoViewModel.representsAppliedNetworkConfiguration(
+                            network, expectedNetworkMode, expectedNetworkIp)) {
+                bindNetworkFields(network);
+                clearNetworkStatusRefresh();
+            }
+        }
+        boolean inProgress = (localNetworkRequestPending
+                && isMeaningful(pendingNetworkRequestId))
+                || recentRemoteProgress
+                || awaitingNetworkStatusRefresh;
+        setNetworkControlsEnabled(value.connected && supported && !inProgress);
+    }
+
+    private void clearNetworkStatusRefresh() {
+        awaitingNetworkStatusRefresh = false;
+        completedNetworkRequestId = "";
+        expectedNetworkMode = "";
+        expectedNetworkIp = "";
+    }
+
+    private void bindNetworkFields(DeviceNetworkStatus network) {
+        bindingNetwork = true;
+        networkModeGroup.check("STATIC".equalsIgnoreCase(network.getMode())
+                ? R.id.btnNetworkStatic : R.id.btnNetworkDhcp);
+        networkIp.setText(network.getIpAddress());
+        networkSubnet.setText(isMeaningful(network.getSubnetMask())
+                ? network.getSubnetMask()
+                : NetworkSettingsValidator.subnetMaskForPrefix(
+                        (int) network.getPrefixLength()));
+        networkGateway.setText(network.getGateway());
+        networkPrimaryDns.setText(network.getPrimaryDns());
+        networkSecondaryDns.setText(network.getSecondaryDns());
+        bindingNetwork = false;
+        renderNetworkMode();
+    }
+
+    private void renderNetworkMode() {
+        boolean editable = controlsMayBeEnabled();
+        boolean isStatic = networkModeGroup.getCheckedButtonId() == R.id.btnNetworkStatic;
+        networkAddressFields.setAlpha(isStatic ? 1f : 0.62f);
+        networkIp.setEnabled(editable && isStatic);
+        networkSubnet.setEnabled(editable && isStatic);
+        networkGateway.setEnabled(editable && isStatic);
+        networkPrimaryDns.setEnabled(editable && isStatic);
+        networkSecondaryDns.setEnabled(editable && isStatic);
+        clearNetworkErrors();
+    }
+
+    private boolean controlsMayBeEnabled() {
+        return lastState != null && lastState.connected
+                && lastState.networkStatus != null
+                && lastState.networkStatus.isSupported()
+                && !localNetworkRequestPending
+                && (lastState.networkResult == null
+                    || !lastState.networkResult.isInProgress());
+    }
+
+    private void setNetworkControlsEnabled(boolean enabled) {
+        networkDhcp.setEnabled(enabled);
+        networkStatic.setEnabled(enabled);
+        applyNetwork.setEnabled(enabled);
+        boolean isStatic = networkModeGroup.getCheckedButtonId() == R.id.btnNetworkStatic;
+        networkIp.setEnabled(enabled && isStatic);
+        networkSubnet.setEnabled(enabled && isStatic);
+        networkGateway.setEnabled(enabled && isStatic);
+        networkPrimaryDns.setEnabled(enabled && isStatic);
+        networkSecondaryDns.setEnabled(enabled && isStatic);
+    }
+
+    private void prepareNetworkRequest() {
+        if (!controlsMayBeEnabled() || lastState.networkStatus == null) return;
+        clearNetworkErrors();
+        String interfaceName = lastState.networkStatus.getInterfaceName();
+        boolean isStatic = networkModeGroup.getCheckedButtonId() == R.id.btnNetworkStatic;
+        NetworkConfigurationRequest request;
+        if (isStatic) {
+            NetworkSettingsValidator.Result validation =
+                    NetworkSettingsValidator.validateStatic(
+                            text(networkIp), text(networkSubnet), text(networkGateway),
+                            text(networkPrimaryDns), text(networkSecondaryDns));
+            if (!validation.valid) {
+                showNetworkValidationError(validation.error);
+                return;
+            }
+            request = NetworkConfigurationRequest.fixed(interfaceName, validation);
+        } else {
+            request = NetworkConfigurationRequest.dhcp(interfaceName);
+        }
+        String message = isStatic
+                ? getString(R.string.network_settings_confirm_static, request.ipAddress)
+                : getString(R.string.network_settings_confirm_dhcp);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.network_settings_confirm_title)
+                .setMessage(message)
+                .setNegativeButton(R.string.settings_quick_cancel, null)
+                .setPositiveButton(R.string.network_settings_confirm_action,
+                        (dialog, which) -> sendNetworkRequest(request))
+                .show();
+    }
+
+    private void sendNetworkRequest(NetworkConfigurationRequest request) {
+        localNetworkRequestPending = true;
+        clearNetworkStatusRefresh();
+        pendingNetworkRequestId = request.requestId;
+        pendingNetworkMode = request.mode;
+        pendingNetworkIp = request.ipAddress;
+        setNetworkControlsEnabled(false);
+        networkOperationStatus.setText(R.string.network_settings_status_pending);
+        networkOperationStatus.setTextColor(ContextCompat.getColor(this, R.color.info));
+        viewModel.requestNetworkConfiguration(request).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, R.string.network_settings_request_sent,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            localNetworkRequestPending = false;
+            pendingNetworkRequestId = "";
+            pendingNetworkMode = "";
+            pendingNetworkIp = "";
+            setNetworkControlsEnabled(controlsMayBeEnabled());
+            networkOperationStatus.setText(R.string.network_settings_request_failed);
+            networkOperationStatus.setTextColor(ContextCompat.getColor(this, R.color.error));
+        });
+    }
+
+    private void renderNetworkResult(NetworkConfigurationResult result) {
+        int text;
+        int color = R.color.info;
+        switch (result.getStatus()) {
+            case "PENDING": text = R.string.network_settings_status_pending; break;
+            case "VALIDATING": text = R.string.network_settings_status_validating; break;
+            case "APPLYING": text = R.string.network_settings_status_applying; break;
+            case "VERIFYING": text = R.string.network_settings_status_verifying; break;
+            case "SUCCESS":
+                text = R.string.network_settings_status_success;
+                color = R.color.success;
+                break;
+            case "ROLLED_BACK":
+                text = R.string.network_settings_status_rolled_back;
+                color = R.color.warning;
+                break;
+            case "WATERING_ACTIVE":
+                text = R.string.network_settings_status_busy;
+                color = R.color.warning;
+                break;
+            case "":
+                text = R.string.network_settings_safety_note;
+                color = R.color.textSecondary;
+                break;
+            default:
+                text = R.string.network_settings_status_failed;
+                color = R.color.error;
+                break;
+        }
+        networkOperationStatus.setText(text);
+        networkOperationStatus.setTextColor(ContextCompat.getColor(this, color));
+    }
+
+    private void showNetworkValidationError(NetworkSettingsValidator.Error error) {
+        switch (error) {
+            case ADDRESS_REQUIRED:
+                networkIpLayout.setError(getString(R.string.network_settings_error_ip_required));
+                break;
+            case ADDRESS_INVALID:
+                networkIpLayout.setError(getString(R.string.network_settings_error_ip_invalid));
+                break;
+            case SUBNET_INVALID:
+                networkSubnetLayout.setError(getString(R.string.network_settings_error_subnet));
+                break;
+            case GATEWAY_REQUIRED:
+                networkGatewayLayout.setError(getString(
+                        R.string.network_settings_error_gateway_required));
+                break;
+            case GATEWAY_INVALID:
+                networkGatewayLayout.setError(getString(R.string.network_settings_error_gateway));
+                break;
+            case GATEWAY_OUTSIDE_SUBNET:
+                networkGatewayLayout.setError(getString(
+                        R.string.network_settings_error_gateway_subnet));
+                break;
+            case DNS_REQUIRED:
+                networkPrimaryDnsLayout.setError(getString(
+                        R.string.network_settings_error_dns_required));
+                break;
+            case DNS_INVALID:
+                networkPrimaryDnsLayout.setError(getString(R.string.network_settings_error_dns));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void clearNetworkErrors() {
+        networkIpLayout.setError(null);
+        networkSubnetLayout.setError(null);
+        networkGatewayLayout.setError(null);
+        networkPrimaryDnsLayout.setError(null);
+        networkSecondaryDnsLayout.setError(null);
+    }
+
+    private static String text(EditText view) {
+        return view.getText() == null ? "" : view.getText().toString().trim();
     }
 
     private void renderConnection(boolean connected) {

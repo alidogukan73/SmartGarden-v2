@@ -109,10 +109,32 @@ public final class ZoneCapacityPolicy {
             boolean hasLocalHistory,
             boolean hasCloudHistory
     ) {
+        return decideDeactivation(
+                zoneExists,
+                seasonStatus,
+                activeSeasonId,
+                false,
+                irrigationBusy,
+                hasLocalHistory,
+                hasCloudHistory
+        );
+    }
+
+    /** Also protects an active manifest if the zone state was left inconsistent. */
+    public static DeactivationAction decideDeactivation(
+            boolean zoneExists,
+            String seasonStatus,
+            String activeSeasonId,
+            boolean hasActiveSeasonManifest,
+            boolean irrigationBusy,
+            boolean hasLocalHistory,
+            boolean hasCloudHistory
+    ) {
         if (!zoneExists) {
             throw new IllegalStateException(ERROR_ZONE_NOT_FOUND);
         }
-        if (hasProtectedSeason(seasonStatus, activeSeasonId)) {
+        if (hasProtectedSeason(seasonStatus, activeSeasonId)
+                || hasActiveSeasonManifest) {
             throw new IllegalStateException(ERROR_ACTIVE_SEASON);
         }
         if (irrigationBusy) {
@@ -125,6 +147,7 @@ public final class ZoneCapacityPolicy {
 
 
     /** Returns an unused channel, preferring a never-created slot over an archived slot. */
+    @SuppressWarnings("unused")
     public static int nextAvailableSlot(List<GardenZone> zones) {
         boolean[] exists = new boolean[MAX_ZONES + 1];
         boolean[] active = new boolean[MAX_ZONES + 1];

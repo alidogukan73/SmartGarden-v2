@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="season_delete_empty_action">Delete</string>
+    <string name="season_delete_empty_dialog_title">Delete %1$s season</string>
+    <string name="season_delete_empty_dialog_message">This season has no watering, fertilization, journal, photo, or analysis records yet. Only this untouched season will be deleted. Continue?</string>
+    <string name="season_delete_empty_confirm">Delete season</string>
+    <string name="season_delete_empty_success">The untouched season was deleted.</string>
+    <string name="season_delete_empty_failed">The season could not be deleted.</string>
+</resources>

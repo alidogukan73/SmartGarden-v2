@@ -20,6 +20,26 @@ public final class NotificationPolicy {
 
     private NotificationPolicy() { }
 
+    /**
+     * Keep a backend-issued incident id identical on every phone/emulator so
+     * all clients write the same notification record. Reusable local signals
+     * still receive a start timestamp and can be reported again after recovery.
+     */
+    public static String incidentSourceKey(
+            String incidentKey,
+            String sourceKey,
+            long startedAtMillis) {
+        String sourceBase = sourceKey == null || sourceKey.isBlank()
+                ? "incident:" + incidentKey
+                : sourceKey;
+        String normalized = sourceBase.toLowerCase(Locale.ROOT);
+        boolean backendIncident = normalized.startsWith("device-error:incident:")
+                && !normalized.endsWith(":legacy");
+        return backendIncident
+                ? sourceBase
+                : sourceBase + ":started:" + startedAtMillis;
+    }
+
     public static String categoryFor(String type) {
         String normalized = type == null ? "" : type.trim().toUpperCase(Locale.ROOT);
         switch (normalized) {
@@ -133,6 +153,24 @@ public final class NotificationPolicy {
     }
 
 
+    public static boolean isConfirmedWateringState(
+            boolean zoneWateringActive,
+            String zoneValveId,
+            boolean centralValveOpen,
+            String activeValveId,
+            long deviceLastSeenEpoch,
+            long nowEpoch,
+            long maximumStatusAgeSeconds) {
+        String expectedValve = zoneValveId == null ? "" : zoneValveId.trim();
+        String activeValve = activeValveId == null ? "" : activeValveId.trim();
+        return zoneWateringActive
+                && centralValveOpen
+                && !expectedValve.isEmpty()
+                && expectedValve.equalsIgnoreCase(activeValve)
+                && !isDeviceOffline(
+                true, deviceLastSeenEpoch, nowEpoch, maximumStatusAgeSeconds);
+    }
+
     public static boolean shouldNotifyIrrigationAi(
             boolean zoneEnabled,
             boolean irrigationEnabled,
@@ -146,6 +184,22 @@ public final class NotificationPolicy {
         return updatedAtMillis > 0L
                 && nowMillis >= updatedAtMillis
                 && nowMillis - updatedAtMillis <= Math.max(0L, maximumAgeMillis);
+    }
+
+    public static boolean shouldNotifyLowMoisture(
+            boolean zoneEnabled,
+            boolean seasonActive,
+            String activeSeasonId,
+            boolean sensorEnabled,
+            boolean alertEnabled,
+            int moisture,
+            int moistureLimit,
+            long updatedAtEpoch,
+            long nowEpoch,
+            long maximumAgeSeconds) {
+        return isActiveSeasonNotificationTarget(zoneEnabled, seasonActive, activeSeasonId)
+                && sensorEnabled && alertEnabled && moisture < moistureLimit
+                && isFreshEpochSeconds(updatedAtEpoch, nowEpoch, maximumAgeSeconds);
     }
 
     public static boolean isActionableFertilizerAdvice(String status) {

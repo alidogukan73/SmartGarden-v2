@@ -2,6 +2,7 @@ package com.alidogukan.avora.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
@@ -25,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.models.CropCatalogItem;
 import com.alidogukan.avora.models.GardenZone;
+import com.alidogukan.avora.zones.PhysicalZoneIdentity;
 import com.alidogukan.avora.viewmodels.ZoneManagementViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -51,8 +53,8 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         addButton = findViewById(R.id.btnAddZone);
         viewModel = new ViewModelProvider(this).get(ZoneManagementViewModel.class);
         findViewById(R.id.btnBack).setOnClickListener(view -> finish());
-        findViewById(R.id.btnOpenCropCatalog).setOnClickListener(view ->
-                startActivity(new Intent(this, CropCatalogActivity.class)));
+        findViewById(R.id.btnOpenSeasonManagement).setOnClickListener(view ->
+                startActivity(new Intent(this, SeasonManagementActivity.class)));
         addButton.setOnClickListener(view -> showNewZoneEditor());
 
         crops = viewModel.mergedCrops(null);
@@ -67,12 +69,18 @@ public final class ZoneManagementActivity extends AppCompatActivity {
     }
 
     private void showNewZoneEditor() {
-        List<Integer> availableSlots = viewModel.availableSlots(zones);
-        if (availableSlots.isEmpty()) {
+        if (viewModel.availableSlots(zones).isEmpty()) {
             Toast.makeText(this, R.string.zone_management_capacity_full, Toast.LENGTH_LONG).show();
             return;
         }
-        showEditor(null, availableSlots.get(0), availableSlots);
+        startActivity(new Intent(this, ZoneEditorActivity.class));
+    }
+
+    private void showZoneEditor(GardenZone zone) {
+        if (zone == null || safe(zone.getZone_id()).isEmpty()) return;
+        Intent intent = new Intent(this, ZoneEditorActivity.class);
+        intent.putExtra(ZoneEditorActivity.EXTRA_ZONE_ID, zone.getZone_id());
+        startActivity(intent);
     }
 
     private void render() {
@@ -93,7 +101,13 @@ public final class ZoneManagementActivity extends AppCompatActivity {
     private void addZoneCard(@Nullable GardenZone zone, int slot) {
         MaterialCardView card = new MaterialCardView(this);
         card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surfaceElevated));
-        card.setStrokeColor(ContextCompat.getColor(this, R.color.border));
+        try {
+            card.setStrokeColor(Color.parseColor(zone == null
+                    ? PhysicalZoneIdentity.DEFAULT_COLOR
+                    : PhysicalZoneIdentity.color(zone)));
+        } catch (IllegalArgumentException ignored) {
+            card.setStrokeColor(ContextCompat.getColor(this, R.color.border));
+        }
         card.setStrokeWidth(dp(1));
         card.setRadius(dp(18));
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -157,7 +171,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
             actions.setOrientation(LinearLayout.HORIZONTAL);
             MaterialButton edit = button(R.string.zone_management_edit);
             MaterialButton deactivate = outlinedDeactivateButton();
-            edit.setOnClickListener(view -> showEditor(zone, slot));
+            edit.setOnClickListener(view -> showZoneEditor(zone));
             deactivate.setOnClickListener(view -> confirmDeactivate(zone));
             LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(
                     0, dp(48), 1f);
@@ -210,7 +224,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         int cropPosition = cropPosition(editorCrops, existing);
         if (cropPosition < 0 && existing != null) {
             CropCatalogItem legacy = new CropCatalogItem("current-zone-product",
-                    safeName(existing, slot), symbol(existing), safe(existing.getPlant_type()),
+                    cropDisplayName(existing), symbol(existing), safe(existing.getPlant_type()),
                     existing.getMoisture_limit(), Math.min(100, existing.getMoisture_limit() + 20),
                     CropCatalogItem.SOURCE_USER, true);
             editorCrops.add(0, legacy);
@@ -238,7 +252,7 @@ public final class ZoneManagementActivity extends AppCompatActivity {
         name.setSingleLine(true);
         name.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         if (existing != null && !viewModel.isInactive(existing)) {
-            name.setText(existing.getName());
+            name.setText(PhysicalZoneIdentity.name(existing));
         }
         form.addView(label(R.string.zone_management_name));
         form.addView(name, fieldParams());
@@ -278,18 +292,23 @@ public final class ZoneManagementActivity extends AppCompatActivity {
                 NestedScrollView.LayoutParams.MATCH_PARENT,
                 NestedScrollView.LayoutParams.WRAP_CONTENT));
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
                 .setTitle(existing == null || viewModel.isInactive(existing)
                         ? R.string.zone_management_add_dialog
                         : R.string.zone_management_edit_dialog)
                 .setMessage(channelSelectable
-                        ? getString(R.string.zone_management_dialog_choose_channel)
+                        ? getString(R.string.zone_management_multi_crop_channel_hint)
                         : getString(R.string.zone_management_dialog_channel,
                                 viewModel.zoneId(slot)))
                 .setView(formScroll)
                 .setNegativeButton(R.string.settings_cancel, null)
-                .setPositiveButton(R.string.settings_save, null)
-                .create();
+                .setPositiveButton(R.string.settings_save, null);
+        if (channelSelectable) {
+            dialogBuilder.setNeutralButton(R.string.zone_management_add_crop_to_active,
+                    (ignored, which) -> startActivity(
+                            new Intent(this, SeasonManagementActivity.class)));
+        }
+        AlertDialog dialog = dialogBuilder.create();
         dialog.setOnShowListener(ignored ->
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                     CropCatalogItem crop = editorCrops.get(cropSpinner.getSelectedItemPosition());
@@ -488,13 +507,17 @@ public final class ZoneManagementActivity extends AppCompatActivity {
     }
 
     private String safeName(GardenZone zone, int slot) {
-        String name = safe(zone == null ? "" : zone.getName());
-        return name.isEmpty() ? getString(R.string.zone_management_default_name, slot) : name;
+        return zone == null ? PhysicalZoneIdentity.defaultName(slot)
+                : PhysicalZoneIdentity.name(zone);
+    }
+
+    private String cropDisplayName(GardenZone zone) {
+        String cropName = safe(zone == null ? "" : zone.getName());
+        return cropName.isEmpty() ? safe(zone == null ? "" : zone.getPlant_type()) : cropName;
     }
 
     private static String symbol(GardenZone zone) {
-        String value = safe(zone == null ? "" : zone.getEmoji());
-        return value.isEmpty() ? "🌱" : value;
+        return PhysicalZoneIdentity.icon(zone);
     }
 
     private static String value(EditText field) {

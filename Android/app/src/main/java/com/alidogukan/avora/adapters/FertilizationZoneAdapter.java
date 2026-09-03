@@ -120,7 +120,7 @@ public class FertilizationZoneAdapter extends RecyclerView.Adapter<
             txtZoneName.setText(itemView.getContext().getString(
                     R.string.runtime_icon_label,
                     emoji,
-                    zone.getName()));
+                    com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone)));
 
             FertilizationProfile profile = zone.getFertilization();
             boolean configured = profile != null && profile.isEnabled();

@@ -101,6 +101,8 @@ def verify_pending_measurement_round_trip() -> None:
         firmware="2.9.0",
         zone_id="zone-001",
         sensor_id="soil-001",
+        season_id="season-tomato",
+        season_ids=("season-tomato", "season-pepper"),
     )
     pending = PendingWateringMeasurement(
         pending_key=record.firebase_key,
@@ -113,6 +115,8 @@ def verify_pending_measurement_round_trip() -> None:
         pending.to_payload()
     )
     assert restored == pending
+    assert restored.record.season_id == "season-tomato"
+    assert restored.record.season_ids == ("season-tomato", "season-pepper")
     assert PendingWateringMeasurement.from_payload({}) is None
 
 

@@ -104,9 +104,7 @@ public class GardenHealthDetailActivity extends AppCompatActivity {
                 zone.getEmoji() == null
                         ? getString(R.string.symbol_plant)
                         : zone.getEmoji(),
-                zone.getName() == null
-                        ? getString(R.string.zone_fallback_name)
-                        : zone.getName()));
+                com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone)));
         title.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
         title.setTextSize(16);
         title.setTypeface(null, android.graphics.Typeface.BOLD);

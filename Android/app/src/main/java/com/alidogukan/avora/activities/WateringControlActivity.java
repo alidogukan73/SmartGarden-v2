@@ -13,9 +13,11 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import com.alidogukan.avora.models.GardenSeason;
 
 import com.alidogukan.avora.R;
 import com.alidogukan.avora.models.Command;
+import com.alidogukan.avora.season.SeasonDisplayIdentity;
 import com.alidogukan.avora.models.Status;
 import com.alidogukan.avora.models.GardenZone;
 import com.alidogukan.avora.viewmodels.MainViewModel;
@@ -44,6 +46,7 @@ public class WateringControlActivity extends AppCompatActivity {
     private LinearLayout manualValves;
     private TextView manualValveSafety;
     private List<GardenZone> zones = Collections.emptyList();
+    private List<GardenSeason> seasons = Collections.emptyList();
     private String activeValveId = "";
     private boolean valveOpen;
     private boolean updatingValveSwitch;
@@ -100,6 +103,11 @@ public class WateringControlActivity extends AppCompatActivity {
                     renderManualValves();
                 }
         );
+        viewModel.getGardenSeasons().observe(this, items -> {
+            seasons = items != null ? items : Collections.emptyList();
+            renderManualValves();
+        });
+
         viewModel.getError().observe(this, message -> {
             if (message != null && !message.isBlank()) {
                 Toast.makeText(
@@ -365,16 +373,14 @@ public class WateringControlActivity extends AppCompatActivity {
                     R.id.switchManualValve
             );
 
-            String emoji = zone.getEmoji() == null
-                    ? getString(R.string.symbol_plant)
-                    : zone.getEmoji();
+            String emoji = SeasonDisplayIdentity.physicalIcon(zone);
             boolean zonePhysical = VALVE_MODE_PHYSICAL.equalsIgnoreCase(
                     zone.getValve_mode()
             );
             name.setText(getString(
                     R.string.runtime_icon_label,
                     emoji,
-                    zone.getName()));
+                    zoneName(zone)));
             detail.setText(
                     getString(
                             R.string.runtime_value_suffix,
@@ -384,6 +390,11 @@ public class WateringControlActivity extends AppCompatActivity {
                                     : getString(R.string.runtime_simulation_suffix)
                     )
             );
+            String crops = SeasonDisplayIdentity.activeCropNames(zone, seasons);
+            if (!crops.isBlank()) {
+                detail.setText(getString(R.string.runtime_crops_hardware_detail,
+                        crops, detail.getText()));
+            }
             boolean thisValveOpen =
                     valveOpen
                             && zone.getValve_id()
@@ -503,8 +514,8 @@ public class WateringControlActivity extends AppCompatActivity {
                             R.string.runtime_three_lines,
                             getString(
                                     R.string.runtime_icon_label,
-                                    zone.getEmoji(),
-                                    zone.getName()),
+                                    SeasonDisplayIdentity.operationalEmoji(zone, seasons),
+                                    zoneName(zone)),
                             getString(
                                     R.string.runtime_sensor_valve,
                                     valveId,
@@ -532,7 +543,7 @@ public class WateringControlActivity extends AppCompatActivity {
                                 )
                                 .setMessage(getString(
                                         R.string.valve_setup_confirm_message,
-                                        zone.getName()
+                                        zoneName(zone)
                                 ))
                                 .setNegativeButton(
                                         android.R.string.cancel,
@@ -567,7 +578,7 @@ public class WateringControlActivity extends AppCompatActivity {
         Toast.makeText(
                 this,
                 getString(R.string.valve_setup_status_format,
-                        zone.getName(),
+                        zoneName(zone),
                         getString(
                                 physical
                                         ? R.string.valve_setup_physical
@@ -576,4 +587,8 @@ public class WateringControlActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT
         ).show();
     }
+    private String zoneName(GardenZone zone) {
+        return SeasonDisplayIdentity.operationalName(zone, seasons);
+    }
+
 }

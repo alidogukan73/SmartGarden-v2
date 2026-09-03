@@ -101,9 +101,11 @@ public final class GardenNotificationManager {
             boolean active = preferences.getBoolean("active:" + incidentKey, false);
             if (active) return null;
 
-            String sourceBase = sourceKey == null || sourceKey.isBlank()
-                    ? "incident:" + incidentKey : sourceKey;
-            String effectiveSource = sourceBase + ":started:" + now;
+            String effectiveSource = NotificationPolicy.incidentSourceKey(
+                    incidentKey,
+                    sourceKey,
+                    now
+            );
 
             GardenNotification value = publishOnce(
                     type, priority, zoneId, title, description, effectiveSource);
@@ -341,7 +343,7 @@ public final class GardenNotificationManager {
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context, channelId)
-                        .setSmallIcon(R.drawable.ic_leaf_24)
+                        .setSmallIcon(R.drawable.ic_avora_notification_small)
                         .setColor(
                                 ContextCompat.getColor(
                                         context,

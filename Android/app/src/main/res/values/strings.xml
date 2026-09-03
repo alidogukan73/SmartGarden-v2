@@ -1249,7 +1249,7 @@
     <string name="settings_quick_notifications">Bildirim\nAyarları</string>
     <string name="settings_quick_weather">Yağış\nAyarları</string>
     <string name="settings_quick_fertilization">Gübreleme\nAyarları</string>
-    <string name="settings_quick_device">Cihaz\nSağlığı</string>
+    <string name="settings_quick_device">Cihaz\nBilgileri</string>
     <string name="settings_quick_about">Uygulama\nHakkında</string>
     <string name="settings_quick_editor_title">Hızlı Ayarları düzenle</string>
     <string name="settings_quick_editor_message">Dört kısayol seçin, oklarla görünme sırasını değiştirin.</string>
@@ -1353,4 +1353,6 @@
     <string name="runtime_avora_comment_prefix">AVORA yorumu: </string>
 
     <string name="duration_hours_minutes_format">%1$d sa %2$d dk</string>
+    <!-- HAVA DURUMU -->
+    <string name="weather_temperature_chart_title">Sıcaklık grafiği</string>
 </resources>

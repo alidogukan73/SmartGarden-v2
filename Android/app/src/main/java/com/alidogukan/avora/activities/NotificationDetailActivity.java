@@ -156,7 +156,7 @@ public class NotificationDetailActivity extends AppCompatActivity {
                 zoneView.setText(readableZoneFallback(zoneId));
                 return;
             }
-            String name = zone.getName() == null ? "" : zone.getName().trim();
+            String name = com.alidogukan.avora.zones.PhysicalZoneIdentity.name(zone);
             String emoji = zone.getEmoji() == null ? "" : zone.getEmoji().trim();
             String label = (emoji + " " + name).trim();
             zoneView.setText(label.isBlank() ? readableZoneFallback(zoneId) : label);

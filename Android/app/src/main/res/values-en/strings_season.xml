@@ -2,9 +2,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="season_cancel">Cancel</string>
     <string name="season_management_title">Season Management</string>
-    <string name="season_management_subtitle">Safely start, close, and archive each zone season</string>
+    <string name="season_management_subtitle">Manage one or more crop seasons in each physical area</string>
     <string name="season_management_info_title">Your records are protected</string>
-    <string name="season_management_info_body">A new season resets only the seasonal plan for the zone. Previous watering, fertilizing, journal, photo, and Plant Assistant records remain in the season archive.</string>
+    <string name="season_management_info_body">Crops in the same physical area share the sensor and valve, while each crop keeps a separate season and archive. Shared watering is enabled only when their moisture ranges are compatible.</string>
     <string name="season_management_zones_title">Active zones and seasons</string>
     <string name="season_management_loading">Preparing season information…</string>
     <string name="season_management_no_zones">There are no garden zones to manage yet.</string>
@@ -24,6 +24,11 @@
     <string name="season_label_fallback">Season</string>
     <string name="season_date_unknown">Date unknown</string>
     <string name="season_active_summary">%1$s · Started: %2$s</string>
+    <string name="season_active_crop_summary">%1$s · Started: %2$s</string>
+    <plurals name="season_active_crop_count">
+        <item quantity="one">%1$d active crop season · Sensor and valve are shared</item>
+        <item quantity="other">%1$d active crop seasons · Sensor and valve are shared</item>
+    </plurals>
     <string name="season_closed_summary">%1$s · Closed: %2$s</string>
     <string name="season_history_empty">No completed season yet.</string>
     <string name="season_result_not_entered">No result entered</string>
@@ -33,17 +38,20 @@
     </plurals>
     <string name="season_prepare_action">Preparing season…</string>
     <string name="season_start_action">Start new season</string>
+    <string name="season_add_crop_action">Add a crop season to this area</string>
     <string name="season_close_action">Close season</string>
+    <string name="season_close_short_action">Close</string>
     <string name="season_start_dialog_title">%1$s · New season</string>
-    <string name="season_start_dialog_message">Previous season records remain unchanged. New records are stored under the new season ID.</string>
+    <string name="season_start_dialog_message">This crop shares the physical area sensor and valve while keeping its own season ID and archive.</string>
     <string name="season_start_planting_date_hint">Planting or transplanting date (dd-MM-yyyy)</string>
     <string name="season_start_label_hint">Season name</string>
     <string name="season_default_label">%1$s Season</string>
     <string name="season_invalid_date" tools:ignore="TypographyDashes">Enter the date in day-month-year format. Example: 30-07-2026</string>
-    <string name="season_started_success">The new season was started safely.</string>
+    <string name="season_started_success">The crop season was started safely.</string>
     <string name="season_start_failed">The new season could not be started.</string>
+    <string name="season_shared_irrigation_incompatible">This crop’s ideal moisture range does not overlap with the active crops in this area. Safe shared watering cannot use the same valve.</string>
     <string name="season_close_dialog_title">%1$s · Close season</string>
-    <string name="season_close_dialog_message">Watering and all valves must be off. After closing, no new records can be added to this zone until you start another season.</string>
+    <string name="season_close_dialog_message">Watering and the valve must be off. Only this crop season is closed; other active crops in the area continue operating.</string>
     <string name="season_harvest_amount_hint">Approximate harvest amount (for example, 18 kg)</string>
     <string name="season_yield_note_hint">Yield assessment</string>
     <string name="season_issues_hint">Issues observed during the season</string>
